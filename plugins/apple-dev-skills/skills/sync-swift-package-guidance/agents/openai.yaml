@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync Swift Package Guidance"
+  short_description: "Align AGENTS and workflow guidance for Swift package repos"
+  default_prompt: "Use $sync-swift-package-guidance to add or merge AGENTS.md and Swift package workflow guidance into an existing Swift Package Manager repository."

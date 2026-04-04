@@ -1,0 +1,10 @@
+schemaVersion: 1
+isCustomized: false
+settings:
+  defaultProjectKind: "app"
+  defaultPlatform: "ask"
+  defaultUIStack: "swiftui"
+  defaultProjectGenerator: "ask"
+  defaultOrgIdentifier: "com.example"
+  copyAgentsMd: true
+  validationMode: "full"

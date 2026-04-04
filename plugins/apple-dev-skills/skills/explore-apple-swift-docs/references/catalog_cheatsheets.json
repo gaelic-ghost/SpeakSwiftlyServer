@@ -1,0 +1,883 @@
+{
+  "count": 146,
+  "entries": [
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Ack.rb",
+      "name": "Ack",
+      "slug": "Ack",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Amethyst.rb",
+      "name": "Amethyst",
+      "slug": "Amethyst",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Android_Codenames_Tags_Build_Numbers.rb",
+      "name": "Android Codenames Tags Build Numbers",
+      "slug": "Android_Codenames_Tags_Build_Numbers",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Android_Emulator.rb",
+      "name": "Android Emulator",
+      "slug": "Android_Emulator",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Ansible.rb",
+      "name": "Ansible",
+      "slug": "Ansible",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/AppCode_Shortcuts.rb",
+      "name": "AppCode Shortcuts",
+      "slug": "AppCode_Shortcuts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/ASCII_Tables.rb",
+      "name": "ASCII Tables",
+      "slug": "ASCII_Tables",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/AsciiDoctor.rb",
+      "name": "AsciiDoctor",
+      "slug": "AsciiDoctor",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Atom.rb",
+      "name": "Atom",
+      "slug": "Atom",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Axios.rb",
+      "name": "Axios",
+      "slug": "Axios",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Bash_Shortcuts.rb",
+      "name": "Bash Shortcuts",
+      "slug": "Bash_Shortcuts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Bash_Test_Operators.rb",
+      "name": "Bash Test Operators",
+      "slug": "Bash_Test_Operators",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Blender.rb",
+      "name": "Blender",
+      "slug": "Blender",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Brackets.rb",
+      "name": "Brackets",
+      "slug": "Brackets",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Capybara.rb",
+      "name": "Capybara",
+      "slug": "Capybara",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Cargo.rb",
+      "name": "Cargo",
+      "slug": "Cargo",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Carthage.rb",
+      "name": "Carthage",
+      "slug": "Carthage",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Chemical_Elements.rb",
+      "name": "Chemical Elements",
+      "slug": "Chemical_Elements",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Chrome_Dev_Tools.rb",
+      "name": "Chrome Dev Tools",
+      "slug": "Chrome_Dev_Tools",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Chromium_Command_Line_Switches.rb",
+      "name": "Chromium Command Line Switches",
+      "slug": "Chromium_Command_Line_Switches",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/CircleCI_Standard_Variables.rb",
+      "name": "CircleCI Standard Variables",
+      "slug": "CircleCI_Standard_Variables",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Conda.rb",
+      "name": "Conda",
+      "slug": "Conda",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Conventional_Commits.rb",
+      "name": "Conventional Commits",
+      "slug": "Conventional_Commits",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Crontab.rb",
+      "name": "Crontab",
+      "slug": "Crontab",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/CSS_Device_Media_Queries.rb",
+      "name": "CSS Device Media Queries",
+      "slug": "CSS_Device_Media_Queries",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/CSS_Named_Colors.rb",
+      "name": "CSS Named Colors",
+      "slug": "CSS_Named_Colors",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/CUDA_C.rb",
+      "name": "CUDA C",
+      "slug": "CUDA_C",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Docker.rb",
+      "name": "Docker",
+      "slug": "Docker",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Dockerfile.rb",
+      "name": "Dockerfile",
+      "slug": "Dockerfile",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/dzil.rb",
+      "name": "dzil",
+      "slug": "dzil",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Elixir_Guards.rb",
+      "name": "Elixir Guards",
+      "slug": "Elixir_Guards",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Emacs.rb",
+      "name": "Emacs",
+      "slug": "Emacs",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Emerge.rb",
+      "name": "Emerge",
+      "slug": "Emerge",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Emoji.rb",
+      "name": "Emoji",
+      "slug": "Emoji",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/ExpressionEngine_Parse_Order.rb",
+      "name": "ExpressionEngine Parse Order",
+      "slug": "ExpressionEngine_Parse_Order",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Final_Cut_Pro.rb",
+      "name": "Final Cut Pro",
+      "slug": "Final_Cut_Pro",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/FSharp.rb",
+      "name": "FSharp",
+      "slug": "FSharp",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/GDB.rb",
+      "name": "GDB",
+      "slug": "GDB",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Git.rb",
+      "name": "Git",
+      "slug": "Git",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Git_Flow.rb",
+      "name": "Git Flow",
+      "slug": "Git_Flow",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Git_Subversion.rb",
+      "name": "Git Subversion",
+      "slug": "Git_Subversion",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Gitmoji.rb",
+      "name": "Gitmoji",
+      "slug": "Gitmoji",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Google_AdWords_Image_Ad_Specs.rb",
+      "name": "Google AdWords Image Ad Specs",
+      "slug": "Google_AdWords_Image_Ad_Specs",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Grafx2.rb",
+      "name": "Grafx2",
+      "slug": "Grafx2",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Greek_Alphabet.rb",
+      "name": "Greek Alphabet",
+      "slug": "Greek_Alphabet",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Helix.rb",
+      "name": "Helix",
+      "slug": "Helix",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HipChat.rb",
+      "name": "HipChat",
+      "slug": "HipChat",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HTML_Entities.rb",
+      "name": "HTML Entities",
+      "slug": "HTML_Entities",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HTML_Head_Elements.rb",
+      "name": "HTML Head Elements",
+      "slug": "HTML_Head_Elements",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HTTP_Header_Fields.rb",
+      "name": "HTTP Header Fields",
+      "slug": "HTTP_Header_Fields",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HTTP_Status_Codes.rb",
+      "name": "HTTP Status Codes",
+      "slug": "HTTP_Status_Codes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/HTTP_Status_Codes_Rails.rb",
+      "name": "HTTP Status Codes Rails",
+      "slug": "HTTP_Status_Codes_Rails",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Hub.rb",
+      "name": "Hub",
+      "slug": "Hub",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/IntelliJ_Shortcuts.rb",
+      "name": "IntelliJ Shortcuts",
+      "slug": "IntelliJ_Shortcuts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/iOS_Design.rb",
+      "name": "iOS Design",
+      "slug": "iOS_Design",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/iPython_Notebook.rb",
+      "name": "iPython Notebook",
+      "slug": "iPython_Notebook",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/iTerm2.rb",
+      "name": "iTerm2",
+      "slug": "iTerm2",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Jasmine-jQuery.rb",
+      "name": "Jasmine-jQuery",
+      "slug": "Jasmine-jQuery",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Java_Lambda_Syntax.rb",
+      "name": "Java Lambda Syntax",
+      "slug": "Java_Lambda_Syntax",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Jira_Shortcuts.rb",
+      "name": "Jira Shortcuts",
+      "slug": "Jira_Shortcuts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Keybase.io.rb",
+      "name": "Keybase.io",
+      "slug": "Keybase.io",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/KStreams.rb",
+      "name": "KStreams",
+      "slug": "KStreams",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Kubernetes.rb",
+      "name": "Kubernetes",
+      "slug": "Kubernetes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/LaTeX_Math_Symbols.rb",
+      "name": "LaTeX Math Symbols",
+      "slug": "LaTeX_Math_Symbols",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Licenses.rb",
+      "name": "Licenses",
+      "slug": "Licenses",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/LLDB_Chisel_Commands.rb",
+      "name": "LLDB Chisel Commands",
+      "slug": "LLDB_Chisel_Commands",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/LLDB_Commands.rb",
+      "name": "LLDB Commands",
+      "slug": "LLDB_Commands",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/LLDB_to_GDB_Command_Map.rb",
+      "name": "LLDB to GDB Command Map",
+      "slug": "LLDB_to_GDB_Command_Map",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Mac_Startup_Keys.rb",
+      "name": "Mac Startup Keys",
+      "slug": "Mac_Startup_Keys",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/MacPorts.rb",
+      "name": "MacPorts",
+      "slug": "MacPorts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Magit_for_Emacs.rb",
+      "name": "Magit for Emacs",
+      "slug": "Magit_for_Emacs",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Mercurial.rb",
+      "name": "Mercurial",
+      "slug": "Mercurial",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Metric_Prefixes.rb",
+      "name": "Metric Prefixes",
+      "slug": "Metric_Prefixes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/MIME_Types.rb",
+      "name": "MIME Types",
+      "slug": "MIME_Types",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Mutt.rb",
+      "name": "Mutt",
+      "slug": "Mutt",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Netcat.rb",
+      "name": "Netcat",
+      "slug": "Netcat",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/npm.rb",
+      "name": "npm",
+      "slug": "npm",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/NSDateFormatter.rb",
+      "name": "NSDateFormatter",
+      "slug": "NSDateFormatter",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/NSPredicate.rb",
+      "name": "NSPredicate",
+      "slug": "NSPredicate",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Objective-C.rb",
+      "name": "Objective-C",
+      "slug": "Objective-C",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Objective-C_@Compiler_Directives.rb",
+      "name": "Objective-C @Compiler Directives",
+      "slug": "Objective-C_@Compiler_Directives",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Objective-C_Blocks.rb",
+      "name": "Objective-C Blocks",
+      "slug": "Objective-C_Blocks",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Obsidian.rb",
+      "name": "Obsidian",
+      "slug": "Obsidian",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/OCMock.rb",
+      "name": "OCMock",
+      "slug": "OCMock",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Oh-My-Zsh_Git.rb",
+      "name": "Oh-My-Zsh Git",
+      "slug": "Oh-My-Zsh_Git",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Oh-My-Zsh_Kubectl.rb",
+      "name": "Oh-My-Zsh Kubectl",
+      "slug": "Oh-My-Zsh_Kubectl",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/ON1_Photo_RAW.rb",
+      "name": "ON1 Photo RAW",
+      "slug": "ON1_Photo_RAW",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/OpenSCAD.rb",
+      "name": "OpenSCAD",
+      "slug": "OpenSCAD",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/openssl.rb",
+      "name": "openssl",
+      "slug": "openssl",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Origami_for_Sublime_Text.rb",
+      "name": "Origami for Sublime Text",
+      "slug": "Origami_for_Sublime_Text",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/phpSpec.rb",
+      "name": "phpSpec",
+      "slug": "phpSpec",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/PhpStorm.rb",
+      "name": "PhpStorm",
+      "slug": "PhpStorm",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/PHPUnit_in_Laravel.rb",
+      "name": "PHPUnit in Laravel",
+      "slug": "PHPUnit_in_Laravel",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/PostgreSQL_CLI.rb",
+      "name": "PostgreSQL CLI",
+      "slug": "PostgreSQL_CLI",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Prezto.rb",
+      "name": "Prezto",
+      "slug": "Prezto",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Prezto_Git.rb",
+      "name": "Prezto Git",
+      "slug": "Prezto_Git",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/puma-dev.rb",
+      "name": "puma-dev",
+      "slug": "puma-dev",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Python_Debugger.rb",
+      "name": "Python Debugger",
+      "slug": "Python_Debugger",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Python_Exceptions.rb",
+      "name": "Python Exceptions",
+      "slug": "Python_Exceptions",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Python_Format_Strings.rb",
+      "name": "Python Format Strings",
+      "slug": "Python_Format_Strings",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Python_unittest_Assertions.rb",
+      "name": "Python unittest Assertions",
+      "slug": "Python_unittest_Assertions",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Rails_i18n.rb",
+      "name": "Rails i18n",
+      "slug": "Rails_i18n",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Rails_Migrations_CLI.rb",
+      "name": "Rails Migrations CLI",
+      "slug": "Rails_Migrations_CLI",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/ranger.rb",
+      "name": "ranger",
+      "slug": "ranger",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/RBQL.rb",
+      "name": "RBQL",
+      "slug": "RBQL",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Regular_Expressions.rb",
+      "name": "Regular Expressions",
+      "slug": "Regular_Expressions",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/ROS.rb",
+      "name": "ROS",
+      "slug": "ROS",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/RSpec_Expectations.rb",
+      "name": "RSpec Expectations",
+      "slug": "RSpec_Expectations",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Ruby_strftime.rb",
+      "name": "Ruby strftime",
+      "slug": "Ruby_strftime",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/screen.rb",
+      "name": "screen",
+      "slug": "screen",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Scrivener.rb",
+      "name": "Scrivener",
+      "slug": "Scrivener",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Semantic_Branches.rb",
+      "name": "Semantic Branches",
+      "slug": "Semantic_Branches",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Semantic_Commits.rb",
+      "name": "Semantic Commits",
+      "slug": "Semantic_Commits",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/SilverStripe_Templates.rb",
+      "name": "SilverStripe Templates",
+      "slug": "SilverStripe_Templates",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/SIP_Response_Codes.rb",
+      "name": "SIP Response Codes",
+      "slug": "SIP_Response_Codes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Siteleaf.rb",
+      "name": "Siteleaf",
+      "slug": "Siteleaf",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Sketch.rb",
+      "name": "Sketch",
+      "slug": "Sketch",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/SMTP_Status_Codes.rb",
+      "name": "SMTP Status Codes",
+      "slug": "SMTP_Status_Codes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Snyk.rb",
+      "name": "Snyk",
+      "slug": "Snyk",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Sourcetree.rb",
+      "name": "Sourcetree",
+      "slug": "Sourcetree",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/SQLite.rb",
+      "name": "SQLite",
+      "slug": "SQLite",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/strftime_Format_Codes.rb",
+      "name": "strftime Format Codes",
+      "slug": "strftime_Format_Codes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Sublime_Text_2.rb",
+      "name": "Sublime Text 2",
+      "slug": "Sublime_Text_2",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Sublime_Text_3.rb",
+      "name": "Sublime Text 3",
+      "slug": "Sublime_Text_3",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/SUIT_CSS_Naming_Conventions.rb",
+      "name": "SUIT CSS Naming Conventions",
+      "slug": "SUIT_CSS_Naming_Conventions",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Swift.rb",
+      "name": "Swift",
+      "slug": "Swift",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Textastic.rb",
+      "name": "Textastic",
+      "slug": "Textastic",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Things.rb",
+      "name": "Things",
+      "slug": "Things",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/tmux.rb",
+      "name": "tmux",
+      "slug": "tmux",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Tower.rb",
+      "name": "Tower",
+      "slug": "Tower",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Trello.rb",
+      "name": "Trello",
+      "slug": "Trello",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Unix_File_Permissions.rb",
+      "name": "Unix File Permissions",
+      "slug": "Unix_File_Permissions",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Vim.rb",
+      "name": "Vim",
+      "slug": "Vim",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Vim_CN.rb",
+      "name": "Vim CN",
+      "slug": "Vim_CN",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/VimBox.rb",
+      "name": "VimBox",
+      "slug": "VimBox",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Vimdiff.rb",
+      "name": "Vimdiff",
+      "slug": "Vimdiff",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Visidata.rb",
+      "name": "Visidata",
+      "slug": "Visidata",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Visual_Studio_Code.rb",
+      "name": "Visual Studio Code",
+      "slug": "Visual_Studio_Code",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/WebSocket_Status_Codes.rb",
+      "name": "WebSocket Status Codes",
+      "slug": "WebSocket_Status_Codes",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Working_Copy.rb",
+      "name": "Working Copy",
+      "slug": "Working_Copy",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Xcode_Shortcuts.rb",
+      "name": "Xcode Shortcuts",
+      "slug": "Xcode_Shortcuts",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Xcode_UI_Testing.rb",
+      "name": "Xcode UI Testing",
+      "slug": "Xcode_UI_Testing",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/YAML.rb",
+      "name": "YAML",
+      "slug": "YAML",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Yard.rb",
+      "name": "Yard",
+      "slug": "Yard",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/Yazi.rb",
+      "name": "Yazi",
+      "slug": "Yazi",
+      "source": "cheatsheet"
+    },
+    {
+      "definition_url": "https://github.com/Kapeli/cheatsheets/blob/master/cheatsheets/You_Might_Not_Need_jQuery.rb",
+      "name": "You Might Not Need jQuery",
+      "slug": "You_Might_Not_Need_jQuery",
+      "source": "cheatsheet"
+    }
+  ],
+  "refreshed_at": "2026-02-27T16:51:38.888207+00:00",
+  "source_url": "https://api.github.com/repos/Kapeli/cheatsheets/contents/cheatsheets?ref=master"
+}

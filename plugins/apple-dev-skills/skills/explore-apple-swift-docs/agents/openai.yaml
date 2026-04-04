@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explore Apple Swift Docs"
+  short_description: "Explore Apple and Swift docs across local and web sources"
+  default_prompt: "Use $explore-apple-swift-docs to search Apple or Swift docs, choose the right docs source, and handle optional Dash follow-up only when needed."

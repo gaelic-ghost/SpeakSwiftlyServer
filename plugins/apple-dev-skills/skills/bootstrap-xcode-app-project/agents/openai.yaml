@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bootstrap Xcode App Project"
+  short_description: "Bootstrap a new native Apple app repo"
+  default_prompt: "Use $bootstrap-xcode-app-project to create a new macOS, iOS, or iPadOS app repository with a guarded Xcode or XcodeGen bootstrap path."

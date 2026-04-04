@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bootstrap Swift Package"
+  short_description: "Bootstrap Swift packages with defaults and validation"
+  default_prompt: "Use $bootstrap-swift-package to create a new Swift package with consistent defaults, generated AGENTS guidance, and immediate validation."

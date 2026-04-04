@@ -1,0 +1,7 @@
+schemaVersion: 1
+isCustomized: false
+settings:
+  mcpRetryCount: 1
+  requireExplicitMutationOptInForFilesystemFallback: true
+  advisoryCooldownDays: 21
+  fallbackCommandMappingProfile: "official-default"

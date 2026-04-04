@@ -1,0 +1,4207 @@
+{
+  "count": 600,
+  "entries": [
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ABAP",
+      "name": "ABAP",
+      "repo_path": "docsets/ABAP",
+      "slug": "ABAP",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ACL2",
+      "name": "ACL2",
+      "repo_path": "docsets/ACL2",
+      "slug": "ACL2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ada",
+      "name": "Ada",
+      "repo_path": "docsets/Ada",
+      "slug": "Ada",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Adobe_Experience_Manager",
+      "name": "Adobe Experience Manager",
+      "repo_path": "docsets/Adobe_Experience_Manager",
+      "slug": "Adobe_Experience_Manager",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_CPP",
+      "name": "Agora CPP",
+      "repo_path": "docsets/Agora_CPP",
+      "slug": "Agora_CPP",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Electron",
+      "name": "Agora Electron",
+      "repo_path": "docsets/Agora_Electron",
+      "slug": "Agora_Electron",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Java",
+      "name": "Agora Java",
+      "repo_path": "docsets/Agora_Java",
+      "slug": "Agora_Java",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Objective-C",
+      "name": "Agora Objective-C",
+      "repo_path": "docsets/Agora_Objective-C",
+      "slug": "Agora_Objective-C",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Recording_CPP",
+      "name": "Agora Recording CPP",
+      "repo_path": "docsets/Agora_Recording_CPP",
+      "slug": "Agora_Recording_CPP",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Recording_Java",
+      "name": "Agora Recording Java",
+      "repo_path": "docsets/Agora_Recording_Java",
+      "slug": "Agora_Recording_Java",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Agora_Web",
+      "name": "Agora Web",
+      "repo_path": "docsets/Agora_Web",
+      "slug": "Agora_Web",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/aiohttp",
+      "name": "aiohttp",
+      "repo_path": "docsets/aiohttp",
+      "slug": "aiohttp",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/aiomultiprocess",
+      "name": "aiomultiprocess",
+      "repo_path": "docsets/aiomultiprocess",
+      "slug": "aiomultiprocess",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/aiotg",
+      "name": "aiotg",
+      "repo_path": "docsets/aiotg",
+      "slug": "aiotg",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Airflow",
+      "name": "Airflow",
+      "repo_path": "docsets/Airflow",
+      "slug": "Airflow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Alembic",
+      "name": "Alembic",
+      "repo_path": "docsets/Alembic",
+      "slug": "Alembic",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Alfred",
+      "name": "Alfred",
+      "repo_path": "docsets/Alfred",
+      "slug": "Alfred",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Alpinejs",
+      "name": "Alpinejs",
+      "repo_path": "docsets/Alpinejs",
+      "slug": "Alpinejs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AlsaLib",
+      "name": "AlsaLib",
+      "repo_path": "docsets/AlsaLib",
+      "slug": "AlsaLib",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/altair",
+      "name": "altair",
+      "repo_path": "docsets/altair",
+      "slug": "altair",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ampersand.js",
+      "name": "Ampersand.js",
+      "repo_path": "docsets/Ampersand.js",
+      "slug": "Ampersand.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Android_Gradle_Plugin",
+      "name": "Android Gradle Plugin",
+      "repo_path": "docsets/Android_Gradle_Plugin",
+      "slug": "Android_Gradle_Plugin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Android_KTX",
+      "name": "Android KTX",
+      "repo_path": "docsets/Android_KTX",
+      "slug": "Android_KTX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Angr",
+      "name": "Angr",
+      "repo_path": "docsets/Angr",
+      "slug": "Angr",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ant_Design",
+      "name": "Ant Design",
+      "repo_path": "docsets/Ant_Design",
+      "slug": "Ant_Design",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Ant",
+      "name": "Apache Ant",
+      "repo_path": "docsets/Apache_Ant",
+      "slug": "Apache_Ant",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Avro",
+      "name": "Apache Avro",
+      "repo_path": "docsets/Apache_Avro",
+      "slug": "Apache_Avro",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Beam_Python",
+      "name": "Apache Beam Python",
+      "repo_path": "docsets/Apache_Beam_Python",
+      "slug": "Apache_Beam_Python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Commons_Collections",
+      "name": "Apache Commons Collections",
+      "repo_path": "docsets/Apache_Commons_Collections",
+      "slug": "Apache_Commons_Collections",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Commons_CSV",
+      "name": "Apache Commons CSV",
+      "repo_path": "docsets/Apache_Commons_CSV",
+      "slug": "Apache_Commons_CSV",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Commons_Lang",
+      "name": "Apache Commons Lang",
+      "repo_path": "docsets/Apache_Commons_Lang",
+      "slug": "Apache_Commons_Lang",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Commons_Math",
+      "name": "Apache Commons Math",
+      "repo_path": "docsets/Apache_Commons_Math",
+      "slug": "Apache_Commons_Math",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Commons_Text",
+      "name": "Apache Commons Text",
+      "repo_path": "docsets/Apache_Commons_Text",
+      "slug": "Apache_Commons_Text",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Hive",
+      "name": "Apache Hive",
+      "repo_path": "docsets/Apache_Hive",
+      "slug": "Apache_Hive",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Mesos",
+      "name": "Apache Mesos",
+      "repo_path": "docsets/Apache_Mesos",
+      "slug": "Apache_Mesos",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_Nifi",
+      "name": "Apache Nifi",
+      "repo_path": "docsets/Apache_Nifi",
+      "slug": "Apache_Nifi",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apache_RocketMQ",
+      "name": "Apache RocketMQ",
+      "repo_path": "docsets/Apache_RocketMQ",
+      "slug": "Apache_RocketMQ",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Apex",
+      "name": "Apex",
+      "repo_path": "docsets/Apex",
+      "slug": "Apex",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arc_Lisp",
+      "name": "Arc Lisp",
+      "repo_path": "docsets/Arc_Lisp",
+      "slug": "Arc_Lisp",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_A-Profile_A32_and_T32_ISA",
+      "name": "Arm A-Profile A32 and T32 ISA",
+      "repo_path": "docsets/Arm_A-Profile_A32_and_T32_ISA",
+      "slug": "Arm_A-Profile_A32_and_T32_ISA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_A-Profile_A64_ISA",
+      "name": "Arm A-Profile A64 ISA",
+      "repo_path": "docsets/Arm_A-Profile_A64_ISA",
+      "slug": "Arm_A-Profile_A64_ISA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_A-Profile_A64_ISA_FAT",
+      "name": "Arm A-Profile A64 ISA FAT",
+      "repo_path": "docsets/Arm_A-Profile_A64_ISA_FAT",
+      "slug": "Arm_A-Profile_A64_ISA_FAT",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_A-Profile_System_Registers",
+      "name": "Arm A-Profile System Registers",
+      "repo_path": "docsets/Arm_A-Profile_System_Registers",
+      "slug": "Arm_A-Profile_System_Registers",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_A-Profile_System_Registers_FAT",
+      "name": "Arm A-Profile System Registers FAT",
+      "repo_path": "docsets/Arm_A-Profile_System_Registers_FAT",
+      "slug": "Arm_A-Profile_System_Registers_FAT",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_Morello_A64_ISA",
+      "name": "Arm Morello A64 ISA",
+      "repo_path": "docsets/Arm_Morello_A64_ISA",
+      "slug": "Arm_Morello_A64_ISA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Arm_Morello_System_Registers",
+      "name": "Arm Morello System Registers",
+      "repo_path": "docsets/Arm_Morello_System_Registers",
+      "slug": "Arm_Morello_System_Registers",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/arviz",
+      "name": "arviz",
+      "repo_path": "docsets/arviz",
+      "slug": "arviz",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Astropy",
+      "name": "Astropy",
+      "repo_path": "docsets/Astropy",
+      "slug": "Astropy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Async.js",
+      "name": "Async.js",
+      "repo_path": "docsets/Async.js",
+      "slug": "Async.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Atom",
+      "name": "Atom",
+      "repo_path": "docsets/Atom",
+      "slug": "Atom",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AtomFlightManual",
+      "name": "AtomFlightManual",
+      "repo_path": "docsets/AtomFlightManual",
+      "slug": "AtomFlightManual",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/attrs",
+      "name": "attrs",
+      "repo_path": "docsets/attrs",
+      "slug": "attrs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AutoHotkey",
+      "name": "AutoHotkey",
+      "repo_path": "docsets/AutoHotkey",
+      "slug": "AutoHotkey",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AutoIt",
+      "name": "AutoIt",
+      "repo_path": "docsets/AutoIt",
+      "slug": "AutoIt",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Automaton",
+      "name": "Automaton",
+      "repo_path": "docsets/Automaton",
+      "slug": "Automaton",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AVR_Libc",
+      "name": "AVR Libc",
+      "repo_path": "docsets/AVR_Libc",
+      "slug": "AVR_Libc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_CDK",
+      "name": "AWS CDK",
+      "repo_path": "docsets/AWS_CDK",
+      "slug": "AWS_CDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_CDK_Python",
+      "name": "AWS CDK Python",
+      "repo_path": "docsets/AWS_CDK_Python",
+      "slug": "AWS_CDK_Python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_CLI",
+      "name": "AWS CLI",
+      "repo_path": "docsets/AWS_CLI",
+      "slug": "AWS_CLI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_CloudFormation_Template_Reference",
+      "name": "AWS CloudFormation Template Reference",
+      "repo_path": "docsets/AWS_CloudFormation_Template_Reference",
+      "slug": "AWS_CloudFormation_Template_Reference",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_Redshift_Database_Developer_Guide",
+      "name": "AWS Redshift Database Developer Guide",
+      "repo_path": "docsets/AWS_Redshift_Database_Developer_Guide",
+      "slug": "AWS_Redshift_Database_Developer_Guide",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/AWS_Redshift_SQL_Reference",
+      "name": "AWS Redshift SQL Reference",
+      "repo_path": "docsets/AWS_Redshift_SQL_Reference",
+      "slug": "AWS_Redshift_SQL_Reference",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Azure_Resource_Manager_Template_Reference",
+      "name": "Azure Resource Manager Template Reference",
+      "repo_path": "docsets/Azure_Resource_Manager_Template_Reference",
+      "slug": "Azure_Resource_Manager_Template_Reference",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/babylonjs",
+      "name": "babylonjs",
+      "repo_path": "docsets/babylonjs",
+      "slug": "babylonjs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bacon.js",
+      "name": "Bacon.js",
+      "repo_path": "docsets/Bacon.js",
+      "slug": "Bacon.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/balana-core",
+      "name": "balana-core",
+      "repo_path": "docsets/balana-core",
+      "slug": "balana-core",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/balana-utils",
+      "name": "balana-utils",
+      "repo_path": "docsets/balana-utils",
+      "slug": "balana-utils",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bambi",
+      "name": "Bambi",
+      "repo_path": "docsets/Bambi",
+      "slug": "Bambi",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Basscss",
+      "name": "Basscss",
+      "repo_path": "docsets/Basscss",
+      "slug": "Basscss",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/bazel",
+      "name": "bazel",
+      "repo_path": "docsets/bazel",
+      "slug": "bazel",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Beautiful_Soup",
+      "name": "Beautiful Soup",
+      "repo_path": "docsets/Beautiful_Soup",
+      "slug": "Beautiful_Soup",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/BigQuery_Standard_SQL",
+      "name": "BigQuery Standard SQL",
+      "repo_path": "docsets/BigQuery_Standard_SQL",
+      "slug": "BigQuery_Standard_SQL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bitcoin",
+      "name": "Bitcoin",
+      "repo_path": "docsets/Bitcoin",
+      "slug": "Bitcoin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Blaze",
+      "name": "Blaze",
+      "repo_path": "docsets/Blaze",
+      "slug": "Blaze",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Blender",
+      "name": "Blender",
+      "repo_path": "docsets/Blender",
+      "slug": "Blender",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bluebird",
+      "name": "Bluebird",
+      "repo_path": "docsets/Bluebird",
+      "slug": "Bluebird",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bokeh",
+      "name": "Bokeh",
+      "repo_path": "docsets/Bokeh",
+      "slug": "Bokeh",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bonobo",
+      "name": "Bonobo",
+      "repo_path": "docsets/Bonobo",
+      "slug": "Bonobo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/BootstrapVue",
+      "name": "BootstrapVue",
+      "repo_path": "docsets/BootstrapVue",
+      "slug": "BootstrapVue",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Boto",
+      "name": "Boto",
+      "repo_path": "docsets/Boto",
+      "slug": "Boto",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Boto3",
+      "name": "Boto3",
+      "repo_path": "docsets/Boto3",
+      "slug": "Boto3",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bottle",
+      "name": "Bottle",
+      "repo_path": "docsets/Bottle",
+      "slug": "Bottle",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Box2D",
+      "name": "Box2D",
+      "repo_path": "docsets/Box2D",
+      "slug": "Box2D",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/bpy",
+      "name": "bpy",
+      "repo_path": "docsets/bpy",
+      "slug": "bpy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bridgetown",
+      "name": "Bridgetown",
+      "repo_path": "docsets/Bridgetown",
+      "slug": "Bridgetown",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Brk_Fonts",
+      "name": "Brk Fonts",
+      "repo_path": "docsets/Brk_Fonts",
+      "slug": "Brk_Fonts",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Brunch",
+      "name": "Brunch",
+      "repo_path": "docsets/Brunch",
+      "slug": "Brunch",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bullet",
+      "name": "Bullet",
+      "repo_path": "docsets/Bullet",
+      "slug": "Bullet",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Bulma",
+      "name": "Bulma",
+      "repo_path": "docsets/Bulma",
+      "slug": "Bulma",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/BungeeCordAPI",
+      "name": "BungeeCordAPI",
+      "repo_path": "docsets/BungeeCordAPI",
+      "slug": "BungeeCordAPI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/BungeeCordChat",
+      "name": "BungeeCordChat",
+      "repo_path": "docsets/BungeeCordChat",
+      "slug": "BungeeCordChat",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CanIUse",
+      "name": "CanIUse",
+      "repo_path": "docsets/CanIUse",
+      "slug": "CanIUse",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CanJS",
+      "name": "CanJS",
+      "repo_path": "docsets/CanJS",
+      "slug": "CanJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CAPI",
+      "name": "CAPI",
+      "repo_path": "docsets/CAPI",
+      "slug": "CAPI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Carbon",
+      "name": "Carbon",
+      "repo_path": "docsets/Carbon",
+      "slug": "Carbon",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Cascading",
+      "name": "Cascading",
+      "repo_path": "docsets/Cascading",
+      "slug": "Cascading",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Cassandra",
+      "name": "Cassandra",
+      "repo_path": "docsets/Cassandra",
+      "slug": "Cassandra",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CausalPy",
+      "name": "CausalPy",
+      "repo_path": "docsets/CausalPy",
+      "slug": "CausalPy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Celery",
+      "name": "Celery",
+      "repo_path": "docsets/Celery",
+      "slug": "Celery",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Cesium",
+      "name": "Cesium",
+      "repo_path": "docsets/Cesium",
+      "slug": "Cesium",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CFWheels",
+      "name": "CFWheels",
+      "repo_path": "docsets/CFWheels",
+      "slug": "CFWheels",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Chainer",
+      "name": "Chainer",
+      "repo_path": "docsets/Chainer",
+      "slug": "Chainer",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Chartjs",
+      "name": "Chartjs",
+      "repo_path": "docsets/Chartjs",
+      "slug": "Chartjs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/chartjs-plugin-datalabels",
+      "name": "chartjs-plugin-datalabels",
+      "repo_path": "docsets/chartjs-plugin-datalabels",
+      "slug": "chartjs-plugin-datalabels",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Chassis",
+      "name": "Chassis",
+      "repo_path": "docsets/Chassis",
+      "slug": "Chassis",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Chrome_Extensions_API",
+      "name": "Chrome Extensions API",
+      "repo_path": "docsets/Chrome_Extensions_API",
+      "slug": "Chrome_Extensions_API",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Cinder",
+      "name": "Cinder",
+      "repo_path": "docsets/Cinder",
+      "slug": "Cinder",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Clang",
+      "name": "Clang",
+      "repo_path": "docsets/Clang",
+      "slug": "Clang",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/click",
+      "name": "click",
+      "repo_path": "docsets/click",
+      "slug": "click",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ClickHouse",
+      "name": "ClickHouse",
+      "repo_path": "docsets/ClickHouse",
+      "slug": "ClickHouse",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ClojureDocs",
+      "name": "ClojureDocs",
+      "repo_path": "docsets/ClojureDocs",
+      "slug": "ClojureDocs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ClojureScript",
+      "name": "ClojureScript",
+      "repo_path": "docsets/ClojureScript",
+      "slug": "ClojureScript",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CodeMirror",
+      "name": "CodeMirror",
+      "repo_path": "docsets/CodeMirror",
+      "slug": "CodeMirror",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ComponentKit",
+      "name": "ComponentKit",
+      "repo_path": "docsets/ComponentKit",
+      "slug": "ComponentKit",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Conan",
+      "name": "Conan",
+      "repo_path": "docsets/Conan",
+      "slug": "Conan",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/concourse-ci",
+      "name": "concourse-ci",
+      "repo_path": "docsets/concourse-ci",
+      "slug": "concourse-ci",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Conda",
+      "name": "Conda",
+      "repo_path": "docsets/Conda",
+      "slug": "Conda",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/confluent-kafka-python",
+      "name": "confluent-kafka-python",
+      "repo_path": "docsets/confluent-kafka-python",
+      "slug": "confluent-kafka-python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Connect_IQ_SDK",
+      "name": "Connect IQ SDK",
+      "repo_path": "docsets/Connect_IQ_SDK",
+      "slug": "Connect_IQ_SDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Constraid",
+      "name": "Constraid",
+      "repo_path": "docsets/Constraid",
+      "slug": "Constraid",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Consul",
+      "name": "Consul",
+      "repo_path": "docsets/Consul",
+      "slug": "Consul",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Coq",
+      "name": "Coq",
+      "repo_path": "docsets/Coq",
+      "slug": "Coq",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CQL",
+      "name": "CQL",
+      "repo_path": "docsets/CQL",
+      "slug": "CQL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Crystal",
+      "name": "Crystal",
+      "repo_path": "docsets/Crystal",
+      "slug": "Crystal",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/CUDA",
+      "name": "CUDA",
+      "repo_path": "docsets/CUDA",
+      "slug": "CUDA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/cvxpy",
+      "name": "cvxpy",
+      "repo_path": "docsets/cvxpy",
+      "slug": "cvxpy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Cython",
+      "name": "Cython",
+      "repo_path": "docsets/Cython",
+      "slug": "Cython",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/D",
+      "name": "D",
+      "repo_path": "docsets/D",
+      "slug": "D",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Dask",
+      "name": "Dask",
+      "repo_path": "docsets/Dask",
+      "slug": "Dask",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/date-fns",
+      "name": "date-fns",
+      "repo_path": "docsets/date-fns",
+      "slug": "date-fns",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/debmake",
+      "name": "debmake",
+      "repo_path": "docsets/debmake",
+      "slug": "debmake",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Defold",
+      "name": "Defold",
+      "repo_path": "docsets/Defold",
+      "slug": "Defold",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Deno",
+      "name": "Deno",
+      "repo_path": "docsets/Deno",
+      "slug": "Deno",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/dfply",
+      "name": "dfply",
+      "repo_path": "docsets/dfply",
+      "slug": "dfply",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/diesel",
+      "name": "diesel",
+      "repo_path": "docsets/diesel",
+      "slug": "diesel",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/discord.js",
+      "name": "discord.js",
+      "repo_path": "docsets/discord.js",
+      "slug": "discord.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/discord.py",
+      "name": "discord.py",
+      "repo_path": "docsets/discord.py",
+      "slug": "discord.py",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Discord4J",
+      "name": "Discord4J",
+      "repo_path": "docsets/Discord4J",
+      "slug": "Discord4J",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Distributed",
+      "name": "Distributed",
+      "repo_path": "docsets/Distributed",
+      "slug": "Distributed",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DisVoice",
+      "name": "DisVoice",
+      "repo_path": "docsets/DisVoice",
+      "slug": "DisVoice",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DITA",
+      "name": "DITA",
+      "repo_path": "docsets/DITA",
+      "slug": "DITA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Django_REST_Framework",
+      "name": "Django REST Framework",
+      "repo_path": "docsets/Django_REST_Framework",
+      "slug": "Django_REST_Framework",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/django-cms",
+      "name": "django-cms",
+      "repo_path": "docsets/django-cms",
+      "slug": "django-cms",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Docassemble",
+      "name": "Docassemble",
+      "repo_path": "docsets/Docassemble",
+      "slug": "Docassemble",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DokuWiki",
+      "name": "DokuWiki",
+      "repo_path": "docsets/DokuWiki",
+      "slug": "DokuWiki",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/dolfin",
+      "name": "dolfin",
+      "repo_path": "docsets/dolfin",
+      "slug": "dolfin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DPDK",
+      "name": "DPDK",
+      "repo_path": "docsets/DPDK",
+      "slug": "DPDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DraftJS",
+      "name": "DraftJS",
+      "repo_path": "docsets/DraftJS",
+      "slug": "DraftJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/DrupalConsole",
+      "name": "DrupalConsole",
+      "repo_path": "docsets/DrupalConsole",
+      "slug": "DrupalConsole",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Drush",
+      "name": "Drush",
+      "repo_path": "docsets/Drush",
+      "slug": "Drush",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ECharts",
+      "name": "ECharts",
+      "repo_path": "docsets/ECharts",
+      "slug": "ECharts",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ECharts_Chinese",
+      "name": "ECharts Chinese",
+      "repo_path": "docsets/ECharts_Chinese",
+      "slug": "ECharts_Chinese",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Editorial",
+      "name": "Editorial",
+      "repo_path": "docsets/Editorial",
+      "slug": "Editorial",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Effect",
+      "name": "Effect",
+      "repo_path": "docsets/Effect",
+      "slug": "Effect",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/eggjs",
+      "name": "eggjs",
+      "repo_path": "docsets/eggjs",
+      "slug": "eggjs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/eggjs_Chinese",
+      "name": "eggjs Chinese",
+      "repo_path": "docsets/eggjs_Chinese",
+      "slug": "eggjs_Chinese",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/EGL",
+      "name": "EGL",
+      "repo_path": "docsets/EGL",
+      "slug": "EGL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Eigen",
+      "name": "Eigen",
+      "repo_path": "docsets/Eigen",
+      "slug": "Eigen",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/electron",
+      "name": "electron",
+      "repo_path": "docsets/electron",
+      "slug": "electron",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Elektra",
+      "name": "Elektra",
+      "repo_path": "docsets/Elektra",
+      "slug": "Elektra",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Elm",
+      "name": "Elm",
+      "repo_path": "docsets/Elm",
+      "slug": "Elm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Elvish",
+      "name": "Elvish",
+      "repo_path": "docsets/Elvish",
+      "slug": "Elvish",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Emacs",
+      "name": "Emacs",
+      "repo_path": "docsets/Emacs",
+      "slug": "Emacs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Emacs-CL",
+      "name": "Emacs-CL",
+      "repo_path": "docsets/Emacs-CL",
+      "slug": "Emacs-CL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/EMF_XSD_SDK",
+      "name": "EMF XSD SDK",
+      "repo_path": "docsets/EMF_XSD_SDK",
+      "slug": "EMF_XSD_SDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Entitas",
+      "name": "Entitas",
+      "repo_path": "docsets/Entitas",
+      "slug": "Entitas",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Entity_Framework",
+      "name": "Entity Framework",
+      "repo_path": "docsets/Entity_Framework",
+      "slug": "Entity_Framework",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Envoy",
+      "name": "Envoy",
+      "repo_path": "docsets/Envoy",
+      "slug": "Envoy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Enzyme",
+      "name": "Enzyme",
+      "repo_path": "docsets/Enzyme",
+      "slug": "Enzyme",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/equinox",
+      "name": "equinox",
+      "repo_path": "docsets/equinox",
+      "slug": "equinox",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ESLint",
+      "name": "ESLint",
+      "repo_path": "docsets/ESLint",
+      "slug": "ESLint",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Esoftplay",
+      "name": "Esoftplay",
+      "repo_path": "docsets/Esoftplay",
+      "slug": "Esoftplay",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Esper",
+      "name": "Esper",
+      "repo_path": "docsets/Esper",
+      "slug": "Esper",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ETL",
+      "name": "ETL",
+      "repo_path": "docsets/ETL",
+      "slug": "ETL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Expo",
+      "name": "Expo",
+      "repo_path": "docsets/Expo",
+      "slug": "Expo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Faker",
+      "name": "Faker",
+      "repo_path": "docsets/Faker",
+      "slug": "Faker",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Faker.py",
+      "name": "Faker.py",
+      "repo_path": "docsets/Faker.py",
+      "slug": "Faker.py",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Falcon",
+      "name": "Falcon",
+      "repo_path": "docsets/Falcon",
+      "slug": "Falcon",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/feedparser",
+      "name": "feedparser",
+      "repo_path": "docsets/feedparser",
+      "slug": "feedparser",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FFmpeg",
+      "name": "FFmpeg",
+      "repo_path": "docsets/FFmpeg",
+      "slug": "FFmpeg",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FileMaker",
+      "name": "FileMaker",
+      "repo_path": "docsets/FileMaker",
+      "slug": "FileMaker",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Fiona",
+      "name": "Fiona",
+      "repo_path": "docsets/Fiona",
+      "slug": "Fiona",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/fish",
+      "name": "fish",
+      "repo_path": "docsets/fish",
+      "slug": "fish",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FlaxLinen",
+      "name": "FlaxLinen",
+      "repo_path": "docsets/FlaxLinen",
+      "slug": "FlaxLinen",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FlaxNNX",
+      "name": "FlaxNNX",
+      "repo_path": "docsets/FlaxNNX",
+      "slug": "FlaxNNX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Flex",
+      "name": "Flex",
+      "repo_path": "docsets/Flex",
+      "slug": "Flex",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Flow",
+      "name": "Flow",
+      "repo_path": "docsets/Flow",
+      "slug": "Flow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FLTK",
+      "name": "FLTK",
+      "repo_path": "docsets/FLTK",
+      "slug": "FLTK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Flux",
+      "name": "Flux",
+      "repo_path": "docsets/Flux",
+      "slug": "Flux",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/formencode",
+      "name": "formencode",
+      "repo_path": "docsets/formencode",
+      "slug": "formencode",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FoundationEmails",
+      "name": "FoundationEmails",
+      "repo_path": "docsets/FoundationEmails",
+      "slug": "FoundationEmails",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/fp-ts",
+      "name": "fp-ts",
+      "repo_path": "docsets/fp-ts",
+      "slug": "fp-ts",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Framework7",
+      "name": "Framework7",
+      "repo_path": "docsets/Framework7",
+      "slug": "Framework7",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FreeBSD_Handbook",
+      "name": "FreeBSD Handbook",
+      "repo_path": "docsets/FreeBSD_Handbook",
+      "slug": "FreeBSD_Handbook",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/FreePascal",
+      "name": "FreePascal",
+      "repo_path": "docsets/FreePascal",
+      "slug": "FreePascal",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GDAL",
+      "name": "GDAL",
+      "repo_path": "docsets/GDAL",
+      "slug": "GDAL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Geb",
+      "name": "Geb",
+      "repo_path": "docsets/Geb",
+      "slug": "Geb",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/gensim",
+      "name": "gensim",
+      "repo_path": "docsets/gensim",
+      "slug": "gensim",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GeoTools",
+      "name": "GeoTools",
+      "repo_path": "docsets/GeoTools",
+      "slug": "GeoTools",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GeoTrellis",
+      "name": "GeoTrellis",
+      "repo_path": "docsets/GeoTrellis",
+      "slug": "GeoTrellis",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Gforth",
+      "name": "Gforth",
+      "repo_path": "docsets/Gforth",
+      "slug": "Gforth",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ggplot2",
+      "name": "ggplot2",
+      "repo_path": "docsets/ggplot2",
+      "slug": "ggplot2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ghidra",
+      "name": "Ghidra",
+      "repo_path": "docsets/Ghidra",
+      "slug": "Ghidra",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GLFW",
+      "name": "GLFW",
+      "repo_path": "docsets/GLFW",
+      "slug": "GLFW",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/glibc",
+      "name": "glibc",
+      "repo_path": "docsets/glibc",
+      "slug": "glibc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Autoconf",
+      "name": "GNU Autoconf",
+      "repo_path": "docsets/GNU_Autoconf",
+      "slug": "GNU_Autoconf",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Autoconf_Archive",
+      "name": "GNU Autoconf Archive",
+      "repo_path": "docsets/GNU_Autoconf_Archive",
+      "slug": "GNU_Autoconf_Archive",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Automake",
+      "name": "GNU Automake",
+      "repo_path": "docsets/GNU_Automake",
+      "slug": "GNU_Automake",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Bison",
+      "name": "GNU Bison",
+      "repo_path": "docsets/GNU_Bison",
+      "slug": "GNU_Bison",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Coding_Standards",
+      "name": "GNU Coding Standards",
+      "repo_path": "docsets/GNU_Coding_Standards",
+      "slug": "GNU_Coding_Standards",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Coreutils",
+      "name": "GNU Coreutils",
+      "repo_path": "docsets/GNU_Coreutils",
+      "slug": "GNU_Coreutils",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Guile",
+      "name": "GNU Guile",
+      "repo_path": "docsets/GNU_Guile",
+      "slug": "GNU_Guile",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Guix",
+      "name": "GNU Guix",
+      "repo_path": "docsets/GNU_Guix",
+      "slug": "GNU_Guix",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Libtool",
+      "name": "GNU Libtool",
+      "repo_path": "docsets/GNU_Libtool",
+      "slug": "GNU_Libtool",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Make",
+      "name": "GNU Make",
+      "repo_path": "docsets/GNU_Make",
+      "slug": "GNU_Make",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GNU_Scientific_Library",
+      "name": "GNU Scientific Library",
+      "repo_path": "docsets/GNU_Scientific_Library",
+      "slug": "GNU_Scientific_Library",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Godot",
+      "name": "Godot",
+      "repo_path": "docsets/Godot",
+      "slug": "Godot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Golly",
+      "name": "Golly",
+      "repo_path": "docsets/Golly",
+      "slug": "Golly",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/goog",
+      "name": "goog",
+      "repo_path": "docsets/goog",
+      "slug": "goog",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Google_App_Engine-PHP",
+      "name": "Google App Engine-PHP",
+      "repo_path": "docsets/Google_App_Engine-PHP",
+      "slug": "Google_App_Engine-PHP",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Google_App_Engine-Python",
+      "name": "Google App Engine-Python",
+      "repo_path": "docsets/Google_App_Engine-Python",
+      "slug": "Google_App_Engine-Python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Google_Cloud_Client-Python",
+      "name": "Google Cloud Client-Python",
+      "repo_path": "docsets/Google_Cloud_Client-Python",
+      "slug": "Google_Cloud_Client-Python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Google_Maps",
+      "name": "Google Maps",
+      "repo_path": "docsets/Google_Maps",
+      "slug": "Google_Maps",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Google_Web_Toolkit",
+      "name": "Google Web Toolkit",
+      "repo_path": "docsets/Google_Web_Toolkit",
+      "slug": "Google_Web_Toolkit",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GoogleAppsScript",
+      "name": "GoogleAppsScript",
+      "repo_path": "docsets/GoogleAppsScript",
+      "slug": "GoogleAppsScript",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/graphql",
+      "name": "graphql",
+      "repo_path": "docsets/graphql",
+      "slug": "graphql",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/GStreamer",
+      "name": "GStreamer",
+      "repo_path": "docsets/GStreamer",
+      "slug": "GStreamer",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/gtkmm",
+      "name": "gtkmm",
+      "repo_path": "docsets/gtkmm",
+      "slug": "gtkmm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Guava",
+      "name": "Guava",
+      "repo_path": "docsets/Guava",
+      "slug": "Guava",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Haiku_Book",
+      "name": "Haiku Book",
+      "repo_path": "docsets/Haiku_Book",
+      "slug": "Haiku_Book",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hammerspoon",
+      "name": "Hammerspoon",
+      "repo_path": "docsets/Hammerspoon",
+      "slug": "Hammerspoon",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hapi",
+      "name": "Hapi",
+      "repo_path": "docsets/Hapi",
+      "slug": "Hapi",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/HAProxy",
+      "name": "HAProxy",
+      "repo_path": "docsets/HAProxy",
+      "slug": "HAProxy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/HAProxy_Lua",
+      "name": "HAProxy Lua",
+      "repo_path": "docsets/HAProxy_Lua",
+      "slug": "HAProxy_Lua",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hashgraph_Online",
+      "name": "Hashgraph Online",
+      "repo_path": "docsets/Hashgraph_Online",
+      "slug": "Hashgraph_Online",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Haxe",
+      "name": "Haxe",
+      "repo_path": "docsets/Haxe",
+      "slug": "Haxe",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/HaxeFlixel",
+      "name": "HaxeFlixel",
+      "repo_path": "docsets/HaxeFlixel",
+      "slug": "HaxeFlixel",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Heron",
+      "name": "Heron",
+      "repo_path": "docsets/Heron",
+      "slug": "Heron",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hiero",
+      "name": "Hiero",
+      "repo_path": "docsets/Hiero",
+      "slug": "Hiero",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/homebridge",
+      "name": "homebridge",
+      "repo_path": "docsets/homebridge",
+      "slug": "homebridge",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hy",
+      "name": "Hy",
+      "repo_path": "docsets/Hy",
+      "slug": "Hy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Hypothesis",
+      "name": "Hypothesis",
+      "repo_path": "docsets/Hypothesis",
+      "slug": "Hypothesis",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/IBM_Maximo_Javadocs",
+      "name": "IBM Maximo Javadocs",
+      "repo_path": "docsets/IBM_Maximo_Javadocs",
+      "slug": "IBM_Maximo_Javadocs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ICU",
+      "name": "ICU",
+      "repo_path": "docsets/ICU",
+      "slug": "ICU",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Idris",
+      "name": "Idris",
+      "repo_path": "docsets/Idris",
+      "slug": "Idris",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/igraph",
+      "name": "igraph",
+      "repo_path": "docsets/igraph",
+      "slug": "igraph",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/imbalanced-learn",
+      "name": "imbalanced-learn",
+      "repo_path": "docsets/imbalanced-learn",
+      "slug": "imbalanced-learn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Immutable.js",
+      "name": "Immutable.js",
+      "repo_path": "docsets/Immutable.js",
+      "slug": "Immutable.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Intel_Intrinsics",
+      "name": "Intel Intrinsics",
+      "repo_path": "docsets/Intel_Intrinsics",
+      "slug": "Intel_Intrinsics",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/IntelASMx86",
+      "name": "IntelASMx86",
+      "repo_path": "docsets/IntelASMx86",
+      "slug": "IntelASMx86",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/IntelliJ_Platform_SDK",
+      "name": "IntelliJ Platform SDK",
+      "repo_path": "docsets/IntelliJ_Platform_SDK",
+      "slug": "IntelliJ_Platform_SDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/invoke",
+      "name": "invoke",
+      "repo_path": "docsets/invoke",
+      "slug": "invoke",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/io.js",
+      "name": "io.js",
+      "repo_path": "docsets/io.js",
+      "slug": "io.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/IonIcons",
+      "name": "IonIcons",
+      "repo_path": "docsets/IonIcons",
+      "slug": "IonIcons",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/iPython",
+      "name": "iPython",
+      "repo_path": "docsets/iPython",
+      "slug": "iPython",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/J",
+      "name": "J",
+      "repo_path": "docsets/J",
+      "slug": "J",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Jakarta_EE_10",
+      "name": "Jakarta EE 10",
+      "repo_path": "docsets/Jakarta_EE_10",
+      "slug": "Jakarta_EE_10",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Java_Language_Specification",
+      "name": "Java Language Specification",
+      "repo_path": "docsets/Java_Language_Specification",
+      "slug": "Java_Language_Specification",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/jax",
+      "name": "jax",
+      "repo_path": "docsets/jax",
+      "slug": "jax",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/jBASE",
+      "name": "jBASE",
+      "repo_path": "docsets/jBASE",
+      "slug": "jBASE",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JDA",
+      "name": "JDA",
+      "repo_path": "docsets/JDA",
+      "slug": "JDA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Jenkins_Job_Builder",
+      "name": "Jenkins Job Builder",
+      "repo_path": "docsets/Jenkins_Job_Builder",
+      "slug": "Jenkins_Job_Builder",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Jest",
+      "name": "Jest",
+      "repo_path": "docsets/Jest",
+      "slug": "Jest",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Jigsaw",
+      "name": "Jigsaw",
+      "repo_path": "docsets/Jigsaw",
+      "slug": "Jigsaw",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Joi",
+      "name": "Joi",
+      "repo_path": "docsets/Joi",
+      "slug": "Joi",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/jq",
+      "name": "jq",
+      "repo_path": "docsets/jq",
+      "slug": "jq",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JSDoc",
+      "name": "JSDoc",
+      "repo_path": "docsets/JSDoc",
+      "slug": "JSDoc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JSON_for_Modern_C%2B%2B",
+      "name": "JSON for Modern C++",
+      "repo_path": "docsets/JSON_for_Modern_C++",
+      "slug": "JSON_for_Modern_C++",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/json-schema",
+      "name": "json-schema",
+      "repo_path": "docsets/json-schema",
+      "slug": "json-schema",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JUCE",
+      "name": "JUCE",
+      "repo_path": "docsets/JUCE",
+      "slug": "JUCE",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JUnit4",
+      "name": "JUnit4",
+      "repo_path": "docsets/JUnit4",
+      "slug": "JUnit4",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/JUnit5",
+      "name": "JUnit5",
+      "repo_path": "docsets/JUnit5",
+      "slug": "JUnit5",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/jupyter-book",
+      "name": "jupyter-book",
+      "repo_path": "docsets/jupyter-book",
+      "slug": "jupyter-book",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/jvm8-options",
+      "name": "jvm8-options",
+      "repo_path": "docsets/jvm8-options",
+      "slug": "jvm8-options",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/kafka",
+      "name": "kafka",
+      "repo_path": "docsets/kafka",
+      "slug": "kafka",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Keras",
+      "name": "Keras",
+      "repo_path": "docsets/Keras",
+      "slug": "Keras",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ki",
+      "name": "ki",
+      "repo_path": "docsets/ki",
+      "slug": "ki",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Kirby",
+      "name": "Kirby",
+      "repo_path": "docsets/Kirby",
+      "slug": "Kirby",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Kivy",
+      "name": "Kivy",
+      "repo_path": "docsets/Kivy",
+      "slug": "Kivy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/koa",
+      "name": "koa",
+      "repo_path": "docsets/koa",
+      "slug": "koa",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/kornia",
+      "name": "kornia",
+      "repo_path": "docsets/kornia",
+      "slug": "kornia",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Kotlin",
+      "name": "Kotlin",
+      "repo_path": "docsets/Kotlin",
+      "slug": "Kotlin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Kubernetes",
+      "name": "Kubernetes",
+      "repo_path": "docsets/Kubernetes",
+      "slug": "Kubernetes",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Laravel_Mix",
+      "name": "Laravel Mix",
+      "repo_path": "docsets/Laravel_Mix",
+      "slug": "Laravel_Mix",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Laravel_Zero",
+      "name": "Laravel Zero",
+      "repo_path": "docsets/Laravel_Zero",
+      "slug": "Laravel_Zero",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Leaflet",
+      "name": "Leaflet",
+      "repo_path": "docsets/Leaflet",
+      "slug": "Leaflet",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LessHat",
+      "name": "LessHat",
+      "repo_path": "docsets/LessHat",
+      "slug": "LessHat",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Libav",
+      "name": "Libav",
+      "repo_path": "docsets/Libav",
+      "slug": "Libav",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/libgdx",
+      "name": "libgdx",
+      "repo_path": "docsets/libgdx",
+      "slug": "libgdx",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LibROSA",
+      "name": "LibROSA",
+      "repo_path": "docsets/LibROSA",
+      "slug": "LibROSA",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/libssh",
+      "name": "libssh",
+      "repo_path": "docsets/libssh",
+      "slug": "libssh",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/libuv",
+      "name": "libuv",
+      "repo_path": "docsets/libuv",
+      "slug": "libuv",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/libxml2",
+      "name": "libxml2",
+      "repo_path": "docsets/libxml2",
+      "slug": "libxml2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LifterLMS",
+      "name": "LifterLMS",
+      "repo_path": "docsets/LifterLMS",
+      "slug": "LifterLMS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LightGBM",
+      "name": "LightGBM",
+      "repo_path": "docsets/LightGBM",
+      "slug": "LightGBM",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Linux_Man_Pages",
+      "name": "Linux Man Pages",
+      "repo_path": "docsets/Linux_Man_Pages",
+      "slug": "Linux_Man_Pages",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LiveCode",
+      "name": "LiveCode",
+      "repo_path": "docsets/LiveCode",
+      "slug": "LiveCode",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LiveScript",
+      "name": "LiveScript",
+      "repo_path": "docsets/LiveScript",
+      "slug": "LiveScript",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/llm",
+      "name": "llm",
+      "repo_path": "docsets/llm",
+      "slug": "llm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LLVM",
+      "name": "LLVM",
+      "repo_path": "docsets/LLVM",
+      "slug": "LLVM",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LMDB",
+      "name": "LMDB",
+      "repo_path": "docsets/LMDB",
+      "slug": "LMDB",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/logstash",
+      "name": "logstash",
+      "repo_path": "docsets/logstash",
+      "slug": "logstash",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Loopback",
+      "name": "Loopback",
+      "repo_path": "docsets/Loopback",
+      "slug": "Loopback",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Love2d",
+      "name": "Love2d",
+      "repo_path": "docsets/Love2d",
+      "slug": "Love2d",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/LuaNginxModule",
+      "name": "LuaNginxModule",
+      "repo_path": "docsets/LuaNginxModule",
+      "slug": "LuaNginxModule",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/lxml",
+      "name": "lxml",
+      "repo_path": "docsets/lxml",
+      "slug": "lxml",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MacPorts",
+      "name": "MacPorts",
+      "repo_path": "docsets/MacPorts",
+      "slug": "MacPorts",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MariaDB",
+      "name": "MariaDB",
+      "repo_path": "docsets/MariaDB",
+      "slug": "MariaDB",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/marshmallow",
+      "name": "marshmallow",
+      "repo_path": "docsets/marshmallow",
+      "slug": "marshmallow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Mastodon",
+      "name": "Mastodon",
+      "repo_path": "docsets/Mastodon",
+      "slug": "Mastodon",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Matrix",
+      "name": "Matrix",
+      "repo_path": "docsets/Matrix",
+      "slug": "Matrix",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/mbed-drivers",
+      "name": "mbed-drivers",
+      "repo_path": "docsets/mbed-drivers",
+      "slug": "mbed-drivers",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MDAnalysis",
+      "name": "MDAnalysis",
+      "repo_path": "docsets/MDAnalysis",
+      "slug": "MDAnalysis",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MEANJS",
+      "name": "MEANJS",
+      "repo_path": "docsets/MEANJS",
+      "slug": "MEANJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Mediawiki",
+      "name": "Mediawiki",
+      "repo_path": "docsets/Mediawiki",
+      "slug": "Mediawiki",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Meson",
+      "name": "Meson",
+      "repo_path": "docsets/Meson",
+      "slug": "Meson",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MindSpore",
+      "name": "MindSpore",
+      "repo_path": "docsets/MindSpore",
+      "slug": "MindSpore",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MiniZinc",
+      "name": "MiniZinc",
+      "repo_path": "docsets/MiniZinc",
+      "slug": "MiniZinc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Mjolnir",
+      "name": "Mjolnir",
+      "repo_path": "docsets/Mjolnir",
+      "slug": "Mjolnir",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MLflow",
+      "name": "MLflow",
+      "repo_path": "docsets/MLflow",
+      "slug": "MLflow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/mlpy",
+      "name": "mlpy",
+      "repo_path": "docsets/mlpy",
+      "slug": "mlpy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MLX",
+      "name": "MLX",
+      "repo_path": "docsets/MLX",
+      "slug": "MLX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MNE",
+      "name": "MNE",
+      "repo_path": "docsets/MNE",
+      "slug": "MNE",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Mockito",
+      "name": "Mockito",
+      "repo_path": "docsets/Mockito",
+      "slug": "Mockito",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MODX",
+      "name": "MODX",
+      "repo_path": "docsets/MODX",
+      "slug": "MODX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MongoEngine",
+      "name": "MongoEngine",
+      "repo_path": "docsets/MongoEngine",
+      "slug": "MongoEngine",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/more_itertools",
+      "name": "more itertools",
+      "repo_path": "docsets/more_itertools",
+      "slug": "more_itertools",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/mori",
+      "name": "mori",
+      "repo_path": "docsets/mori",
+      "slug": "mori",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MOS_Protocol",
+      "name": "MOS Protocol",
+      "repo_path": "docsets/MOS_Protocol",
+      "slug": "MOS_Protocol",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MPICH",
+      "name": "MPICH",
+      "repo_path": "docsets/MPICH",
+      "slug": "MPICH",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Mrjob",
+      "name": "Mrjob",
+      "repo_path": "docsets/Mrjob",
+      "slug": "Mrjob",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ms_sql",
+      "name": "ms sql",
+      "repo_path": "docsets/ms_sql",
+      "slug": "ms_sql",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MXNet",
+      "name": "MXNet",
+      "repo_path": "docsets/MXNet",
+      "slug": "MXNet",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/MyBatis_zh_cn",
+      "name": "MyBatis zh cn",
+      "repo_path": "docsets/MyBatis_zh_cn",
+      "slug": "MyBatis_zh_cn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/mypy",
+      "name": "mypy",
+      "repo_path": "docsets/mypy",
+      "slug": "mypy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/NativeScript",
+      "name": "NativeScript",
+      "repo_path": "docsets/NativeScript",
+      "slug": "NativeScript",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ncurses",
+      "name": "ncurses",
+      "repo_path": "docsets/ncurses",
+      "slug": "ncurses",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/nengo",
+      "name": "nengo",
+      "repo_path": "docsets/nengo",
+      "slug": "nengo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Neo4j",
+      "name": "Neo4j",
+      "repo_path": "docsets/Neo4j",
+      "slug": "Neo4j",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Neovim",
+      "name": "Neovim",
+      "repo_path": "docsets/Neovim",
+      "slug": "Neovim",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nette_Framework",
+      "name": "Nette Framework",
+      "repo_path": "docsets/Nette_Framework",
+      "slug": "Nette_Framework",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Netty",
+      "name": "Netty",
+      "repo_path": "docsets/Netty",
+      "slug": "Netty",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/NetworkX",
+      "name": "NetworkX",
+      "repo_path": "docsets/NetworkX",
+      "slug": "NetworkX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/next.js",
+      "name": "next.js",
+      "repo_path": "docsets/next.js",
+      "slug": "next.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nightwatch.js",
+      "name": "Nightwatch.js",
+      "repo_path": "docsets/Nightwatch.js",
+      "slug": "Nightwatch.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nim",
+      "name": "Nim",
+      "repo_path": "docsets/Nim",
+      "slug": "Nim",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nitrogen",
+      "name": "Nitrogen",
+      "repo_path": "docsets/Nitrogen",
+      "slug": "Nitrogen",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nix_Functions",
+      "name": "Nix Functions",
+      "repo_path": "docsets/Nix_Functions",
+      "slug": "Nix_Functions",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/NLTK",
+      "name": "NLTK",
+      "repo_path": "docsets/NLTK",
+      "slug": "NLTK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Node_MongoDB",
+      "name": "Node MongoDB",
+      "repo_path": "docsets/Node_MongoDB",
+      "slug": "Node_MongoDB",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Nomad",
+      "name": "Nomad",
+      "repo_path": "docsets/Nomad",
+      "slug": "Nomad",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/norns",
+      "name": "norns",
+      "repo_path": "docsets/norns",
+      "slug": "norns",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/nox",
+      "name": "nox",
+      "repo_path": "docsets/nox",
+      "slug": "nox",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/npm",
+      "name": "npm",
+      "repo_path": "docsets/npm",
+      "slug": "npm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ns-3",
+      "name": "ns-3",
+      "repo_path": "docsets/ns-3",
+      "slug": "ns-3",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Numba",
+      "name": "Numba",
+      "repo_path": "docsets/Numba",
+      "slug": "Numba",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Octave",
+      "name": "Octave",
+      "repo_path": "docsets/Octave",
+      "slug": "Octave",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Odin",
+      "name": "Odin",
+      "repo_path": "docsets/Odin",
+      "slug": "Odin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/odoo_10",
+      "name": "odoo 10",
+      "repo_path": "docsets/odoo_10",
+      "slug": "odoo_10",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Odoo_8",
+      "name": "Odoo 8",
+      "repo_path": "docsets/Odoo_8",
+      "slug": "Odoo_8",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/odoo_9",
+      "name": "odoo 9",
+      "repo_path": "docsets/odoo_9",
+      "slug": "odoo_9",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OIM",
+      "name": "OIM",
+      "repo_path": "docsets/OIM",
+      "slug": "OIM",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OKD",
+      "name": "OKD",
+      "repo_path": "docsets/OKD",
+      "slug": "OKD",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Om",
+      "name": "Om",
+      "repo_path": "docsets/Om",
+      "slug": "Om",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenCL",
+      "name": "OpenCL",
+      "repo_path": "docsets/OpenCL",
+      "slug": "OpenCL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenEdge",
+      "name": "OpenEdge",
+      "repo_path": "docsets/OpenEdge",
+      "slug": "OpenEdge",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/openFrameworks",
+      "name": "openFrameworks",
+      "repo_path": "docsets/openFrameworks",
+      "slug": "openFrameworks",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenGL_Extensions",
+      "name": "OpenGL Extensions",
+      "repo_path": "docsets/OpenGL_Extensions",
+      "slug": "OpenGL_Extensions",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenGL_GLSL",
+      "name": "OpenGL GLSL",
+      "repo_path": "docsets/OpenGL_GLSL",
+      "slug": "OpenGL_GLSL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenGL_Mathematics",
+      "name": "OpenGL Mathematics",
+      "repo_path": "docsets/OpenGL_Mathematics",
+      "slug": "OpenGL_Mathematics",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenLayers",
+      "name": "OpenLayers",
+      "repo_path": "docsets/OpenLayers",
+      "slug": "OpenLayers",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenResty",
+      "name": "OpenResty",
+      "repo_path": "docsets/OpenResty",
+      "slug": "OpenResty",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenUI5",
+      "name": "OpenUI5",
+      "repo_path": "docsets/OpenUI5",
+      "slug": "OpenUI5",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Openvswitch",
+      "name": "Openvswitch",
+      "repo_path": "docsets/Openvswitch",
+      "slug": "Openvswitch",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OpenXR",
+      "name": "OpenXR",
+      "repo_path": "docsets/OpenXR",
+      "slug": "OpenXR",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Optuna",
+      "name": "Optuna",
+      "repo_path": "docsets/Optuna",
+      "slug": "Optuna",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Org_Mode",
+      "name": "Org Mode",
+      "repo_path": "docsets/Org_Mode",
+      "slug": "Org_Mode",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/OTRS",
+      "name": "OTRS",
+      "repo_path": "docsets/OTRS",
+      "slug": "OTRS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/p5js",
+      "name": "p5js",
+      "repo_path": "docsets/p5js",
+      "slug": "p5js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Packer",
+      "name": "Packer",
+      "repo_path": "docsets/Packer",
+      "slug": "Packer",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pandoc",
+      "name": "Pandoc",
+      "repo_path": "docsets/Pandoc",
+      "slug": "Pandoc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Paper",
+      "name": "Paper",
+      "repo_path": "docsets/Paper",
+      "slug": "Paper",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/papermill",
+      "name": "papermill",
+      "repo_path": "docsets/papermill",
+      "slug": "papermill",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Parse_iOS_SDK",
+      "name": "Parse iOS SDK",
+      "repo_path": "docsets/Parse_iOS_SDK",
+      "slug": "Parse_iOS_SDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/path.py",
+      "name": "path.py",
+      "repo_path": "docsets/path.py",
+      "slug": "path.py",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pebble",
+      "name": "Pebble",
+      "repo_path": "docsets/Pebble",
+      "slug": "Pebble",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Peewee",
+      "name": "Peewee",
+      "repo_path": "docsets/Peewee",
+      "slug": "Peewee",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PeopleTools",
+      "name": "PeopleTools",
+      "repo_path": "docsets/PeopleTools",
+      "slug": "PeopleTools",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PEPs",
+      "name": "PEPs",
+      "repo_path": "docsets/PEPs",
+      "slug": "PEPs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Perl6",
+      "name": "Perl6",
+      "repo_path": "docsets/Perl6",
+      "slug": "Perl6",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Phaser",
+      "name": "Phaser",
+      "repo_path": "docsets/Phaser",
+      "slug": "Phaser",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Phaser-CE",
+      "name": "Phaser-CE",
+      "repo_path": "docsets/Phaser-CE",
+      "slug": "Phaser-CE",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_de",
+      "name": "PHP de",
+      "repo_path": "docsets/PHP_de",
+      "slug": "PHP_de",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_es",
+      "name": "PHP es",
+      "repo_path": "docsets/PHP_es",
+      "slug": "PHP_es",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_fr",
+      "name": "PHP fr",
+      "repo_path": "docsets/PHP_fr",
+      "slug": "PHP_fr",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_it",
+      "name": "PHP it",
+      "repo_path": "docsets/PHP_it",
+      "slug": "PHP_it",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_ja",
+      "name": "PHP ja",
+      "repo_path": "docsets/PHP_ja",
+      "slug": "PHP_ja",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_pt_BR",
+      "name": "PHP pt BR",
+      "repo_path": "docsets/PHP_pt_BR",
+      "slug": "PHP_pt_BR",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_ru",
+      "name": "PHP ru",
+      "repo_path": "docsets/PHP_ru",
+      "slug": "PHP_ru",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_tr",
+      "name": "PHP tr",
+      "repo_path": "docsets/PHP_tr",
+      "slug": "PHP_tr",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_uk",
+      "name": "PHP uk",
+      "repo_path": "docsets/PHP_uk",
+      "slug": "PHP_uk",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PHP_zh",
+      "name": "PHP zh",
+      "repo_path": "docsets/PHP_zh",
+      "slug": "PHP_zh",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PhysicsFS",
+      "name": "PhysicsFS",
+      "repo_path": "docsets/PhysicsFS",
+      "slug": "PhysicsFS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pika",
+      "name": "pika",
+      "repo_path": "docsets/pika",
+      "slug": "pika",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pillow",
+      "name": "Pillow",
+      "repo_path": "docsets/Pillow",
+      "slug": "Pillow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pin",
+      "name": "Pin",
+      "repo_path": "docsets/Pin",
+      "slug": "Pin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PlantUML",
+      "name": "PlantUML",
+      "repo_path": "docsets/PlantUML",
+      "slug": "PlantUML",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PlayCanvas",
+      "name": "PlayCanvas",
+      "repo_path": "docsets/PlayCanvas",
+      "slug": "PlayCanvas",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ploi_API",
+      "name": "Ploi API",
+      "repo_path": "docsets/Ploi_API",
+      "slug": "Ploi_API",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Plone",
+      "name": "Plone",
+      "repo_path": "docsets/Plone",
+      "slug": "Plone",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/plotnine",
+      "name": "plotnine",
+      "repo_path": "docsets/plotnine",
+      "slug": "plotnine",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pnpm",
+      "name": "pnpm",
+      "repo_path": "docsets/pnpm",
+      "slug": "pnpm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Poco",
+      "name": "Poco",
+      "repo_path": "docsets/Poco",
+      "slug": "Poco",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/POI",
+      "name": "POI",
+      "repo_path": "docsets/POI",
+      "slug": "POI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/polars",
+      "name": "polars",
+      "repo_path": "docsets/polars",
+      "slug": "polars",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PostGIS",
+      "name": "PostGIS",
+      "repo_path": "docsets/PostGIS",
+      "slug": "PostGIS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PouchDB",
+      "name": "PouchDB",
+      "repo_path": "docsets/PouchDB",
+      "slug": "PouchDB",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Powershell",
+      "name": "Powershell",
+      "repo_path": "docsets/Powershell",
+      "slug": "Powershell",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Praat",
+      "name": "Praat",
+      "repo_path": "docsets/Praat",
+      "slug": "Praat",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Presto",
+      "name": "Presto",
+      "repo_path": "docsets/Presto",
+      "slug": "Presto",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/psycopg2",
+      "name": "psycopg2",
+      "repo_path": "docsets/psycopg2",
+      "slug": "psycopg2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pup",
+      "name": "pup",
+      "repo_path": "docsets/pup",
+      "slug": "pup",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pure",
+      "name": "Pure",
+      "repo_path": "docsets/Pure",
+      "slug": "Pure",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Purpur",
+      "name": "Purpur",
+      "repo_path": "docsets/Purpur",
+      "slug": "Purpur",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pwntools",
+      "name": "pwntools",
+      "repo_path": "docsets/pwntools",
+      "slug": "pwntools",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pydial",
+      "name": "Pydial",
+      "repo_path": "docsets/Pydial",
+      "slug": "Pydial",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pydoop",
+      "name": "Pydoop",
+      "repo_path": "docsets/Pydoop",
+      "slug": "Pydoop",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyGame",
+      "name": "PyGame",
+      "repo_path": "docsets/PyGame",
+      "slug": "PyGame",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pygments",
+      "name": "Pygments",
+      "repo_path": "docsets/Pygments",
+      "slug": "Pygments",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyGraphviz",
+      "name": "PyGraphviz",
+      "repo_path": "docsets/PyGraphviz",
+      "slug": "PyGraphviz",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyInstaller",
+      "name": "PyInstaller",
+      "repo_path": "docsets/PyInstaller",
+      "slug": "PyInstaller",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pymatgen",
+      "name": "pymatgen",
+      "repo_path": "docsets/pymatgen",
+      "slug": "pymatgen",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pymc",
+      "name": "pymc",
+      "repo_path": "docsets/pymc",
+      "slug": "pymc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyMC3",
+      "name": "PyMC3",
+      "repo_path": "docsets/PyMC3",
+      "slug": "PyMC3",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyMel",
+      "name": "PyMel",
+      "repo_path": "docsets/PyMel",
+      "slug": "PyMel",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyMongo",
+      "name": "PyMongo",
+      "repo_path": "docsets/PyMongo",
+      "slug": "PyMongo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyMuPDF",
+      "name": "PyMuPDF",
+      "repo_path": "docsets/PyMuPDF",
+      "slug": "PyMuPDF",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyPDF",
+      "name": "PyPDF",
+      "repo_path": "docsets/PyPDF",
+      "slug": "PyPDF",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyQGIS",
+      "name": "PyQGIS",
+      "repo_path": "docsets/PyQGIS",
+      "slug": "PyQGIS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pyqtgraph",
+      "name": "pyqtgraph",
+      "repo_path": "docsets/pyqtgraph",
+      "slug": "pyqtgraph",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pyramid",
+      "name": "Pyramid",
+      "repo_path": "docsets/Pyramid",
+      "slug": "Pyramid",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pyro",
+      "name": "pyro",
+      "repo_path": "docsets/pyro",
+      "slug": "pyro",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pysam",
+      "name": "pysam",
+      "repo_path": "docsets/pysam",
+      "slug": "pysam",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PySide2",
+      "name": "PySide2",
+      "repo_path": "docsets/PySide2",
+      "slug": "PySide2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pyspark",
+      "name": "pyspark",
+      "repo_path": "docsets/pyspark",
+      "slug": "pyspark",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyTables",
+      "name": "PyTables",
+      "repo_path": "docsets/PyTables",
+      "slug": "PyTables",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/pytest",
+      "name": "pytest",
+      "repo_path": "docsets/pytest",
+      "slug": "pytest",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Python_Telegram_Bot",
+      "name": "Python Telegram Bot",
+      "repo_path": "docsets/Python_Telegram_Bot",
+      "slug": "Python_Telegram_Bot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Python_zh_cn",
+      "name": "Python zh cn",
+      "repo_path": "docsets/Python_zh_cn",
+      "slug": "Python_zh_cn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pythonista",
+      "name": "Pythonista",
+      "repo_path": "docsets/Pythonista",
+      "slug": "Pythonista",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyTorch",
+      "name": "PyTorch",
+      "repo_path": "docsets/PyTorch",
+      "slug": "PyTorch",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PyTorch-Geometric",
+      "name": "PyTorch-Geometric",
+      "repo_path": "docsets/PyTorch-Geometric",
+      "slug": "PyTorch-Geometric",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/PytorchLightning",
+      "name": "PytorchLightning",
+      "repo_path": "docsets/PytorchLightning",
+      "slug": "PytorchLightning",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Pywikibot",
+      "name": "Pywikibot",
+      "repo_path": "docsets/Pywikibot",
+      "slug": "Pywikibot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/QEMU",
+      "name": "QEMU",
+      "repo_path": "docsets/QEMU",
+      "slug": "QEMU",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/QGIS",
+      "name": "QGIS",
+      "repo_path": "docsets/QGIS",
+      "slug": "QGIS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Qt_for_Python",
+      "name": "Qt for Python",
+      "repo_path": "docsets/Qt_for_Python",
+      "slug": "Qt_for_Python",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/QuantumESPRESSO",
+      "name": "QuantumESPRESSO",
+      "repo_path": "docsets/QuantumESPRESSO",
+      "slug": "QuantumESPRESSO",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/quimb",
+      "name": "quimb",
+      "repo_path": "docsets/quimb",
+      "slug": "quimb",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/R5RS",
+      "name": "R5RS",
+      "repo_path": "docsets/R5RS",
+      "slug": "R5RS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Ramda",
+      "name": "Ramda",
+      "repo_path": "docsets/Ramda",
+      "slug": "Ramda",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Raphael.js",
+      "name": "Raphael.js",
+      "repo_path": "docsets/Raphael.js",
+      "slug": "Raphael.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Raspberry_Pi_Pico_SDK",
+      "name": "Raspberry Pi Pico SDK",
+      "repo_path": "docsets/Raspberry_Pi_Pico_SDK",
+      "slug": "Raspberry_Pi_Pico_SDK",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Raycast",
+      "name": "Raycast",
+      "repo_path": "docsets/Raycast",
+      "slug": "Raycast",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/React_Native",
+      "name": "React Native",
+      "repo_path": "docsets/React_Native",
+      "slug": "React_Native",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/React_Router",
+      "name": "React Router",
+      "repo_path": "docsets/React_Router",
+      "slug": "React_Router",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Realm_Java",
+      "name": "Realm Java",
+      "repo_path": "docsets/Realm_Java",
+      "slug": "Realm_Java",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Redaxo",
+      "name": "Redaxo",
+      "repo_path": "docsets/Redaxo",
+      "slug": "Redaxo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Redbeard",
+      "name": "Redbeard",
+      "repo_path": "docsets/Redbeard",
+      "slug": "Redbeard",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Redux",
+      "name": "Redux",
+      "repo_path": "docsets/Redux",
+      "slug": "Redux",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/redux-saga",
+      "name": "redux-saga",
+      "repo_path": "docsets/redux-saga",
+      "slug": "redux-saga",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Relay",
+      "name": "Relay",
+      "repo_path": "docsets/Relay",
+      "slug": "Relay",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Remix",
+      "name": "Remix",
+      "repo_path": "docsets/Remix",
+      "slug": "Remix",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RenPy_Engine",
+      "name": "RenPy Engine",
+      "repo_path": "docsets/RenPy_Engine",
+      "slug": "RenPy_Engine",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Requests",
+      "name": "Requests",
+      "repo_path": "docsets/Requests",
+      "slug": "Requests",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Requests-html",
+      "name": "Requests-html",
+      "repo_path": "docsets/Requests-html",
+      "slug": "Requests-html",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Restify",
+      "name": "Restify",
+      "repo_path": "docsets/Restify",
+      "slug": "Restify",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RethinkDBJS",
+      "name": "RethinkDBJS",
+      "repo_path": "docsets/RethinkDBJS",
+      "slug": "RethinkDBJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ReVIEW",
+      "name": "ReVIEW",
+      "repo_path": "docsets/ReVIEW",
+      "slug": "ReVIEW",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RFCs",
+      "name": "RFCs",
+      "repo_path": "docsets/RFCs",
+      "slug": "RFCs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RSMTool",
+      "name": "RSMTool",
+      "repo_path": "docsets/RSMTool",
+      "slug": "RSMTool",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RuboCop",
+      "name": "RuboCop",
+      "repo_path": "docsets/RuboCop",
+      "slug": "RuboCop",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RxJava",
+      "name": "RxJava",
+      "repo_path": "docsets/RxJava",
+      "slug": "RxJava",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RxJS",
+      "name": "RxJS",
+      "repo_path": "docsets/RxJS",
+      "slug": "RxJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/RxSwift",
+      "name": "RxSwift",
+      "repo_path": "docsets/RxSwift",
+      "slug": "RxSwift",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Salesforce_Apex",
+      "name": "Salesforce Apex",
+      "repo_path": "docsets/Salesforce_Apex",
+      "slug": "Salesforce_Apex",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Salesforce_Lightning",
+      "name": "Salesforce Lightning",
+      "repo_path": "docsets/Salesforce_Lightning",
+      "slug": "Salesforce_Lightning",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Salesforce_Visualforce",
+      "name": "Salesforce Visualforce",
+      "repo_path": "docsets/Salesforce_Visualforce",
+      "slug": "Salesforce_Visualforce",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Salyut_zh_cn",
+      "name": "Salyut zh cn",
+      "repo_path": "docsets/Salyut_zh_cn",
+      "slug": "Salyut_zh_cn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ScalaFX",
+      "name": "ScalaFX",
+      "repo_path": "docsets/ScalaFX",
+      "slug": "ScalaFX",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Scikit",
+      "name": "Scikit",
+      "repo_path": "docsets/Scikit",
+      "slug": "Scikit",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Scikit-image",
+      "name": "Scikit-image",
+      "repo_path": "docsets/Scikit-image",
+      "slug": "Scikit-image",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Scrapy",
+      "name": "Scrapy",
+      "repo_path": "docsets/Scrapy",
+      "slug": "Scrapy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Screeps",
+      "name": "Screeps",
+      "repo_path": "docsets/Screeps",
+      "slug": "Screeps",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SDL",
+      "name": "SDL",
+      "repo_path": "docsets/SDL",
+      "slug": "SDL",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Seaborn",
+      "name": "Seaborn",
+      "repo_path": "docsets/Seaborn",
+      "slug": "Seaborn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sendmail_Milter",
+      "name": "Sendmail Milter",
+      "repo_path": "docsets/Sendmail_Milter",
+      "slug": "Sendmail_Milter",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sequelize",
+      "name": "Sequelize",
+      "repo_path": "docsets/Sequelize",
+      "slug": "Sequelize",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Serverspec",
+      "name": "Serverspec",
+      "repo_path": "docsets/Serverspec",
+      "slug": "Serverspec",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/shapely",
+      "name": "shapely",
+      "repo_path": "docsets/shapely",
+      "slug": "shapely",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Shogun",
+      "name": "Shogun",
+      "repo_path": "docsets/Shogun",
+      "slug": "Shogun",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Should.js",
+      "name": "Should.js",
+      "repo_path": "docsets/Should.js",
+      "slug": "Should.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Six",
+      "name": "Six",
+      "repo_path": "docsets/Six",
+      "slug": "Six",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Skeleton",
+      "name": "Skeleton",
+      "repo_path": "docsets/Skeleton",
+      "slug": "Skeleton",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Skyfield",
+      "name": "Skyfield",
+      "repo_path": "docsets/Skyfield",
+      "slug": "Skyfield",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Slim_Framework",
+      "name": "Slim Framework",
+      "repo_path": "docsets/Slim_Framework",
+      "slug": "Slim_Framework",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Snap.svg",
+      "name": "Snap.svg",
+      "repo_path": "docsets/Snap.svg",
+      "slug": "Snap.svg",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Solarus",
+      "name": "Solarus",
+      "repo_path": "docsets/Solarus",
+      "slug": "Solarus",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Solidity",
+      "name": "Solidity",
+      "repo_path": "docsets/Solidity",
+      "slug": "Solidity",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Soot",
+      "name": "Soot",
+      "repo_path": "docsets/Soot",
+      "slug": "Soot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Spacemacs",
+      "name": "Spacemacs",
+      "repo_path": "docsets/Spacemacs",
+      "slug": "Spacemacs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SpeechBrain",
+      "name": "SpeechBrain",
+      "repo_path": "docsets/SpeechBrain",
+      "slug": "SpeechBrain",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sphinx",
+      "name": "Sphinx",
+      "repo_path": "docsets/Sphinx",
+      "slug": "Sphinx",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sphinx_Search_Server",
+      "name": "Sphinx Search Server",
+      "repo_path": "docsets/Sphinx_Search_Server",
+      "slug": "Sphinx_Search_Server",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SpigotMC",
+      "name": "SpigotMC",
+      "repo_path": "docsets/SpigotMC",
+      "slug": "SpigotMC",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SPIRV",
+      "name": "SPIRV",
+      "repo_path": "docsets/SPIRV",
+      "slug": "SPIRV",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Spring_Boot",
+      "name": "Spring Boot",
+      "repo_path": "docsets/Spring_Boot",
+      "slug": "Spring_Boot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/sqlite-utils",
+      "name": "sqlite-utils",
+      "repo_path": "docsets/sqlite-utils",
+      "slug": "sqlite-utils",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Standard_ML",
+      "name": "Standard ML",
+      "repo_path": "docsets/Standard_ML",
+      "slug": "Standard_ML",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/statsmodels",
+      "name": "statsmodels",
+      "repo_path": "docsets/statsmodels",
+      "slug": "statsmodels",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Storm",
+      "name": "Storm",
+      "repo_path": "docsets/Storm",
+      "slug": "Storm",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Streamlit",
+      "name": "Streamlit",
+      "repo_path": "docsets/Streamlit",
+      "slug": "Streamlit",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/structlog",
+      "name": "structlog",
+      "repo_path": "docsets/structlog",
+      "slug": "structlog",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sublime_Merge",
+      "name": "Sublime Merge",
+      "repo_path": "docsets/Sublime_Merge",
+      "slug": "Sublime_Merge",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sublime_Text",
+      "name": "Sublime Text",
+      "repo_path": "docsets/Sublime_Text",
+      "slug": "Sublime_Text",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Sublime_Text_Plugin_API",
+      "name": "Sublime Text Plugin API",
+      "repo_path": "docsets/Sublime_Text_Plugin_API",
+      "slug": "Sublime_Text_Plugin_API",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SuperCollider",
+      "name": "SuperCollider",
+      "repo_path": "docsets/SuperCollider",
+      "slug": "SuperCollider",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Svelte",
+      "name": "Svelte",
+      "repo_path": "docsets/Svelte",
+      "slug": "Svelte",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SWI_Prolog",
+      "name": "SWI Prolog",
+      "repo_path": "docsets/SWI_Prolog",
+      "slug": "SWI_Prolog",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Swift",
+      "name": "Swift",
+      "repo_path": "docsets/Swift",
+      "slug": "Swift",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Swift_Package_Manager",
+      "name": "Swift Package Manager",
+      "repo_path": "docsets/Swift_Package_Manager",
+      "slug": "Swift_Package_Manager",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Swoole_Chinese",
+      "name": "Swoole Chinese",
+      "repo_path": "docsets/Swoole_Chinese",
+      "slug": "Swoole_Chinese",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Symfony_Docs",
+      "name": "Symfony Docs",
+      "repo_path": "docsets/Symfony_Docs",
+      "slug": "Symfony_Docs",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/SymPy",
+      "name": "SymPy",
+      "repo_path": "docsets/SymPy",
+      "slug": "SymPy",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Tailwind_CSS",
+      "name": "Tailwind CSS",
+      "repo_path": "docsets/Tailwind_CSS",
+      "slug": "Tailwind_CSS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/TCLAP",
+      "name": "TCLAP",
+      "repo_path": "docsets/TCLAP",
+      "slug": "TCLAP",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/TensorFlow",
+      "name": "TensorFlow",
+      "repo_path": "docsets/TensorFlow",
+      "slug": "TensorFlow",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/TensorFlow_2",
+      "name": "TensorFlow 2",
+      "repo_path": "docsets/TensorFlow_2",
+      "slug": "TensorFlow_2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/TensorFlow_Probability",
+      "name": "TensorFlow Probability",
+      "repo_path": "docsets/TensorFlow_Probability",
+      "slug": "TensorFlow_Probability",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Terraform",
+      "name": "Terraform",
+      "repo_path": "docsets/Terraform",
+      "slug": "Terraform",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Theano",
+      "name": "Theano",
+      "repo_path": "docsets/Theano",
+      "slug": "Theano",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/ThinkJS",
+      "name": "ThinkJS",
+      "repo_path": "docsets/ThinkJS",
+      "slug": "ThinkJS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Three.js",
+      "name": "Three.js",
+      "repo_path": "docsets/Three.js",
+      "slug": "Three.js",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Tiki",
+      "name": "Tiki",
+      "repo_path": "docsets/Tiki",
+      "slug": "Tiki",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/tldr",
+      "name": "tldr",
+      "repo_path": "docsets/tldr",
+      "slug": "tldr",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/torchaudio",
+      "name": "torchaudio",
+      "repo_path": "docsets/torchaudio",
+      "slug": "torchaudio",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/TorchMetrics",
+      "name": "TorchMetrics",
+      "repo_path": "docsets/TorchMetrics",
+      "slug": "TorchMetrics",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/torchtext",
+      "name": "torchtext",
+      "repo_path": "docsets/torchtext",
+      "slug": "torchtext",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/torchvision",
+      "name": "torchvision",
+      "repo_path": "docsets/torchvision",
+      "slug": "torchvision",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/toyplot",
+      "name": "toyplot",
+      "repo_path": "docsets/toyplot",
+      "slug": "toyplot",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/transformers",
+      "name": "transformers",
+      "repo_path": "docsets/transformers",
+      "slug": "transformers",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Trino",
+      "name": "Trino",
+      "repo_path": "docsets/Trino",
+      "slug": "Trino",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Triton",
+      "name": "Triton",
+      "repo_path": "docsets/Triton",
+      "slug": "Triton",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/tsdoc",
+      "name": "tsdoc",
+      "repo_path": "docsets/tsdoc",
+      "slug": "tsdoc",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/UIKit",
+      "name": "UIKit",
+      "repo_path": "docsets/UIKit",
+      "slug": "UIKit",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/UnicodeCharacters",
+      "name": "UnicodeCharacters",
+      "repo_path": "docsets/UnicodeCharacters",
+      "slug": "UnicodeCharacters",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/UnrealEngine4",
+      "name": "UnrealEngine4",
+      "repo_path": "docsets/UnrealEngine4",
+      "slug": "UnrealEngine4",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/updeep",
+      "name": "updeep",
+      "repo_path": "docsets/updeep",
+      "slug": "updeep",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/uv",
+      "name": "uv",
+      "repo_path": "docsets/uv",
+      "slug": "uv",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/UVM",
+      "name": "UVM",
+      "repo_path": "docsets/UVM",
+      "slug": "UVM",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/uWSGI",
+      "name": "uWSGI",
+      "repo_path": "docsets/uWSGI",
+      "slug": "uWSGI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vaadin",
+      "name": "Vaadin",
+      "repo_path": "docsets/Vaadin",
+      "slug": "Vaadin",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Varnish",
+      "name": "Varnish",
+      "repo_path": "docsets/Varnish",
+      "slug": "Varnish",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vault",
+      "name": "Vault",
+      "repo_path": "docsets/Vault",
+      "slug": "Vault",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/vCloud_Director",
+      "name": "vCloud Director",
+      "repo_path": "docsets/vCloud_Director",
+      "slug": "vCloud_Director",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vega",
+      "name": "Vega",
+      "repo_path": "docsets/Vega",
+      "slug": "Vega",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vega-Lite",
+      "name": "Vega-Lite",
+      "repo_path": "docsets/Vega-Lite",
+      "slug": "Vega-Lite",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Velocity",
+      "name": "Velocity",
+      "repo_path": "docsets/Velocity",
+      "slug": "Velocity",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/VHDL93",
+      "name": "VHDL93",
+      "repo_path": "docsets/VHDL93",
+      "slug": "VHDL93",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vibe.d",
+      "name": "Vibe.d",
+      "repo_path": "docsets/Vibe.d",
+      "slug": "Vibe.d",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/virtualenv",
+      "name": "virtualenv",
+      "repo_path": "docsets/virtualenv",
+      "slug": "virtualenv",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Visual_Studio_Code",
+      "name": "Visual Studio Code",
+      "repo_path": "docsets/Visual_Studio_Code",
+      "slug": "Visual_Studio_Code",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Visualforce",
+      "name": "Visualforce",
+      "repo_path": "docsets/Visualforce",
+      "slug": "Visualforce",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Vulkan",
+      "name": "Vulkan",
+      "repo_path": "docsets/Vulkan",
+      "slug": "Vulkan",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Wagtail",
+      "name": "Wagtail",
+      "repo_path": "docsets/Wagtail",
+      "slug": "Wagtail",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Wand",
+      "name": "Wand",
+      "repo_path": "docsets/Wand",
+      "slug": "Wand",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Warp",
+      "name": "Warp",
+      "repo_path": "docsets/Warp",
+      "slug": "Warp",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WebApp2",
+      "name": "WebApp2",
+      "repo_path": "docsets/WebApp2",
+      "slug": "WebApp2",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WebExtensions",
+      "name": "WebExtensions",
+      "repo_path": "docsets/WebExtensions",
+      "slug": "WebExtensions",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WebOb",
+      "name": "WebOb",
+      "repo_path": "docsets/WebOb",
+      "slug": "WebOb",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/webpack",
+      "name": "webpack",
+      "repo_path": "docsets/webpack",
+      "slug": "webpack",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WebTest",
+      "name": "WebTest",
+      "repo_path": "docsets/WebTest",
+      "slug": "WebTest",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Werkzeug",
+      "name": "Werkzeug",
+      "repo_path": "docsets/Werkzeug",
+      "slug": "Werkzeug",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WooCommerce",
+      "name": "WooCommerce",
+      "repo_path": "docsets/WooCommerce",
+      "slug": "WooCommerce",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WP-CLI",
+      "name": "WP-CLI",
+      "repo_path": "docsets/WP-CLI",
+      "slug": "WP-CLI",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WPILib",
+      "name": "WPILib",
+      "repo_path": "docsets/WPILib",
+      "slug": "WPILib",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/WPS",
+      "name": "WPS",
+      "repo_path": "docsets/WPS",
+      "slug": "WPS",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/wxPython",
+      "name": "wxPython",
+      "repo_path": "docsets/wxPython",
+      "slug": "wxPython",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/wxWidgets",
+      "name": "wxWidgets",
+      "repo_path": "docsets/wxWidgets",
+      "slug": "wxWidgets",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/xarray",
+      "name": "xarray",
+      "repo_path": "docsets/xarray",
+      "slug": "xarray",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/XCTest",
+      "name": "XCTest",
+      "repo_path": "docsets/XCTest",
+      "slug": "XCTest",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/xdebug",
+      "name": "xdebug",
+      "repo_path": "docsets/xdebug",
+      "slug": "xdebug",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/xgboost",
+      "name": "xgboost",
+      "repo_path": "docsets/xgboost",
+      "slug": "xgboost",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/XMake",
+      "name": "XMake",
+      "repo_path": "docsets/XMake",
+      "slug": "XMake",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Xojo",
+      "name": "Xojo",
+      "repo_path": "docsets/Xojo",
+      "slug": "Xojo",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Yarn",
+      "name": "Yarn",
+      "repo_path": "docsets/Yarn",
+      "slug": "Yarn",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Zig",
+      "name": "Zig",
+      "repo_path": "docsets/Zig",
+      "slug": "Zig",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Zimbra_SOAP_API",
+      "name": "Zimbra SOAP API",
+      "repo_path": "docsets/Zimbra_SOAP_API",
+      "slug": "Zimbra_SOAP_API",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Zimbra_Zimlet_API",
+      "name": "Zimbra Zimlet API",
+      "repo_path": "docsets/Zimbra_Zimlet_API",
+      "slug": "Zimbra_Zimlet_API",
+      "source": "user_contributed"
+    },
+    {
+      "html_url": "https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets/Zsh",
+      "name": "Zsh",
+      "repo_path": "docsets/Zsh",
+      "slug": "Zsh",
+      "source": "user_contributed"
+    }
+  ],
+  "refreshed_at": "2026-02-27T16:51:38.466125+00:00",
+  "source_url": "https://api.github.com/repos/Kapeli/Dash-User-Contributions/contents/docsets?ref=master"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "apple-dev-skills",
+  "description": "In-development Apple development plugin scaffold for skills, future hooks, and MCP packaging.",
+  "version": "4.0.0-rc.1",
+  "author": {
+    "name": "Gale"
+  },
+  "repository": "https://github.com/gaelic-ghost/apple-dev-skills",
+  "license": "MIT"
+}

@@ -1,0 +1,1099 @@
+{
+  "count": 182,
+  "entries": [
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ActionScript.xml",
+      "name": "ActionScript",
+      "slug": "ActionScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Akka.xml",
+      "name": "Akka",
+      "slug": "Akka",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Android_(Kotlin).xml",
+      "name": "Android (Kotlin)",
+      "slug": "Android_(Kotlin)",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Angular.xml",
+      "name": "Angular",
+      "slug": "Angular",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Angular.dart.xml",
+      "name": "Angular.dart",
+      "slug": "Angular.dart",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/AngularJS.xml",
+      "name": "AngularJS",
+      "slug": "AngularJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/AngularTS.xml",
+      "name": "AngularTS",
+      "slug": "AngularTS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Ansible.xml",
+      "name": "Ansible",
+      "slug": "Ansible",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Apache_HTTP_Server.xml",
+      "name": "Apache HTTP Server",
+      "slug": "Apache_HTTP_Server",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Appcelerator_Titanium.xml",
+      "name": "Appcelerator Titanium",
+      "slug": "Appcelerator_Titanium",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Apple_Guides_and_Sample_Code.xml",
+      "name": "Apple Guides and Sample Code",
+      "slug": "Apple_Guides_and_Sample_Code",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/AppleScript.xml",
+      "name": "AppleScript",
+      "slug": "AppleScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Arduino.xml",
+      "name": "Arduino",
+      "slug": "Arduino",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/AWS_JavaScript.xml",
+      "name": "AWS JavaScript",
+      "slug": "AWS_JavaScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/BackboneJS.xml",
+      "name": "BackboneJS",
+      "slug": "BackboneJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Bash.xml",
+      "name": "Bash",
+      "slug": "Bash",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Boost.xml",
+      "name": "Boost",
+      "slug": "Boost",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Bootstrap.xml",
+      "name": "Bootstrap",
+      "slug": "Bootstrap",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Bourbon.xml",
+      "name": "Bourbon",
+      "slug": "Bourbon",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/C.xml",
+      "name": "C",
+      "slug": "C",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/C++.xml",
+      "name": "C++",
+      "slug": "C++",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CakePHP.xml",
+      "name": "CakePHP",
+      "slug": "CakePHP",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Cappuccino.xml",
+      "name": "Cappuccino",
+      "slug": "Cappuccino",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Chai.xml",
+      "name": "Chai",
+      "slug": "Chai",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Chef.xml",
+      "name": "Chef",
+      "slug": "Chef",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Clojure.xml",
+      "name": "Clojure",
+      "slug": "Clojure",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CMake.xml",
+      "name": "CMake",
+      "slug": "CMake",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Cocos2D.xml",
+      "name": "Cocos2D",
+      "slug": "Cocos2D",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Cocos2D-X.xml",
+      "name": "Cocos2D-X",
+      "slug": "Cocos2D-X",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Cocos3D.xml",
+      "name": "Cocos3D",
+      "slug": "Cocos3D",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CodeIgniter.xml",
+      "name": "CodeIgniter",
+      "slug": "CodeIgniter",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CoffeeScript.xml",
+      "name": "CoffeeScript",
+      "slug": "CoffeeScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ColdFusion.xml",
+      "name": "ColdFusion",
+      "slug": "ColdFusion",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Common_Lisp.xml",
+      "name": "Common Lisp",
+      "slug": "Common_Lisp",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Compass.xml",
+      "name": "Compass",
+      "slug": "Compass",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Cordova.xml",
+      "name": "Cordova",
+      "slug": "Cordova",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Corona.xml",
+      "name": "Corona",
+      "slug": "Corona",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CouchDB.xml",
+      "name": "CouchDB",
+      "slug": "CouchDB",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Craft.xml",
+      "name": "Craft",
+      "slug": "Craft",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/CSS.xml",
+      "name": "CSS",
+      "slug": "CSS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/D3JS.xml",
+      "name": "D3JS",
+      "slug": "D3JS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Dart.xml",
+      "name": "Dart",
+      "slug": "Dart",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Django.xml",
+      "name": "Django",
+      "slug": "Django",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Docker.xml",
+      "name": "Docker",
+      "slug": "Docker",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Doctrine_ORM.xml",
+      "name": "Doctrine ORM",
+      "slug": "Doctrine_ORM",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Dojo.xml",
+      "name": "Dojo",
+      "slug": "Dojo",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Drupal.xml",
+      "name": "Drupal",
+      "slug": "Drupal",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ElasticSearch.xml",
+      "name": "ElasticSearch",
+      "slug": "ElasticSearch",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Elixir.xml",
+      "name": "Elixir",
+      "slug": "Elixir",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Emacs_Lisp.xml",
+      "name": "Emacs Lisp",
+      "slug": "Emacs_Lisp",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/EmberJS.xml",
+      "name": "EmberJS",
+      "slug": "EmberJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Emmet.xml",
+      "name": "Emmet",
+      "slug": "Emmet",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Erlang.xml",
+      "name": "Erlang",
+      "slug": "Erlang",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Express.xml",
+      "name": "Express",
+      "slug": "Express",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ExpressionEngine.xml",
+      "name": "ExpressionEngine",
+      "slug": "ExpressionEngine",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ExtJS.xml",
+      "name": "ExtJS",
+      "slug": "ExtJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Flask.xml",
+      "name": "Flask",
+      "slug": "Flask",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Font_Awesome.xml",
+      "name": "Font Awesome",
+      "slug": "Font_Awesome",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Foundation.xml",
+      "name": "Foundation",
+      "slug": "Foundation",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/GLib.xml",
+      "name": "GLib",
+      "slug": "GLib",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Go.xml",
+      "name": "Go",
+      "slug": "Go",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Gradle_DSL.xml",
+      "name": "Gradle DSL",
+      "slug": "Gradle_DSL",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Gradle_Groovy_API.xml",
+      "name": "Gradle Groovy API",
+      "slug": "Gradle_Groovy_API",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Gradle_Java_API.xml",
+      "name": "Gradle Java API",
+      "slug": "Gradle_Java_API",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Gradle_User_Guide.xml",
+      "name": "Gradle User Guide",
+      "slug": "Gradle_User_Guide",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Grails.xml",
+      "name": "Grails",
+      "slug": "Grails",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Groovy.xml",
+      "name": "Groovy",
+      "slug": "Groovy",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Groovy_JDK.xml",
+      "name": "Groovy JDK",
+      "slug": "Groovy_JDK",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Grunt.xml",
+      "name": "Grunt",
+      "slug": "Grunt",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Gulp.xml",
+      "name": "Gulp",
+      "slug": "Gulp",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Haml.xml",
+      "name": "Haml",
+      "slug": "Haml",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Handlebars.xml",
+      "name": "Handlebars",
+      "slug": "Handlebars",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Haskell.xml",
+      "name": "Haskell",
+      "slug": "Haskell",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/HTML.xml",
+      "name": "HTML",
+      "slug": "HTML",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/HTTP.xml",
+      "name": "HTTP",
+      "slug": "HTTP",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Ionic.xml",
+      "name": "Ionic",
+      "slug": "Ionic",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Jade.xml",
+      "name": "Jade",
+      "slug": "Jade",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Jasmine.xml",
+      "name": "Jasmine",
+      "slug": "Jasmine",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Java.xml",
+      "name": "Java",
+      "slug": "Java",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/JavaScript.xml",
+      "name": "JavaScript",
+      "slug": "JavaScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Jekyll.xml",
+      "name": "Jekyll",
+      "slug": "Jekyll",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Jinja.xml",
+      "name": "Jinja",
+      "slug": "Jinja",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Joomla.xml",
+      "name": "Joomla",
+      "slug": "Joomla",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/jQuery.xml",
+      "name": "jQuery",
+      "slug": "jQuery",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/jQuery_Mobile.xml",
+      "name": "jQuery Mobile",
+      "slug": "jQuery_Mobile",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/jQuery_UI.xml",
+      "name": "jQuery UI",
+      "slug": "jQuery_UI",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Julia.xml",
+      "name": "Julia",
+      "slug": "Julia",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/KnockoutJS.xml",
+      "name": "KnockoutJS",
+      "slug": "KnockoutJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Kobold2D.xml",
+      "name": "Kobold2D",
+      "slug": "Kobold2D",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Laravel.xml",
+      "name": "Laravel",
+      "slug": "Laravel",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/LaTeX.xml",
+      "name": "LaTeX",
+      "slug": "LaTeX",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Less.xml",
+      "name": "Less",
+      "slug": "Less",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Lo-Dash.xml",
+      "name": "Lo-Dash",
+      "slug": "Lo-Dash",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Lua.xml",
+      "name": "Lua",
+      "slug": "Lua",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Man_Pages.xml",
+      "name": "Man Pages",
+      "slug": "Man_Pages",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MarionetteJS.xml",
+      "name": "MarionetteJS",
+      "slug": "MarionetteJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Markdown.xml",
+      "name": "Markdown",
+      "slug": "Markdown",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MATLAB.xml",
+      "name": "MATLAB",
+      "slug": "MATLAB",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Matplotlib.xml",
+      "name": "Matplotlib",
+      "slug": "Matplotlib",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Meteor.xml",
+      "name": "Meteor",
+      "slug": "Meteor",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Mocha.xml",
+      "name": "Mocha",
+      "slug": "Mocha",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MomentJS.xml",
+      "name": "MomentJS",
+      "slug": "MomentJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MongoDB.xml",
+      "name": "MongoDB",
+      "slug": "MongoDB",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Mongoose.xml",
+      "name": "Mongoose",
+      "slug": "Mongoose",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MooTools.xml",
+      "name": "MooTools",
+      "slug": "MooTools",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/MySQL.xml",
+      "name": "MySQL",
+      "slug": "MySQL",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Neat.xml",
+      "name": "Neat",
+      "slug": "Neat",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Nginx.xml",
+      "name": "Nginx",
+      "slug": "Nginx",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/NodeJS.xml",
+      "name": "NodeJS",
+      "slug": "NodeJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/NumPy.xml",
+      "name": "NumPy",
+      "slug": "NumPy",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OCaml.xml",
+      "name": "OCaml",
+      "slug": "OCaml",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenCV.xml",
+      "name": "OpenCV",
+      "slug": "OpenCV",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenCV_C.xml",
+      "name": "OpenCV C",
+      "slug": "OpenCV_C",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenCV_C++.xml",
+      "name": "OpenCV C++",
+      "slug": "OpenCV_C++",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenCV_Java.xml",
+      "name": "OpenCV Java",
+      "slug": "OpenCV_Java",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenCV_Python.xml",
+      "name": "OpenCV Python",
+      "slug": "OpenCV_Python",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/OpenGL.xml",
+      "name": "OpenGL",
+      "slug": "OpenGL",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Pandas.xml",
+      "name": "Pandas",
+      "slug": "Pandas",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Perl.xml",
+      "name": "Perl",
+      "slug": "Perl",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Phalcon.xml",
+      "name": "Phalcon",
+      "slug": "Phalcon",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/PhoneGap.xml",
+      "name": "PhoneGap",
+      "slug": "PhoneGap",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/PHP.xml",
+      "name": "PHP",
+      "slug": "PHP",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/PHPUnit.xml",
+      "name": "PHPUnit",
+      "slug": "PHPUnit",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Play_Java.xml",
+      "name": "Play Java",
+      "slug": "Play_Java",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Play_Scala.xml",
+      "name": "Play Scala",
+      "slug": "Play_Scala",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Polymer.dart.xml",
+      "name": "Polymer.dart",
+      "slug": "Polymer.dart",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/PostgreSQL.xml",
+      "name": "PostgreSQL",
+      "slug": "PostgreSQL",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Processing.xml",
+      "name": "Processing",
+      "slug": "Processing",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/PrototypeJS.xml",
+      "name": "PrototypeJS",
+      "slug": "PrototypeJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Pug.xml",
+      "name": "Pug",
+      "slug": "Pug",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Puppet.xml",
+      "name": "Puppet",
+      "slug": "Puppet",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Python.xml",
+      "name": "Python",
+      "slug": "Python",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Qt.xml",
+      "name": "Qt",
+      "slug": "Qt",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/R.xml",
+      "name": "R",
+      "slug": "R",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Racket.xml",
+      "name": "Racket",
+      "slug": "Racket",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/React.xml",
+      "name": "React",
+      "slug": "React",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Redis.xml",
+      "name": "Redis",
+      "slug": "Redis",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/RequireJS.xml",
+      "name": "RequireJS",
+      "slug": "RequireJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Ruby.xml",
+      "name": "Ruby",
+      "slug": "Ruby",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Ruby_Installed_Gems.xml",
+      "name": "Ruby Installed Gems",
+      "slug": "Ruby_Installed_Gems",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Ruby_on_Rails.xml",
+      "name": "Ruby on Rails",
+      "slug": "Ruby_on_Rails",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/RubyMotion.xml",
+      "name": "RubyMotion",
+      "slug": "RubyMotion",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Rust.xml",
+      "name": "Rust",
+      "slug": "Rust",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SailsJS.xml",
+      "name": "SailsJS",
+      "slug": "SailsJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SaltStack.xml",
+      "name": "SaltStack",
+      "slug": "SaltStack",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Sass.xml",
+      "name": "Sass",
+      "slug": "Sass",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Scala.xml",
+      "name": "Scala",
+      "slug": "Scala",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SciPy.xml",
+      "name": "SciPy",
+      "slug": "SciPy",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Semantic_UI.xml",
+      "name": "Semantic UI",
+      "slug": "Semantic_UI",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Sencha_Touch.xml",
+      "name": "Sencha Touch",
+      "slug": "Sencha_Touch",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Sinon.xml",
+      "name": "Sinon",
+      "slug": "Sinon",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Smarty.xml",
+      "name": "Smarty",
+      "slug": "Smarty",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Sparrow.xml",
+      "name": "Sparrow",
+      "slug": "Sparrow",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Spring_Framework.xml",
+      "name": "Spring Framework",
+      "slug": "Spring_Framework",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SQLAlchemy.xml",
+      "name": "SQLAlchemy",
+      "slug": "SQLAlchemy",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SQLite.xml",
+      "name": "SQLite",
+      "slug": "SQLite",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Statamic.xml",
+      "name": "Statamic",
+      "slug": "Statamic",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Stylus.xml",
+      "name": "Stylus",
+      "slug": "Stylus",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Susy.xml",
+      "name": "Susy",
+      "slug": "Susy",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/SVG.xml",
+      "name": "SVG",
+      "slug": "SVG",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Swift.xml",
+      "name": "Swift",
+      "slug": "Swift",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Symfony.xml",
+      "name": "Symfony",
+      "slug": "Symfony",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Tcl.xml",
+      "name": "Tcl",
+      "slug": "Tcl",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Tornado.xml",
+      "name": "Tornado",
+      "slug": "Tornado",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Twig.xml",
+      "name": "Twig",
+      "slug": "Twig",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Twisted.xml",
+      "name": "Twisted",
+      "slug": "Twisted",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/TypeScript.xml",
+      "name": "TypeScript",
+      "slug": "TypeScript",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/TYPO3.xml",
+      "name": "TYPO3",
+      "slug": "TYPO3",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/UnderscoreJS.xml",
+      "name": "UnderscoreJS",
+      "slug": "UnderscoreJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Unity_3D.xml",
+      "name": "Unity 3D",
+      "slug": "Unity_3D",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Vagrant.xml",
+      "name": "Vagrant",
+      "slug": "Vagrant",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Vim.xml",
+      "name": "Vim",
+      "slug": "Vim",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/VMware_vSphere.xml",
+      "name": "VMware vSphere",
+      "slug": "VMware_vSphere",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/VueJS.xml",
+      "name": "VueJS",
+      "slug": "VueJS",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/WordPress.xml",
+      "name": "WordPress",
+      "slug": "WordPress",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Xojo.xml",
+      "name": "Xojo",
+      "slug": "Xojo",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/XSLT.xml",
+      "name": "XSLT",
+      "slug": "XSLT",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/XUL.xml",
+      "name": "XUL",
+      "slug": "XUL",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Yii.xml",
+      "name": "Yii",
+      "slug": "Yii",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/YUI.xml",
+      "name": "YUI",
+      "slug": "YUI",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/Zend_Framework.xml",
+      "name": "Zend Framework",
+      "slug": "Zend_Framework",
+      "source": "built_in"
+    },
+    {
+      "feed_xml_url": "https://raw.githubusercontent.com/Kapeli/feeds/master/ZeptoJS.xml",
+      "name": "ZeptoJS",
+      "slug": "ZeptoJS",
+      "source": "built_in"
+    }
+  ],
+  "refreshed_at": "2026-02-27T16:51:37.904669+00:00",
+  "source_url": "https://api.github.com/repos/Kapeli/feeds/contents?ref=master"
+}

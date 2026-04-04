@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync Xcode Project Guidance"
+  short_description: "Align AGENTS and workflow guidance for Xcode app repos"
+  default_prompt: "Use $sync-xcode-project-guidance to add or merge AGENTS.md and Xcode workflow guidance into an existing macOS, iOS, or iPadOS app repository."
