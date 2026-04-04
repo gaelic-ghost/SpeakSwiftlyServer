@@ -369,11 +369,37 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(defaults.sseHeartbeatSeconds == 10)
     #expect(defaults.completedJobTTLSeconds == 900)
 
+    let appConfig = try AppConfig.load(environment: [
+        "APP_HTTP_ENABLED": "false",
+        "APP_HTTP_HOST": "0.0.0.0",
+        "APP_HTTP_PORT": "7444",
+        "APP_HTTP_SSE_HEARTBEAT_SECONDS": "2.5",
+        "APP_MCP_ENABLED": "true",
+        "APP_MCP_PATH": "/assistant/mcp",
+        "APP_MCP_SERVER_NAME": "speak-swiftly-agent",
+        "APP_MCP_TITLE": "SpeakSwiftly Server MCP",
+    ])
+    #expect(appConfig.http.enabled == false)
+    #expect(appConfig.http.host == "0.0.0.0")
+    #expect(appConfig.http.port == 7444)
+    #expect(appConfig.http.sseHeartbeatSeconds == 2.5)
+    #expect(appConfig.mcp.enabled == true)
+    #expect(appConfig.mcp.path == "/assistant/mcp")
+    #expect(appConfig.mcp.serverName == "speak-swiftly-agent")
+    #expect(appConfig.mcp.title == "SpeakSwiftly Server MCP")
+
     do {
         _ = try ServerConfiguration.load(environment: ["APP_PORT": "zero"])
         Issue.record("Expected invalid APP_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_PORT"))
+    }
+
+    do {
+        _ = try AppConfig.load(environment: ["APP_HTTP_PORT": "zero"])
+        Issue.record("Expected invalid APP_HTTP_PORT to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("APP_HTTP_PORT"))
     }
 }
 
