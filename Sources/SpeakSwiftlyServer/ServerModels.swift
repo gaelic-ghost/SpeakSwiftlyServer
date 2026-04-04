@@ -65,6 +65,71 @@ struct ProfileListResponse: ResponseEncodable, Sendable {
     let profiles: [ProfileSnapshot]
 }
 
+struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
+    let id: String
+    let op: String
+    let profileName: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case op
+        case profileName = "profile_name"
+    }
+
+    init(summary: ActiveWorkerRequestSummary) {
+        self.id = summary.id
+        self.op = summary.op
+        self.profileName = summary.profileName
+    }
+}
+
+struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
+    let id: String
+    let op: String
+    let profileName: String?
+    let queuePosition: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case op
+        case profileName = "profile_name"
+        case queuePosition = "queue_position"
+    }
+
+    init(summary: QueuedWorkerRequestSummary) {
+        self.id = summary.id
+        self.op = summary.op
+        self.profileName = summary.profileName
+        self.queuePosition = summary.queuePosition
+    }
+}
+
+struct QueueSnapshotResponse: ResponseEncodable, Sendable {
+    let activeRequest: ActiveRequestSnapshot?
+    let queue: [QueuedRequestSnapshot]
+
+    enum CodingKeys: String, CodingKey {
+        case activeRequest = "active_request"
+        case queue
+    }
+}
+
+struct QueueClearedResponse: ResponseEncodable, Sendable {
+    let clearedCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case clearedCount = "cleared_count"
+    }
+}
+
+struct QueueCancellationResponse: ResponseEncodable, Sendable {
+    let cancelledRequestID: String
+
+    enum CodingKeys: String, CodingKey {
+        case cancelledRequestID = "cancelled_request_id"
+    }
+}
+
 struct HealthSnapshot: ResponseEncodable, Sendable {
     let status: String
     let service: String

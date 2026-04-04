@@ -28,6 +28,19 @@ func makeApplication(
         .init(profiles: await state.cachedProfiles())
     }
 
+    router.get("queue") { _, _ -> QueueSnapshotResponse in
+        try await state.queueSnapshot()
+    }
+
+    router.delete("queue") { _, _ -> QueueClearedResponse in
+        try await state.clearQueue()
+    }
+
+    router.delete("queue/:request_id") { _, context -> QueueCancellationResponse in
+        let requestID = try context.parameters.require("request_id")
+        return try await state.cancelQueuedOrActiveRequest(requestID: requestID)
+    }
+
     router.post("profiles") { request, context -> Response in
         let payload = try await request.decode(as: CreateProfileRequestPayload.self, context: context)
         let jobID = try await state.submitCreateProfile(

@@ -198,6 +198,32 @@ actor ServerState {
         return await enqueuePublicJob(request)
     }
 
+    func queueSnapshot() async throws -> QueueSnapshotResponse {
+        let success = try await performImmediateControlRequest(.listQueue(id: UUID().uuidString))
+        return .init(
+            activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
+            queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)) ?? []
+        )
+    }
+
+    func clearQueue() async throws -> QueueClearedResponse {
+        let success = try await performImmediateControlRequest(.clearQueue(id: UUID().uuidString))
+        return .init(clearedCount: success.clearedCount ?? 0)
+    }
+
+    func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
+        let success = try await performImmediateControlRequest(
+            .cancelRequest(id: UUID().uuidString, requestID: requestID)
+        )
+        guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
+            throw WorkerError(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the cancel_request control operation, but it did not report which request was cancelled."
+            )
+        }
+        return .init(cancelledRequestID: cancelledRequestID)
+    }
+
     func jobSnapshot(id: String) throws -> JobSnapshot {
         pruneCompletedJobs()
         guard let job = jobs[id] else {
@@ -409,32 +435,18 @@ actor ServerState {
 
     private func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
         let request = WorkerRequest.listProfiles(id: UUID().uuidString)
-        let handle = await runtime.submit(request)
-
-        do {
-            for try await event in handle.events {
-                if case .completed(let success) = event {
-                    let profiles = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
-                    self.profileCache = profiles
-                    self.lastProfileRefreshAt = Date()
-                    self.profileCacheState = "fresh"
-                    self.profileCacheWarning = nil
-                    _ = reason
-                    return profiles
-                }
-            }
-            throw WorkerError(
-                code: .internalError,
-                message: "SpeakSwiftly finished the internal list_profiles request without yielding a terminal success payload."
-            )
-        } catch let error as WorkerError {
-            throw error
-        } catch {
-            throw WorkerError(
-                code: .internalError,
-                message: "SpeakSwiftly failed while refreshing cached profiles. \(error.localizedDescription)"
-            )
-        }
+        let success = try await awaitImmediateSuccess(
+            for: request,
+            missingTerminalMessage: "SpeakSwiftly finished the internal list_profiles request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles."
+        )
+        let profiles = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
+        self.profileCache = profiles
+        self.lastProfileRefreshAt = Date()
+        self.profileCacheState = "fresh"
+        self.profileCacheWarning = nil
+        _ = reason
+        return profiles
     }
 
     private func applyProfileRefresh(from success: WorkerSuccessResponse) async {
@@ -635,5 +647,40 @@ actor ServerState {
         var buffer = byteBufferAllocator.buffer(capacity: 15)
         buffer.writeString(": keep-alive\n\n")
         return buffer
+    }
+
+    private func performImmediateControlRequest(_ request: WorkerRequest) async throws -> WorkerSuccessResponse {
+        try await awaitImmediateSuccess(
+            for: request,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(request.opName)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(request.opName)' control request."
+        )
+    }
+
+    private func awaitImmediateSuccess(
+        for request: WorkerRequest,
+        missingTerminalMessage: String,
+        unexpectedFailureMessagePrefix: String
+    ) async throws -> WorkerSuccessResponse {
+        let handle = await runtime.submit(request)
+
+        do {
+            for try await event in handle.events {
+                if case .completed(let success) = event {
+                    return success
+                }
+            }
+            throw WorkerError(
+                code: .internalError,
+                message: missingTerminalMessage
+            )
+        } catch let error as WorkerError {
+            throw error
+        } catch {
+            throw WorkerError(
+                code: .internalError,
+                message: "\(unexpectedFailureMessagePrefix) \(error.localizedDescription)"
+            )
+        }
     }
 }

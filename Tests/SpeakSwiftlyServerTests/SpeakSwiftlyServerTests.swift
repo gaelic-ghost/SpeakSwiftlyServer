@@ -8,6 +8,11 @@ import Testing
 
 @available(macOS 14, *)
 actor MockRuntime: ServerRuntimeProtocol {
+    struct QueuedRequestState: Sendable {
+        let request: WorkerRequest
+        let continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
+    }
+
     enum SpeakBehavior: Sendable {
         case completeImmediately
         case holdOpen
@@ -22,7 +27,9 @@ actor MockRuntime: ServerRuntimeProtocol {
     var speakBehavior: SpeakBehavior
     var mutationRefreshBehavior: MutationRefreshBehavior
     private var statusContinuation: AsyncStream<WorkerStatusEvent>.Continuation?
-    private var heldContinuations: [String: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation] = [:]
+    private var activeRequest: WorkerRequest?
+    private var activeContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
+    private var queuedRequests = [QueuedRequestState]()
 
     init(
         profiles: [ProfileSummary] = [sampleProfile()],
@@ -38,10 +45,13 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     func shutdown() async {
         statusContinuation?.finish()
-        for continuation in heldContinuations.values {
-            continuation.finish()
+        activeContinuation?.finish()
+        activeContinuation = nil
+        activeRequest = nil
+        for queued in queuedRequests {
+            queued.continuation.finish()
         }
-        heldContinuations.removeAll()
+        queuedRequests.removeAll()
     }
 
     func statusEvents() -> AsyncStream<WorkerStatusEvent> {
@@ -62,42 +72,95 @@ actor MockRuntime: ServerRuntimeProtocol {
                 }
             )
 
-        case .speakLive:
-            var heldContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
-            let speakBehavior = self.speakBehavior
-            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                continuation.yield(.started(.init(id: request.id, op: request.opName)))
-                if speakBehavior == .completeImmediately {
-                    continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
-                    continuation.yield(.completed(.init(id: request.id)))
+        case .listQueue:
+            return RuntimeRequestHandle(
+                id: request.id,
+                request: request,
+                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                    continuation.yield(
+                        .completed(
+                            WorkerSuccessResponse(
+                                id: request.id,
+                                activeRequest: self.activeRequest.map(self.activeSummary(for:)),
+                                queue: self.queuedSummaries()
+                            )
+                        )
+                    )
                     continuation.finish()
-                } else {
-                    heldContinuation = continuation
                 }
-            }
-            if let heldContinuation {
-                heldContinuations[request.id] = heldContinuation
-            }
-            return RuntimeRequestHandle(id: request.id, request: request, events: events)
+            )
 
-        case .speakLiveBackground:
-            var heldContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
-            let speakBehavior = self.speakBehavior
-            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                continuation.yield(.acknowledged(.init(id: request.id)))
-                continuation.yield(.started(.init(id: request.id, op: request.opName)))
-                if speakBehavior == .completeImmediately {
-                    continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
-                    continuation.yield(.completed(.init(id: request.id)))
+        case .clearQueue:
+            let clearedRequestIDs = queuedRequests.map(\.request.id)
+            let clearedCount = clearedRequestIDs.count
+            for requestID in clearedRequestIDs {
+                cancelQueuedRequest(
+                    requestID,
+                    reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime."
+                )
+            }
+            return RuntimeRequestHandle(
+                id: request.id,
+                request: request,
+                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                    continuation.yield(.completed(WorkerSuccessResponse(id: request.id, clearedCount: clearedCount)))
                     continuation.finish()
-                } else {
-                    heldContinuation = continuation
                 }
+            )
+
+        case .cancelRequest(_, let requestID):
+            do {
+                let cancelledRequestID = try cancelRequestNow(requestID)
+                return RuntimeRequestHandle(
+                    id: request.id,
+                    request: request,
+                    events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                        continuation.yield(
+                            .completed(
+                                WorkerSuccessResponse(
+                                    id: request.id,
+                                    cancelledRequestID: cancelledRequestID
+                                )
+                            )
+                        )
+                        continuation.finish()
+                    }
+                )
+            } catch {
+                return RuntimeRequestHandle(
+                    id: request.id,
+                    request: request,
+                    events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                        continuation.finish(throwing: error)
+                    }
+                )
             }
-            if let heldContinuation {
-                heldContinuations[request.id] = heldContinuation
-            }
-            return RuntimeRequestHandle(id: request.id, request: request, events: events)
+
+        case .speakLive, .speakLiveBackground:
+            return RuntimeRequestHandle(
+                id: request.id,
+                request: request,
+                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                    if case .speakLiveBackground = request {
+                        continuation.yield(.acknowledged(.init(id: request.id)))
+                    }
+
+                    if self.activeRequest == nil {
+                        self.startActiveRequest(request, continuation: continuation)
+                    } else {
+                        self.queuedRequests.append(.init(request: request, continuation: continuation))
+                        continuation.yield(
+                            .queued(
+                                .init(
+                                    id: request.id,
+                                    reason: .waitingForActiveRequest,
+                                    queuePosition: self.queuedRequests.count
+                                )
+                            )
+                        )
+                    }
+                }
+            )
 
         case .createProfile(_, let profileName, let text, let voiceDescription, _):
             if mutationRefreshBehavior == .applyMutations {
@@ -140,10 +203,89 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 
     func finishHeldSpeak(id: String) {
-        guard let continuation = heldContinuations.removeValue(forKey: id) else { return }
+        guard activeRequest?.id == id, let continuation = activeContinuation else { return }
         continuation.yield(.progress(.init(id: id, stage: .playbackFinished)))
         continuation.yield(.completed(.init(id: id)))
         continuation.finish()
+        activeContinuation = nil
+        activeRequest = nil
+        startNextQueuedRequestIfNeeded()
+    }
+
+    private func startActiveRequest(
+        _ request: WorkerRequest,
+        continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
+    ) {
+        activeRequest = request
+        continuation.yield(.started(.init(id: request.id, op: request.opName)))
+
+        if speakBehavior == .completeImmediately {
+            continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
+            continuation.yield(.completed(.init(id: request.id)))
+            continuation.finish()
+            activeRequest = nil
+            activeContinuation = nil
+            startNextQueuedRequestIfNeeded()
+        } else {
+            activeContinuation = continuation
+        }
+    }
+
+    private func startNextQueuedRequestIfNeeded() {
+        guard activeRequest == nil, !queuedRequests.isEmpty else { return }
+        let next = queuedRequests.removeFirst()
+        startActiveRequest(next.request, continuation: next.continuation)
+    }
+
+    private func activeSummary(for request: WorkerRequest) -> ActiveWorkerRequestSummary {
+        .init(id: request.id, op: request.opName, profileName: request.profileName)
+    }
+
+    private func queuedSummaries() -> [QueuedWorkerRequestSummary] {
+        queuedRequests.enumerated().map { offset, queued in
+            .init(
+                id: queued.request.id,
+                op: queued.request.opName,
+                profileName: queued.request.profileName,
+                queuePosition: offset + 1
+            )
+        }
+    }
+
+    private func cancelQueuedRequest(_ requestID: String, reason: String) {
+        guard let index = queuedRequests.firstIndex(where: { $0.request.id == requestID }) else { return }
+        let queued = queuedRequests.remove(at: index)
+        queued.continuation.finish(
+            throwing: WorkerError(code: .requestCancelled, message: reason)
+        )
+    }
+
+    private func cancelRequestNow(_ requestID: String) throws -> String {
+        if activeRequest?.id == requestID {
+            activeContinuation?.finish(
+                throwing: WorkerError(
+                    code: .requestCancelled,
+                    message: "The request was cancelled by the mock SpeakSwiftly runtime control surface."
+                )
+            )
+            activeContinuation = nil
+            activeRequest = nil
+            startNextQueuedRequestIfNeeded()
+            return requestID
+        }
+
+        if queuedRequests.contains(where: { $0.request.id == requestID }) {
+            cancelQueuedRequest(
+                requestID,
+                reason: "The queued request was cancelled by the mock SpeakSwiftly runtime control surface."
+            )
+            return requestID
+        }
+
+        throw WorkerError(
+            code: .requestNotFound,
+            message: "The mock SpeakSwiftly runtime could not find request '\(requestID)' to cancel."
+        )
     }
 }
 
@@ -344,6 +486,93 @@ actor MockRuntime: ServerRuntimeProtocol {
 }
 
 @available(macOS 14, *)
+@Test func routesExposeQueueInspectionAndControlOperations() async throws {
+    let runtime = MockRuntime(speakBehavior: .holdOpen)
+    let configuration = testConfiguration()
+    let state = ServerState(
+        configuration: configuration,
+        runtime: runtime,
+        makeRuntime: { runtime }
+    )
+
+    await state.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(state)
+
+    let app = makeApplication(configuration: configuration, state: state)
+    try await app.test(.router) { client in
+        let activeResponse = try await client.execute(
+            uri: "/speak/background",
+            method: .post,
+            headers: [.contentType: "application/json"],
+            body: byteBuffer(#"{"text":"Hold the line","profile_name":"default"}"#)
+        )
+        let activeJobID = try #require(try jsonObject(from: activeResponse.body)["job_id"] as? String)
+
+        let queuedResponse = try await client.execute(
+            uri: "/speak/background",
+            method: .post,
+            headers: [.contentType: "application/json"],
+            body: byteBuffer(#"{"text":"Queue this request","profile_name":"default"}"#)
+        )
+        let queuedJobID = try #require(try jsonObject(from: queuedResponse.body)["job_id"] as? String)
+
+        let queueResponse = try await client.execute(uri: "/queue", method: .get)
+        let queueJSON = try jsonObject(from: queueResponse.body)
+        #expect(queueResponse.status == .ok)
+        let activeRequest = try #require(queueJSON["active_request"] as? [String: Any])
+        #expect(activeRequest["id"] as? String == activeJobID)
+        let queuedRequests = try #require(queueJSON["queue"] as? [[String: Any]])
+        #expect(queuedRequests.count == 1)
+        #expect(queuedRequests.first?["id"] as? String == queuedJobID)
+        #expect(queuedRequests.first?["queue_position"] as? Int == 1)
+
+        let cancelResponse = try await client.execute(uri: "/queue/\(queuedJobID)", method: .delete)
+        let cancelJSON = try jsonObject(from: cancelResponse.body)
+        #expect(cancelResponse.status == .ok)
+        #expect(cancelJSON["cancelled_request_id"] as? String == queuedJobID)
+
+        let cancelledSnapshot = try await waitForJobSnapshot(queuedJobID, on: state)
+        switch cancelledSnapshot.terminalEvent {
+        case .failed(let failure):
+            #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
+        default:
+            Issue.record("Expected the cancelled queued request to terminate with a request_cancelled failure.")
+        }
+
+        let anotherQueuedResponse = try await client.execute(
+            uri: "/speak/background",
+            method: .post,
+            headers: [.contentType: "application/json"],
+            body: byteBuffer(#"{"text":"Queue another request","profile_name":"default"}"#)
+        )
+        let anotherQueuedJobID = try #require(try jsonObject(from: anotherQueuedResponse.body)["job_id"] as? String)
+
+        let clearResponse = try await client.execute(uri: "/queue", method: .delete)
+        let clearJSON = try jsonObject(from: clearResponse.body)
+        #expect(clearResponse.status == .ok)
+        #expect(clearJSON["cleared_count"] as? Int == 1)
+
+        let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: state)
+        switch clearedSnapshot.terminalEvent {
+        case .failed(let failure):
+            #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
+        default:
+            Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
+        }
+
+        let emptyQueueResponse = try await client.execute(uri: "/queue", method: .get)
+        let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
+        let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])
+        #expect(remainingQueue.isEmpty)
+        #expect((emptyQueueJSON["active_request"] as? [String: Any])?["id"] as? String == activeJobID)
+    }
+
+    await runtime.finishHeldSpeak(id: try await waitForActiveRequestID(on: state))
+    await state.shutdown()
+}
+
+@available(macOS 14, *)
 @Test func routesReportNotReadyAndMissingJobsClearly() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
@@ -497,6 +726,14 @@ private func waitUntil<T: Sendable>(
         try await Task.sleep(for: pollInterval)
     }
     throw TimeoutError()
+}
+
+@available(macOS 14, *)
+private func waitForActiveRequestID(on state: ServerState) async throws -> String {
+    try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let snapshot = try await state.queueSnapshot()
+        return snapshot.activeRequest?.id
+    }
 }
 
 private struct TimeoutError: Error {}

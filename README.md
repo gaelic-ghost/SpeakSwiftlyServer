@@ -51,14 +51,19 @@ The current HTTP surface is:
 - `GET /readyz`
 - `GET /status`
 - `GET /profiles`
+- `GET /queue`
 - `POST /profiles`
 - `DELETE /profiles/{profile_name}`
+- `DELETE /queue`
+- `DELETE /queue/{request_id}`
 - `POST /speak`
 - `POST /speak/background`
 - `GET /jobs/{job_id}`
 - `GET /jobs/{job_id}/events`
 
 `POST /speak`, `POST /speak/background`, `POST /profiles`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` uses the direct `speak_live` runtime path, while `POST /speak/background` uses the queued `speak_live_background` path and records the extra acknowledgement event before terminal completion. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE.
+
+The queue-control routes are immediate control operations rather than long-running jobs. `GET /queue` returns the current active request, if any, plus the waiting queue. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
 The route surface now matches the Python sibling at the endpoint level. The remaining parity work is narrower: re-checking response payload details and deciding whether any server-local translation code should disappear now that `SpeakSwiftlyCore` is more expressive.
 
@@ -82,7 +87,7 @@ swift build
 swift test
 ```
 
-The current automated suite covers configuration parsing, foreground and background job completion semantics, in-memory retention and pruning, SSE replay and heartbeat behavior, route-level health, profile, and job lifecycle responses against a controlled typed runtime, plus an opt-in live end-to-end path against a real `SpeakSwiftlyCore` runtime:
+The current automated suite covers configuration parsing, foreground and background job completion semantics, queue inspection and cancellation routes, in-memory retention and pruning, SSE replay and heartbeat behavior, route-level health, profile, and job lifecycle responses against a controlled typed runtime, plus an opt-in live end-to-end path against a real `SpeakSwiftlyCore` runtime:
 
 ```bash
 SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests
