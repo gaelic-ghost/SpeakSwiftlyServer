@@ -16,7 +16,7 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-configuration",
             from: "1.2.0",
-            traits: [.defaults, "YAML"]
+            traits: [.defaults, "YAML", "Reloading"]
         ),
     ],
     targets: [

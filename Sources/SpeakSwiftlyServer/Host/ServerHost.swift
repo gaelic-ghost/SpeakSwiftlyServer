@@ -42,9 +42,9 @@ actor ServerHost {
         }
     }
 
-    private let configuration: ServerConfiguration
-    private let httpConfig: HTTPConfig
-    private let mcpConfig: MCPConfig
+    private var configuration: ServerConfiguration
+    private var httpConfig: HTTPConfig
+    private var mcpConfig: MCPConfig
     private let runtime: any ServerRuntimeProtocol
     private let state: ServerState
     private let immediatePublishRequests: AsyncStream<Void>
@@ -257,6 +257,43 @@ actor ServerHost {
             source: "transport:\(name)",
             code: "transport_failed",
             message: message
+        )
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
+    // MARK: - Configuration Reload
+
+    func applyConfigurationUpdate(_ appConfig: AppConfig) async {
+        let restartRequiredKeys = restartRequiredConfigurationKeys(for: appConfig)
+        let appliedLiveChanges = applyLiveConfigurationChanges(from: appConfig)
+
+        if !restartRequiredKeys.isEmpty {
+            recordRecentError(
+                source: "config",
+                code: "reload_requires_restart",
+                message: "SpeakSwiftlyServer reloaded configuration from disk, but these settings still require a full restart before they can take effect: \(restartRequiredKeys.joined(separator: ", "))."
+            )
+        }
+
+        if appliedLiveChanges {
+            await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        }
+    }
+
+    func markConfigurationReloadRejected(_ message: String) async {
+        recordRecentError(
+            source: "config",
+            code: "reload_rejected",
+            message: "SpeakSwiftlyServer detected a configuration file change, but the updated values were not valid and were left unapplied. Likely cause: \(message)"
+        )
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
+    func markConfigurationWatchFailed(_ error: any Error) async {
+        recordRecentError(
+            source: "config",
+            code: "reload_watch_failed",
+            message: "SpeakSwiftlyServer could not continue watching for configuration file updates. Likely cause: \(error.localizedDescription)"
         )
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
@@ -1094,6 +1131,78 @@ actor ServerHost {
 
     private func transportSnapshots() -> [TransportStatusSnapshot] {
         ["http", "mcp"].compactMap { transportStatuses[$0] }
+    }
+
+    private func applyLiveConfigurationChanges(from appConfig: AppConfig) -> Bool {
+        var didChange = false
+        var shouldPruneCompletedJobs = false
+
+        if configuration.name != appConfig.server.name ||
+            configuration.environment != appConfig.server.environment ||
+            configuration.sseHeartbeatSeconds != appConfig.server.sseHeartbeatSeconds ||
+            configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
+            configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount ||
+            configuration.jobPruneIntervalSeconds != appConfig.server.jobPruneIntervalSeconds
+        {
+            shouldPruneCompletedJobs =
+                configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
+                configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount
+
+            configuration = ServerConfiguration(
+                name: appConfig.server.name,
+                environment: appConfig.server.environment,
+                host: configuration.host,
+                port: configuration.port,
+                sseHeartbeatSeconds: appConfig.server.sseHeartbeatSeconds,
+                completedJobTTLSeconds: appConfig.server.completedJobTTLSeconds,
+                completedJobMaxCount: appConfig.server.completedJobMaxCount,
+                jobPruneIntervalSeconds: appConfig.server.jobPruneIntervalSeconds
+            )
+            didChange = true
+        }
+
+        if shouldPruneCompletedJobs {
+            pruneCompletedJobs()
+        }
+
+        return didChange
+    }
+
+    private func restartRequiredConfigurationKeys(for appConfig: AppConfig) -> [String] {
+        var keys = [String]()
+
+        if configuration.host != appConfig.server.host {
+            keys.append("app.host")
+        }
+        if configuration.port != appConfig.server.port {
+            keys.append("app.port")
+        }
+        if httpConfig.enabled != appConfig.http.enabled {
+            keys.append("app.http.enabled")
+        }
+        if httpConfig.host != appConfig.http.host {
+            keys.append("app.http.host")
+        }
+        if httpConfig.port != appConfig.http.port {
+            keys.append("app.http.port")
+        }
+        if httpConfig.sseHeartbeatSeconds != appConfig.http.sseHeartbeatSeconds {
+            keys.append("app.http.sseHeartbeatSeconds")
+        }
+        if mcpConfig.enabled != appConfig.mcp.enabled {
+            keys.append("app.mcp.enabled")
+        }
+        if mcpConfig.path != appConfig.mcp.path {
+            keys.append("app.mcp.path")
+        }
+        if mcpConfig.serverName != appConfig.mcp.serverName {
+            keys.append("app.mcp.serverName")
+        }
+        if mcpConfig.title != appConfig.mcp.title {
+            keys.append("app.mcp.title")
+        }
+
+        return keys
     }
 
     // MARK: - Transport and Error Tracking

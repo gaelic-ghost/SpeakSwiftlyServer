@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+import ServiceLifecycle
 import SpeakSwiftlyCore
 
 // MARK: - HTTP Surface
@@ -7,7 +8,8 @@ import SpeakSwiftlyCore
 func assembleHBApp(
     configuration: HTTPConfig,
     host: ServerHost,
-    mcpSurface: MCPSurface? = nil
+    mcpSurface: MCPSurface? = nil,
+    services: [any Service] = []
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
     if configuration.enabled {
@@ -18,6 +20,7 @@ func assembleHBApp(
     return Application(
         router: router,
         configuration: .init(address: .hostname(configuration.host, port: configuration.port)),
+        services: services,
         onServerRunning: { _ in
             if configuration.enabled {
                 await host.markTransportListening(name: "http")

@@ -95,11 +95,11 @@ Phase 5 is now landed for the initial live-update slice. The host now exposes ty
 
 ## Remaining Deliberate Deferrals
 
-The following items are still intentionally deferred:
+The following item was intentionally deferred after Phase 6:
 
-- rebuilding playback-job MCP resources before the shared host naturally owns those concepts
-- importing the rest of the old standalone MCP prompt catalog for parity alone
 - defining live config reloading semantics or in-place config mutation policy
+
+The older standalone `playback-jobs` namespace and prompt-parity backlog are no longer treated as deferred work. The shared `jobs` resources and embedded prompt set replaced those older MCP-specific shapes cleanly enough that reviving them would now add duplication instead of completing a missing capability.
 
 These are not cleanup misses from Phases 1 through 6. They are consciously deferred scope boundaries.
 
@@ -107,4 +107,4 @@ These are not cleanup misses from Phases 1 through 6. They are consciously defer
 
 Phase 6 is now landed. The existing HTTP SSE route kept its job-specific shape, but it now follows the shared host event backbone instead of maintaining a separate subscriber registry and heartbeat bookkeeping inside `ServerHost`. The host also now exposes a dedicated per-job event update payload so HTTP and MCP can share the same non-UI live-update model without collapsing everything into full-state snapshots.
 
-The next likely host-level phase is deciding whether any playback-job-style MCP surface still earns a host-native shared model, or whether the shared `jobs` resources have fully replaced that older namespace.
+The next likely host-level phase is either widening the live-reload policy beyond the current safe subset or deciding whether the remaining transport-startup-only settings should stay restart-gated permanently.

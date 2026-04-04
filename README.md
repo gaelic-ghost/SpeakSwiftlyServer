@@ -91,6 +91,19 @@ app:
     title: SpeakSwiftlyMCP
 ```
 
+When `APP_CONFIG_FILE` is set, the server now watches that YAML file for changes through `ReloadingFileProvider<YAMLSnapshot>`. The optional `APP_CONFIG_RELOAD_INTERVAL_SECONDS` environment variable controls the polling interval and defaults to `2` seconds.
+
+Only the host-safe subset reloads live today:
+
+- `app.name`
+- `app.environment`
+- `app.sseHeartbeatSeconds`
+- `app.completedJobTTLSeconds`
+- `app.completedJobMaxCount`
+- `app.jobPruneIntervalSeconds`
+
+Changes to bind addresses, ports, HTTP enablement, MCP enablement, MCP path, or MCP server metadata are detected and reported, but they still require a process restart before they can take effect.
+
 The current HTTP surface is:
 
 - `GET /healthz`

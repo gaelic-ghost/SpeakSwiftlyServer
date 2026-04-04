@@ -69,8 +69,16 @@
 
 ## Milestone 7: Live Update Convergence
 
-- [ ] Decide how much of the existing `GET /jobs/{job_id}/events` SSE route should stay job-specific versus begin consuming the shared host event surface.
-- [ ] Converge HTTP SSE onto the host event model selectively, only where it removes bespoke stream plumbing without losing clear per-job semantics.
-- [ ] Revisit whether playback-job MCP resources have become natural shared-host concepts after the adjacent `SpeakSwiftly` API layer stabilizes.
-- [ ] Re-evaluate whether any standalone MCP prompt-catalog concepts still earn migration once the shared host update model is more mature.
-- [ ] Define explicit live config reload boundaries only after the transport and event surfaces stop shifting.
+- [x] Decide how much of the existing `GET /jobs/{job_id}/events` SSE route should stay job-specific versus begin consuming the shared host event surface.
+- [x] Converge HTTP SSE onto the host event model selectively, only where it removes bespoke stream plumbing without losing clear per-job semantics.
+- [x] Revisit whether playback-job MCP resources have become natural shared-host concepts after the adjacent `SpeakSwiftly` API layer stabilizes.
+- [x] Re-evaluate whether any standalone MCP prompt-catalog concepts still earn migration once the shared host update model is more mature.
+- [x] Define explicit live config reload boundaries only after the transport and event surfaces stop shifting.
+
+## Milestone 8: Config Reload Policy
+
+- [x] Adopt `swift-configuration` reloading providers for YAML-backed server config.
+- [x] Keep malformed reloads non-fatal so the watcher survives bad file edits.
+- [x] Apply the safe host-level subset live through `ServerHost`.
+- [x] Surface restart-required config changes through the shared recent-error model.
+- [ ] Decide whether transport bind settings should remain restart-only permanently or earn a coordinated live-rebind model later.

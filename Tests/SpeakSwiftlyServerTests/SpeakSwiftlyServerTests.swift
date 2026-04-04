@@ -455,6 +455,44 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 }
 
+@Test func configStoreLoadsYamlAndExposesReloadingServiceWhenConfigFileIsSet() async throws {
+    let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    try FileManager.default.createDirectory(at: configDirectory, withIntermediateDirectories: true)
+    let yamlURL = configDirectory.appendingPathComponent("server.yaml")
+    try """
+    app:
+      name: initial-server
+      environment: development
+      host: 127.0.0.1
+      port: 7337
+      sseHeartbeatSeconds: 4
+      completedJobTTLSeconds: 30
+      completedJobMaxCount: 25
+      jobPruneIntervalSeconds: 5
+      http:
+        enabled: true
+        host: 127.0.0.1
+        port: 7337
+        sseHeartbeatSeconds: 4
+      mcp:
+        enabled: false
+        path: /mcp
+        serverName: speak-to-user-mcp
+        title: SpeakSwiftlyMCP
+    """.write(to: yamlURL, atomically: true, encoding: .utf8)
+
+    let store = try await ConfigStore(environment: [
+        "APP_CONFIG_FILE": yamlURL.path,
+        "APP_CONFIG_RELOAD_INTERVAL_SECONDS": "0.05",
+    ])
+    #expect(store.services.count == 1)
+
+    let initialConfig = try store.loadAppConfig()
+    #expect(initialConfig.server.name == "initial-server")
+    #expect(initialConfig.server.completedJobMaxCount == 25)
+}
+
 @available(macOS 14, *)
 @Test func stateCompletesQueuedSpeechJobsAndPrunesExpiredEntries() async throws {
     let runtime = MockRuntime()
@@ -719,6 +757,97 @@ actor MockRuntime: ServerRuntimeProtocol {
     let updated = await host.hostStateSnapshot()
     #expect(updated.transports.contains { $0.name == "http" && $0.state == "starting" })
     #expect(updated.transports.contains { $0.name == "mcp" && $0.state == "listening" })
+}
+
+@available(macOS 14, *)
+@Test func hostAppliesSafeLiveConfigurationChangesAndReportsRestartRequiredOnes() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration(completedJobMaxCount: 2)
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        httpConfig: testHTTPConfig(configuration),
+        mcpConfig: .init(
+            enabled: true,
+            path: "/mcp",
+            serverName: "speak-to-user-mcp",
+            title: "SpeakSwiftlyMCP"
+        ),
+        runtime: runtime,
+        state: state
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(host)
+
+    let first = try await host.submitSpeak(text: "One", profileName: "default")
+    let second = try await host.submitSpeak(text: "Two", profileName: "default")
+    _ = try await waitForJobSnapshot(first, on: host)
+    _ = try await waitForJobSnapshot(second, on: host)
+
+    await host.applyConfigurationUpdate(
+        .init(
+            server: .init(
+                name: "reloaded-service",
+                environment: "qa",
+                host: configuration.host,
+                port: configuration.port,
+                sseHeartbeatSeconds: 0.01,
+                completedJobTTLSeconds: configuration.completedJobTTLSeconds,
+                completedJobMaxCount: 1,
+                jobPruneIntervalSeconds: 0.01
+            ),
+            http: .init(
+                enabled: true,
+                host: "0.0.0.0",
+                port: 7999,
+                sseHeartbeatSeconds: 5
+            ),
+            mcp: .init(
+                enabled: true,
+                path: "/assistant/mcp",
+                serverName: "new-mcp-name",
+                title: "New MCP Title"
+            )
+        )
+    )
+
+    let hostState = await host.hostStateSnapshot()
+    #expect(hostState.overview.service == "reloaded-service")
+    #expect(hostState.overview.environment == "qa")
+    #expect(hostState.recentErrors.contains {
+        $0.source == "config" &&
+            $0.code == "reload_requires_restart" &&
+            $0.message.contains("app.http.port") &&
+            $0.message.contains("app.mcp.path")
+    })
+
+    let snapshots = await host.jobSnapshots()
+    #expect(snapshots.count == 1)
+
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
+@Test func hostRecordsRejectedConfigurationReloadsClearly() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration()
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        runtime: runtime,
+        state: state
+    )
+
+    await host.markConfigurationReloadRejected("Configuration value 'APP_PORT' could not be loaded: invalid integer.")
+
+    let hostState = await host.hostStateSnapshot()
+    #expect(hostState.recentErrors.contains {
+        $0.source == "config" &&
+            $0.code == "reload_rejected" &&
+            $0.message.contains("APP_PORT")
+    })
 }
 
 @available(macOS 14, *)

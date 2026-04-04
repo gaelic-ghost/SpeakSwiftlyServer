@@ -6,12 +6,33 @@ import Hummingbird
 @main
 enum SpeakSwiftlyServer {
     static func main() async throws {
-        let config = try await AppConfig.load()
+        let configStore = try await ConfigStore()
+        let config = try configStore.loadAppConfig()
         let state = await MainActor.run { ServerState() }
         let host = await ServerHost.live(appConfig: config, state: state)
         let mcpSurface = await MCPSurface.build(configuration: config.mcp, host: host)
-        let app = assembleHBApp(configuration: config.http, host: host, mcpSurface: mcpSurface)
+        let app = assembleHBApp(
+            configuration: config.http,
+            host: host,
+            mcpSurface: mcpSurface,
+            services: configStore.services
+        )
+        let configWatchTask = Task {
+            do {
+                for try await update in configStore.updates() {
+                    switch update {
+                    case .reloaded(let updatedConfig):
+                        await host.applyConfigurationUpdate(updatedConfig)
+                    case .rejected(let message):
+                        await host.markConfigurationReloadRejected(message)
+                    }
+                }
+            } catch {
+                await host.markConfigurationWatchFailed(error)
+            }
+        }
         defer {
+            configWatchTask.cancel()
             Task {
                 await host.shutdown()
             }
