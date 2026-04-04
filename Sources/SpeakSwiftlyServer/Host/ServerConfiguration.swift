@@ -1,3 +1,4 @@
+import Configuration
 import Foundation
 
 // MARK: - Server Configuration
@@ -12,60 +13,85 @@ struct ServerConfiguration: Sendable {
     let completedJobMaxCount: Int
     let jobPruneIntervalSeconds: Double
 
-    static func load(environment: [String: String] = ProcessInfo.processInfo.environment) throws -> ServerConfiguration {
-        try .init(
-            name: environment["APP_NAME"] ?? "speak-swiftly-server",
-            environment: environment["APP_ENVIRONMENT"] ?? "development",
-            host: environment["APP_HOST"] ?? "127.0.0.1",
-            port: parseInt(environment["APP_PORT"], defaultValue: 7337, key: "APP_PORT"),
-            sseHeartbeatSeconds: parseDouble(
-                environment["APP_SSE_HEARTBEAT_SECONDS"],
-                defaultValue: 10,
-                key: "APP_SSE_HEARTBEAT_SECONDS"
-            ),
-            completedJobTTLSeconds: parseDouble(
-                environment["APP_COMPLETED_JOB_TTL_SECONDS"],
-                defaultValue: 900,
-                key: "APP_COMPLETED_JOB_TTL_SECONDS"
-            ),
-            completedJobMaxCount: parseInt(
-                environment["APP_COMPLETED_JOB_MAX_COUNT"],
-                defaultValue: 200,
-                key: "APP_COMPLETED_JOB_MAX_COUNT"
-            ),
-            jobPruneIntervalSeconds: parseDouble(
-                environment["APP_JOB_PRUNE_INTERVAL_SECONDS"],
-                defaultValue: 60,
-                key: "APP_JOB_PRUNE_INTERVAL_SECONDS"
-            )
-        )
+    init(
+        name: String,
+        environment: String,
+        host: String,
+        port: Int,
+        sseHeartbeatSeconds: Double,
+        completedJobTTLSeconds: Double,
+        completedJobMaxCount: Int,
+        jobPruneIntervalSeconds: Double
+    ) {
+        self.name = name
+        self.environment = environment
+        self.host = host
+        self.port = port
+        self.sseHeartbeatSeconds = sseHeartbeatSeconds
+        self.completedJobTTLSeconds = completedJobTTLSeconds
+        self.completedJobMaxCount = completedJobMaxCount
+        self.jobPruneIntervalSeconds = jobPruneIntervalSeconds
     }
 
-    private static func parseInt(_ rawValue: String?, defaultValue: Int, key: String) throws -> Int {
-        guard let rawValue else { return defaultValue }
-        guard let value = Int(rawValue), value > 0 else {
+    init(config: ConfigReader) throws {
+        do {
+            self.name = try config.requiredString(forKey: "name")
+            self.environment = try config.requiredString(forKey: "environment")
+            self.host = try config.requiredString(forKey: "host")
+            self.port = try Self.requirePositive(
+                try config.requiredInt(forKey: "port"),
+                key: "APP_PORT"
+            )
+            self.sseHeartbeatSeconds = try Self.requirePositive(
+                try config.requiredDouble(forKey: "sseHeartbeatSeconds"),
+                key: "APP_SSE_HEARTBEAT_SECONDS"
+            )
+            self.completedJobTTLSeconds = try Self.requirePositive(
+                try config.requiredDouble(forKey: "completedJobTTLSeconds"),
+                key: "APP_COMPLETED_JOB_TTL_SECONDS"
+            )
+            self.completedJobMaxCount = try Self.requirePositive(
+                try config.requiredInt(forKey: "completedJobMaxCount"),
+                key: "APP_COMPLETED_JOB_MAX_COUNT"
+            )
+            self.jobPruneIntervalSeconds = try Self.requirePositive(
+                try config.requiredDouble(forKey: "jobPruneIntervalSeconds"),
+                key: "APP_JOB_PRUNE_INTERVAL_SECONDS"
+            )
+        } catch {
+            throw ServerConfigurationError(key: "APP_*", underlyingError: error)
+        }
+    }
+
+    private static func requirePositive(_ value: Int, key: String) throws -> Int {
+        guard value > 0 else {
             throw ServerConfigurationError(
-                "Environment value '\(key)' must be a positive integer, but received '\(rawValue)'."
+                "Configuration value '\(key)' must be a positive integer, but received '\(value)'."
             )
         }
         return value
     }
 
-    private static func parseDouble(_ rawValue: String?, defaultValue: Double, key: String) throws -> Double {
-        guard let rawValue else { return defaultValue }
-        guard let value = Double(rawValue), value > 0 else {
+    private static func requirePositive(_ value: Double, key: String) throws -> Double {
+        guard value > 0 else {
             throw ServerConfigurationError(
-                "Environment value '\(key)' must be a positive number, but received '\(rawValue)'."
+                "Configuration value '\(key)' must be a positive number, but received '\(value)'."
             )
         }
         return value
     }
 }
 
-struct ServerConfigurationError: Error, Sendable {
+struct ServerConfigurationError: Error, Sendable, CustomStringConvertible {
     let message: String
 
     init(_ message: String) {
         self.message = message
     }
+
+    init(key: String, underlyingError: any Error) {
+        self.message = "Configuration value '\(key)' could not be loaded: \(underlyingError)."
+    }
+
+    var description: String { message }
 }

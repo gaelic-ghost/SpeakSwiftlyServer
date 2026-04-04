@@ -1,5 +1,5 @@
 {
-  "originHash" : "e8ff1e322bd1787ca4d222a87c0138d9f43ee62066342ab08902b404eeff9c23",
+  "originHash" : "0438a87acf363d7c5724cd12235e7e0a696fd83148356f655a6f8d8dd57caa5d",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -33,7 +33,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Blaizzy/mlx-audio-swift.git",
       "state" : {
-        "branch" : "main",
         "revision" : "2fd41458059e2d80403436167d5263f585d120d4"
       }
     },
@@ -278,6 +277,15 @@
       "state" : {
         "revision" : "150169bfba0889c229a2ce7494cf8949f18e6906",
         "version" : "1.1.9"
+      }
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams",
+      "state" : {
+        "revision" : "deaf82e867fa2cbd3cd865978b079bfcf384ac28",
+        "version" : "6.2.1"
       }
     },
     {

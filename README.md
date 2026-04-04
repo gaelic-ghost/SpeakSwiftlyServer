@@ -6,11 +6,24 @@ Swift executable package for a localhost HTTP server that exposes `SpeakSwiftlyC
 
 This repository is the Swift-native sibling to `../speak-to-user-server`. It uses [Hummingbird](https://github.com/hummingbird-project/hummingbird) to host a localhost macOS HTTP service with in-memory job tracking and server-sent events, while delegating speech, profile management, and worker lifecycle to the typed `SpeakSwiftlyCore` runtime.
 
+### Deployment Targets
+
+Current intended deployment targets are:
+
+- macOS 15 and newer for the standalone server package and initial app-managed installation path
+- iOS 18 and newer for a near-future app-facing reuse path once the host logic is split cleanly enough to be consumed from an iOS app
+
+The current executable package is still macOS-only, but its host and state architecture should be kept friendly to an eventual iOS extraction into a reusable library target.
+
+Linux support is a medium-term consideration rather than a current promise. If making this Swift package Linux-compatible starts forcing awkward compromises into the Apple-first host and app architecture, a separate Linux implementation in Rust is an acceptable direction instead of contorting this package.
+
 ### Motivation
 
 The target is a thin Swift service that a forthcoming macOS app can install and manage as a LaunchAgent without needing a separate Python runtime. Early development aimed to stay close to the existing Python server contract, but the current service now follows the newer `SpeakSwiftlyCore` control model directly where the runtime surface has evolved.
 
 That means this package intentionally stays narrow: Hummingbird for HTTP, `SpeakSwiftlyCore` for speech and profile operations, and a small amount of server state to translate typed worker events into job snapshots and SSE replay.
+
+That narrowness also informs platform policy. The package should prefer maintainable Apple-platform architecture for the current macOS and near-future iOS use cases over speculative cross-platform compromises.
 
 ## Setup
 
@@ -36,6 +49,7 @@ swift run SpeakSwiftlyServer
 
 The service binds to `127.0.0.1:7337` by default and supports these environment variables:
 
+- `APP_CONFIG_FILE`
 - `APP_NAME`
 - `APP_ENVIRONMENT`
 - `APP_HOST`
@@ -44,6 +58,38 @@ The service binds to `127.0.0.1:7337` by default and supports these environment 
 - `APP_COMPLETED_JOB_TTL_SECONDS`
 - `APP_COMPLETED_JOB_MAX_COUNT`
 - `APP_JOB_PRUNE_INTERVAL_SECONDS`
+- `APP_HTTP_ENABLED`
+- `APP_HTTP_HOST`
+- `APP_HTTP_PORT`
+- `APP_HTTP_SSE_HEARTBEAT_SECONDS`
+- `APP_MCP_ENABLED`
+- `APP_MCP_PATH`
+- `APP_MCP_SERVER_NAME`
+- `APP_MCP_TITLE`
+
+If `APP_CONFIG_FILE` points at a YAML file, the server loads it through [apple/swift-configuration](https://github.com/apple/swift-configuration) with environment variables taking precedence over YAML and YAML taking precedence over built-in defaults. The expected YAML shape mirrors the nested config reader keys:
+
+```yaml
+app:
+  name: speak-swiftly-server
+  environment: development
+  host: 127.0.0.1
+  port: 7337
+  sseHeartbeatSeconds: 10
+  completedJobTTLSeconds: 900
+  completedJobMaxCount: 200
+  jobPruneIntervalSeconds: 60
+  http:
+    enabled: true
+    host: 127.0.0.1
+    port: 7337
+    sseHeartbeatSeconds: 10
+  mcp:
+    enabled: false
+    path: /mcp
+    serverName: speak-to-user-mcp
+    title: SpeakSwiftlyMCP
+```
 
 The current HTTP surface is:
 
@@ -74,10 +120,12 @@ The route surface now mirrors the current `SpeakSwiftlyCore` control model direc
 
 The executable entrypoint lives in [`Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.swift). The server itself stays intentionally small:
 
-- [`ServerApp.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/ServerApp.swift) wires Hummingbird routes.
-- [`ServerState.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/ServerState.swift) tracks worker readiness, cached profiles, job history, SSE subscribers, and retention.
-- [`ServerRuntimeBridge.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/ServerRuntimeBridge.swift) keeps the runtime boundary thin around `SpeakSwiftlyCore`.
-- [`ServerModels.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/ServerModels.swift) defines request and response payloads.
+- [`HTTPSurface.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/HTTP/HTTPSurface.swift) assembles the Hummingbird HTTP surface.
+- [`ServerHost.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerHost.swift) owns runtime lifecycle, request orchestration, shared host state, and server-side update flow.
+- [`ServerState.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerState.swift) is the `@Observable` SwiftUI-facing projection of host state.
+- [`HostStateModels.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/HostStateModels.swift) defines the shared host-native snapshots used by app UI, HTTP, and future MCP consumers.
+- [`ServerRuntimeBridge.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerRuntimeBridge.swift) keeps the runtime boundary thin around `SpeakSwiftlyCore`.
+- [`ServerModels.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerModels.swift) defines request and response payloads.
 
 The design is deliberately direct. Adding extra wrappers, managers, or intermediate layers here would be easy, but it would also be the kind of unnecessary complexity that makes a small localhost service harder to reason about, so the server is kept close to the typed runtime API on purpose. As of `SpeakSwiftly v0.8.1`, that also means the service talks to the public `WorkerRuntime` helper surface instead of reaching through the library boundary to construct raw worker requests itself.
 

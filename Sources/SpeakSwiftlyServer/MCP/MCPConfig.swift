@@ -1,3 +1,4 @@
+import Configuration
 import Foundation
 
 // MARK: - MCP Config
@@ -8,24 +9,26 @@ struct MCPConfig: Sendable {
     let serverName: String
     let title: String
 
-    static func load(environment: [String: String]) -> MCPConfig {
-        .init(
-            enabled: parseBool(environment["APP_MCP_ENABLED"], defaultValue: false),
-            path: environment["APP_MCP_PATH"] ?? "/mcp",
-            serverName: environment["APP_MCP_SERVER_NAME"] ?? "speak-to-user-mcp",
-            title: environment["APP_MCP_TITLE"] ?? "SpeakSwiftlyMCP"
-        )
+    init(
+        enabled: Bool,
+        path: String,
+        serverName: String,
+        title: String
+    ) {
+        self.enabled = enabled
+        self.path = path
+        self.serverName = serverName
+        self.title = title
     }
 
-    private static func parseBool(_ rawValue: String?, defaultValue: Bool) -> Bool {
-        guard let rawValue else { return defaultValue }
-        return switch rawValue.lowercased() {
-        case "1", "true", "yes", "on":
-            true
-        case "0", "false", "no", "off":
-            false
-        default:
-            defaultValue
+    init(config: ConfigReader) throws {
+        do {
+            self.enabled = try config.requiredBool(forKey: "enabled")
+            self.path = try config.requiredString(forKey: "path")
+            self.serverName = try config.requiredString(forKey: "serverName")
+            self.title = try config.requiredString(forKey: "title")
+        } catch {
+            throw ServerConfigurationError(key: "APP_MCP_*", underlyingError: error)
         }
     }
 }

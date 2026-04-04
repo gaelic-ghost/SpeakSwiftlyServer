@@ -362,14 +362,14 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 }
 
-@Test func configurationLoadsDefaultsAndRejectsInvalidValues() throws {
-    let defaults = try ServerConfiguration.load(environment: [:])
-    #expect(defaults.host == "127.0.0.1")
-    #expect(defaults.port == 7337)
-    #expect(defaults.sseHeartbeatSeconds == 10)
-    #expect(defaults.completedJobTTLSeconds == 900)
+@Test func configurationLoadsDefaultsAndRejectsInvalidValues() async throws {
+    let defaults = try await AppConfig.load(environment: [:])
+    #expect(defaults.server.host == "127.0.0.1")
+    #expect(defaults.server.port == 7337)
+    #expect(defaults.server.sseHeartbeatSeconds == 10)
+    #expect(defaults.server.completedJobTTLSeconds == 900)
 
-    let appConfig = try AppConfig.load(environment: [
+    let appConfig = try await AppConfig.load(environment: [
         "APP_HTTP_ENABLED": "false",
         "APP_HTTP_HOST": "0.0.0.0",
         "APP_HTTP_PORT": "7444",
@@ -388,15 +388,57 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(appConfig.mcp.serverName == "speak-swiftly-agent")
     #expect(appConfig.mcp.title == "SpeakSwiftly Server MCP")
 
+    let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    try FileManager.default.createDirectory(at: configDirectory, withIntermediateDirectories: true)
+    let yamlURL = configDirectory.appendingPathComponent("server.yaml")
+    try """
+    app:
+      name: yaml-server
+      environment: staging
+      host: 192.168.1.10
+      port: 7555
+      sseHeartbeatSeconds: 4
+      completedJobTTLSeconds: 30
+      completedJobMaxCount: 25
+      jobPruneIntervalSeconds: 5
+      http:
+        enabled: false
+        host: 0.0.0.0
+        port: 7666
+        sseHeartbeatSeconds: 1.5
+      mcp:
+        enabled: true
+        path: /assistant/mcp
+        serverName: yaml-mcp
+        title: YAML MCP
+    """.write(to: yamlURL, atomically: true, encoding: .utf8)
+
+    let yamlConfig = try await AppConfig.load(environment: [
+        "APP_CONFIG_FILE": yamlURL.path,
+        "APP_HTTP_PORT": "7777",
+    ])
+    #expect(yamlConfig.server.name == "yaml-server")
+    #expect(yamlConfig.server.environment == "staging")
+    #expect(yamlConfig.server.host == "192.168.1.10")
+    #expect(yamlConfig.server.port == 7555)
+    #expect(yamlConfig.http.enabled == false)
+    #expect(yamlConfig.http.host == "0.0.0.0")
+    #expect(yamlConfig.http.port == 7777)
+    #expect(yamlConfig.mcp.enabled == true)
+    #expect(yamlConfig.mcp.path == "/assistant/mcp")
+    #expect(yamlConfig.mcp.serverName == "yaml-mcp")
+    #expect(yamlConfig.mcp.title == "YAML MCP")
+
     do {
-        _ = try ServerConfiguration.load(environment: ["APP_PORT": "zero"])
+        _ = try await AppConfig.load(environment: ["APP_PORT": "zero"])
         Issue.record("Expected invalid APP_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_PORT"))
     }
 
     do {
-        _ = try AppConfig.load(environment: ["APP_HTTP_PORT": "zero"])
+        _ = try await AppConfig.load(environment: ["APP_HTTP_PORT": "zero"])
         Issue.record("Expected invalid APP_HTTP_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_HTTP_PORT"))

@@ -11,6 +11,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.0"),
         .package(path: "../SpeakSwiftly"),
+        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.0"),
+        .package(
+            url: "https://github.com/apple/swift-configuration",
+            from: "1.2.0",
+            traits: [.defaults, "YAML"]
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -18,6 +24,8 @@ let package = Package(
         .executableTarget(
             name: "SpeakSwiftlyServer",
             dependencies: [
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "Configuration", package: "swift-configuration"),
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "SpeakSwiftlyCore", package: "SpeakSwiftly"),
             ]

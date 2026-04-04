@@ -68,9 +68,11 @@ Phase 3 will adopt [`apple/swift-configuration`](https://github.com/apple/swift-
 
 ### Phase 3
 
+- Add a host-owned async update pipeline so non-UI consumers stop depending on eager per-event runtime refresh and manual stream fan-out.
+- Use `swift-async-algorithms` where it simplifies host update flow and future HTTP/MCP fan-out semantics.
 - Adopt `swift-configuration`.
 - Add YAML-backed typed configuration loading.
-- Define explicit config reload policy and controlled-restart boundaries.
+- Keep reload policy explicit rather than implicit; define controlled-restart boundaries before adding live-reloading config providers.
 
 ### Phase 4
 

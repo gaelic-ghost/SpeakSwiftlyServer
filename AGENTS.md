@@ -21,6 +21,10 @@
 ## Repository-Specific Workflow
 
 - Treat the standalone `SpeakSwiftlyServer` repository as the source of truth for package development, tags, and releases.
+- Treat `macOS 15` as the current baseline deployment target for the standalone server package.
+- Keep the host and state architecture friendly to a near-future `iOS 18` reuse path even while the executable package remains macOS-only.
+- Prefer maintainable Apple-platform architecture for the current macOS plus near-future iOS use cases over speculative Linux abstraction.
+- If Linux support would require significant architectural compromise, stop and discuss whether a separate Rust implementation is the better path instead of forcing cross-platform concessions into this package.
 - Treat `../speak-to-user/packages/SpeakSwiftlyServer` as the integration submodule copy, not the primary development home.
 - Treat the local `../speak-to-user` checkout as a clean base checkout only. It must stay on `main`, and it must stay clean.
 - Never change the local branch of the base `../speak-to-user` checkout for feature work, experiments, release bumps, or submodule updates.
@@ -116,6 +120,7 @@
 ## Swift Package Workflow
 
 - Use `swift build` and `swift test` as the default first-pass validation commands for this package.
+- When platform requirements are revisited, treat `macOS current minus one` and `iOS current minus one` as the default target policy unless the repository guidance is updated intentionally.
 - Use `bootstrap-swift-package` when a new Swift package repo still needs to be created from scratch.
 - Use `sync-swift-package-guidance` when the repo guidance for this package drifts and needs to be refreshed or merged forward.
 - Read relevant SwiftPM, Swift, and Apple documentation before proposing package-structure, dependency, manifest, concurrency, or architecture changes.

@@ -1,3 +1,4 @@
+import AsyncAlgorithms
 import Foundation
 import Hummingbird
 import SpeakSwiftlyCore
@@ -10,6 +11,11 @@ actor ServerHost {
         .milliseconds(100),
     ]
     private static let recentErrorLimit = 8
+
+    enum PublishMode: Sendable {
+        case immediate
+        case coalesced
+    }
 
     struct JobRecord: Sendable {
         let jobID: String
@@ -43,12 +49,18 @@ actor ServerHost {
     private let mcpConfig: MCPConfig
     private let runtime: any ServerRuntimeProtocol
     private let state: ServerState
+    private let immediatePublishRequests: AsyncStream<Void>
+    private let immediatePublishContinuation: AsyncStream<Void>.Continuation
+    private let coalescedPublishRequests: AsyncStream<Void>
+    private let coalescedPublishContinuation: AsyncStream<Void>.Continuation
+    private let publishedStateContinuation: AsyncStream<HostStateSnapshot>.Continuation
+    private let makeSharedStateUpdates: @Sendable () -> AsyncStream<HostStateSnapshot>
     private let encoder = JSONEncoder()
     private let byteBufferAllocator = ByteBufferAllocator()
 
     private var statusTask: Task<Void, Never>?
     private var pruneTask: Task<Void, Never>?
-    private var liveStateSubscribers = [UUID: AsyncStream<HostStateSnapshot>.Continuation]()
+    private var publishTask: Task<Void, Never>?
     private var workerMode = "starting"
     private var workerStage = "starting"
     private var startupError: String?
@@ -61,6 +73,7 @@ actor ServerHost {
     private var playbackStatus = PlaybackStatusSnapshot(state: PlaybackState.idle.rawValue, activeRequest: nil)
     private var recentErrors = [RecentErrorSnapshot]()
     private var latestPublishedState: HostStateSnapshot?
+    private var pendingRuntimeRefresh = true
     private var jobs = [String: JobRecord]()
     private var hasRequestedStartupProfileRefresh = false
 
@@ -84,6 +97,20 @@ actor ServerHost {
         runtime: any ServerRuntimeProtocol,
         state: ServerState
     ) {
+        let (immediatePublishRequests, immediatePublishContinuation) = AsyncStream.makeStream(
+            of: Void.self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
+        let (coalescedPublishRequests, coalescedPublishContinuation) = AsyncStream.makeStream(
+            of: Void.self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
+        let (publishedStateStream, publishedStateContinuation) = AsyncStream.makeStream(
+            of: HostStateSnapshot.self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
+        let sharedPublishedStates = publishedStateStream.share(bufferingPolicy: .bufferingLatest(1))
+
         self.configuration = configuration
         self.httpConfig = httpConfig ?? .init(
             enabled: true,
@@ -99,10 +126,37 @@ actor ServerHost {
         )
         self.runtime = runtime
         self.state = state
+        self.immediatePublishRequests = immediatePublishRequests
+        self.immediatePublishContinuation = immediatePublishContinuation
+        self.coalescedPublishRequests = coalescedPublishRequests
+        self.coalescedPublishContinuation = coalescedPublishContinuation
+        self.publishedStateContinuation = publishedStateContinuation
+        self.makeSharedStateUpdates = { [sharedPublishedStates] in
+            AsyncStream { continuation in
+                let task = Task {
+                    for await snapshot in sharedPublishedStates {
+                        continuation.yield(snapshot)
+                    }
+                    continuation.finish()
+                }
+
+                continuation.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+        }
         self.encoder.outputFormatting = [.sortedKeys]
     }
 
     func start() async {
+        self.publishTask = Task {
+            let immediateRequests = self.immediatePublishRequests
+            let coalescedRequests = self.coalescedPublishRequests.debounce(for: .milliseconds(25))
+            for await _ in merge(immediateRequests, coalescedRequests) {
+                await self.publishState()
+            }
+        }
+
         let statusStream = await runtime.statusEvents()
         self.statusTask = Task {
             for await status in statusStream {
@@ -114,12 +168,12 @@ actor ServerHost {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(self.configuration.jobPruneIntervalSeconds))
                 self.pruneCompletedJobs()
-                await self.publishState()
+                await self.requestPublish(mode: .coalesced, refreshRuntimeState: false)
             }
         }
 
         await runtime.start()
-        await publishState()
+        await requestPublish(mode: .immediate, refreshRuntimeState: true)
     }
 
     func shutdown() async {
@@ -132,21 +186,31 @@ actor ServerHost {
         for jobID in jobs.keys {
             finishSubscribers(for: jobID)
         }
+        pendingRuntimeRefresh = false
         await publishState()
-        finishLiveStateSubscribers()
+        self.publishTask?.cancel()
+        immediatePublishContinuation.finish()
+        coalescedPublishContinuation.finish()
+        publishedStateContinuation.finish()
     }
 
     func stateUpdates() -> AsyncStream<HostStateSnapshot> {
-        AsyncStream { continuation in
-            let subscriberID = UUID()
+        let sharedUpdates = makeSharedStateUpdates()
+        let latestPublishedState = self.latestPublishedState
+        return AsyncStream { continuation in
             if let latestPublishedState {
                 continuation.yield(latestPublishedState)
             }
-            liveStateSubscribers[subscriberID] = continuation
-            continuation.onTermination = { _ in
-                Task {
-                    await self.removeLiveStateSubscriber(subscriberID)
+
+            let task = Task {
+                for await snapshot in sharedUpdates {
+                    continuation.yield(snapshot)
                 }
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in
+                task.cancel()
             }
         }
     }
@@ -426,7 +490,7 @@ actor ServerHost {
         Task {
             await self.consume(handle: handle)
         }
-        await publishState()
+        await requestPublish(mode: .coalesced, refreshRuntimeState: true)
         return handle.id
     }
 
@@ -571,7 +635,7 @@ actor ServerHost {
         self.profileCacheState = "fresh"
         self.profileCacheWarning = nil
         _ = reason
-        await publishState()
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
         return profiles
     }
 
@@ -580,7 +644,7 @@ actor ServerHost {
         self.lastProfileRefreshAt = Date()
         self.profileCacheState = "fresh"
         self.profileCacheWarning = nil
-        await publishState()
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 
     private func profilesMatchExpectedMutation(
@@ -636,7 +700,7 @@ actor ServerHost {
         for (jobID, job) in jobs where job.terminalEvent == nil {
             await record(event, for: jobID, terminal: false)
         }
-        await publishState()
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 
     private func record(_ event: ServerJobEvent, for jobID: String, terminal: Bool) async {
@@ -667,7 +731,7 @@ actor ServerHost {
             finishSubscribers(for: jobID)
             pruneCompletedJobs()
         }
-        await publishState()
+        await requestPublish(mode: terminal ? .immediate : .coalesced, refreshRuntimeState: true)
     }
 
     private func addSubscriber(
@@ -693,10 +757,6 @@ actor ServerHost {
         jobs[jobID] = job
     }
 
-    private func removeLiveStateSubscriber(_ subscriberID: UUID) {
-        liveStateSubscribers.removeValue(forKey: subscriberID)
-    }
-
     private func emitHeartbeat(jobID: String, subscriberID: UUID) {
         guard let continuation = jobs[jobID]?.subscribers[subscriberID] else { return }
         continuation.yield(encodeHeartbeatBuffer())
@@ -713,13 +773,6 @@ actor ServerHost {
         job.subscribers.removeAll()
         job.heartbeatTasks.removeAll()
         jobs[jobID] = job
-    }
-
-    private func finishLiveStateSubscribers() {
-        for continuation in liveStateSubscribers.values {
-            continuation.finish()
-        }
-        liveStateSubscribers.removeAll()
     }
 
     private func pruneCompletedJobs() {
@@ -752,16 +805,28 @@ actor ServerHost {
         }
     }
 
+    private func requestPublish(mode: PublishMode, refreshRuntimeState: Bool) async {
+        pendingRuntimeRefresh = pendingRuntimeRefresh || refreshRuntimeState
+        switch mode {
+        case .immediate:
+            immediatePublishContinuation.yield(())
+        case .coalesced:
+            coalescedPublishContinuation.yield(())
+        }
+    }
+
     private func publishState() async {
-        await refreshRuntimeDerivedState()
+        let shouldRefreshRuntimeState = pendingRuntimeRefresh
+        pendingRuntimeRefresh = false
+        if shouldRefreshRuntimeState {
+            await refreshRuntimeDerivedState()
+        }
 
         let hostState = hostStateSnapshot()
         let jobsByID = Dictionary(uniqueKeysWithValues: jobs.map { ($0.key, $0.value.snapshot) })
         latestPublishedState = hostState
 
-        for continuation in liveStateSubscribers.values {
-            continuation.yield(hostState)
-        }
+        publishedStateContinuation.yield(hostState)
 
         await MainActor.run {
             state.overview = hostState.overview
