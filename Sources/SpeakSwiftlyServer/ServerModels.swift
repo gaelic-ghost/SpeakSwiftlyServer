@@ -105,13 +105,34 @@ struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
 }
 
 struct QueueSnapshotResponse: ResponseEncodable, Sendable {
+    let queueType: String
     let activeRequest: ActiveRequestSnapshot?
     let queue: [QueuedRequestSnapshot]
 
     enum CodingKeys: String, CodingKey {
+        case queueType = "queue_type"
         case activeRequest = "active_request"
         case queue
     }
+}
+
+struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
+    let state: String
+    let activeRequest: ActiveRequestSnapshot?
+
+    enum CodingKeys: String, CodingKey {
+        case state
+        case activeRequest = "active_request"
+    }
+
+    init(summary: PlaybackStateSummary) {
+        self.state = summary.state.rawValue
+        self.activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
+    }
+}
+
+struct PlaybackStateResponse: ResponseEncodable, Sendable {
+    let playback: PlaybackStateSnapshot
 }
 
 struct QueueClearedResponse: ResponseEncodable, Sendable {
@@ -252,6 +273,11 @@ struct ServerSuccessEvent: Encodable, Sendable, Equatable {
     let profileName: String?
     let profilePath: String?
     let profiles: [ProfileSnapshot]?
+    let activeRequest: ActiveRequestSnapshot?
+    let queue: [QueuedRequestSnapshot]?
+    let playbackState: PlaybackStateSnapshot?
+    let clearedCount: Int?
+    let cancelledRequestID: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -259,6 +285,11 @@ struct ServerSuccessEvent: Encodable, Sendable, Equatable {
         case profileName = "profile_name"
         case profilePath = "profile_path"
         case profiles
+        case activeRequest = "active_request"
+        case queue
+        case playbackState = "playback_state"
+        case clearedCount = "cleared_count"
+        case cancelledRequestID = "cancelled_request_id"
     }
 }
 

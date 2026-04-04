@@ -30,6 +30,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     private var activeRequest: WorkerRequest?
     private var activeContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
     private var queuedRequests = [QueuedRequestState]()
+    private var playbackState: PlaybackState = .idle
 
     init(
         profiles: [ProfileSummary] = [sampleProfile()],
@@ -48,6 +49,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         activeContinuation?.finish()
         activeContinuation = nil
         activeRequest = nil
+        playbackState = .idle
         for queued in queuedRequests {
             queued.continuation.finish()
         }
@@ -72,7 +74,21 @@ actor MockRuntime: ServerRuntimeProtocol {
                 }
             )
 
-        case .listQueue:
+        case .listQueue(_, let queueType):
+            let activeRequest: ActiveWorkerRequestSummary? =
+                switch queueType {
+                case .generation:
+                    self.activeRequest.map(self.activeSummary(for:))
+                case .playback:
+                    playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
+                }
+            let queue: [QueuedWorkerRequestSummary] =
+                switch queueType {
+                case .generation:
+                    self.queuedSummaries()
+                case .playback:
+                    []
+                }
             return RuntimeRequestHandle(
                 id: request.id,
                 request: request,
@@ -81,8 +97,37 @@ actor MockRuntime: ServerRuntimeProtocol {
                         .completed(
                             WorkerSuccessResponse(
                                 id: request.id,
-                                activeRequest: self.activeRequest.map(self.activeSummary(for:)),
-                                queue: self.queuedSummaries()
+                                activeRequest: activeRequest,
+                                queue: queue
+                            )
+                        )
+                    )
+                    continuation.finish()
+                }
+            )
+
+        case .playback(_, let action):
+            switch action {
+            case .pause:
+                if activeRequest != nil {
+                    playbackState = .paused
+                }
+            case .resume:
+                if activeRequest != nil {
+                    playbackState = .playing
+                }
+            case .state:
+                break
+            }
+            return RuntimeRequestHandle(
+                id: request.id,
+                request: request,
+                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                    continuation.yield(
+                        .completed(
+                            WorkerSuccessResponse(
+                                id: request.id,
+                                playbackState: self.playbackStateSummary()
                             )
                         )
                     )
@@ -136,14 +181,12 @@ actor MockRuntime: ServerRuntimeProtocol {
                 )
             }
 
-        case .speakLive, .speakLiveBackground:
+        case .queueSpeech:
             return RuntimeRequestHandle(
                 id: request.id,
                 request: request,
                 events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    if case .speakLiveBackground = request {
-                        continuation.yield(.acknowledged(.init(id: request.id)))
-                    }
+                    continuation.yield(.acknowledged(.init(id: request.id)))
 
                     if self.activeRequest == nil {
                         self.startActiveRequest(request, continuation: continuation)
@@ -207,6 +250,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         continuation.yield(.progress(.init(id: id, stage: .playbackFinished)))
         continuation.yield(.completed(.init(id: id)))
         continuation.finish()
+        playbackState = .idle
         activeContinuation = nil
         activeRequest = nil
         startNextQueuedRequestIfNeeded()
@@ -217,12 +261,14 @@ actor MockRuntime: ServerRuntimeProtocol {
         continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
     ) {
         activeRequest = request
+        playbackState = .playing
         continuation.yield(.started(.init(id: request.id, op: request.opName)))
 
         if speakBehavior == .completeImmediately {
             continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
             continuation.yield(.completed(.init(id: request.id)))
             continuation.finish()
+            playbackState = .idle
             activeRequest = nil
             activeContinuation = nil
             startNextQueuedRequestIfNeeded()
@@ -252,6 +298,13 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
     }
 
+    private func playbackStateSummary() -> PlaybackStateSummary {
+        .init(
+            state: playbackState,
+            activeRequest: playbackState == .idle ? nil : activeRequest.map(activeSummary(for:))
+        )
+    }
+
     private func cancelQueuedRequest(_ requestID: String, reason: String) {
         guard let index = queuedRequests.firstIndex(where: { $0.request.id == requestID }) else { return }
         let queued = queuedRequests.remove(at: index)
@@ -268,6 +321,7 @@ actor MockRuntime: ServerRuntimeProtocol {
                     message: "The request was cancelled by the mock SpeakSwiftly runtime control surface."
                 )
             )
+            playbackState = .idle
             activeContinuation = nil
             activeRequest = nil
             startNextQueuedRequestIfNeeded()
@@ -305,7 +359,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 }
 
 @available(macOS 14, *)
-@Test func stateCompletesBackgroundJobsAndPrunesExpiredEntries() async throws {
+@Test func stateCompletesQueuedSpeechJobsAndPrunesExpiredEntries() async throws {
     let runtime = MockRuntime()
     let state = ServerState(
         configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
@@ -317,7 +371,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     await runtime.publishStatus(.residentModelReady)
     try await waitUntilReady(state)
 
-    let jobID = try await state.submitSpeak(text: "Hello from the test suite", profileName: "default", background: true)
+    let jobID = try await state.submitSpeak(text: "Hello from the test suite", profileName: "default")
     let snapshot = try await waitForJobSnapshot(jobID, on: state)
 
     #expect(snapshot.jobID == jobID)
@@ -344,9 +398,9 @@ actor MockRuntime: ServerRuntimeProtocol {
     await runtime.publishStatus(.residentModelReady)
     try await waitUntilReady(state)
 
-    let first = try await state.submitSpeak(text: "One", profileName: "default", background: true)
-    let second = try await state.submitSpeak(text: "Two", profileName: "default", background: true)
-    let third = try await state.submitSpeak(text: "Three", profileName: "default", background: true)
+    let first = try await state.submitSpeak(text: "One", profileName: "default")
+    let second = try await state.submitSpeak(text: "Two", profileName: "default")
+    let third = try await state.submitSpeak(text: "Three", profileName: "default")
 
     _ = try await waitForJobSnapshot(first, on: state)
     _ = try await waitForJobSnapshot(second, on: state)
@@ -374,7 +428,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     await runtime.publishStatus(.residentModelReady)
     try await waitUntilReady(state)
 
-    let jobID = try await state.submitSpeak(text: "Keep speaking", profileName: "default", background: true)
+    let jobID = try await state.submitSpeak(text: "Keep speaking", profileName: "default")
     _ = try await waitUntil(
         timeout: .seconds(1),
         pollInterval: .milliseconds(10)
@@ -409,7 +463,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 }
 
 @available(macOS 14, *)
-@Test func routesExposeHealthProfilesAndJobLifecycle() async throws {
+@Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
     let state = ServerState(
@@ -449,20 +503,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((speakJSON["events_url"] as? String)?.contains(speakJobID) == true)
         #expect((speakJSON["job_url"] as? String)?.hasPrefix("http://") == true)
 
-        let backgroundResponse = try await client.execute(
-            uri: "/speak/background",
-            method: .post,
-            headers: [.contentType: "application/json"],
-            body: byteBuffer(#"{"text":"Background route test","profile_name":"default"}"#)
-        )
-        let backgroundJSON = try jsonObject(from: backgroundResponse.body)
-        let backgroundJobID = try #require(backgroundJSON["job_id"] as? String)
-        #expect(backgroundResponse.status == .accepted)
-        #expect((backgroundJSON["job_url"] as? String)?.contains(backgroundJobID) == true)
-        #expect((backgroundJSON["events_url"] as? String)?.contains(backgroundJobID) == true)
-
         _ = try await waitForJobSnapshot(speakJobID, on: state)
-        _ = try await waitForJobSnapshot(backgroundJobID, on: state)
 
         let foregroundJobResponse = try await client.execute(uri: "/jobs/\(speakJobID)", method: .get)
         let foregroundJobJSON = try jsonObject(from: foregroundJobResponse.body)
@@ -471,15 +512,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(foregroundJobJSON["status"] as? String == "completed")
         let foregroundHistory = try #require(foregroundJobJSON["history"] as? [[String: Any]])
         #expect(foregroundHistory.contains { $0["event"] as? String == "started" })
-        #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 1)
-
-        let backgroundJobResponse = try await client.execute(uri: "/jobs/\(backgroundJobID)", method: .get)
-        let backgroundJobJSON = try jsonObject(from: backgroundJobResponse.body)
-        #expect(backgroundJobResponse.status == .ok)
-        #expect(backgroundJobJSON["job_id"] as? String == backgroundJobID)
-        #expect(backgroundJobJSON["status"] as? String == "completed")
-        let backgroundHistory = try #require(backgroundJobJSON["history"] as? [[String: Any]])
-        #expect(backgroundHistory.filter { $0["ok"] as? Bool == true }.count == 2)
+        #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 2)
     }
 
     await state.shutdown()
@@ -502,7 +535,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let app = makeApplication(configuration: configuration, state: state)
     try await app.test(.router) { client in
         let activeResponse = try await client.execute(
-            uri: "/speak/background",
+            uri: "/speak",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Hold the line","profile_name":"default"}"#)
@@ -510,22 +543,48 @@ actor MockRuntime: ServerRuntimeProtocol {
         let activeJobID = try #require(try jsonObject(from: activeResponse.body)["job_id"] as? String)
 
         let queuedResponse = try await client.execute(
-            uri: "/speak/background",
+            uri: "/speak",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Queue this request","profile_name":"default"}"#)
         )
         let queuedJobID = try #require(try jsonObject(from: queuedResponse.body)["job_id"] as? String)
 
-        let queueResponse = try await client.execute(uri: "/queue", method: .get)
+        let queueResponse = try await client.execute(uri: "/queue/generation", method: .get)
         let queueJSON = try jsonObject(from: queueResponse.body)
         #expect(queueResponse.status == .ok)
+        #expect(queueJSON["queue_type"] as? String == "generation")
         let activeRequest = try #require(queueJSON["active_request"] as? [String: Any])
         #expect(activeRequest["id"] as? String == activeJobID)
         let queuedRequests = try #require(queueJSON["queue"] as? [[String: Any]])
         #expect(queuedRequests.count == 1)
         #expect(queuedRequests.first?["id"] as? String == queuedJobID)
         #expect(queuedRequests.first?["queue_position"] as? Int == 1)
+
+        let playbackStateResponse = try await client.execute(uri: "/playback", method: .get)
+        let playbackStateJSON = try jsonObject(from: playbackStateResponse.body)
+        #expect(playbackStateResponse.status == .ok)
+        let playback = try #require(playbackStateJSON["playback"] as? [String: Any])
+        #expect(playback["state"] as? String == "playing")
+        let playbackActiveRequest = try #require(playback["active_request"] as? [String: Any])
+        #expect(playbackActiveRequest["id"] as? String == activeJobID)
+
+        let pauseResponse = try await client.execute(uri: "/playback/pause", method: .post)
+        let pauseJSON = try jsonObject(from: pauseResponse.body)
+        #expect(pauseResponse.status == .ok)
+        #expect((pauseJSON["playback"] as? [String: Any])?["state"] as? String == "paused")
+
+        let resumeResponse = try await client.execute(uri: "/playback/resume", method: .post)
+        let resumeJSON = try jsonObject(from: resumeResponse.body)
+        #expect(resumeResponse.status == .ok)
+        #expect((resumeJSON["playback"] as? [String: Any])?["state"] as? String == "playing")
+
+        let playbackQueueResponse = try await client.execute(uri: "/queue/playback", method: .get)
+        let playbackQueueJSON = try jsonObject(from: playbackQueueResponse.body)
+        #expect(playbackQueueResponse.status == .ok)
+        #expect(playbackQueueJSON["queue_type"] as? String == "playback")
+        #expect((playbackQueueJSON["active_request"] as? [String: Any])?["id"] as? String == activeJobID)
+        #expect((playbackQueueJSON["queue"] as? [[String: Any]])?.isEmpty == true)
 
         let cancelResponse = try await client.execute(uri: "/queue/\(queuedJobID)", method: .delete)
         let cancelJSON = try jsonObject(from: cancelResponse.body)
@@ -541,7 +600,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
 
         let anotherQueuedResponse = try await client.execute(
-            uri: "/speak/background",
+            uri: "/speak",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Queue another request","profile_name":"default"}"#)
@@ -561,7 +620,7 @@ actor MockRuntime: ServerRuntimeProtocol {
             Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
         }
 
-        let emptyQueueResponse = try await client.execute(uri: "/queue", method: .get)
+        let emptyQueueResponse = try await client.execute(uri: "/queue/generation", method: .get)
         let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
         let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])
         #expect(remainingQueue.isEmpty)
@@ -731,7 +790,7 @@ private func waitUntil<T: Sendable>(
 @available(macOS 14, *)
 private func waitForActiveRequestID(on state: ServerState) async throws -> String {
     try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await state.queueSnapshot()
+        let snapshot = try await state.queueSnapshot(queueType: .generation)
         return snapshot.activeRequest?.id
     }
 }

@@ -51,21 +51,24 @@ The current HTTP surface is:
 - `GET /readyz`
 - `GET /status`
 - `GET /profiles`
-- `GET /queue`
+- `GET /queue/generation`
+- `GET /queue/playback`
+- `GET /playback`
 - `POST /profiles`
+- `POST /playback/pause`
+- `POST /playback/resume`
 - `DELETE /profiles/{profile_name}`
 - `DELETE /queue`
 - `DELETE /queue/{request_id}`
 - `POST /speak`
-- `POST /speak/background`
 - `GET /jobs/{job_id}`
 - `GET /jobs/{job_id}/events`
 
-`POST /speak`, `POST /speak/background`, `POST /profiles`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` uses the direct `speak_live` runtime path, while `POST /speak/background` uses the queued `speak_live_background` path and records the extra acknowledgement event before terminal completion. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE.
+`POST /speak`, `POST /profiles`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` now mirrors `SpeakSwiftlyCore v0.8.0` directly by queueing a live speech job through `queue_speech_live`, which means every speech request records the initial acknowledgement event before it starts and eventually reaches terminal completion. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE.
 
-The queue-control routes are immediate control operations rather than long-running jobs. `GET /queue` returns the current active request, if any, plus the waiting queue. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
+The queue and playback control routes are immediate control operations rather than long-running jobs. `GET /queue/generation` and `GET /queue/playback` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface. `GET /playback`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
-The route surface now matches the Python sibling at the endpoint level. The remaining parity work is narrower: re-checking response payload details and deciding whether any server-local translation code should disappear now that `SpeakSwiftlyCore` is more expressive.
+The route surface now mirrors the current `SpeakSwiftlyCore` control model directly instead of preserving the older foreground/background split. The remaining parity work is narrower: re-checking response payload details and deciding whether any server-local translation code should disappear now that `SpeakSwiftlyCore` is more expressive.
 
 ## Development
 
@@ -87,7 +90,7 @@ swift build
 swift test
 ```
 
-The current automated suite covers configuration parsing, foreground and background job completion semantics, queue inspection and cancellation routes, in-memory retention and pruning, SSE replay and heartbeat behavior, route-level health, profile, and job lifecycle responses against a controlled typed runtime, plus an opt-in live end-to-end path against a real `SpeakSwiftlyCore` runtime:
+The current automated suite covers configuration parsing, queued live speech job completion semantics, generation and playback queue inspection, playback control routes, queue cancellation routes, in-memory retention and pruning, SSE replay and heartbeat behavior, route-level health, profile, and job lifecycle responses against a controlled typed runtime, plus an opt-in live end-to-end path against a real `SpeakSwiftlyCore` runtime:
 
 ```bash
 SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests

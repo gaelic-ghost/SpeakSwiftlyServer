@@ -164,14 +164,14 @@ actor ServerState {
         )
     }
 
-    func submitSpeak(text: String, profileName: String, background: Bool) async throws -> String {
+    func submitSpeak(text: String, profileName: String) async throws -> String {
         try ensureWorkerReady()
-        let request: WorkerRequest =
-            if background {
-                .speakLiveBackground(id: UUID().uuidString, text: text, profileName: profileName)
-            } else {
-                .speakLive(id: UUID().uuidString, text: text, profileName: profileName)
-            }
+        let request = WorkerRequest.queueSpeech(
+            id: UUID().uuidString,
+            text: text,
+            profileName: profileName,
+            jobType: .live
+        )
         return await enqueuePublicJob(request)
     }
 
@@ -198,12 +198,27 @@ actor ServerState {
         return await enqueuePublicJob(request)
     }
 
-    func queueSnapshot() async throws -> QueueSnapshotResponse {
-        let success = try await performImmediateControlRequest(.listQueue(id: UUID().uuidString))
+    func queueSnapshot(queueType: WorkerQueueType) async throws -> QueueSnapshotResponse {
+        let success = try await performImmediateControlRequest(
+            .listQueue(id: UUID().uuidString, queueType: queueType)
+        )
         return .init(
+            queueType: queueTypeName(queueType),
             activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
             queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)) ?? []
         )
+    }
+
+    func playbackStateSnapshot() async throws -> PlaybackStateResponse {
+        try await playbackStateResponse(for: .state)
+    }
+
+    func pausePlayback() async throws -> PlaybackStateResponse {
+        try await playbackStateResponse(for: .pause)
+    }
+
+    func resumePlayback() async throws -> PlaybackStateResponse {
+        try await playbackStateResponse(for: .resume)
     }
 
     func clearQueue() async throws -> QueueClearedResponse {
@@ -382,7 +397,12 @@ actor ServerState {
                 id: success.id,
                 profileName: success.profileName,
                 profilePath: success.profilePath,
-                profiles: nil
+                profiles: nil,
+                activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
+                queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)),
+                playbackState: success.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+                clearedCount: success.clearedCount,
+                cancelledRequestID: success.cancelledRequestID
             )
             await record(.completed(finalSuccess), for: requestID, terminal: true)
         } catch {
@@ -613,7 +633,12 @@ actor ServerState {
             id: event.id,
             profileName: event.profileName,
             profilePath: event.profilePath,
-            profiles: event.profiles?.map(ProfileSnapshot.init(profile:))
+            profiles: event.profiles?.map(ProfileSnapshot.init(profile:)),
+            activeRequest: event.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
+            queue: event.queue?.map(QueuedRequestSnapshot.init(summary:)),
+            playbackState: event.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+            clearedCount: event.clearedCount,
+            cancelledRequestID: event.cancelledRequestID
         )
         return acknowledged ? .acknowledged(success) : .completed(success)
     }
@@ -655,6 +680,37 @@ actor ServerState {
             missingTerminalMessage: "SpeakSwiftly finished the '\(request.opName)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(request.opName)' control request."
         )
+    }
+
+    private func playbackStateResponse(for action: PlaybackAction) async throws -> PlaybackStateResponse {
+        let success = try await performImmediateControlRequest(.playback(id: UUID().uuidString, action: action))
+        guard let playbackState = success.playbackState else {
+            throw WorkerError(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the '\(requestName(for: action))' control request, but it did not return a playback state payload."
+            )
+        }
+        return .init(playback: .init(summary: playbackState))
+    }
+
+    private func requestName(for action: PlaybackAction) -> String {
+        switch action {
+        case .pause:
+            "playback_pause"
+        case .resume:
+            "playback_resume"
+        case .state:
+            "playback_state"
+        }
+    }
+
+    private func queueTypeName(_ queueType: WorkerQueueType) -> String {
+        switch queueType {
+        case .generation:
+            "generation"
+        case .playback:
+            "playback"
+        }
     }
 
     private func awaitImmediateSuccess(

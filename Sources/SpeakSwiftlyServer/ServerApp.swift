@@ -28,8 +28,12 @@ func makeApplication(
         .init(profiles: await state.cachedProfiles())
     }
 
-    router.get("queue") { _, _ -> QueueSnapshotResponse in
-        try await state.queueSnapshot()
+    router.get("queue/generation") { _, _ -> QueueSnapshotResponse in
+        try await state.queueSnapshot(queueType: .generation)
+    }
+
+    router.get("queue/playback") { _, _ -> QueueSnapshotResponse in
+        try await state.queueSnapshot(queueType: .playback)
     }
 
     router.delete("queue") { _, _ -> QueueClearedResponse in
@@ -58,22 +62,23 @@ func makeApplication(
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }
 
+    router.get("playback") { _, _ -> PlaybackStateResponse in
+        try await state.playbackStateSnapshot()
+    }
+
+    router.post("playback/pause") { _, _ -> PlaybackStateResponse in
+        try await state.pausePlayback()
+    }
+
+    router.post("playback/resume") { _, _ -> PlaybackStateResponse in
+        try await state.resumePlayback()
+    }
+
     router.post("speak") { request, context -> Response in
         let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
         let jobID = try await state.submitSpeak(
             text: payload.text,
-            profileName: payload.profileName,
-            background: false
-        )
-        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
-    }
-
-    router.post("speak/background") { request, context -> Response in
-        let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
-        let jobID = try await state.submitSpeak(
-            text: payload.text,
-            profileName: payload.profileName,
-            background: true
+            profileName: payload.profileName
         )
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }
