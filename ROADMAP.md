@@ -48,14 +48,15 @@
 - [x] Add SSE tests for initial worker status replay, progress history, and keep-alive behavior.
 - [x] Add end-to-end verification against a real `SpeakSwiftly` runtime.
 - [x] Add an opt-in end-to-end verification path that exercises real playback instead of silent playback.
-- [ ] Add failure-path tests for worker startup failure before the runtime ever becomes ready.
-- [ ] Add failure-path tests for runtime degradation while queued live speech is still in flight.
+- [x] Add failure-path tests for worker startup failure before the runtime ever becomes ready.
+- [x] Add failure-path tests for runtime degradation while queued live speech is still in flight.
 
 ## Milestone 5: Library Integration Follow-Through
 
 - [x] Split `../SpeakSwiftly` so it vends a reusable library product alongside its executable product.
 - [x] Switch this package from subprocess-style integration to direct `SpeakSwiftly` package import when that library product exists.
 - [x] Collapse temporary integration-only scaffolding that became unnecessary after direct import.
+- [x] Align the runtime bridge with the public `SpeakSwiftly v0.8.1` helper surface instead of constructing raw worker requests across the library boundary.
 - [ ] Re-verify that adjacent consumers still agree with the current public HTTP API surface.
 - [ ] Remove any remaining server-local translation code that `SpeakSwiftlyCore` can now express directly without making the server harder to reason about.
 

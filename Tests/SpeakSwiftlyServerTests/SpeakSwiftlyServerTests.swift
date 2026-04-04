@@ -8,8 +8,14 @@ import Testing
 
 @available(macOS 14, *)
 actor MockRuntime: ServerRuntimeProtocol {
+    struct MockRequest: Sendable {
+        let id: String
+        let operationName: String
+        let profileName: String?
+    }
+
     struct QueuedRequestState: Sendable {
-        let request: WorkerRequest
+        let request: MockRequest
         let continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
     }
 
@@ -27,7 +33,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var speakBehavior: SpeakBehavior
     var mutationRefreshBehavior: MutationRefreshBehavior
     private var statusContinuation: AsyncStream<WorkerStatusEvent>.Continuation?
-    private var activeRequest: WorkerRequest?
+    private var activeRequest: MockRequest?
     private var activeContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
     private var queuedRequests = [QueuedRequestState]()
     private var playbackState: PlaybackState = .idle
@@ -62,182 +68,177 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
     }
 
-    func submit(_ request: WorkerRequest) async -> RuntimeRequestHandle {
-        switch request {
-        case .listProfiles:
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(.completed(WorkerSuccessResponse(id: request.id, profiles: profiles)))
-                    continuation.finish()
-                }
-            )
+    func queueSpeechHandle(text: String, profileName: String, as jobType: SpeechJobType, id: String) async -> RuntimeRequestHandle {
+        let request = MockRequest(id: id, operationName: speechOperationName(for: jobType), profileName: profileName)
+        var requestContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            requestContinuation = continuation
+        }
+        guard let continuation = requestContinuation else {
+            fatalError("The mock runtime could not create a speech request continuation for request '\(id)'.")
+        }
 
-        case .listQueue(_, let queueType):
-            let activeRequest: ActiveWorkerRequestSummary? =
-                switch queueType {
-                case .generation:
-                    self.activeRequest.map(self.activeSummary(for:))
-                case .playback:
-                    playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
-                }
-            let queue: [QueuedWorkerRequestSummary] =
-                switch queueType {
-                case .generation:
-                    self.queuedSummaries()
-                case .playback:
-                    []
-                }
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(
-                        .completed(
-                            WorkerSuccessResponse(
-                                id: request.id,
-                                activeRequest: activeRequest,
-                                queue: queue
-                            )
-                        )
-                    )
-                    continuation.finish()
-                }
-            )
+        continuation.yield(.acknowledged(.init(id: id)))
 
-        case .playback(_, let action):
-            switch action {
-            case .pause:
-                if activeRequest != nil {
-                    playbackState = .paused
-                }
-            case .resume:
-                if activeRequest != nil {
-                    playbackState = .playing
-                }
-            case .state:
-                break
-            }
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(
-                        .completed(
-                            WorkerSuccessResponse(
-                                id: request.id,
-                                playbackState: self.playbackStateSummary()
-                            )
-                        )
-                    )
-                    continuation.finish()
-                }
-            )
-
-        case .clearQueue:
-            let clearedRequestIDs = queuedRequests.map(\.request.id)
-            let clearedCount = clearedRequestIDs.count
-            for requestID in clearedRequestIDs {
-                cancelQueuedRequest(
-                    requestID,
-                    reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime."
-                )
-            }
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(.completed(WorkerSuccessResponse(id: request.id, clearedCount: clearedCount)))
-                    continuation.finish()
-                }
-            )
-
-        case .cancelRequest(_, let requestID):
-            do {
-                let cancelledRequestID = try cancelRequestNow(requestID)
-                return RuntimeRequestHandle(
-                    id: request.id,
-                    request: request,
-                    events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                        continuation.yield(
-                            .completed(
-                                WorkerSuccessResponse(
-                                    id: request.id,
-                                    cancelledRequestID: cancelledRequestID
-                                )
-                            )
-                        )
-                        continuation.finish()
-                    }
-                )
-            } catch {
-                return RuntimeRequestHandle(
-                    id: request.id,
-                    request: request,
-                    events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                        continuation.finish(throwing: error)
-                    }
-                )
-            }
-
-        case .queueSpeech:
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(.acknowledged(.init(id: request.id)))
-
-                    if self.activeRequest == nil {
-                        self.startActiveRequest(request, continuation: continuation)
-                    } else {
-                        self.queuedRequests.append(.init(request: request, continuation: continuation))
-                        continuation.yield(
-                            .queued(
-                                .init(
-                                    id: request.id,
-                                    reason: .waitingForActiveRequest,
-                                    queuePosition: self.queuedRequests.count
-                                )
-                            )
-                        )
-                    }
-                }
-            )
-
-        case .createProfile(_, let profileName, let text, let voiceDescription, _):
-            if mutationRefreshBehavior == .applyMutations {
-                profiles.append(
-                    ProfileSummary(
-                        profileName: profileName,
-                        createdAt: Date(),
-                        voiceDescription: voiceDescription,
-                        sourceText: text
+        if self.activeRequest == nil {
+            self.startActiveRequest(request, continuation: continuation)
+        } else {
+            self.queuedRequests.append(.init(request: request, continuation: continuation))
+            continuation.yield(
+                .queued(
+                    .init(
+                        id: id,
+                        reason: .waitingForActiveRequest,
+                        queuePosition: self.queuedRequests.count
                     )
                 )
-            }
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(.completed(WorkerSuccessResponse(id: request.id, profileName: profileName)))
-                    continuation.finish()
-                }
             )
+        }
 
-        case .removeProfile(_, let profileName):
-            if mutationRefreshBehavior == .applyMutations {
-                profiles.removeAll { $0.profileName == profileName }
-            }
-            return RuntimeRequestHandle(
-                id: request.id,
-                request: request,
-                events: AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-                    continuation.yield(.completed(WorkerSuccessResponse(id: request.id, profileName: profileName)))
-                    continuation.finish()
-                }
+        return RuntimeRequestHandle(id: id, operationName: request.operationName, profileName: profileName, events: events)
+    }
+
+    func createProfileHandle(
+        profileName: String,
+        text: String,
+        voiceDescription: String,
+        outputPath: String?,
+        id: String
+    ) async -> RuntimeRequestHandle {
+        _ = outputPath
+        if mutationRefreshBehavior == .applyMutations {
+            profiles.append(
+                ProfileSummary(
+                    profileName: profileName,
+                    createdAt: Date(),
+                    voiceDescription: voiceDescription,
+                    sourceText: text
+                )
             )
+        }
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(.completed(WorkerSuccessResponse(id: id, profileName: profileName)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: id, operationName: "create_profile", profileName: profileName, events: events)
+    }
 
+    func listProfilesHandle(id: String) async -> RuntimeRequestHandle {
+        let profiles = self.profiles
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(.completed(WorkerSuccessResponse(id: id, profiles: profiles)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: id, operationName: "list_profiles", profileName: nil, events: events)
+    }
+
+    func removeProfileHandle(profileName: String, id: String) async -> RuntimeRequestHandle {
+        if mutationRefreshBehavior == .applyMutations {
+            profiles.removeAll { $0.profileName == profileName }
+        }
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(.completed(WorkerSuccessResponse(id: id, profileName: profileName)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: id, operationName: "remove_profile", profileName: profileName, events: events)
+    }
+
+    func listQueueHandle(_ queueType: WorkerQueueType, id requestID: String) async -> RuntimeRequestHandle {
+        let activeRequest: ActiveWorkerRequestSummary? =
+            switch queueType {
+            case .generation:
+                self.activeRequest.map(self.activeSummary(for:))
+            case .playback:
+                playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
+            }
+        let queue: [QueuedWorkerRequestSummary] =
+            switch queueType {
+            case .generation:
+                self.queuedSummaries()
+            case .playback:
+                []
+            }
+        let operationName = queueType == .generation ? "list_queue_generation" : "list_queue_playback"
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(
+                .completed(
+                    WorkerSuccessResponse(
+                        id: requestID,
+                        activeRequest: activeRequest,
+                        queue: queue
+                    )
+                )
+            )
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operationName: operationName, profileName: nil, events: events)
+    }
+
+    func playbackHandle(_ action: PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
+        switch action {
+        case .pause:
+            if activeRequest != nil {
+                playbackState = .paused
+            }
+        case .resume:
+            if activeRequest != nil {
+                playbackState = .playing
+            }
+        case .state:
+            break
+        }
+        let playbackState = self.playbackStateSummary()
+        let operationName = playbackOperationName(for: action)
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(
+                .completed(
+                    WorkerSuccessResponse(
+                        id: requestID,
+                        playbackState: playbackState
+                    )
+                )
+            )
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operationName: operationName, profileName: nil, events: events)
+    }
+
+    func clearQueueHandle(id requestID: String) async -> RuntimeRequestHandle {
+        let clearedRequestIDs = queuedRequests.map(\.request.id)
+        let clearedCount = clearedRequestIDs.count
+        for queuedRequestID in clearedRequestIDs {
+            cancelQueuedRequest(
+                queuedRequestID,
+                reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime."
+            )
+        }
+        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            continuation.yield(.completed(WorkerSuccessResponse(id: requestID, clearedCount: clearedCount)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operationName: "clear_queue", profileName: nil, events: events)
+    }
+
+    func cancelRequestHandle(with id: String, requestID: String) async -> RuntimeRequestHandle {
+        do {
+            let cancelledRequestID = try cancelRequestNow(id)
+            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                continuation.yield(
+                    .completed(
+                        WorkerSuccessResponse(
+                            id: requestID,
+                            cancelledRequestID: cancelledRequestID
+                        )
+                    )
+                )
+                continuation.finish()
+            }
+            return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
+        } catch {
+            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+                continuation.finish(throwing: error)
+            }
+            return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
         }
     }
 
@@ -257,12 +258,12 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 
     private func startActiveRequest(
-        _ request: WorkerRequest,
+        _ request: MockRequest,
         continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
     ) {
         activeRequest = request
         playbackState = .playing
-        continuation.yield(.started(.init(id: request.id, op: request.opName)))
+        continuation.yield(.started(.init(id: request.id, op: request.operationName)))
 
         if speakBehavior == .completeImmediately {
             continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
@@ -283,18 +284,36 @@ actor MockRuntime: ServerRuntimeProtocol {
         startActiveRequest(next.request, continuation: next.continuation)
     }
 
-    private func activeSummary(for request: WorkerRequest) -> ActiveWorkerRequestSummary {
-        .init(id: request.id, op: request.opName, profileName: request.profileName)
+    private func activeSummary(for request: MockRequest) -> ActiveWorkerRequestSummary {
+        .init(id: request.id, op: request.operationName, profileName: request.profileName)
     }
 
     private func queuedSummaries() -> [QueuedWorkerRequestSummary] {
         queuedRequests.enumerated().map { offset, queued in
             .init(
                 id: queued.request.id,
-                op: queued.request.opName,
+                op: queued.request.operationName,
                 profileName: queued.request.profileName,
                 queuePosition: offset + 1
             )
+        }
+    }
+
+    private func speechOperationName(for jobType: SpeechJobType) -> String {
+        switch jobType {
+        case .live:
+            "queue_speech_live"
+        }
+    }
+
+    private func playbackOperationName(for action: PlaybackAction) -> String {
+        switch action {
+        case .pause:
+            "playback_pause"
+        case .resume:
+            "playback_resume"
+        case .state:
+            "playback_state"
         }
     }
 
@@ -674,6 +693,115 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((missingEventsError["message"] as? String)?.contains("expired from in-memory retention") == true)
     }
 
+    await state.shutdown()
+}
+
+@available(macOS 14, *)
+@Test func routesReportWorkerStartupFailureClearly() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration()
+    let state = ServerState(
+        configuration: configuration,
+        runtime: runtime,
+        makeRuntime: { runtime }
+    )
+
+    await state.start()
+    await runtime.publishStatus(.residentModelFailed)
+
+    let app = makeApplication(configuration: configuration, state: state)
+    try await app.test(.router) { client in
+        let readyResponse = try await client.execute(uri: "/readyz", method: .get)
+        let readyJSON = try jsonObject(from: readyResponse.body)
+        #expect(readyResponse.status == .serviceUnavailable)
+        #expect(readyJSON["status"] as? String == "not_ready")
+        #expect(readyJSON["worker_mode"] as? String == "failed")
+        #expect((readyJSON["startup_error"] as? String)?.contains("startup failure") == true)
+
+        let statusResponse = try await client.execute(uri: "/status", method: .get)
+        let statusJSON = try jsonObject(from: statusResponse.body)
+        #expect(statusResponse.status == .ok)
+        #expect(statusJSON["worker_mode"] as? String == "failed")
+        #expect(statusJSON["worker_stage"] as? String == "resident_model_failed")
+        #expect((statusJSON["worker_failure_summary"] as? String)?.contains("startup failure") == true)
+
+        let speakResponse = try await client.execute(
+            uri: "/speak",
+            method: .post,
+            headers: [.contentType: "application/json"],
+            body: byteBuffer(#"{"text":"Still broken","profile_name":"default"}"#)
+        )
+        let speakJSON = try jsonObject(from: speakResponse.body)
+        #expect(speakResponse.status == .serviceUnavailable)
+        let speakError = try #require(speakJSON["error"] as? [String: Any])
+        #expect((speakError["message"] as? String)?.contains("startup failure") == true)
+    }
+
+    await state.shutdown()
+}
+
+@available(macOS 14, *)
+@Test func runtimeDegradationWhileSpeechJobsAreInFlightMarksJobsDegradedAndRejectsNewWork() async throws {
+    let runtime = MockRuntime(speakBehavior: .holdOpen)
+    let state = ServerState(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        makeRuntime: { runtime }
+    )
+
+    await state.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(state)
+
+    let activeJobID = try await state.submitSpeak(text: "Keep talking", profileName: "default")
+    let queuedJobID = try await state.submitSpeak(text: "Wait your turn", profileName: "default")
+
+    _ = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let snapshot = try await state.jobSnapshot(id: queuedJobID)
+        return snapshot.history.contains {
+            guard case .queued = $0 else { return false }
+            return true
+        } ? snapshot : nil
+    }
+
+    await runtime.publishStatus(.residentModelFailed)
+
+    let degradedReadiness = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let snapshot = await state.readinessSnapshot()
+        return snapshot.1.workerMode == "failed" ? snapshot : nil
+    }
+    #expect(degradedReadiness.0 == false)
+    #expect(degradedReadiness.1.workerMode == "failed")
+    #expect(degradedReadiness.1.workerStage == "resident_model_failed")
+    #expect(degradedReadiness.1.startupError?.contains("startup failure") == true)
+
+    let activeSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let snapshot = try await state.jobSnapshot(id: activeJobID)
+        return snapshot.history.contains {
+            guard case .workerStatus(let event) = $0 else { return false }
+            return event.workerMode == "failed" && event.stage == "resident_model_failed"
+        } ? snapshot : nil
+    }
+    #expect(activeSnapshot.terminalEvent == nil)
+
+    let queuedSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let snapshot = try await state.jobSnapshot(id: queuedJobID)
+        return snapshot.history.contains {
+            guard case .workerStatus(let event) = $0 else { return false }
+            return event.workerMode == "failed" && event.stage == "resident_model_failed"
+        } ? snapshot : nil
+    }
+    #expect(queuedSnapshot.terminalEvent == nil)
+
+    do {
+        _ = try await state.submitSpeak(text: "Do not accept this", profileName: "default")
+        Issue.record("Expected the degraded worker state to reject new speech work.")
+    } catch {
+        let message = String(describing: error)
+        #expect(message.contains("startup failure"))
+    }
+
+    await runtime.finishHeldSpeak(id: activeJobID)
     await state.shutdown()
 }
 

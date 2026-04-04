@@ -166,13 +166,9 @@ actor ServerState {
 
     func submitSpeak(text: String, profileName: String) async throws -> String {
         try ensureWorkerReady()
-        let request = WorkerRequest.queueSpeech(
-            id: UUID().uuidString,
-            text: text,
-            profileName: profileName,
-            jobType: .live
-        )
-        return await enqueuePublicJob(request)
+        let requestID = UUID().uuidString
+        let handle = await runtime.queueSpeechHandle(text: text, profileName: profileName, as: .live, id: requestID)
+        return await enqueuePublicJob(handle)
     }
 
     func submitCreateProfile(
@@ -182,25 +178,31 @@ actor ServerState {
         outputPath: String?
     ) async throws -> String {
         try ensureWorkerReady()
-        let request = WorkerRequest.createProfile(
-            id: UUID().uuidString,
+        let requestID = UUID().uuidString
+        let handle = await runtime.createProfileHandle(
             profileName: profileName,
             text: text,
             voiceDescription: voiceDescription,
-            outputPath: outputPath
+            outputPath: outputPath,
+            id: requestID
         )
-        return await enqueuePublicJob(request)
+        return await enqueuePublicJob(handle)
     }
 
     func submitRemoveProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
-        let request = WorkerRequest.removeProfile(id: UUID().uuidString, profileName: profileName)
-        return await enqueuePublicJob(request)
+        let requestID = UUID().uuidString
+        let handle = await runtime.removeProfileHandle(profileName: profileName, id: requestID)
+        return await enqueuePublicJob(handle)
     }
 
     func queueSnapshot(queueType: WorkerQueueType) async throws -> QueueSnapshotResponse {
-        let success = try await performImmediateControlRequest(
-            .listQueue(id: UUID().uuidString, queueType: queueType)
+        let requestID = UUID().uuidString
+        let handle = await runtime.listQueueHandle(queueType, id: requestID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
         )
         return .init(
             queueType: queueTypeName(queueType),
@@ -222,13 +224,23 @@ actor ServerState {
     }
 
     func clearQueue() async throws -> QueueClearedResponse {
-        let success = try await performImmediateControlRequest(.clearQueue(id: UUID().uuidString))
+        let requestID = UUID().uuidString
+        let handle = await runtime.clearQueueHandle(id: requestID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+        )
         return .init(clearedCount: success.clearedCount ?? 0)
     }
 
     func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
-        let success = try await performImmediateControlRequest(
-            .cancelRequest(id: UUID().uuidString, requestID: requestID)
+        let controlRequestID = UUID().uuidString
+        let handle = await runtime.cancelRequestHandle(with: requestID, requestID: controlRequestID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
         )
         guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
             throw WorkerError(
@@ -317,18 +329,17 @@ actor ServerState {
         }
     }
 
-    private func enqueuePublicJob(_ request: WorkerRequest) async -> String {
-        let handle = await runtime.submit(request)
-        jobs[request.id] = JobRecord(
-            jobID: request.id,
-            op: request.opName,
+    private func enqueuePublicJob(_ handle: RuntimeRequestHandle) async -> String {
+        jobs[handle.id] = JobRecord(
+            jobID: handle.id,
+            op: handle.operationName,
             submittedAt: TimestampFormatter.string(from: Date())
         )
 
         Task {
             await self.consume(handle: handle)
         }
-        return request.id
+        return handle.id
     }
 
     private func consume(handle: RuntimeRequestHandle) async {
@@ -344,19 +355,19 @@ actor ServerState {
                 case .progress(let progress):
                     await record(mapProgressEvent(progress), for: handle.id, terminal: false)
                 case .completed(let success):
-                    if case .createProfile = handle.request {
+                    if handle.operationName == "create_profile" {
                         await finalizeMutationSuccess(
                             success: success,
                             requestID: handle.id,
-                            request: handle.request
+                            operationName: handle.operationName
                         )
-                    } else if case .removeProfile = handle.request {
+                    } else if handle.operationName == "remove_profile" {
                         await finalizeMutationSuccess(
                             success: success,
                             requestID: handle.id,
-                            request: handle.request
+                            operationName: handle.operationName
                         )
-                    } else if case .listProfiles = handle.request {
+                    } else if handle.operationName == "list_profiles" {
                         await applyProfileRefresh(from: success)
                         await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
                     } else {
@@ -380,12 +391,12 @@ actor ServerState {
     private func finalizeMutationSuccess(
         success: WorkerSuccessResponse,
         requestID: String,
-        request: WorkerRequest
+        operationName: String
     ) async {
         do {
             let previousProfiles = profileCache
             let profiles = try await reconcileProfilesAfterMutation(
-                op: request.opName,
+                op: operationName,
                 requestID: requestID,
                 success: success,
                 previousProfiles: previousProfiles
@@ -454,9 +465,10 @@ actor ServerState {
     }
 
     private func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
-        let request = WorkerRequest.listProfiles(id: UUID().uuidString)
+        let requestID = UUID().uuidString
+        let handle = await runtime.listProfilesHandle(id: requestID)
         let success = try await awaitImmediateSuccess(
-            for: request,
+            handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the internal list_profiles request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles."
         )
@@ -674,16 +686,14 @@ actor ServerState {
         return buffer
     }
 
-    private func performImmediateControlRequest(_ request: WorkerRequest) async throws -> WorkerSuccessResponse {
-        try await awaitImmediateSuccess(
-            for: request,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(request.opName)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(request.opName)' control request."
-        )
-    }
-
     private func playbackStateResponse(for action: PlaybackAction) async throws -> PlaybackStateResponse {
-        let success = try await performImmediateControlRequest(.playback(id: UUID().uuidString, action: action))
+        let requestID = UUID().uuidString
+        let handle = await runtime.playbackHandle(action, id: requestID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+        )
         guard let playbackState = success.playbackState else {
             throw WorkerError(
                 code: .internalError,
@@ -714,12 +724,10 @@ actor ServerState {
     }
 
     private func awaitImmediateSuccess(
-        for request: WorkerRequest,
+        handle: RuntimeRequestHandle,
         missingTerminalMessage: String,
         unexpectedFailureMessagePrefix: String
     ) async throws -> WorkerSuccessResponse {
-        let handle = await runtime.submit(request)
-
         do {
             for try await event in handle.events {
                 if case .completed(let success) = event {
