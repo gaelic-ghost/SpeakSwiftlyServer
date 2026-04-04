@@ -380,18 +380,20 @@ actor MockRuntime: ServerRuntimeProtocol {
 @available(macOS 14, *)
 @Test func stateCompletesQueuedSpeechJobsAndPrunesExpiredEntries() async throws {
     let runtime = MockRuntime()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let jobID = try await state.submitSpeak(text: "Hello from the test suite", profileName: "default")
-    let snapshot = try await waitForJobSnapshot(jobID, on: state)
+    let jobID = try await host.submitSpeak(text: "Hello from the test suite", profileName: "default")
+    let snapshot = try await waitForJobSnapshot(jobID, on: host)
 
     #expect(snapshot.jobID == jobID)
     #expect(snapshot.status == "completed")
@@ -399,64 +401,68 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(snapshot.history.count >= 3)
 
     try await Task.sleep(for: .milliseconds(120))
-    try await waitUntilJobDisappears(jobID, on: state)
+    try await waitUntilJobDisappears(jobID, on: host)
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func statePrunesOldestCompletedJobsWhenMaxCountIsExceeded() async throws {
     let runtime = MockRuntime()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 60, completedJobMaxCount: 2),
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let first = try await state.submitSpeak(text: "One", profileName: "default")
-    let second = try await state.submitSpeak(text: "Two", profileName: "default")
-    let third = try await state.submitSpeak(text: "Three", profileName: "default")
+    let first = try await host.submitSpeak(text: "One", profileName: "default")
+    let second = try await host.submitSpeak(text: "Two", profileName: "default")
+    let third = try await host.submitSpeak(text: "Three", profileName: "default")
 
-    _ = try await waitForJobSnapshot(first, on: state)
-    _ = try await waitForJobSnapshot(second, on: state)
-    _ = try await waitForJobSnapshot(third, on: state)
+    _ = try await waitForJobSnapshot(first, on: host)
+    _ = try await waitForJobSnapshot(second, on: host)
+    _ = try await waitForJobSnapshot(third, on: host)
 
-    try await waitUntilJobDisappears(first, on: state)
-    let secondSnapshot = try await state.jobSnapshot(id: second)
-    let thirdSnapshot = try await state.jobSnapshot(id: third)
+    try await waitUntilJobDisappears(first, on: host)
+    let secondSnapshot = try await host.jobSnapshot(id: second)
+    let thirdSnapshot = try await host.jobSnapshot(id: third)
     #expect(secondSnapshot.status == "completed")
     #expect(thirdSnapshot.status == "completed")
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func sseReplayIncludesWorkerStatusHistoryAndHeartbeat() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: testConfiguration(sseHeartbeatSeconds: 0.02),
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let jobID = try await state.submitSpeak(text: "Keep speaking", profileName: "default")
+    let jobID = try await host.submitSpeak(text: "Keep speaking", profileName: "default")
     _ = try await waitUntil(
         timeout: .seconds(1),
         pollInterval: .milliseconds(10)
     ) {
-        let snapshot = try await state.jobSnapshot(id: jobID)
+        let snapshot = try await host.jobSnapshot(id: jobID)
         return snapshot.history.count >= 2 ? snapshot : nil
     }
 
-    let stream = try await state.sseStream(for: jobID)
+    let stream = try await host.sseStream(for: jobID)
     var iterator = stream.makeAsyncIterator()
     let first = try #require(await iterator.next())
     let second = try #require(await iterator.next())
@@ -478,24 +484,26 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(heartbeat == ": keep-alive\n\n")
 
     await runtime.finishHeldSpeak(id: jobID)
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let app = makeApplication(configuration: configuration, state: state)
+    let app = makeApplication(configuration: configuration, host: host)
     try await app.test(.router) { client in
         let healthResponse = try await client.execute(uri: "/healthz", method: .get)
         let healthJSON = try jsonObject(from: healthResponse.body)
@@ -522,7 +530,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((speakJSON["events_url"] as? String)?.contains(speakJobID) == true)
         #expect((speakJSON["job_url"] as? String)?.hasPrefix("http://") == true)
 
-        _ = try await waitForJobSnapshot(speakJobID, on: state)
+        _ = try await waitForJobSnapshot(speakJobID, on: host)
 
         let foregroundJobResponse = try await client.execute(uri: "/jobs/\(speakJobID)", method: .get)
         let foregroundJobJSON = try jsonObject(from: foregroundJobResponse.body)
@@ -534,24 +542,26 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 2)
     }
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func routesExposeQueueInspectionAndControlOperations() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let app = makeApplication(configuration: configuration, state: state)
+    let app = makeApplication(configuration: configuration, host: host)
     try await app.test(.router) { client in
         let activeResponse = try await client.execute(
             uri: "/speak",
@@ -610,7 +620,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(cancelResponse.status == .ok)
         #expect(cancelJSON["cancelled_request_id"] as? String == queuedJobID)
 
-        let cancelledSnapshot = try await waitForJobSnapshot(queuedJobID, on: state)
+        let cancelledSnapshot = try await waitForJobSnapshot(queuedJobID, on: host)
         switch cancelledSnapshot.terminalEvent {
         case .failed(let failure):
             #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
@@ -631,7 +641,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(clearResponse.status == .ok)
         #expect(clearJSON["cleared_count"] as? Int == 1)
 
-        let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: state)
+        let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: host)
         switch clearedSnapshot.terminalEvent {
         case .failed(let failure):
             #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
@@ -646,23 +656,25 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((emptyQueueJSON["active_request"] as? [String: Any])?["id"] as? String == activeJobID)
     }
 
-    await runtime.finishHeldSpeak(id: try await waitForActiveRequestID(on: state))
-    await state.shutdown()
+    await runtime.finishHeldSpeak(id: try await waitForActiveRequestID(on: host))
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func routesReportNotReadyAndMissingJobsClearly() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
 
-    let app = makeApplication(configuration: configuration, state: state)
+    let app = makeApplication(configuration: configuration, host: host)
     try await app.test(.router) { client in
         let readyResponse = try await client.execute(uri: "/readyz", method: .get)
         let readyJSON = try jsonObject(from: readyResponse.body)
@@ -693,23 +705,25 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((missingEventsError["message"] as? String)?.contains("expired from in-memory retention") == true)
     }
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func routesReportWorkerStartupFailureClearly() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelFailed)
 
-    let app = makeApplication(configuration: configuration, state: state)
+    let app = makeApplication(configuration: configuration, host: host)
     try await app.test(.router) { client in
         let readyResponse = try await client.execute(uri: "/readyz", method: .get)
         let readyJSON = try jsonObject(from: readyResponse.body)
@@ -737,27 +751,29 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((speakError["message"] as? String)?.contains("startup failure") == true)
     }
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func runtimeDegradationWhileSpeechJobsAreInFlightMarksJobsDegradedAndRejectsNewWork() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let activeJobID = try await state.submitSpeak(text: "Keep talking", profileName: "default")
-    let queuedJobID = try await state.submitSpeak(text: "Wait your turn", profileName: "default")
+    let activeJobID = try await host.submitSpeak(text: "Keep talking", profileName: "default")
+    let queuedJobID = try await host.submitSpeak(text: "Wait your turn", profileName: "default")
 
     _ = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await state.jobSnapshot(id: queuedJobID)
+        let snapshot = try await host.jobSnapshot(id: queuedJobID)
         return snapshot.history.contains {
             guard case .queued = $0 else { return false }
             return true
@@ -767,7 +783,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     await runtime.publishStatus(.residentModelFailed)
 
     let degradedReadiness = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = await state.readinessSnapshot()
+        let snapshot = await host.readinessSnapshot()
         return snapshot.1.workerMode == "failed" ? snapshot : nil
     }
     #expect(degradedReadiness.0 == false)
@@ -776,7 +792,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(degradedReadiness.1.startupError?.contains("startup failure") == true)
 
     let activeSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await state.jobSnapshot(id: activeJobID)
+        let snapshot = try await host.jobSnapshot(id: activeJobID)
         return snapshot.history.contains {
             guard case .workerStatus(let event) = $0 else { return false }
             return event.workerMode == "failed" && event.stage == "resident_model_failed"
@@ -785,7 +801,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(activeSnapshot.terminalEvent == nil)
 
     let queuedSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await state.jobSnapshot(id: queuedJobID)
+        let snapshot = try await host.jobSnapshot(id: queuedJobID)
         return snapshot.history.contains {
             guard case .workerStatus(let event) = $0 else { return false }
             return event.workerMode == "failed" && event.stage == "resident_model_failed"
@@ -794,7 +810,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(queuedSnapshot.terminalEvent == nil)
 
     do {
-        _ = try await state.submitSpeak(text: "Do not accept this", profileName: "default")
+        _ = try await host.submitSpeak(text: "Do not accept this", profileName: "default")
         Issue.record("Expected the degraded worker state to reject new speech work.")
     } catch {
         let message = String(describing: error)
@@ -802,29 +818,31 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 
     await runtime.finishHeldSpeak(id: activeJobID)
-    await state.shutdown()
+    await host.shutdown()
 }
 
 @available(macOS 14, *)
 @Test func profileMutationFailureMarksCacheStaleAndFailsJob() async throws {
     let runtime = MockRuntime(mutationRefreshBehavior: .leaveProfilesUnchanged)
-    let state = ServerState(
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        makeRuntime: { runtime }
+        makeRuntime: { runtime },
+        state: state
     )
 
-    await state.start()
+    await host.start()
     await runtime.publishStatus(.residentModelReady)
-    try await waitUntilReady(state)
+    try await waitUntilReady(host)
 
-    let jobID = try await state.submitCreateProfile(
+    let jobID = try await host.submitCreateProfile(
         profileName: "bright-guide",
         text: "Hello there",
         voiceDescription: "Warm and bright",
         outputPath: nil
     )
-    let snapshot = try await waitForJobSnapshot(jobID, on: state)
+    let snapshot = try await waitForJobSnapshot(jobID, on: host)
 
     switch snapshot.terminalEvent {
     case .failed(let failure):
@@ -834,11 +852,11 @@ actor MockRuntime: ServerRuntimeProtocol {
         Issue.record("Expected create_profile reconciliation failure to produce a failed terminal event.")
     }
 
-    let status = await state.statusSnapshot()
+    let status = await host.statusSnapshot()
     #expect(status.profileCacheState == "stale")
     #expect(status.profileCacheWarning?.contains("could not confirm the refreshed profile list") == true)
 
-    await state.shutdown()
+    await host.shutdown()
 }
 
 private func testConfiguration(
@@ -869,18 +887,18 @@ private func sampleProfile() -> ProfileSummary {
 }
 
 @available(macOS 14, *)
-private func waitUntilReady(_ state: ServerState) async throws {
+private func waitUntilReady(_ host: ServerHost) async throws {
     _ = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let (ready, _) = await state.readinessSnapshot()
+        let (ready, _) = await host.readinessSnapshot()
         return ready ? true : nil
     }
 }
 
 @available(macOS 14, *)
-private func waitForJobSnapshot(_ jobID: String, on state: ServerState) async throws -> JobSnapshot {
+private func waitForJobSnapshot(_ jobID: String, on host: ServerHost) async throws -> JobSnapshot {
     try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         do {
-            let snapshot = try await state.jobSnapshot(id: jobID)
+            let snapshot = try await host.jobSnapshot(id: jobID)
             return snapshot.terminalEvent == nil ? nil : snapshot
         } catch {
             return nil
@@ -889,10 +907,10 @@ private func waitForJobSnapshot(_ jobID: String, on state: ServerState) async th
 }
 
 @available(macOS 14, *)
-private func waitUntilJobDisappears(_ jobID: String, on state: ServerState) async throws {
+private func waitUntilJobDisappears(_ jobID: String, on host: ServerHost) async throws {
     let _: Bool = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         do {
-            _ = try await state.jobSnapshot(id: jobID)
+            _ = try await host.jobSnapshot(id: jobID)
             return nil
         } catch {
             return true
@@ -916,9 +934,9 @@ private func waitUntil<T: Sendable>(
 }
 
 @available(macOS 14, *)
-private func waitForActiveRequestID(on state: ServerState) async throws -> String {
+private func waitForActiveRequestID(on host: ServerHost) async throws -> String {
     try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await state.queueSnapshot(queueType: .generation)
+        let snapshot = try await host.queueSnapshot(queueType: .generation)
         return snapshot.activeRequest?.id
     }
 }

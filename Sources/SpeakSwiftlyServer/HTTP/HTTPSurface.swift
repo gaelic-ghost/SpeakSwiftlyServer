@@ -2,52 +2,52 @@ import Foundation
 import Hummingbird
 import SpeakSwiftlyCore
 
-// MARK: - Server App
+// MARK: - HTTP Surface
 
 func makeApplication(
     configuration: ServerConfiguration,
-    state: ServerState
+    host: ServerHost
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
 
     router.get("healthz") { _, _ -> HealthSnapshot in
-        await state.healthSnapshot()
+        await host.healthSnapshot()
     }
 
     router.get("readyz") { _, _ -> Response in
-        let (ready, snapshot) = await state.readinessSnapshot()
+        let (ready, snapshot) = await host.readinessSnapshot()
         let status: HTTPResponse.Status = ready ? .ok : .serviceUnavailable
         return try encodeJSONResponse(snapshot, status: status)
     }
 
     router.get("status") { _, _ -> StatusSnapshot in
-        await state.statusSnapshot()
+        await host.statusSnapshot()
     }
 
     router.get("profiles") { _, _ -> ProfileListResponse in
-        .init(profiles: await state.cachedProfiles())
+        .init(profiles: await host.cachedProfiles())
     }
 
     router.get("queue/generation") { _, _ -> QueueSnapshotResponse in
-        try await state.queueSnapshot(queueType: .generation)
+        try await host.queueSnapshot(queueType: .generation)
     }
 
     router.get("queue/playback") { _, _ -> QueueSnapshotResponse in
-        try await state.queueSnapshot(queueType: .playback)
+        try await host.queueSnapshot(queueType: .playback)
     }
 
     router.delete("queue") { _, _ -> QueueClearedResponse in
-        try await state.clearQueue()
+        try await host.clearQueue()
     }
 
     router.delete("queue/:request_id") { _, context -> QueueCancellationResponse in
         let requestID = try context.parameters.require("request_id")
-        return try await state.cancelQueuedOrActiveRequest(requestID: requestID)
+        return try await host.cancelQueuedOrActiveRequest(requestID: requestID)
     }
 
     router.post("profiles") { request, context -> Response in
         let payload = try await request.decode(as: CreateProfileRequestPayload.self, context: context)
-        let jobID = try await state.submitCreateProfile(
+        let jobID = try await host.submitCreateProfile(
             profileName: payload.profileName,
             text: payload.text,
             voiceDescription: payload.voiceDescription,
@@ -58,25 +58,25 @@ func makeApplication(
 
     router.delete("profiles/:profile_name") { request, context -> Response in
         let profileName = try context.parameters.require("profile_name")
-        let jobID = try await state.submitRemoveProfile(profileName: profileName)
+        let jobID = try await host.submitRemoveProfile(profileName: profileName)
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }
 
     router.get("playback") { _, _ -> PlaybackStateResponse in
-        try await state.playbackStateSnapshot()
+        try await host.playbackStateSnapshot()
     }
 
     router.post("playback/pause") { _, _ -> PlaybackStateResponse in
-        try await state.pausePlayback()
+        try await host.pausePlayback()
     }
 
     router.post("playback/resume") { _, _ -> PlaybackStateResponse in
-        try await state.resumePlayback()
+        try await host.resumePlayback()
     }
 
     router.post("speak") { request, context -> Response in
         let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
-        let jobID = try await state.submitSpeak(
+        let jobID = try await host.submitSpeak(
             text: payload.text,
             profileName: payload.profileName
         )
@@ -85,13 +85,13 @@ func makeApplication(
 
     router.get("jobs/:job_id") { _, context -> JobSnapshot in
         let jobID = try context.parameters.require("job_id")
-        return try await state.jobSnapshot(id: jobID)
+        return try await host.jobSnapshot(id: jobID)
     }
 
     router.get("jobs/:job_id/events") { _, context -> Response in
         let jobID = try context.parameters.require("job_id")
         let body = ResponseBody(
-            asyncSequence: try await state.sseStream(for: jobID)
+            asyncSequence: try await host.sseStream(for: jobID)
         )
         var headers = HTTPFields()
         headers[.contentType] = "text/event-stream"

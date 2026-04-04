@@ -2,9 +2,9 @@ import Foundation
 import Hummingbird
 import SpeakSwiftlyCore
 
-// MARK: - Server State
+// MARK: - Server Host
 
-actor ServerState {
+actor ServerHost {
     private static let mutationRefreshRetryDelays: [Duration] = [
         .milliseconds(50),
         .milliseconds(100),
@@ -37,6 +37,7 @@ actor ServerState {
     private let configuration: ServerConfiguration
     private let runtime: any ServerRuntimeProtocol
     private let makeRuntime: @Sendable () async -> any ServerRuntimeProtocol
+    private let state: ServerState
     private let encoder = JSONEncoder()
     private let byteBufferAllocator = ByteBufferAllocator()
 
@@ -52,23 +53,25 @@ actor ServerState {
     private var jobs = [String: JobRecord]()
     private var hasRequestedStartupProfileRefresh = false
 
-    static func live(configuration: ServerConfiguration) async -> ServerState {
+    static func live(configuration: ServerConfiguration, state: ServerState) async -> ServerHost {
         let runtime = await WorkerRuntime.live()
-        let state = ServerState(configuration: configuration, runtime: runtime) {
+        let host = ServerHost(configuration: configuration, runtime: runtime, makeRuntime: {
             await WorkerRuntime.live()
-        }
-        await state.start()
-        return state
+        }, state: state)
+        await host.start()
+        return host
     }
 
     init(
         configuration: ServerConfiguration,
         runtime: any ServerRuntimeProtocol,
-        makeRuntime: @escaping @Sendable () async -> any ServerRuntimeProtocol
+        makeRuntime: @escaping @Sendable () async -> any ServerRuntimeProtocol,
+        state: ServerState
     ) {
         self.configuration = configuration
         self.runtime = runtime
         self.makeRuntime = makeRuntime
+        self.state = state
         self.encoder.outputFormatting = [.sortedKeys]
     }
 
@@ -84,10 +87,12 @@ actor ServerState {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(self.configuration.jobPruneIntervalSeconds))
                 self.pruneCompletedJobs()
+                await self.publishState()
             }
         }
 
         await runtime.start()
+        await publishState()
     }
 
     func shutdown() async {
@@ -100,6 +105,7 @@ actor ServerState {
         for jobID in jobs.keys {
             finishSubscribers(for: jobID)
         }
+        await publishState()
     }
 
     func healthSnapshot() -> HealthSnapshot {
@@ -339,6 +345,7 @@ actor ServerState {
         Task {
             await self.consume(handle: handle)
         }
+        await publishState()
         return handle.id
     }
 
@@ -478,6 +485,7 @@ actor ServerState {
         self.profileCacheState = "fresh"
         self.profileCacheWarning = nil
         _ = reason
+        await publishState()
         return profiles
     }
 
@@ -486,6 +494,7 @@ actor ServerState {
         self.lastProfileRefreshAt = Date()
         self.profileCacheState = "fresh"
         self.profileCacheWarning = nil
+        await publishState()
     }
 
     private func profilesMatchExpectedMutation(
@@ -536,6 +545,7 @@ actor ServerState {
         for (jobID, job) in jobs where job.terminalEvent == nil {
             await record(event, for: jobID, terminal: false)
         }
+        await publishState()
     }
 
     private func record(_ event: ServerJobEvent, for jobID: String, terminal: Bool) async {
@@ -556,6 +566,7 @@ actor ServerState {
             finishSubscribers(for: jobID)
             pruneCompletedJobs()
         }
+        await publishState()
     }
 
     private func addSubscriber(
@@ -619,6 +630,20 @@ actor ServerState {
         for job in completed.prefix(overflow) {
             finishSubscribers(for: job.jobID)
             jobs.removeValue(forKey: job.jobID)
+        }
+    }
+
+    private func publishState() async {
+        let health = healthSnapshot()
+        let readiness = readinessSnapshot().1
+        let status = statusSnapshot()
+        let jobsByID = Dictionary(uniqueKeysWithValues: jobs.map { ($0.key, $0.value.snapshot) })
+
+        await MainActor.run {
+            state.health = health
+            state.readiness = readiness
+            state.status = status
+            state.jobsByID = jobsByID
         }
     }
 

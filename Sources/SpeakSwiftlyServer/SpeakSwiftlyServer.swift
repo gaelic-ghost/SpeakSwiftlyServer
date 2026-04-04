@@ -6,12 +6,13 @@ import Hummingbird
 @main
 enum SpeakSwiftlyServer {
     static func main() async throws {
-        let configuration = try ServerConfiguration.load()
-        let state = await ServerState.live(configuration: configuration)
-        let app = makeApplication(configuration: configuration, state: state)
+        let config = try AppConfig.load()
+        let state = await MainActor.run { ServerState() }
+        let host = await ServerHost.live(configuration: config.server, state: state)
+        let app = makeApplication(configuration: config.server, host: host)
         defer {
             Task {
-                await state.shutdown()
+                await host.shutdown()
             }
         }
         try await app.runService()
