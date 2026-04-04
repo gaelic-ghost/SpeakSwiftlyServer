@@ -8,7 +8,7 @@ This repository is the Swift-native sibling to `../speak-to-user-server`. It use
 
 ### Motivation
 
-The target is a thin Swift service that a forthcoming macOS app can install and manage as a LaunchAgent without needing a separate Python runtime. Matching the existing Python server’s HTTP contract keeps the app-facing integration stable while moving the runtime path fully into Swift.
+The target is a thin Swift service that a forthcoming macOS app can install and manage as a LaunchAgent without needing a separate Python runtime. Early development aimed to stay close to the existing Python server contract, but the current service now follows the newer `SpeakSwiftlyCore` control model directly where the runtime surface has evolved.
 
 That means this package intentionally stays narrow: Hummingbird for HTTP, `SpeakSwiftlyCore` for speech and profile operations, and a small amount of server state to translate typed worker events into job snapshots and SSE replay.
 
@@ -68,7 +68,7 @@ The current HTTP surface is:
 
 The queue and playback control routes are immediate control operations rather than long-running jobs. `GET /queue/generation` and `GET /queue/playback` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface. `GET /playback`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
-The route surface now mirrors the current `SpeakSwiftlyCore` control model directly instead of preserving the older foreground/background split. The remaining parity work is narrower: re-checking response payload details and deciding whether any server-local translation code should disappear now that `SpeakSwiftlyCore` is more expressive.
+The route surface now mirrors the current `SpeakSwiftlyCore` control model directly instead of preserving the older foreground/background split. The remaining alignment work is narrower: re-checking any app-facing payload details that still matter outside this repository and deciding whether any server-local translation code should disappear now that `SpeakSwiftlyCore` is more expressive.
 
 ## Development
 
@@ -106,7 +106,7 @@ If you want the underlying playback trace logs too, add `SPEAKSWIFTLY_PLAYBACK_T
 
 That live path expects the sibling [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) checkout to have already been built with Xcode at least once so `../SpeakSwiftly/.derived/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib` exists for the server process.
 
-The remaining test gaps are the startup-failure path before the worker ever becomes ready and runtime degradation while background jobs are still in flight. Those are tracked in [`ROADMAP.md`](/Users/galew/Workspace/SpeakSwiftlyServer/ROADMAP.md), alongside the last response-payload parity checks against `../speak-to-user-server`.
+The remaining test gaps are the startup-failure path before the worker ever becomes ready and runtime degradation while queued live speech is still in flight. Those are tracked in [`ROADMAP.md`](/Users/galew/Workspace/SpeakSwiftlyServer/ROADMAP.md), alongside the last downstream payload-alignment checks for adjacent consumers.
 
 ## Roadmap
 

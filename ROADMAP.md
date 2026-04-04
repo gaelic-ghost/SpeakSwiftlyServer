@@ -20,10 +20,16 @@
 - [x] Implement `POST /profiles`.
 - [x] Implement `DELETE /profiles/{profile_name}`.
 - [x] Implement `POST /speak`.
-- [x] Implement `POST /speak/background`.
+- [x] Implement `GET /queue/generation`.
+- [x] Implement `GET /queue/playback`.
+- [x] Implement `GET /playback`.
+- [x] Implement `POST /playback/pause`.
+- [x] Implement `POST /playback/resume`.
+- [x] Implement `DELETE /queue`.
+- [x] Implement `DELETE /queue/{request_id}`.
 - [x] Implement `GET /jobs/{job_id}`.
 - [x] Implement `GET /jobs/{job_id}/events`.
-- [x] Implement SSE heartbeats and replay behavior compatible with the existing Python server contract.
+- [x] Implement SSE heartbeats and replay behavior for the app-facing job stream.
 
 ## Milestone 3: SpeakSwiftly Integration
 
@@ -31,7 +37,7 @@
 - [x] Switch the server to direct typed `SpeakSwiftlyCore` import instead of subprocess-backed integration.
 - [x] Surface operator-facing startup, readiness, and worker failure details clearly.
 - [x] Support profile cache refresh and reconciliation behavior after profile mutations.
-- [ ] Compare response payload details against `../speak-to-user-server` and close any remaining contract mismatches.
+- [ ] Compare downstream response payload expectations in adjacent consumers and close any remaining contract mismatches.
 
 ## Milestone 4: Testing And Verification
 
@@ -43,14 +49,14 @@
 - [x] Add end-to-end verification against a real `SpeakSwiftly` runtime.
 - [x] Add an opt-in end-to-end verification path that exercises real playback instead of silent playback.
 - [ ] Add failure-path tests for worker startup failure before the runtime ever becomes ready.
-- [ ] Add failure-path tests for runtime degradation while background jobs are still in flight.
+- [ ] Add failure-path tests for runtime degradation while queued live speech is still in flight.
 
 ## Milestone 5: Library Integration Follow-Through
 
 - [x] Split `../SpeakSwiftly` so it vends a reusable library product alongside its executable product.
 - [x] Switch this package from subprocess-style integration to direct `SpeakSwiftly` package import when that library product exists.
 - [x] Collapse temporary integration-only scaffolding that became unnecessary after direct import.
-- [ ] Re-verify that the public HTTP API surface still matches `../speak-to-user-server`.
+- [ ] Re-verify that adjacent consumers still agree with the current public HTTP API surface.
 - [ ] Remove any remaining server-local translation code that `SpeakSwiftlyCore` can now express directly without making the server harder to reason about.
 
 ## Milestone 6: App And LaunchAgent Handoff
