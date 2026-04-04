@@ -178,6 +178,7 @@ enum MCPResourceCatalog {
     static let resourceURIs = Set([
         "speak://status",
         "speak://profiles",
+        "speak://jobs",
         "speak://runtime",
     ])
 
@@ -195,10 +196,89 @@ enum MCPResourceCatalog {
             mimeType: "application/json"
         ),
         Resource(
+            name: "Tracked Jobs",
+            uri: "speak://jobs",
+            description: "Current and recently retained SpeakSwiftly job snapshots from the shared server host.",
+            mimeType: "application/json"
+        ),
+        Resource(
             name: "Runtime Summary",
             uri: "speak://runtime",
             description: "Shared host runtime summary, including queue, playback, transport, and recent-error state.",
             mimeType: "application/json"
+        ),
+    ]
+
+    static let templates: [Resource.Template] = [
+        Resource.Template(
+            uriTemplate: "speak://profiles/{profile_name}/detail",
+            name: "Profile Detail",
+            description: "Detailed cached SpeakSwiftly profile information for one profile.",
+            mimeType: "application/json"
+        ),
+        Resource.Template(
+            uriTemplate: "speak://jobs/{job_id}",
+            name: "Job Detail",
+            description: "Detailed shared-host state for one tracked SpeakSwiftly job.",
+            mimeType: "application/json"
+        ),
+    ]
+}
+
+enum MCPPromptCatalog {
+    static let promptNames = Set([
+        "draft_profile_voice_description",
+        "draft_profile_source_text",
+        "draft_voice_design_instruction",
+        "draft_queue_playback_notice",
+    ])
+
+    static let prompts: [Prompt] = [
+        Prompt(
+            name: "draft_profile_voice_description",
+            title: "Draft Profile Voice Description",
+            description: "Create a reusable natural-language voice description suitable for SpeakSwiftly profile creation and Qwen3-TTS-style instruction control.",
+            arguments: [
+                .init(name: "profile_goal", required: true),
+                .init(name: "voice_traits", required: true),
+                .init(name: "language"),
+                .init(name: "delivery_style"),
+                .init(name: "constraints"),
+            ]
+        ),
+        Prompt(
+            name: "draft_profile_source_text",
+            title: "Draft Profile Source Text",
+            description: "Create a spoken sample text that works well as source text for SpeakSwiftly profile creation.",
+            arguments: [
+                .init(name: "language", required: true),
+                .init(name: "persona_or_context", required: true),
+                .init(name: "length_hint"),
+                .init(name: "style_notes"),
+            ]
+        ),
+        Prompt(
+            name: "draft_voice_design_instruction",
+            title: "Draft Voice Design Instruction",
+            description: "Create a natural-language voice-direction instruction aligned with Qwen3-TTS-style voice design inputs.",
+            arguments: [
+                .init(name: "spoken_text", required: true),
+                .init(name: "emotion", required: true),
+                .init(name: "delivery_style", required: true),
+                .init(name: "language"),
+                .init(name: "constraints"),
+            ]
+        ),
+        Prompt(
+            name: "draft_queue_playback_notice",
+            title: "Draft Queued Playback Notice",
+            description: "Create a short acknowledgement that spoken playback has been queued and tell the operator where to check job status.",
+            arguments: [
+                .init(name: "spoken_text_summary", required: true),
+                .init(name: "job_id", required: true),
+                .init(name: "status_resource_uri", required: true),
+                .init(name: "tone"),
+            ]
         ),
     ]
 }

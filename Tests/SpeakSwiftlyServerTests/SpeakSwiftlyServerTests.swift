@@ -18,7 +18,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     struct QueuedRequestState: Sendable {
         let request: MockRequest
-        let continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
+        let continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
     }
 
     enum SpeakBehavior: Sendable {
@@ -31,17 +31,17 @@ actor MockRuntime: ServerRuntimeProtocol {
         case leaveProfilesUnchanged
     }
 
-    var profiles: [ProfileSummary]
+    var profiles: [SpeakSwiftly.ProfileSummary]
     var speakBehavior: SpeakBehavior
     var mutationRefreshBehavior: MutationRefreshBehavior
-    private var statusContinuation: AsyncStream<WorkerStatusEvent>.Continuation?
+    private var statusContinuation: AsyncStream<SpeakSwiftly.StatusEvent>.Continuation?
     private var activeRequest: MockRequest?
-    private var activeContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
+    private var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     private var queuedRequests = [QueuedRequestState]()
-    private var playbackState: PlaybackState = .idle
+    private var playbackState: SpeakSwiftly.PlaybackState = .idle
 
     init(
-        profiles: [ProfileSummary] = [sampleProfile()],
+        profiles: [SpeakSwiftly.ProfileSummary] = [sampleProfile()],
         speakBehavior: SpeakBehavior = .completeImmediately,
         mutationRefreshBehavior: MutationRefreshBehavior = .applyMutations
     ) {
@@ -64,16 +64,16 @@ actor MockRuntime: ServerRuntimeProtocol {
         queuedRequests.removeAll()
     }
 
-    func statusEvents() -> AsyncStream<WorkerStatusEvent> {
+    func statusEvents() -> AsyncStream<SpeakSwiftly.StatusEvent> {
         AsyncStream { continuation in
             self.statusContinuation = continuation
         }
     }
 
-    func queueSpeechHandle(text: String, profileName: String, as jobType: SpeechJobType, id: String) async -> RuntimeRequestHandle {
+    func queueSpeechHandle(text: String, profileName: String, as jobType: SpeakSwiftly.Job, id: String) async -> RuntimeRequestHandle {
         let request = MockRequest(id: id, operationName: speechOperationName(for: jobType), profileName: profileName)
-        var requestContinuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation?
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+        var requestContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             requestContinuation = continuation
         }
         guard let continuation = requestContinuation else {
@@ -110,7 +110,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         _ = outputPath
         if mutationRefreshBehavior == .applyMutations {
             profiles.append(
-                ProfileSummary(
+                SpeakSwiftly.ProfileSummary(
                     profileName: profileName,
                     createdAt: Date(),
                     voiceDescription: voiceDescription,
@@ -118,8 +118,8 @@ actor MockRuntime: ServerRuntimeProtocol {
                 )
             )
         }
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-            continuation.yield(.completed(WorkerSuccessResponse(id: id, profileName: profileName)))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: id, operationName: "create_profile", profileName: profileName, events: events)
@@ -127,8 +127,8 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     func listProfilesHandle(id: String) async -> RuntimeRequestHandle {
         let profiles = self.profiles
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-            continuation.yield(.completed(WorkerSuccessResponse(id: id, profiles: profiles)))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: id, profiles: profiles)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: id, operationName: "list_profiles", profileName: nil, events: events)
@@ -138,22 +138,22 @@ actor MockRuntime: ServerRuntimeProtocol {
         if mutationRefreshBehavior == .applyMutations {
             profiles.removeAll { $0.profileName == profileName }
         }
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-            continuation.yield(.completed(WorkerSuccessResponse(id: id, profileName: profileName)))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: id, operationName: "remove_profile", profileName: profileName, events: events)
     }
 
-    func listQueueHandle(_ queueType: WorkerQueueType, id requestID: String) async -> RuntimeRequestHandle {
-        let activeRequest: ActiveWorkerRequestSummary? =
+    func listQueueHandle(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle {
+        let activeRequest: SpeakSwiftly.ActiveRequest? =
             switch queueType {
             case .generation:
                 self.activeRequest.map(self.activeSummary(for:))
             case .playback:
                 playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
             }
-        let queue: [QueuedWorkerRequestSummary] =
+        let queue: [SpeakSwiftly.QueuedRequest] =
             switch queueType {
             case .generation:
                 self.queuedSummaries()
@@ -161,10 +161,10 @@ actor MockRuntime: ServerRuntimeProtocol {
                 []
             }
         let operationName = queueType == .generation ? "list_queue_generation" : "list_queue_playback"
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    WorkerSuccessResponse(
+                    SpeakSwiftly.Success(
                         id: requestID,
                         activeRequest: activeRequest,
                         queue: queue
@@ -176,7 +176,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operationName: operationName, profileName: nil, events: events)
     }
 
-    func playbackHandle(_ action: PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
+    func playbackHandle(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
         switch action {
         case .pause:
             if activeRequest != nil {
@@ -191,10 +191,10 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
         let playbackState = self.playbackStateSummary()
         let operationName = playbackOperationName(for: action)
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    WorkerSuccessResponse(
+                    SpeakSwiftly.Success(
                         id: requestID,
                         playbackState: playbackState
                     )
@@ -214,8 +214,8 @@ actor MockRuntime: ServerRuntimeProtocol {
                 reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime."
             )
         }
-        let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
-            continuation.yield(.completed(WorkerSuccessResponse(id: requestID, clearedCount: clearedCount)))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, clearedCount: clearedCount)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operationName: "clear_queue", profileName: nil, events: events)
@@ -224,10 +224,10 @@ actor MockRuntime: ServerRuntimeProtocol {
     func cancelRequestHandle(with id: String, requestID: String) async -> RuntimeRequestHandle {
         do {
             let cancelledRequestID = try cancelRequestNow(id)
-            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.yield(
                     .completed(
-                        WorkerSuccessResponse(
+                        SpeakSwiftly.Success(
                             id: requestID,
                             cancelledRequestID: cancelledRequestID
                         )
@@ -237,21 +237,29 @@ actor MockRuntime: ServerRuntimeProtocol {
             }
             return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
         } catch {
-            let events = AsyncThrowingStream<WorkerRequestStreamEvent, Error> { continuation in
+            let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.finish(throwing: error)
             }
             return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
         }
     }
 
-    func publishStatus(_ stage: WorkerStatusStage) {
+    func publishStatus(_ stage: SpeakSwiftly.StatusStage) {
         statusContinuation?.yield(.init(stage: stage))
     }
 
     func finishHeldSpeak(id: String) {
         guard activeRequest?.id == id, let continuation = activeContinuation else { return }
-        continuation.yield(.progress(.init(id: id, stage: .playbackFinished)))
-        continuation.yield(.completed(.init(id: id)))
+        continuation.yield(
+            SpeakSwiftly.RequestEvent.progress(
+                .init(id: id, stage: .playbackFinished)
+            )
+        )
+        continuation.yield(
+            SpeakSwiftly.RequestEvent.completed(
+                .init(id: id)
+            )
+        )
         continuation.finish()
         playbackState = .idle
         activeContinuation = nil
@@ -261,7 +269,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     private func startActiveRequest(
         _ request: MockRequest,
-        continuation: AsyncThrowingStream<WorkerRequestStreamEvent, Error>.Continuation
+        continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
     ) {
         activeRequest = request
         playbackState = .playing
@@ -286,11 +294,11 @@ actor MockRuntime: ServerRuntimeProtocol {
         startActiveRequest(next.request, continuation: next.continuation)
     }
 
-    private func activeSummary(for request: MockRequest) -> ActiveWorkerRequestSummary {
+    private func activeSummary(for request: MockRequest) -> SpeakSwiftly.ActiveRequest {
         .init(id: request.id, op: request.operationName, profileName: request.profileName)
     }
 
-    private func queuedSummaries() -> [QueuedWorkerRequestSummary] {
+    private func queuedSummaries() -> [SpeakSwiftly.QueuedRequest] {
         queuedRequests.enumerated().map { offset, queued in
             .init(
                 id: queued.request.id,
@@ -301,14 +309,14 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
     }
 
-    private func speechOperationName(for jobType: SpeechJobType) -> String {
+    private func speechOperationName(for jobType: SpeakSwiftly.Job) -> String {
         switch jobType {
         case .live:
             "queue_speech_live"
         }
     }
 
-    private func playbackOperationName(for action: PlaybackAction) -> String {
+    private func playbackOperationName(for action: SpeakSwiftly.PlaybackAction) -> String {
         switch action {
         case .pause:
             "playback_pause"
@@ -319,7 +327,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
     }
 
-    private func playbackStateSummary() -> PlaybackStateSummary {
+    private func playbackStateSummary() -> SpeakSwiftly.PlaybackStateSnapshot {
         .init(
             state: playbackState,
             activeRequest: playbackState == .idle ? nil : activeRequest.map(activeSummary(for:))
@@ -330,14 +338,14 @@ actor MockRuntime: ServerRuntimeProtocol {
         guard let index = queuedRequests.firstIndex(where: { $0.request.id == requestID }) else { return }
         let queued = queuedRequests.remove(at: index)
         queued.continuation.finish(
-            throwing: WorkerError(code: .requestCancelled, message: reason)
+            throwing: SpeakSwiftly.Error(code: .requestCancelled, message: reason)
         )
     }
 
     private func cancelRequestNow(_ requestID: String) throws -> String {
         if activeRequest?.id == requestID {
             activeContinuation?.finish(
-                throwing: WorkerError(
+                throwing: SpeakSwiftly.Error(
                     code: .requestCancelled,
                     message: "The request was cancelled by the mock SpeakSwiftly runtime control surface."
                 )
@@ -357,7 +365,7 @@ actor MockRuntime: ServerRuntimeProtocol {
             return requestID
         }
 
-        throw WorkerError(
+        throw SpeakSwiftly.Error(
             code: .requestNotFound,
             message: "The mock SpeakSwiftly runtime could not find request '\(requestID)' to cancel."
         )
@@ -766,7 +774,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
 @available(macOS 14, *)
 @Test func embeddedMCPRoutesListToolsAndReadSharedHostResources() async throws {
-    let runtime = MockRuntime()
+    let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
@@ -785,6 +793,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     await host.start()
     await runtime.publishStatus(.residentModelReady)
     try await waitUntilReady(host)
+    let jobID = try await host.submitSpeak(text: "Inspect MCP resources", profileName: "default")
     await host.markTransportStarting(name: "http")
     await host.markTransportStarting(name: "mcp")
 
@@ -838,7 +847,54 @@ actor MockRuntime: ServerRuntimeProtocol {
     let listResourcesResult = try #require(mcpResultPayload(from: listResourcesEnvelope))
     let resources = try #require(listResourcesResult["resources"] as? [[String: Any]])
     #expect(resources.contains { $0["uri"] as? String == "speak://status" })
+    #expect(resources.contains { $0["uri"] as? String == "speak://jobs" })
     #expect(resources.contains { $0["uri"] as? String == "speak://runtime" })
+
+    let listResourceTemplatesEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpListResourceTemplatesRequestJSON(),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let listResourceTemplatesResult = try #require(mcpResultPayload(from: listResourceTemplatesEnvelope))
+    let templates = try #require(listResourceTemplatesResult["resourceTemplates"] as? [[String: Any]])
+    #expect(templates.contains { $0["uriTemplate"] as? String == "speak://profiles/{profile_name}/detail" })
+    #expect(templates.contains { $0["uriTemplate"] as? String == "speak://jobs/{job_id}" })
+
+    let listPromptsEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpListPromptsRequestJSON(),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let listPromptsResult = try #require(mcpResultPayload(from: listPromptsEnvelope))
+    let prompts = try #require(listPromptsResult["prompts"] as? [[String: Any]])
+    #expect(prompts.contains { $0["name"] as? String == "draft_profile_voice_description" })
+    #expect(prompts.contains { $0["name"] as? String == "draft_queue_playback_notice" })
+
+    let getPromptEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpGetPromptRequestJSON(
+                    name: "draft_profile_voice_description",
+                    arguments: [
+                        "profile_goal": "gentle narration",
+                        "voice_traits": "warm, steady, intimate",
+                    ]
+                ),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let getPromptResult = try #require(mcpResultPayload(from: getPromptEnvelope))
+    let promptMessages = try #require(getPromptResult["messages"] as? [[String: Any]])
+    let firstPromptMessage = try #require(promptMessages.first)
+    let promptContent = try #require(firstPromptMessage["content"] as? [String: Any])
+    #expect((promptContent["text"] as? String)?.contains("gentle narration") == true)
 
     let statusToolEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
@@ -868,6 +924,48 @@ actor MockRuntime: ServerRuntimeProtocol {
     let runtimePayload = try jsonObject(from: Data(runtimeText.utf8))
     let runtimeTransports = try #require(runtimePayload["transports"] as? [[String: Any]])
     #expect(runtimeTransports.contains { $0["name"] as? String == "mcp" && $0["advertised_address"] as? String == "http://127.0.0.1:7337/mcp" })
+
+    let jobsResourceEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpReadResourceRequestJSON(uri: "speak://jobs"),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let jobsResourceResult = try #require(mcpResultPayload(from: jobsResourceEnvelope))
+    let jobsContents = try #require(jobsResourceResult["contents"] as? [[String: Any]])
+    let jobsText = try #require(jobsContents.first?["text"] as? String)
+    let jobsPayload = try #require(try JSONSerialization.jsonObject(with: Data(jobsText.utf8)) as? [[String: Any]])
+    #expect(jobsPayload.contains { $0["job_id"] as? String == jobID })
+
+    let profileDetailEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpReadResourceRequestJSON(uri: "speak://profiles/default/detail"),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let profileDetailResult = try #require(mcpResultPayload(from: profileDetailEnvelope))
+    let profileDetailContents = try #require(profileDetailResult["contents"] as? [[String: Any]])
+    let profileDetailText = try #require(profileDetailContents.first?["text"] as? String)
+    let profileDetailPayload = try jsonObject(from: Data(profileDetailText.utf8))
+    #expect(profileDetailPayload["profile_name"] as? String == "default")
+
+    let jobDetailEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpReadResourceRequestJSON(uri: "speak://jobs/\(jobID)"),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let jobDetailResult = try #require(mcpResultPayload(from: jobDetailEnvelope))
+    let jobDetailContents = try #require(jobDetailResult["contents"] as? [[String: Any]])
+    let jobDetailText = try #require(jobDetailContents.first?["text"] as? String)
+    let jobDetailPayload = try jsonObject(from: Data(jobDetailText.utf8))
+    #expect(jobDetailPayload["job_id"] as? String == jobID)
 
     let smokeSurface = try #require(
         await MCPSurface.build(
@@ -901,6 +999,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
     await smokeSurface.stop()
 
+    await runtime.finishHeldSpeak(id: jobID)
     await mcpSurface.stop()
     await host.shutdown()
 }
@@ -1067,7 +1166,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         let cancelledSnapshot = try await waitForJobSnapshot(queuedJobID, on: host)
         switch cancelledSnapshot.terminalEvent {
         case .failed(let failure):
-            #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
+            #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
         default:
             Issue.record("Expected the cancelled queued request to terminate with a request_cancelled failure.")
         }
@@ -1088,7 +1187,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: host)
         switch clearedSnapshot.terminalEvent {
         case .failed(let failure):
-            #expect(failure.code == WorkerErrorCode.requestCancelled.rawValue)
+            #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
         default:
             Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
         }
@@ -1326,7 +1425,7 @@ private func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig 
     )
 }
 
-private func sampleProfile() -> ProfileSummary {
+private func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     .init(
         profileName: "default",
         createdAt: Date(timeIntervalSince1970: 1_700_000_000),
@@ -1557,12 +1656,28 @@ private func mcpListResourcesRequestJSON() -> String {
     #"{"jsonrpc":"2.0","id":"resources-1","method":"resources/list","params":{}}"#
 }
 
+private func mcpListResourceTemplatesRequestJSON() -> String {
+    #"{"jsonrpc":"2.0","id":"resource-templates-1","method":"resources/templates/list","params":{}}"#
+}
+
+private func mcpListPromptsRequestJSON() -> String {
+    #"{"jsonrpc":"2.0","id":"prompts-1","method":"prompts/list","params":{}}"#
+}
+
 private func mcpStatusToolRequestJSON() -> String {
     #"{"jsonrpc":"2.0","id":"status-1","method":"tools/call","params":{"name":"status","arguments":{}}}"#
 }
 
 private func mcpReadResourceRequestJSON(uri: String) -> String {
     #"{"jsonrpc":"2.0","id":"read-resource-1","method":"resources/read","params":{"uri":"\#(uri)"}}"#
+}
+
+private func mcpGetPromptRequestJSON(name: String, arguments: [String: String]) -> String {
+    let sortedArguments = arguments
+        .sorted { $0.key < $1.key }
+        .map { key, value in #""\#(key)":"\#(value)""# }
+        .joined(separator: ",")
+    return #"{"jsonrpc":"2.0","id":"get-prompt-1","method":"prompts/get","params":{"name":"\#(name)","arguments":{\#(sortedArguments)}}}"#
 }
 
 private func mcpSubscribeResourceRequestJSON(uri: String) -> String {

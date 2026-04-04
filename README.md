@@ -135,11 +135,21 @@ The first embedded MCP resources are:
 
 - `speak://status`
 - `speak://profiles`
+- `speak://profiles/{profile_name}/detail`
+- `speak://jobs`
+- `speak://jobs/{job_id}`
 - `speak://runtime`
 
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`.
 
-The embedded MCP surface now also supports resource subscriptions for those URIs. Clients connected to the standalone MCP event stream can subscribe to `speak://status`, `speak://profiles`, and `speak://runtime` and receive `notifications/resources/updated` when shared host events change the underlying state.
+The embedded MCP surface also now carries a small prompt catalog migrated from the standalone package where those prompts still map cleanly onto the shared host model:
+
+- `draft_profile_voice_description`
+- `draft_profile_source_text`
+- `draft_voice_design_instruction`
+- `draft_queue_playback_notice`
+
+The embedded MCP surface now also supports resource subscriptions for those URIs. Clients connected to the standalone MCP event stream can subscribe to `speak://status`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, and `speak://runtime` and receive `notifications/resources/updated` when shared host events change the underlying state.
 
 Transport lifecycle snapshots are now intentionally tied to the shared Hummingbird process rather than static config alone. `listening` means the shared HTTP host has actually reached Hummingbird's `onServerRunning` boundary, so HTTP and MCP surface status now describe real network availability instead of only configuration intent.
 
@@ -159,7 +169,7 @@ The executable entrypoint lives in [`Sources/SpeakSwiftlyServer/SpeakSwiftlyServ
 - [`ServerRuntimeBridge.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerRuntimeBridge.swift) keeps the runtime boundary thin around `SpeakSwiftlyCore`.
 - [`ServerModels.swift`](/Users/galew/Workspace/SpeakSwiftlyServer/Sources/SpeakSwiftlyServer/Host/ServerModels.swift) defines request and response payloads.
 
-The design is deliberately direct. Adding extra wrappers, managers, or intermediate layers here would be easy, but it would also be the kind of unnecessary complexity that makes a small localhost service harder to reason about, so the server is kept close to the typed runtime API on purpose. As of `SpeakSwiftly v0.8.1`, that also means the service talks to the public `WorkerRuntime` helper surface instead of reaching through the library boundary to construct raw worker requests itself.
+The design is deliberately direct. Adding extra wrappers, managers, or intermediate layers here would be easy, but it would also be the kind of unnecessary complexity that makes a small localhost service harder to reason about, so the server is kept close to the typed runtime API on purpose. As of `SpeakSwiftly v0.8.1`, that also means the service talks to the public `SpeakSwiftly.Runtime` surface instead of reaching through the library boundary to construct raw worker requests itself.
 
 ## Verification
 

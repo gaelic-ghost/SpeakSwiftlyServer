@@ -55,7 +55,7 @@ struct ProfileSnapshot: Codable, Sendable, Equatable {
         case sourceText = "source_text"
     }
 
-    init(profile: ProfileSummary) {
+    init(profile: SpeakSwiftly.ProfileSummary) {
         self.profileName = profile.profileName
         self.createdAt = TimestampFormatter.string(from: profile.createdAt)
         self.voiceDescription = profile.voiceDescription
@@ -80,7 +80,7 @@ struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
         case profileName = "profile_name"
     }
 
-    init(summary: ActiveWorkerRequestSummary) {
+    init(summary: SpeakSwiftly.ActiveRequest) {
         self.id = summary.id
         self.op = summary.op
         self.profileName = summary.profileName
@@ -106,7 +106,7 @@ struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
         case queuePosition = "queue_position"
     }
 
-    init(summary: QueuedWorkerRequestSummary) {
+    init(summary: SpeakSwiftly.QueuedRequest) {
         self.id = summary.id
         self.op = summary.op
         self.profileName = summary.profileName
@@ -135,7 +135,7 @@ struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
         case activeRequest = "active_request"
     }
 
-    init(summary: PlaybackStateSummary) {
+    init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
         self.state = summary.state.rawValue
         self.activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
     }

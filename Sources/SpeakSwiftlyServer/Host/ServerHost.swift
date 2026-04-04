@@ -72,7 +72,7 @@ actor ServerHost {
     private var lastProfileRefreshAt: Date?
     private var generationQueueStatus = QueueStatusSnapshot(queueType: "generation", activeCount: 0, queuedCount: 0, activeRequest: nil)
     private var playbackQueueStatus = QueueStatusSnapshot(queueType: "playback", activeCount: 0, queuedCount: 0, activeRequest: nil)
-    private var playbackStatus = PlaybackStatusSnapshot(state: PlaybackState.idle.rawValue, activeRequest: nil)
+    private var playbackStatus = PlaybackStatusSnapshot(state: SpeakSwiftly.PlaybackState.idle.rawValue, activeRequest: nil)
     private var transportStatuses = [String: TransportStatusSnapshot]()
     private var recentErrors = [RecentErrorSnapshot]()
     private var latestPublishedState: HostStateSnapshot?
@@ -83,7 +83,7 @@ actor ServerHost {
     // MARK: - Construction
 
     static func live(appConfig: AppConfig, state: ServerState) async -> ServerHost {
-        let runtime = await WorkerRuntime.live()
+        let runtime = await SpeakSwiftly.live()
         let host = ServerHost(
             configuration: appConfig.server,
             httpConfig: appConfig.http,
@@ -362,6 +362,22 @@ actor ServerHost {
         profileCache
     }
 
+    func cachedProfile(_ profileName: String) -> ProfileSnapshot? {
+        profileCache.first { $0.profileName == profileName }
+    }
+
+    func jobSnapshots() -> [JobSnapshot] {
+        pruneCompletedJobs()
+        return jobs.values
+            .sorted { lhs, rhs in
+                if lhs.submittedAt == rhs.submittedAt {
+                    return lhs.jobID > rhs.jobID
+                }
+                return lhs.submittedAt > rhs.submittedAt
+            }
+            .map(\.snapshot)
+    }
+
     func currentWorkerStatusEvent() -> ServerJobEvent {
         .workerStatus(
             .init(
@@ -407,7 +423,7 @@ actor ServerHost {
 
     // MARK: - Immediate Control Operations
 
-    func queueSnapshot(queueType: WorkerQueueType) async throws -> QueueSnapshotResponse {
+    func queueSnapshot(queueType: SpeakSwiftly.Queue) async throws -> QueueSnapshotResponse {
         let requestID = UUID().uuidString
         let handle = await runtime.listQueueHandle(queueType, id: requestID)
         let success = try await awaitImmediateSuccess(
@@ -454,7 +470,7 @@ actor ServerHost {
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
         )
         guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the cancel_request control operation, but it did not report which request was cancelled."
             )
@@ -592,13 +608,13 @@ actor ServerHost {
                     }
                 }
             }
-        } catch let error as WorkerError {
+        } catch let error as SpeakSwiftly.Error {
             let failure = ServerFailureEvent(id: handle.id, code: error.code.rawValue, message: error.message)
             await record(.failed(failure), for: handle.id, terminal: true)
         } catch {
             let failure = ServerFailureEvent(
                 id: handle.id,
-                code: WorkerErrorCode.internalError.rawValue,
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
                 message: "SpeakSwiftly request '\(handle.id)' failed unexpectedly while the server was monitoring its typed event stream. \(error.localizedDescription)"
             )
             await record(.failed(failure), for: handle.id, terminal: true)
@@ -608,7 +624,7 @@ actor ServerHost {
     // MARK: - Profile Cache Reconciliation
 
     private func finalizeMutationSuccess(
-        success: WorkerSuccessResponse,
+        success: SpeakSwiftly.Success,
         requestID: String,
         operationName: String
     ) async {
@@ -656,11 +672,11 @@ actor ServerHost {
     private func reconcileProfilesAfterMutation(
         op: String,
         requestID: String,
-        success: WorkerSuccessResponse,
+        success: SpeakSwiftly.Success,
         previousProfiles: [ProfileSnapshot]
     ) async throws -> [ProfileSnapshot] {
         guard let profileName = success.profileName, !profileName.isEmpty else {
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly returned a successful \(op) payload for request '\(requestID)', but it did not include a usable profile name for cache reconciliation."
             )
@@ -683,7 +699,7 @@ actor ServerHost {
             }
         }
 
-        throw WorkerError(
+        throw SpeakSwiftly.Error(
             code: .internalError,
             message: "SpeakSwiftly refreshed the profile cache after \(op) for profile '\(profileName)', but the list still did not reflect the expected mutation."
         )
@@ -708,7 +724,7 @@ actor ServerHost {
         return profiles
     }
 
-    private func applyProfileRefresh(from success: WorkerSuccessResponse) async {
+    private func applyProfileRefresh(from success: SpeakSwiftly.Success) async {
         self.profileCache = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
         self.lastProfileRefreshAt = Date()
         self.profileCacheState = "fresh"
@@ -738,7 +754,7 @@ actor ServerHost {
 
     // MARK: - Worker Status Handling
 
-    private func handle(status: WorkerStatusEvent) async {
+    private func handle(status: SpeakSwiftly.StatusEvent) async {
         switch status.stage {
         case .warmingResidentModel:
             self.workerMode = "starting"
@@ -972,7 +988,7 @@ actor ServerHost {
 
     // MARK: - Runtime Snapshot Fetches
 
-    private func fetchQueueStatus(_ queueType: WorkerQueueType) async throws -> QueueStatusSnapshot {
+    private func fetchQueueStatus(_ queueType: SpeakSwiftly.Queue) async throws -> QueueStatusSnapshot {
         let requestID = UUID().uuidString
         let handle = await runtime.listQueueHandle(queueType, id: requestID)
         let success = try await awaitImmediateSuccess(
@@ -999,7 +1015,7 @@ actor ServerHost {
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing playback state."
         )
         guard let playbackState = success.playbackState else {
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the playback state request, but it did not return a playback state payload."
             )
@@ -1090,7 +1106,7 @@ actor ServerHost {
     private func derivePlaybackQueueStatusFallback() -> QueueStatusSnapshot {
         .init(
             queueType: "playback",
-            activeCount: playbackStatus.state == PlaybackState.idle.rawValue ? 0 : 1,
+            activeCount: playbackStatus.state == SpeakSwiftly.PlaybackState.idle.rawValue ? 0 : 1,
             queuedCount: 0,
             activeRequest: playbackStatus.activeRequest
         )
@@ -1100,9 +1116,9 @@ actor ServerHost {
         if let activeRequest = currentGenerationJobRecord().map({
             ActiveRequestSnapshot(id: $0.jobID, op: $0.op, profileName: $0.profileName)
         }) {
-            return .init(state: PlaybackState.playing.rawValue, activeRequest: activeRequest)
+            return .init(state: SpeakSwiftly.PlaybackState.playing.rawValue, activeRequest: activeRequest)
         }
-        return .init(state: PlaybackState.idle.rawValue, activeRequest: nil)
+        return .init(state: SpeakSwiftly.PlaybackState.idle.rawValue, activeRequest: nil)
     }
 
     private func transportSnapshots() -> [TransportStatusSnapshot] {
@@ -1195,7 +1211,7 @@ actor ServerHost {
 
     // MARK: - Event Mapping and Encoding
 
-    private func mapQueuedEvent(_ event: WorkerQueuedEvent) -> ServerJobEvent {
+    private func mapQueuedEvent(_ event: SpeakSwiftly.QueuedEvent) -> ServerJobEvent {
         .queued(
             .init(
                 id: event.id,
@@ -1205,15 +1221,15 @@ actor ServerHost {
         )
     }
 
-    private func mapStartedEvent(_ event: WorkerStartedEvent) -> ServerJobEvent {
+    private func mapStartedEvent(_ event: SpeakSwiftly.StartedEvent) -> ServerJobEvent {
         .started(.init(id: event.id, op: event.op))
     }
 
-    private func mapProgressEvent(_ event: WorkerProgressEvent) -> ServerJobEvent {
+    private func mapProgressEvent(_ event: SpeakSwiftly.ProgressEvent) -> ServerJobEvent {
         .progress(.init(id: event.id, stage: event.stage.rawValue))
     }
 
-    private func mapSuccessEvent(_ event: WorkerSuccessResponse, acknowledged: Bool) -> ServerJobEvent {
+    private func mapSuccessEvent(_ event: SpeakSwiftly.Success, acknowledged: Bool) -> ServerJobEvent {
         let success = ServerSuccessEvent(
             id: event.id,
             profileName: event.profileName,
@@ -1261,7 +1277,7 @@ actor ServerHost {
         return buffer
     }
 
-    private func playbackStateResponse(for action: PlaybackAction) async throws -> PlaybackStateResponse {
+    private func playbackStateResponse(for action: SpeakSwiftly.PlaybackAction) async throws -> PlaybackStateResponse {
         let requestID = UUID().uuidString
         let handle = await runtime.playbackHandle(action, id: requestID)
         let success = try await awaitImmediateSuccess(
@@ -1270,7 +1286,7 @@ actor ServerHost {
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
         )
         guard let playbackState = success.playbackState else {
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the '\(requestName(for: action))' control request, but it did not return a playback state payload."
             )
@@ -1278,7 +1294,7 @@ actor ServerHost {
         return .init(playback: .init(summary: playbackState))
     }
 
-    private func requestName(for action: PlaybackAction) -> String {
+    private func requestName(for action: SpeakSwiftly.PlaybackAction) -> String {
         switch action {
         case .pause:
             "playback_pause"
@@ -1289,7 +1305,7 @@ actor ServerHost {
         }
     }
 
-    private func queueTypeName(_ queueType: WorkerQueueType) -> String {
+    private func queueTypeName(_ queueType: SpeakSwiftly.Queue) -> String {
         switch queueType {
         case .generation:
             "generation"
@@ -1302,21 +1318,21 @@ actor ServerHost {
         handle: RuntimeRequestHandle,
         missingTerminalMessage: String,
         unexpectedFailureMessagePrefix: String
-    ) async throws -> WorkerSuccessResponse {
+    ) async throws -> SpeakSwiftly.Success {
         do {
             for try await event in handle.events {
                 if case .completed(let success) = event {
                     return success
                 }
             }
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: missingTerminalMessage
             )
-        } catch let error as WorkerError {
+        } catch let error as SpeakSwiftly.Error {
             throw error
         } catch {
-            throw WorkerError(
+            throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "\(unexpectedFailureMessagePrefix) \(error.localizedDescription)"
             )

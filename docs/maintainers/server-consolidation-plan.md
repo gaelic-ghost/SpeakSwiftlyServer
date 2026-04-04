@@ -91,7 +91,7 @@ Phase 4 is now landed. `SpeakSwiftlyServer` mounts an embedded MCP surface throu
 - Pull over only the remaining host-worthy MCP pieces from `SpeakSwiftlyMCP`, not the old standalone host shape.
 - Deprecate or thin out the standalone `SpeakSwiftlyMCP` host package.
 
-Phase 5 is now landed for the initial live-update slice. The host now exposes typed `HostEvent` updates alongside the stable `HostStateSnapshot` surface, the `listening` boundary is tied to Hummingbird's real `onServerRunning` lifecycle hook, and the embedded MCP surface can subscribe clients to `speak://status`, `speak://profiles`, and `speak://runtime` without introducing a second runtime-owning state model.
+Phase 5 is now landed for the initial live-update slice. The host now exposes typed `HostEvent` updates alongside the stable `HostStateSnapshot` surface, the `listening` boundary is tied to Hummingbird's real `onServerRunning` lifecycle hook, and the embedded MCP surface can subscribe clients to `speak://status`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, and `speak://runtime` without introducing a second runtime-owning state model. The shared host also now exposes host-native job resources plus the subset of the old prompt catalog that still maps cleanly onto the embedded server model.
 
 ## Remaining Deliberate Deferrals
 
@@ -99,7 +99,7 @@ The following items are still intentionally deferred:
 
 - converging the existing job-specific HTTP SSE stream onto the host event surface
 - rebuilding playback-job MCP resources before the shared host naturally owns those concepts
-- importing the old standalone MCP prompt catalog for parity alone
+- importing the rest of the old standalone MCP prompt catalog for parity alone
 - defining live config reloading semantics or in-place config mutation policy
 
 These are not cleanup misses from Phases 1 through 5. They are consciously deferred scope boundaries.

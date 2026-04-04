@@ -125,5 +125,5 @@ The original Phase 4 landing left one follow-up mismatch: transport snapshots co
 
 ## Follow-On Work
 
-- Phase 5 should decide which standalone `SpeakSwiftlyMCP` resources, prompts, and playback-job concepts still earn migration into the shared host.
+- Phase 5 should decide which remaining standalone `SpeakSwiftlyMCP` resources, prompts, and playback-job concepts still earn migration into the shared host.
 - After MCP is mounted, define whether any MCP resources should subscribe to the host update pipeline directly instead of remaining read-on-demand snapshots.

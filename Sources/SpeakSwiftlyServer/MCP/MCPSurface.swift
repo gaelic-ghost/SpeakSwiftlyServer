@@ -89,9 +89,10 @@ struct MCPSurface {
             version: "0.1.0",
             title: configuration.title,
             instructions: """
-            Shared-process SpeakSwiftly MCP surface backed by the same ServerHost used by the app-facing HTTP API. Read status and runtime resources for operator-visible state, and use the tools to queue speech, inspect queues, control playback, and manage profiles without starting a second runtime owner.
+            Shared-process SpeakSwiftly MCP surface backed by the same ServerHost used by the app-facing HTTP API. Read status, job, profile, and runtime resources for operator-visible state, use the tools to queue speech, inspect queues, control playback, and manage profiles, and use the built-in prompts for reusable voice-design and operator acknowledgement authoring without starting a second runtime owner.
             """,
             capabilities: .init(
+                prompts: .init(listChanged: false),
                 resources: .init(subscribe: true, listChanged: false),
                 tools: .init(listChanged: false)
             )
@@ -192,7 +193,7 @@ struct MCPSurface {
         }
 
         await server.withMethodHandler(ListResourceTemplates.self) { _ in
-            .init(templates: [])
+            .init(templates: MCPResourceCatalog.templates)
         }
 
         await server.withMethodHandler(ResourceSubscribe.self) { params in
@@ -215,12 +216,121 @@ struct MCPSurface {
             case "speak://profiles":
                 return try resourceResult(uri: params.uri, payload: await host.cachedProfiles())
 
+            case "speak://jobs":
+                return try resourceResult(uri: params.uri, payload: await host.jobSnapshots())
+
             case "speak://runtime":
                 return try resourceResult(uri: params.uri, payload: await host.hostStateSnapshot())
 
             default:
+                if let profileName = profileDetailName(from: params.uri) {
+                    guard let profile = await host.cachedProfile(profileName) else {
+                        throw MCPError.invalidRequest(
+                            "No cached SpeakSwiftly profile matched that profile name. Refresh or recreate the profile before requesting detail."
+                        )
+                    }
+                    return try resourceResult(uri: params.uri, payload: profile)
+                }
+
+                if let jobID = jobID(from: params.uri) {
+                    do {
+                        return try resourceResult(uri: params.uri, payload: try await host.jobSnapshot(id: jobID))
+                    } catch {
+                        throw MCPError.invalidRequest(
+                            "No tracked SpeakSwiftly job matched that job id. Submit speech or profile work first, or read speak://jobs to inspect retained jobs."
+                        )
+                    }
+                }
+
                 throw MCPError.invalidRequest(
                     "Resource '\(params.uri)' is not available on this embedded SpeakSwiftly MCP surface."
+                )
+            }
+        }
+
+        // MARK: - Prompt Methods
+
+        await server.withMethodHandler(ListPrompts.self) { _ in
+            .init(prompts: MCPPromptCatalog.prompts)
+        }
+
+        await server.withMethodHandler(GetPrompt.self) { params in
+            let arguments = params.arguments ?? [:]
+
+            switch params.name {
+            case "draft_profile_voice_description":
+                let profileGoal = try requiredPromptString("profile_goal", in: arguments)
+                let voiceTraits = try requiredPromptString("voice_traits", in: arguments)
+                let constraints = textIfPresent("constraints", in: arguments)
+                let deliveryStyle = textIfPresent("delivery_style", in: arguments)
+                let body = """
+                Write exactly one concise natural-language voice description for a reusable speech profile.
+                Profile goal: \(profileGoal)
+                Primary language: \(textIfPresent("language", in: arguments) ?? "Auto")
+                Requested voice traits: \(voiceTraits)
+                \(deliveryStyle.map { "Delivery style guidance: \($0)" } ?? "")
+                \(constraints.map { "Additional constraints: \($0)" } ?? "")
+                Focus on concrete timbre, affect, pacing, and speaking texture. Mention age or gender presentation only if explicitly requested above. Do not add bullets, labels, surrounding explanation, or more than one candidate.
+                """
+                return .init(
+                    description: "Reusable authoring prompt for profile voice descriptions.",
+                    messages: [.user(.text(text: compactPrompt(body)))]
+                )
+
+            case "draft_profile_source_text":
+                let language = try requiredPromptString("language", in: arguments)
+                let personaOrContext = try requiredPromptString("persona_or_context", in: arguments)
+                let body = """
+                Write spoken sample text for a voice-profile creation flow.
+                Language: \(language)
+                Persona or context: \(personaOrContext)
+                Length hint: \(textIfPresent("length_hint", in: arguments) ?? "short paragraph")
+                \(textIfPresent("style_notes", in: arguments).map { "Style notes: \($0)" } ?? "")
+                The text should sound natural when read aloud, include enough phrasing variation to show rhythm and expression, and avoid meta commentary. Return only the sample text.
+                """
+                return .init(
+                    description: "Reusable authoring prompt for profile source text.",
+                    messages: [.user(.text(text: compactPrompt(body)))]
+                )
+
+            case "draft_voice_design_instruction":
+                let spokenText = try requiredPromptString("spoken_text", in: arguments)
+                let emotion = try requiredPromptString("emotion", in: arguments)
+                let deliveryStyle = try requiredPromptString("delivery_style", in: arguments)
+                let body = """
+                Write exactly one natural-language instruction for a speech generation model that supports voice-design style prompting.
+                Spoken text: \(spokenText)
+                Language: \(textIfPresent("language", in: arguments) ?? "Auto")
+                Target emotion: \(emotion)
+                Delivery style: \(deliveryStyle)
+                \(textIfPresent("constraints", in: arguments).map { "Additional constraints: \($0)" } ?? "")
+                Describe how the line should sound without rewriting the spoken text. Focus on tone, pacing, emphasis, and prosody. Return only the instruction.
+                """
+                return .init(
+                    description: "Reusable authoring prompt for future voice-design instructions.",
+                    messages: [.user(.text(text: compactPrompt(body)))]
+                )
+
+            case "draft_queue_playback_notice":
+                let spokenTextSummary = try requiredPromptString("spoken_text_summary", in: arguments)
+                let jobID = try requiredPromptString("job_id", in: arguments)
+                let statusResourceURI = try requiredPromptString("status_resource_uri", in: arguments)
+                let body = """
+                Write exactly one short operator-facing acknowledgement for a speech request that was accepted by the shared SpeakSwiftly server host.
+                Spoken text summary: \(spokenTextSummary)
+                Shared host job id: \(jobID)
+                Status resource URI: \(statusResourceURI)
+                Requested tone: \(textIfPresent("tone", in: arguments) ?? "calm and direct")
+                State that the request was accepted and queued or running under the shared host, avoid promising that playback has already finished, and point to the status resource for follow-up. Return only the acknowledgement text.
+                """
+                return .init(
+                    description: "Reusable operator-facing prompt for accepted speech-request notices.",
+                    messages: [.user(.text(text: compactPrompt(body)))]
+                )
+
+            default:
+                throw MCPError.methodNotFound(
+                    "Prompt '\(params.name)' is not registered on this embedded SpeakSwiftly MCP surface."
                 )
             }
         }
@@ -280,10 +390,23 @@ private actor MCPSubscriptionBroker {
     private func resourceURIsToNotify(for event: HostEvent) -> [String] {
         let candidateURIs: Set<String>
         switch event {
-        case .transportChanged, .jobChanged, .playbackChanged, .recentErrorRecorded:
+        case .transportChanged, .playbackChanged, .recentErrorRecorded:
             candidateURIs = ["speak://status", "speak://runtime"]
+        case .jobChanged(let snapshot):
+            candidateURIs = [
+                "speak://status",
+                "speak://runtime",
+                "speak://jobs",
+                "speak://jobs/\(snapshot.jobID)",
+            ]
         case .profileCacheChanged:
-            candidateURIs = ["speak://status", "speak://runtime", "speak://profiles"]
+            candidateURIs = Set(
+                [
+                    "speak://status",
+                    "speak://runtime",
+                    "speak://profiles",
+                ] + subscribedResourceURIs.filter(isProfileDetailURI)
+            )
         }
         return candidateURIs
             .intersection(subscribedResourceURIs)
@@ -294,7 +417,10 @@ private actor MCPSubscriptionBroker {
 // MARK: - Resource Validation
 
 private func ensureKnownResourceURI(_ uri: String) throws {
-    guard MCPResourceCatalog.resourceURIs.contains(uri) else {
+    guard MCPResourceCatalog.resourceURIs.contains(uri)
+        || profileDetailName(from: uri) != nil
+        || jobID(from: uri) != nil
+    else {
         throw MCPError.invalidRequest(
             "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface."
         )
@@ -400,4 +526,45 @@ private func optionalString(_ key: String, in arguments: [String: Value]) -> Str
         return nil
     }
     return value
+}
+
+private func requiredPromptString(_ key: String, in arguments: [String: String]) throws -> String {
+    guard let value = textIfPresent(key, in: arguments) else {
+        throw MCPError.invalidParams(
+            "Prompt arguments are missing the required string field '\(key)'."
+        )
+    }
+    return value
+}
+
+private func textIfPresent(_ key: String, in arguments: [String: String]) -> String? {
+    guard let value = arguments[key]?.trimmingCharacters(in: .whitespacesAndNewlines), value.isEmpty == false else {
+        return nil
+    }
+    return value
+}
+
+private func compactPrompt(_ raw: String) -> String {
+    raw
+        .split(separator: "\n")
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter { $0.isEmpty == false }
+        .joined(separator: "\n")
+}
+
+private func profileDetailName(from uri: String) -> String? {
+    let prefix = "speak://profiles/"
+    let suffix = "/detail"
+    guard uri.hasPrefix(prefix), uri.hasSuffix(suffix) else { return nil }
+    return String(uri.dropFirst(prefix.count).dropLast(suffix.count))
+}
+
+private func isProfileDetailURI(_ uri: String) -> Bool {
+    profileDetailName(from: uri) != nil
+}
+
+private func jobID(from uri: String) -> String? {
+    let prefix = "speak://jobs/"
+    guard uri.hasPrefix(prefix) else { return nil }
+    return String(uri.dropFirst(prefix.count))
 }
