@@ -1,5 +1,8 @@
 import Foundation
 import Testing
+#if canImport(Darwin)
+import Darwin
+#endif
 
 // MARK: - End-to-End Tests
 
@@ -970,10 +973,7 @@ private final class ServerProcess: @unchecked Sendable {
     }
 
     func stop() {
-        if process.isRunning {
-            process.interrupt()
-            process.waitUntilExit()
-        }
+        terminateProcessIfNeeded()
         stdoutTask?.cancel()
         stderrTask?.cancel()
     }
@@ -1028,6 +1028,50 @@ private final class ServerProcess: @unchecked Sendable {
 
     private let stdoutRecorder = SynchronizedLogBuffer()
     private let stderrRecorder = SynchronizedLogBuffer()
+
+    private func terminateProcessIfNeeded() {
+        guard process.isRunning else { return }
+
+        if waitForExit(after: { process.interrupt() }, timeout: .seconds(5)) {
+            return
+        }
+        if waitForExit(after: { process.terminate() }, timeout: .seconds(5)) {
+            return
+        }
+
+        #if canImport(Darwin)
+        kill(process.processIdentifier, SIGKILL)
+        _ = waitForExit(timeout: .seconds(2))
+        #endif
+    }
+
+    private func waitForExit(
+        after action: () -> Void,
+        timeout: Duration
+    ) -> Bool {
+        action()
+        return waitForExit(timeout: timeout)
+    }
+
+    private func waitForExit(timeout: Duration) -> Bool {
+        guard process.isRunning else { return true }
+
+        let semaphore = DispatchSemaphore(value: 0)
+        let originalHandler = process.terminationHandler
+        process.terminationHandler = { completedProcess in
+            originalHandler?(completedProcess)
+            semaphore.signal()
+        }
+        defer {
+            process.terminationHandler = originalHandler
+        }
+
+        guard process.isRunning else { return true }
+        let timeoutInterval =
+            Double(timeout.components.seconds)
+            + Double(timeout.components.attoseconds) / 1_000_000_000_000_000_000
+        return semaphore.wait(timeout: .now() + timeoutInterval) == .success
+    }
 
     private final class SynchronizedLogBuffer: @unchecked Sendable {
         private let lock = NSLock()

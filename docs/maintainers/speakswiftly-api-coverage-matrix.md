@@ -17,9 +17,11 @@ The sibling `SpeakSwiftly` checkout has since moved forward with a repackaged pu
 1. package and import alignment
    `SpeakSwiftlyServer` now depends on `TextForSpeech` directly instead of assuming the sibling package re-exports it
 2. runtime-call alignment
-   the server bridge now uses the current `speak(..., textProfileName:textContext:id:)` shape that the current sibling runtime exposes for this flow
+   the server bridge now uses the current `speak(..., textProfileName:textContext:sourceFormat:id:)` shape that the current sibling runtime exposes for this flow
 3. transport-surface expansion
-   `createClone(...)` plus the new text-profile inspection and editing helpers now have first-class HTTP and MCP coverage
+   `createClone(...)` plus the new text-profile inspection, persistence, and editing helpers now have first-class HTTP and MCP coverage
+4. format-aware request support
+   HTTP and MCP speech submission now carry `text_format`, `nested_source_format`, and `source_format` through to the runtime instead of dropping explicit normalization intent
 
 ## Summary
 
@@ -45,7 +47,7 @@ That means the server is best understood as a transport-oriented adapter over th
 | `SpeakSwiftly.Runtime.start()` | Indirect | No direct route | No direct tool | Starts during process boot. Correctly host-local for this server architecture. |
 | `SpeakSwiftly.Runtime.shutdown()` | Indirect | No direct route | No direct tool | Runs during process shutdown. Correctly host-local. |
 | `SpeakSwiftly.Runtime.statusEvents()` | Adapted | `GET /healthz`, `GET /readyz`, `GET /status`, `GET /jobs/{job_id}/events` | `status` tool, `speak://status`, `speak://runtime`, subscriptions | Exposed as derived host snapshots and worker-status events rather than raw stream subscription. |
-| `SpeakSwiftly.Runtime.speak(text:with:as:textProfileName:textContext:id:)` | Full for current public job cases | `POST /speak` | `queue_speech_live` | `job` is fixed to `.live`, which matches current public enum cases. Normalization context is exposed through `cwd` and `repo_root`, and one-shot stored text-profile selection is exposed through `text_profile_name`. |
+| `SpeakSwiftly.Runtime.speak(text:with:as:textProfileName:textContext:sourceFormat:id:)` | Full for current public job cases | `POST /speak` | `queue_speech_live` | `job` is fixed to `.live`, which matches current public enum cases. Normalization context is exposed through `cwd`, `repo_root`, `text_format`, and `nested_source_format`, one-shot stored text-profile selection is exposed through `text_profile_name`, and whole-source normalization is exposed through `source_format`. |
 | `SpeakSwiftly.Runtime.createProfile(named:from:voice:outputPath:id:)` | Full | `POST /profiles` | `create_profile` | Full control-plane exposure. |
 | `SpeakSwiftly.Runtime.createClone(named:from:transcript:id:)` | Full | `POST /profiles/clone` | `create_clone` | Exposed as a retained voice-profile job flow just like profile creation and removal. |
 | `SpeakSwiftly.Runtime.profiles(id:)` | Full | `GET /profiles` | `list_profiles`, `speak://profiles` | Exposed as cached host view rather than raw request handle. Appropriate. |
@@ -55,6 +57,8 @@ That means the server is best understood as a transport-oriented adapter over th
 | `SpeakSwiftly.Runtime.normalizer.profile(named:)` / `.profiles()` | Full | `GET /text-profiles`, `GET /text-profiles/stored/{profile_id}` | `list_text_profiles`, `speak://text-profiles`, `speak://text-profiles/stored/{profile_id}` | Full read-model exposure for stored text profiles. |
 | `SpeakSwiftly.Runtime.normalizer.effectiveProfile(named:)` | Full | `GET /text-profiles/effective`, `GET /text-profiles/effective/{profile_id}` | `speak://text-profiles/effective`, `speak://text-profiles/effective/{profile_id}` | Exposed as the merged base-plus-selected-profile snapshot. |
 | `SpeakSwiftly.Runtime.normalizer.persistenceURL()` | Full | `GET /text-profiles` | `list_text_profiles`, `speak://text-profiles` | Included in the aggregate snapshot so downstream apps can understand where stored profiles live on disk. |
+| `SpeakSwiftly.Runtime.normalizer.loadProfiles()` | Full | `POST /text-profiles/load` | `load_text_profiles` | Full persistence refresh path for operator-triggered reloads from disk. |
+| `SpeakSwiftly.Runtime.normalizer.saveProfiles()` | Full | `POST /text-profiles/save` | `save_text_profiles` | Full persistence flush path for operator-triggered writes to disk. |
 | `SpeakSwiftly.Runtime.normalizer.createProfile(id:named:replacements:)` | Full | `POST /text-profiles/stored` | `create_text_profile` | Stored text-profile creation is synchronous, not job-based. |
 | `SpeakSwiftly.Runtime.normalizer.storeProfile(_:)` | Full | `PUT /text-profiles/stored/{profile_id}` | `store_text_profile` | Full whole-profile persistence path. |
 | `SpeakSwiftly.Runtime.normalizer.useProfile(_:)` | Full | `PUT /text-profiles/active` | `use_text_profile` | Active custom text-profile selection is synchronous state mutation. |
@@ -157,11 +161,11 @@ Main weaknesses:
 
 The highest-value library-alignment follow-through items from the previous review are now landed:
 
-1. `POST /speak` and `queue_speech_live` both accept normalization context through `cwd` and `repo_root`, plus one-shot stored-profile selection through `text_profile_name`.
+1. `POST /speak` and `queue_speech_live` both accept normalization context through `cwd`, `repo_root`, `text_format`, and `nested_source_format`, plus one-shot stored-profile selection through `text_profile_name` and explicit whole-source normalization through `source_format`.
 2. HTTP now exposes `GET /jobs`.
 3. Accepted-job MCP results now include `job_resource_uri`.
 4. Voice clone creation now has matching HTTP and MCP job flows.
-5. Text-profile inspection and replacement editing now have matching HTTP routes, MCP tools, and MCP resources.
+5. Text-profile inspection, persistence, and replacement editing now have matching HTTP routes, MCP tools, and MCP resources.
 
 At this point, the remaining differences are mostly intentional transport adaptations rather than missing runtime capabilities.
 

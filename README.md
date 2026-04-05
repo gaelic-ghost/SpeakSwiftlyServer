@@ -43,7 +43,7 @@ Today the server talks directly to:
 
 - `SpeakSwiftly.live()`
 - `SpeakSwiftly.Runtime.statusEvents()`
-- `SpeakSwiftly.Runtime.speak(text:with:as:textProfileName:textContext:id:)`
+- `SpeakSwiftly.Runtime.speak(text:with:as:textProfileName:textContext:sourceFormat:id:)`
 - `SpeakSwiftly.Runtime.createProfile(named:from:voice:outputPath:id:)`
 - `SpeakSwiftly.Runtime.createClone(named:from:transcript:id:)`
 - `SpeakSwiftly.Runtime.profiles(id:)`
@@ -61,6 +61,8 @@ For text normalization, the server stays on the public `TextForSpeech` model sur
 - `SpeakSwiftly.Runtime.normalizer.profiles()`
 - `SpeakSwiftly.Runtime.normalizer.effectiveProfile(named:)`
 - `SpeakSwiftly.Runtime.normalizer.persistenceURL()`
+- `SpeakSwiftly.Runtime.normalizer.loadProfiles()`
+- `SpeakSwiftly.Runtime.normalizer.saveProfiles()`
 - `SpeakSwiftly.Runtime.normalizer.createProfile(id:named:replacements:)`
 - `SpeakSwiftly.Runtime.normalizer.storeProfile(_:)`
 - `SpeakSwiftly.Runtime.normalizer.useProfile(_:)`
@@ -78,9 +80,9 @@ That narrowness also informs platform policy. The package should prefer maintain
 
 ## Setup
 
-This package currently depends on a sibling local [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) checkout via `.package(path: "../SpeakSwiftly")` in [`Package.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.swift). Local builds and tests expect that checkout to exist at exactly `../SpeakSwiftly` relative to this repository root.
+This package now resolves its SwiftPM dependencies from tagged GitHub releases in [`Package.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.swift). The one current exception is [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly), which is pinned to a specific Git revision until the latest tagged release can be consumed through a normal semver range again.
 
-Build both executables with SwiftPM once that sibling checkout is present:
+Build the package with SwiftPM:
 
 ```bash
 swift build
@@ -218,6 +220,8 @@ The current HTTP surface is:
 - `POST /playback/pause`
 - `POST /playback/resume`
 - `POST /text-profiles/stored`
+- `POST /text-profiles/load`
+- `POST /text-profiles/save`
 - `POST /text-profiles/active/reset`
 - `POST /text-profiles/active/replacements`
 - `POST /text-profiles/stored/{profile_id}/replacements`
@@ -235,9 +239,9 @@ The current HTTP surface is:
 - `GET /jobs/{job_id}`
 - `GET /jobs/{job_id}/events`
 
-`POST /speak`, `POST /profiles`, `POST /profiles/clone`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` mirrors the current public `SpeakSwiftly.Runtime.speak(... as: .live)` path directly, which means every speech request records the initial acknowledgement event before it starts and eventually reaches terminal completion. `POST /speak` also accepts optional `cwd`, `repo_root`, and `text_profile_name` fields so clients can pass `SpeakSwiftly` text-normalization context through to the runtime when path-aware or stored-profile-aware speech normalization matters. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE, and retained job state is discoverable through `GET /jobs`.
+`POST /speak`, `POST /profiles`, `POST /profiles/clone`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` mirrors the current public `SpeakSwiftly.Runtime.speak(... as: .live)` path directly, which means every speech request records the initial acknowledgement event before it starts and eventually reaches terminal completion. `POST /speak` also accepts optional `cwd`, `repo_root`, `text_profile_name`, `text_format`, `nested_source_format`, and `source_format` fields so clients can pass path-aware, stored-profile-aware, and explicit format-aware normalization context through to the runtime when speech input should not rely on automatic format detection. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE, and retained job state is discoverable through `GET /jobs`.
 
-The `/text-profiles` route family is intentionally synchronous and state-oriented rather than job-oriented. It exposes the current base, active, stored, and effective `TextForSpeech.Profile` state plus replacement editing and profile persistence paths for downstream apps or agents that need to help a user shape text normalization directly.
+The `/text-profiles` route family is intentionally synchronous and state-oriented rather than job-oriented. It exposes the current base, active, stored, and effective `TextForSpeech.Profile` state plus replacement editing and profile persistence paths for downstream apps or agents that need to help a user shape text normalization directly. `POST /text-profiles/load` and `POST /text-profiles/save` map directly to the public normalizer persistence calls so operators can refresh or flush stored normalization state without reaching into the runtime process manually.
 
 The queue and playback control routes are immediate control operations rather than long-running jobs. `GET /queue/generation` and `GET /queue/playback` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface. `GET /playback`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
@@ -258,6 +262,8 @@ The current MCP surface is optional and mounts on the same shared Hummingbird pr
 - `clear_queue`
 - `cancel_request`
 - `status`
+- `load_text_profiles`
+- `save_text_profiles`
 - `list_text_profiles`
 - `create_text_profile`
 - `store_text_profile`
@@ -348,7 +354,6 @@ scripts/repo-maintenance/validate-all.sh
 The package-level verification path that toolkit wraps is still:
 
 ```bash
-swift build
 swift test
 ```
 
