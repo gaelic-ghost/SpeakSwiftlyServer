@@ -62,6 +62,8 @@ testing_mode="swift-testing"
 run_validation="true"
 initialize_git="true"
 copy_agents="true"
+testing_strategy=""
+init_testing_args=()
 probe_testing_mode="false"
 probe_bootstrap_inputs="false"
 
@@ -72,6 +74,7 @@ swift_major_version=""
 swift_minor_version=""
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 agents_template="$script_dir/../assets/AGENTS.md"
+repo_maintenance_installer="$script_dir/install_repo_maintenance_toolkit.py"
 
 is_ignorable_directory_entry() {
   local entry_name="$1"
@@ -192,7 +195,7 @@ configure_testing_mode() {
   local supports_disable_swift_testing="false"
   local supports_enable_xctest="false"
   local supports_disable_xctest="false"
-  local args=()
+  init_testing_args=()
 
   if swift_package_init_supports "--enable-swift-testing"; then
     supports_swift_testing="true"
@@ -207,23 +210,32 @@ configure_testing_mode() {
     supports_disable_xctest="true"
   fi
 
+  testing_strategy="init-flags"
+
   case "$requested_mode" in
     swift-testing)
       if [[ "$supports_swift_testing" != "true" ]]; then
         echo "The active 'swift package init' command does not support Swift Testing selection flags. Choose --testing-mode xctest or use a newer Swift toolchain." >&2
         exit 1
       fi
-      args+=(--enable-swift-testing)
+      init_testing_args+=(--enable-swift-testing)
       if [[ "$supports_disable_xctest" == "true" ]]; then
-        args+=(--disable-xctest)
+        init_testing_args+=(--disable-xctest)
       fi
       ;;
     xctest)
       if [[ "$supports_enable_xctest" == "true" ]]; then
-        args+=(--enable-xctest)
+        init_testing_args+=(--enable-xctest)
       fi
       if [[ "$supports_disable_swift_testing" == "true" ]]; then
-        args+=(--disable-swift-testing)
+        init_testing_args+=(--disable-swift-testing)
+      fi
+      if [[ "$supports_enable_xctest" != "true" && "$supports_disable_swift_testing" != "true" ]]; then
+        if [[ "$supports_swift_testing" == "true" || "$supports_disable_xctest" == "true" ]]; then
+          echo "The active 'swift package init' command cannot force XCTest mode with the available testing-selection flags. Use a toolchain that supports XCTest selection flags or choose a different testing mode." >&2
+          exit 1
+        fi
+        testing_strategy="default-template"
       fi
       ;;
     *)
@@ -231,8 +243,6 @@ configure_testing_mode() {
       exit 1
       ;;
   esac
-
-  printf '%s\n' "${args[@]}"
 }
 
 ensure_test_target() {
@@ -396,17 +406,11 @@ if [[ -e "$target_dir" ]] && directory_has_non_ignorable_entries "$target_dir"; 
 fi
 
 set_version_targets
-init_testing_args=()
-init_testing_output="$(configure_testing_mode "$testing_mode")"
-while IFS= read -r arg; do
-  [[ -n "$arg" ]] || continue
-  init_testing_args+=("$arg")
-done <<EOF
-$init_testing_output
-EOF
+configure_testing_mode "$testing_mode"
 
 if [[ "$probe_testing_mode" == "true" ]]; then
   echo "Testing mode supported: $testing_mode"
+  echo "Testing strategy: $testing_strategy"
   exit 0
 fi
 
@@ -443,6 +447,12 @@ mkdir -p "$target_dir"
     cp "$agents_template" AGENTS.md
   fi
 
+  if [[ -x "$repo_maintenance_installer" ]]; then
+    "$repo_maintenance_installer" --repo-root "$target_dir" --operation install >/dev/null
+  else
+    failed "Validation failed: repo-maintenance toolkit installer missing at $repo_maintenance_installer."
+  fi
+
   ensure_test_target "$testing_mode" "$name"
 
   if [[ ! -f Package.swift ]]; then
@@ -475,7 +485,9 @@ echo "Created Swift package: $target_dir"
 echo "Type: $pkg_type"
 echo "Platform: $platform_mode"
 echo "Version profile: $version_profile (iOS $ios_version, macOS $macos_version)"
+echo "Swift toolchain: $swift_major_version.$swift_minor_version"
 echo "Testing mode: $testing_mode"
+echo "Testing strategy: $testing_strategy"
 if [[ "$initialize_git" == "true" ]]; then
   echo "Git: initialized"
 else

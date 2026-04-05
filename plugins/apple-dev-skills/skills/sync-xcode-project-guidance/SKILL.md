@@ -7,7 +7,7 @@ description: Sync repo guidance for an existing native Apple app repository mana
 
 ## Purpose
 
-Bring an existing Xcode app repository up to the expected guidance baseline without overloading the main Xcode execution skill. This skill owns repo-guidance alignment for existing Apple app repos, including deterministic `AGENTS.md` creation or bounded section append behavior. `scripts/run_workflow.py` is the runtime entrypoint, and `scripts/sync_xcode_project_guidance.py` applies the current sync behavior.
+Bring an existing Xcode app repository up to the expected guidance baseline without overloading the main Xcode execution skill. This skill owns repo-guidance alignment for existing Apple app repos, including deterministic `AGENTS.md` creation or bounded section append behavior, and refreshes the managed repo-maintenance toolkit alongside that guidance. `scripts/run_workflow.py` is the runtime entrypoint, and `scripts/sync_xcode_project_guidance.py` applies the current sync behavior.
 
 ## When To Use
 
@@ -53,7 +53,11 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
    - verify `AGENTS.md` exists
    - verify the synced file mentions `xcode-app-project-workflow`
    - verify the synced file preserves the no-direct-`.pbxproj` rule
-8. Hand off ongoing engineering work cleanly:
+8. Refresh the repo-maintenance toolkit:
+   - refresh `scripts/repo-maintenance/`
+   - refresh `.github/workflows/validate-repo-maintenance.yml`
+   - preserve repo-specific extra scripts that are not part of the managed file set
+9. Hand off ongoing engineering work cleanly:
    - recommend `xcode-app-project-workflow` for active Xcode collaboration after the repo guidance is aligned
    - recommend `bootstrap-xcode-app-project` only when the user actually needs a fresh repo instead of guidance sync
 
@@ -66,9 +70,9 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
 - Defaults:
   - runtime entrypoint: executable `scripts/run_workflow.py`
   - `repo_root=.` when omitted
-  - `appendSectionWhenAgentsExists=true`
-  - `copyAgentsTemplateWhenMissing=true`
+  - `writeMode=sync-if-needed`
   - validation runs unless `--skip-validation` is passed
+  - successful mutating runs refresh the repo-maintenance toolkit in place
 
 ## Outputs
 
@@ -84,6 +88,7 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
   - detected workspace or project markers
   - `AGENTS.md` path
   - actions applied or planned
+  - refreshed repo-maintenance toolkit paths
   - validation result
   - one concise next step or handoff
 
@@ -92,13 +97,14 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
 - Stop with `blocked` if the repo root cannot be resolved.
 - Stop with `blocked` if the repo does not contain an `.xcodeproj` or `.xcworkspace`.
 - Stop with `blocked` if the repo appears to be a SwiftPM-only package without Xcode-managed app markers.
-- Stop with `blocked` if `AGENTS.md` exists but append behavior is disabled and the repo still lacks the required Xcode guidance section.
+- Stop with `blocked` if the chosen `writeMode` does not allow the mutation the repo still needs, such as creating a missing `AGENTS.md` or appending the bounded Xcode guidance section.
 - Stop with `blocked` if the target `AGENTS.md` path exists but is not a regular file.
 
 ## Fallbacks and Handoffs
 
 - The only current fallback is a non-mutating dry-run or guided result that explains what the sync would do.
 - After a successful sync, hand off ongoing execution and diagnostics work to `xcode-app-project-workflow`.
+- After a successful sync, use `scripts/repo-maintenance/validate-all.sh` for local maintainer validation and `scripts/repo-maintenance/release.sh` for releases.
 - Recommend `bootstrap-xcode-app-project` when the repository still needs to be created from scratch.
 - Recommend `sync-swift-package-guidance` when the repo is a plain Swift package rather than an Xcode app project.
 
@@ -107,7 +113,7 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
 - Use `references/customization-flow.md`.
 - `scripts/customization_config.py` stores and reports customization state.
 - `scripts/run_workflow.py` loads runtime-safe defaults from customization state before invoking the supported sync path.
-- Current runtime-enforced knobs include whether missing `AGENTS.md` files should be created from template, whether an existing `AGENTS.md` may receive the bounded Xcode section, and whether validation runs after sync.
+- The current runtime-enforced customization surface is one `writeMode` knob that controls whether the workflow may create missing `AGENTS.md`, append the bounded Xcode section, or stay report-only.
 
 ## References
 
@@ -131,4 +137,5 @@ Bring an existing Xcode app repository up to the expected guidance baseline with
 
 - `scripts/run_workflow.py`
 - `scripts/sync_xcode_project_guidance.py`
+- `scripts/install_repo_maintenance_toolkit.py`
 - `scripts/customization_config.py`

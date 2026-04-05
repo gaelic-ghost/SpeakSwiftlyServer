@@ -32,6 +32,8 @@ def parse_output(stdout: str) -> dict:
         "git_initialized": None,
         "agents_copied": None,
         "testing_mode": None,
+        "testing_strategy": None,
+        "swift_toolchain": None,
     }
     for line in stdout.splitlines():
         if line.startswith("Created Swift package: "):
@@ -42,8 +44,12 @@ def parse_output(stdout: str) -> dict:
             result["git_initialized"] = line.endswith("initialized")
         elif line.startswith("AGENTS: "):
             result["agents_copied"] = line.endswith("copied")
+        elif line.startswith("Swift toolchain: "):
+            result["swift_toolchain"] = line.split(": ", 1)[1].strip()
         elif line.startswith("Testing mode: "):
             result["testing_mode"] = line.split(": ", 1)[1].strip()
+        elif line.startswith("Testing strategy: "):
+            result["testing_strategy"] = line.split(": ", 1)[1].strip()
     return result
 
 
@@ -59,14 +65,15 @@ def blocked_payload(normalized_inputs: dict, next_step: str, *, validation_resul
     }
 
 
-def probe_testing_mode(script_path: Path, testing_mode: str) -> tuple[bool, str]:
+def probe_testing_mode(script_path: Path, testing_mode: str) -> tuple[bool, str, str | None]:
     proc = subprocess.run(
         [str(script_path), "--name", "ProbePackage", "--probe-testing-mode", testing_mode],
         capture_output=True,
         text=True,
         check=False,
     )
-    return proc.returncode == 0, proc.stderr.strip()
+    parsed = parse_output(proc.stdout)
+    return proc.returncode == 0, proc.stderr.strip(), parsed["testing_strategy"]
 
 
 def probe_bootstrap_inputs(command: list[str]) -> tuple[int, str]:
@@ -99,9 +106,9 @@ def main() -> int:
     settings = config["settings"]
 
     name = args.name
-    pkg_type = args.type or str(settings.get("defaultPackageType", "library"))
+    pkg_type = args.type or "library"
     destination = args.destination or "."
-    platform = args.platform or str(settings.get("defaultPlatformPreset", "multiplatform"))
+    platform = args.platform or "multiplatform"
     version_profile = args.version_profile or str(settings.get("defaultVersionProfile", "current-minus-one"))
     testing_mode = args.testing_mode or str(settings.get("defaultTestingMode", "swift-testing"))
     initialize_git = bool(settings.get("initializeGit", True))
@@ -153,7 +160,7 @@ def main() -> int:
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
 
-    probe_ok, probe_stderr = probe_testing_mode(script_path, testing_mode)
+    probe_ok, probe_stderr, testing_strategy = probe_testing_mode(script_path, testing_mode)
     if not probe_ok:
         payload = blocked_payload(
             normalized_inputs,
@@ -210,6 +217,7 @@ def main() -> int:
             "resolved_path": str(Path(destination).expanduser() / name),
             "normalized_inputs": normalized_inputs,
             "validation_result": "skipped (--dry-run)",
+            "testing_strategy": testing_strategy,
             "command": command,
             "next_step": "Run the bootstrap workflow without --dry-run to create the package.",
         }
@@ -237,9 +245,15 @@ def main() -> int:
         "git_initialized": parsed["git_initialized"],
         "agents_copied": parsed["agents_copied"],
         "testing_mode": parsed["testing_mode"],
+        "testing_strategy": parsed["testing_strategy"],
+        "swift_toolchain": parsed["swift_toolchain"],
         "stdout": proc.stdout,
         "stderr": proc.stderr,
-        "next_step": next_step,
+        "next_step": (
+            "Use swift build and swift test by default, and switch to xcode-app-project-workflow when Xcode-managed toolchain behavior is required."
+            if status == "success"
+            else next_step
+        ),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0 if proc.returncode == 0 else 1

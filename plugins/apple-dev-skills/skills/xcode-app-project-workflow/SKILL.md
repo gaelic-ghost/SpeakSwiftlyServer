@@ -16,6 +16,7 @@ Use this skill as the top-level entry point for Apple and Swift execution work i
 - Use this skill when direct filesystem mutation in an Xcode-managed scope may be required.
 - Use this skill after Apple or Swift docs have already been gathered through `explore-apple-swift-docs` and the work has shifted into execution or implementation.
 - Recommend `explore-apple-swift-docs` when the user needs Apple or Swift documentation lookup, source selection, Dash compatibility, or docs install follow-up rather than execution work.
+- Recommend `swift-style-tooling-workflow` when the user needs to integrate or maintain SwiftLint or SwiftFormat across CLI, Xcode, SwiftPM, Git hooks, GitHub Actions, or SwiftFormat config export rather than active Xcode execution work.
 - Recommend `bootstrap-swift-package` when the user needs to create a brand new Swift package rather than work inside an existing Xcode or Swift project.
 - Recommend `sync-xcode-project-guidance` when an existing Xcode app repo needs `AGENTS.md` or workflow-guidance alignment rather than active engineering work.
 - Mention that older references to `apple-xcode-workflow` now map to `xcode-app-project-workflow`.
@@ -86,6 +87,7 @@ Use this skill as the top-level entry point for Apple and Swift execution work i
 - Use `references/mcp-failure-handoff.md` for the canonical fallback and handoff payload.
 - Use `references/allowlist-guidance.md` when a safe official CLI fallback is blocked by local rules.
 - Recommend `explore-apple-swift-docs` directly when the task becomes Apple or Swift docs exploration work.
+- Recommend `swift-style-tooling-workflow` directly when the task becomes SwiftLint or SwiftFormat setup, config export, or style-tooling maintenance work.
 - Recommend `bootstrap-swift-package` directly when the task becomes new-package scaffolding.
 - Recommend `sync-xcode-project-guidance` directly when the repo needs Xcode-specific guidance sync rather than execution.
 - `scripts/run_workflow.py` plans fallback commands; MCP execution itself remains agent-side tool usage guided by this skill.
@@ -94,7 +96,7 @@ Use this skill as the top-level entry point for Apple and Swift execution work i
 
 - Use `references/customization-flow.md`.
 - `scripts/customization_config.py` stores and reports customization state.
-- `scripts/run_workflow.py` loads and enforces the runtime-safe knobs documented in `references/customization-flow.md`.
+- `scripts/run_workflow.py` still reads customization state, but the current workflow uses fixed safety defaults rather than ordinary user-facing customization knobs.
 - MCP tool execution itself remains agent-side and is not performed by the local runtime entrypoint or by the skill as a direct runtime.
 
 ## References
@@ -116,6 +118,7 @@ Use this skill as the top-level entry point for Apple and Swift execution work i
 ### Support References
 
 - Recommend `explore-apple-swift-docs` when the user needs Apple or Swift docs exploration or Dash-compatible docs access.
+- Recommend `swift-style-tooling-workflow` when the user needs SwiftLint or SwiftFormat setup rather than active Xcode execution.
 - Recommend `sync-xcode-project-guidance` when the user needs repo guidance aligned inside an existing Xcode app repo.
 - Recommend `references/snippets/apple-xcode-project-core.md` when the user needs to add or merge the shared Xcode-project guidance into an end-user repo.
 - `references/allowlist-guidance.md`

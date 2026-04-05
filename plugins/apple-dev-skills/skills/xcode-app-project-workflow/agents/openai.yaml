@@ -1,4 +1,4 @@
 interface:
   display_name: "Xcode App Project Workflow"
   short_description: "Guide Xcode execution, mutation safety, and fallback workflows"
-  default_prompt: "Use $xcode-app-project-workflow to inspect Xcode workspaces, run Apple builds or tests, and choose the right guarded execution fallback path after docs have been handled."
+  default_prompt: "Use $xcode-app-project-workflow to inspect Xcode workspaces, run Apple builds or tests, and choose the right guarded execution fallback path while still applying the skill's built-in Apple docs gate when implementation guidance is needed."

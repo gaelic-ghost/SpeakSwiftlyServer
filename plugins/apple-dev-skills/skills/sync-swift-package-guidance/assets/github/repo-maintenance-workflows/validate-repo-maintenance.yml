@@ -1,0 +1,15 @@
+name: Validate Repo Maintenance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run repo-maintenance validation
+        run: bash scripts/repo-maintenance/validate-all.sh

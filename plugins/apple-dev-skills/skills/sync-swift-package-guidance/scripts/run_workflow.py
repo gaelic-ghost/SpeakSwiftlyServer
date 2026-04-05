@@ -58,6 +58,19 @@ def blocked_payload(
     }
 
 
+def normalize_write_mode(raw: object) -> tuple[str, bool, bool, bool]:
+    value = str(raw or "sync-if-needed").strip().lower()
+    mapping = {
+        "sync-if-needed": (True, True, False),
+        "create-missing-only": (True, False, False),
+        "append-existing-only": (False, True, False),
+        "report-only": (False, False, True),
+    }
+    copy_missing, append_existing, report_only = mapping.get(value, mapping["sync-if-needed"])
+    normalized = value if value in mapping else "sync-if-needed"
+    return normalized, copy_missing, append_existing, report_only
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root")
@@ -74,12 +87,14 @@ def main() -> int:
     repo_root = Path(args.repo_root or ".").expanduser().resolve()
     detected_state = discover_repo_state(repo_root)
     agents_path = repo_root / "AGENTS.md"
+    write_mode, copy_missing, append_existing, report_only = normalize_write_mode(settings.get("writeMode", "sync-if-needed"))
     normalized_inputs = {
         "repo_root": str(repo_root),
         "skip_validation": args.skip_validation,
-        "copy_agents_template_when_missing": bool(settings.get("copyAgentsTemplateWhenMissing", True)),
-        "append_section_when_agents_exists": bool(settings.get("appendSectionWhenAgentsExists", True)),
-        "validation_mode": str(settings.get("validationMode", "full")),
+        "write_mode": write_mode,
+        "copy_agents_template_when_missing": copy_missing,
+        "append_section_when_agents_exists": append_existing,
+        "report_only": report_only,
     }
 
     if not repo_root.exists():
@@ -143,14 +158,19 @@ def main() -> int:
         return 1
 
     actions: list[str] = []
-    if not agents_path.exists() and normalized_inputs["copy_agents_template_when_missing"]:
-        actions.append("create AGENTS.md from assets/AGENTS.md")
+    if not agents_path.exists():
+        if normalized_inputs["copy_agents_template_when_missing"]:
+            actions.append("create AGENTS.md from assets/AGENTS.md")
+        elif normalized_inputs["report_only"]:
+            actions.append("report that AGENTS.md is missing and would need template creation")
     elif agents_path.exists():
         text = agents_path.read_text(encoding="utf-8") if agents_path.is_file() else ""
         if "## Swift Package Workflow" in text:
             actions.append("leave existing AGENTS.md unchanged")
         elif normalized_inputs["append_section_when_agents_exists"]:
             actions.append("append the bounded Swift package guidance section to AGENTS.md")
+        elif normalized_inputs["report_only"]:
+            actions.append("report that AGENTS.md is missing the bounded Swift package guidance section")
 
     if args.dry_run:
         payload = {
@@ -163,6 +183,21 @@ def main() -> int:
             "validation_result": "skipped (--dry-run)",
             "actions": actions,
             "next_step": "Run without --dry-run to sync AGENTS.md guidance for this Swift package repo.",
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
+
+    if normalized_inputs["report_only"]:
+        payload = {
+            "status": "success",
+            "path_type": "fallback",
+            "repo_root": str(repo_root),
+            "agents_path": str(agents_path),
+            "detected_state": detected_state,
+            "normalized_inputs": normalized_inputs,
+            "validation_result": "skipped (writeMode=report-only)",
+            "actions": actions,
+            "next_step": "Rerun with a mutating write mode if you want this workflow to create or append AGENTS.md guidance.",
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0

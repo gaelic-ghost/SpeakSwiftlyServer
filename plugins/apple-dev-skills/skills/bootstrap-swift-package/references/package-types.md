@@ -39,7 +39,9 @@ The bootstrap script applies these by patching `Package.swift` with string platf
 
 On supported Swift toolchains, the bootstrap workflow should prefer `swift package init` testing flags over patching stale templates after the fact. When the active toolchain is older than `5.10`, stop with a clear blocked message instead of attempting best-effort compatibility below the supported floor. When `swift-testing` is requested on a supported toolchain that still lacks the relevant selection flags, stop with a clear toolchain error instead of silently claiming Swift Testing support that the local CLI cannot provide.
 
-Executable package templates may still require follow-up test-target creation even on current toolchains. When that happens, keep the package shape simple and make the generated test file match the selected testing mode.
+When `xctest` is requested on a supported toolchain that exposes no testing-selection flags at all, the workflow may rely on the toolchain's default XCTest template and then verify the generated package shape instead of pretending newer flags exist. If a supported toolchain exposes partial testing-selection flags but still cannot guarantee the requested mode, stop with a clear blocked message instead of guessing.
+
+Executable and tool package templates may still require follow-up test-target alignment on some toolchains. When that happens, keep the package shape simple and make the generated test file match the selected testing mode.
 
 ## Build Path Guidance
 

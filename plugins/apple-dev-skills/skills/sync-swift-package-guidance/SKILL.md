@@ -7,7 +7,7 @@ description: Sync repo guidance for an existing Swift Package Manager repository
 
 ## Purpose
 
-Bring an existing Swift package repository up to the expected guidance baseline without stretching the package bootstrap skill into an ongoing repo-guidance surface. This skill owns deterministic `AGENTS.md` creation or bounded section append behavior for existing SwiftPM repos. `scripts/run_workflow.py` is the runtime entrypoint, and `scripts/sync_swift_package_guidance.py` applies the current sync behavior.
+Bring an existing Swift package repository up to the expected guidance baseline without stretching the package bootstrap skill into an ongoing repo-guidance surface. This skill owns deterministic `AGENTS.md` creation or bounded section append behavior for existing SwiftPM repos and refreshes the managed repo-maintenance toolkit alongside that guidance. `scripts/run_workflow.py` is the runtime entrypoint, and `scripts/sync_swift_package_guidance.py` applies the current sync behavior.
 
 ## When To Use
 
@@ -54,7 +54,11 @@ Bring an existing Swift package repository up to the expected guidance baseline 
    - verify the synced file mentions `bootstrap-swift-package`
    - verify the synced file mentions `sync-swift-package-guidance`
    - verify the synced file preserves `swift build` and `swift test` as default validation paths
-8. Hand off ongoing package work cleanly:
+8. Refresh the repo-maintenance toolkit:
+   - refresh `scripts/repo-maintenance/`
+   - refresh `.github/workflows/validate-repo-maintenance.yml`
+   - preserve repo-specific extra scripts that are not part of the managed file set
+9. Hand off ongoing package work cleanly:
    - prefer `swift build` and `swift test` for ordinary package work after guidance sync
    - recommend `xcode-app-project-workflow` only when package work needs Xcode-managed SDK or toolchain behavior
    - recommend `bootstrap-swift-package` only when the user actually needs a fresh repo instead of guidance sync
@@ -67,9 +71,9 @@ Bring an existing Swift package repository up to the expected guidance baseline 
 - Defaults:
   - runtime entrypoint: executable `scripts/run_workflow.py`
   - `repo_root=.` when omitted
-  - `appendSectionWhenAgentsExists=true`
-  - `copyAgentsTemplateWhenMissing=true`
+  - `writeMode=sync-if-needed`
   - validation runs unless `--skip-validation` is passed
+  - successful mutating runs refresh the repo-maintenance toolkit in place
 
 ## Outputs
 
@@ -85,6 +89,7 @@ Bring an existing Swift package repository up to the expected guidance baseline 
   - detected package and Xcode markers
   - `AGENTS.md` path
   - actions applied or planned
+  - refreshed repo-maintenance toolkit paths
   - validation result
   - one concise next step or handoff
 
@@ -93,13 +98,14 @@ Bring an existing Swift package repository up to the expected guidance baseline 
 - Stop with `blocked` if the repo root cannot be resolved.
 - Stop with `blocked` if the repo does not contain `Package.swift`.
 - Stop with `blocked` if the repo root looks ambiguous because it contains both `Package.swift` and Xcode app markers.
-- Stop with `blocked` if `AGENTS.md` exists but append behavior is disabled and the repo still lacks the required Swift package guidance section.
+- Stop with `blocked` if the chosen `writeMode` does not allow the mutation the repo still needs, such as creating a missing `AGENTS.md` or appending the bounded Swift package guidance section.
 - Stop with `blocked` if the target `AGENTS.md` path exists but is not a regular file.
 
 ## Fallbacks and Handoffs
 
 - The only current fallback is a non-mutating dry-run or guided result that explains what the sync would do.
 - After a successful sync, use `swift build` and `swift test` for ordinary package work by default.
+- After a successful sync, use `scripts/repo-maintenance/validate-all.sh` for local maintainer validation and `scripts/repo-maintenance/release.sh` for releases.
 - Recommend `xcode-app-project-workflow` when package work needs Xcode-managed SDK or toolchain behavior.
 - Recommend `bootstrap-swift-package` when the repository still needs to be created from scratch.
 - Recommend `sync-xcode-project-guidance` when the repo root is really an Xcode app project rather than a plain Swift package.
@@ -109,7 +115,7 @@ Bring an existing Swift package repository up to the expected guidance baseline 
 - Use `references/customization-flow.md`.
 - `scripts/customization_config.py` stores and reports customization state.
 - `scripts/run_workflow.py` loads runtime-safe defaults from customization state before invoking the supported sync path.
-- Current runtime-enforced knobs include whether missing `AGENTS.md` files should be created from template, whether an existing `AGENTS.md` may receive the bounded Swift package section, and whether validation runs after sync.
+- The current runtime-enforced customization surface is one `writeMode` knob that controls whether the workflow may create missing `AGENTS.md`, append the bounded Swift package section, or stay report-only.
 
 ## References
 
@@ -133,4 +139,5 @@ Bring an existing Swift package repository up to the expected guidance baseline 
 
 - `scripts/run_workflow.py`
 - `scripts/sync_swift_package_guidance.py`
+- `scripts/install_repo_maintenance_toolkit.py`
 - `scripts/customization_config.py`

@@ -1,8 +1,6 @@
 schemaVersion: 1
 isCustomized: false
 settings:
-  defaultPackageType: "library"
-  defaultPlatformPreset: "multiplatform"
   defaultVersionProfile: "current-minus-one"
   defaultTestingMode: "swift-testing"
   initializeGit: true

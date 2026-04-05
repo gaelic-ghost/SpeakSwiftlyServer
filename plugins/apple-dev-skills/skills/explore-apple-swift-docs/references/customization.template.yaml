@@ -2,9 +2,3 @@ schemaVersion: 1
 isCustomized: false
 settings:
   defaultSourceOrder: "xcode-mcp-docs,dash,official-web"
-  defaultMaxResults: 20
-  defaultSearchSnippets: true
-  dashInstallSourcePriority: "built-in,user-contributed,cheatsheet"
-  requireExplicitApprovalForDashInstallYes: true
-  dashGenerationPolicy: "automate-stable"
-  troubleshootingPreference: "xcode-mcp-first"

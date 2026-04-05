@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 
@@ -143,6 +144,36 @@ def main() -> int:
             print(json.dumps(payload, indent=2, sort_keys=True))
             return 1
         validation_result = "validated"
+
+    installer = Path(__file__).with_name("install_repo_maintenance_toolkit.py")
+    proc_install_toolkit = subprocess.run(
+        [
+            str(installer),
+            "--repo-root",
+            str(repo_root),
+            "--operation",
+            "refresh",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc_install_toolkit.returncode != 0:
+        payload = {
+            "status": "failed",
+            "path_type": "primary",
+            "repo_root": str(repo_root),
+            "agents_path": str(agents_path),
+            "detected_state": detected_state,
+            "validation_result": validation_result,
+            "actions": actions,
+            "stdout": proc_install_toolkit.stdout,
+            "stderr": proc_install_toolkit.stderr,
+            "next_step": "Fix the repo-maintenance toolkit refresh failure and rerun the workflow.",
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 1
+    actions.append("refreshed the repo-maintenance toolkit")
 
     payload = {
         "status": "success",

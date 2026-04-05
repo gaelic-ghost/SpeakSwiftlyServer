@@ -9,17 +9,12 @@ Tune the runtime-supported defaults for Apple and Swift docs exploration, source
 | Knob | Default | Status | Effect |
 | --- | --- | --- | --- |
 | `defaultSourceOrder` | `xcode-mcp-docs,dash,official-web` | `runtime-enforced` | Controls the default docs-source order used by `scripts/run_workflow.py` for `explore` mode. |
-| `defaultMaxResults` | `20` | `runtime-enforced` | Controls the default catalog-match limit used by `scripts/run_workflow.py`. |
-| `defaultSearchSnippets` | `true` | `runtime-enforced` | Controls whether `explore` results keep richer match metadata by default. |
-| `dashInstallSourcePriority` | `built-in,user-contributed,cheatsheet` | `runtime-enforced` | Controls source selection order for Dash install-stage catalog matches. |
-| `requireExplicitApprovalForDashInstallYes` | `true` | `runtime-enforced` | Controls whether `scripts/run_workflow.py` blocks Dash install side effects without explicit approval. |
-| `dashGenerationPolicy` | `automate-stable` | `runtime-enforced` | Controls the structured guidance mode returned by `dash-generate`. |
-| `troubleshootingPreference` | `xcode-mcp-first` | `runtime-enforced` | Controls whether blocked docs guidance emphasizes Xcode MCP recovery first or Dash and web fallback first. |
 
 ## Runtime Behavior
 
 - `scripts/customization_config.py` reads, writes, resets, and reports customization state.
 - `scripts/run_workflow.py` loads the effective merged customization state at runtime.
+- Match count, snippet shaping, Dash install source priority, install approval gating, Dash generation policy, and blocked-state troubleshooting posture now live as workflow defaults rather than ordinary durable user customization.
 - Helper scripts remain implementation details behind `scripts/run_workflow.py`.
 
 ## Update Flow

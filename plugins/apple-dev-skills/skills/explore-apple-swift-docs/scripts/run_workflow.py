@@ -144,14 +144,14 @@ def explore_mode(args: argparse.Namespace, settings: dict) -> tuple[int, dict]:
 
     order = normalize_source_order(str(settings.get("defaultSourceOrder", "xcode-mcp-docs,dash,official-web")))
     preferred_source = args.preferred_source or "auto"
-    include_snippets = bool(settings.get("defaultSearchSnippets", True))
-    raw_matches = load_matches(args.query, int(settings.get("defaultMaxResults", 20)))
+    include_snippets = True
+    raw_matches = load_matches(args.query, 20)
     matches = shape_matches(raw_matches, include_snippets)
     dash_probe = probe_dash(args.status_file)
     selected_source, configured_order = select_source(order, preferred_source, args.mcp_failure_reason, dash_probe)
 
     if not selected_source:
-        troubleshooting_preference = str(settings.get("troubleshootingPreference", "xcode-mcp-first"))
+        troubleshooting_preference = "xcode-mcp-first"
         if troubleshooting_preference == "dash-first":
             next_step = "No usable Apple or Swift docs source is available. Recover Dash access first, then fall back to official web docs."
         else:
@@ -210,7 +210,7 @@ def dash_install_mode(args: argparse.Namespace, settings: dict) -> tuple[int, di
         }
 
     matches = load_matches(args.docset_request, 20)
-    source_priority = split_csv(str(settings.get("dashInstallSourcePriority", "built-in,user-contributed,cheatsheet")))
+    source_priority = split_csv("built-in,user-contributed,cheatsheet")
     normalized_priority = [item.replace("-", "_") for item in source_priority]
     selected = choose_match(matches, normalized_priority)
     if not selected:
@@ -224,7 +224,7 @@ def dash_install_mode(args: argparse.Namespace, settings: dict) -> tuple[int, di
             "next_step": "No installable Dash catalog match was found. Hand off to dash-generate.",
         }
 
-    approval_required = bool(settings.get("requireExplicitApprovalForDashInstallYes", True))
+    approval_required = True
     approved = bool(args.yes) or not approval_required or args.dry_run
     source = str(selected.get("source", "built_in"))
     repo_name = DASH_INSTALL_REPO_NAME.get(source, "Main Docsets")
@@ -278,7 +278,7 @@ def dash_generate_mode(args: argparse.Namespace, settings: dict) -> tuple[int, d
         }
 
     matches = load_matches(args.docset_request, 20)
-    generation_policy = str(settings.get("dashGenerationPolicy", "automate-stable"))
+    generation_policy = "automate-stable"
     guidance = {
         "policy": generation_policy,
         "automation_first": generation_policy == "automate-stable",

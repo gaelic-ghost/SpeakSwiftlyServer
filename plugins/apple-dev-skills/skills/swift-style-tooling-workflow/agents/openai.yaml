@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swift Style Tooling"
+  short_description: "Integrate SwiftLint and SwiftFormat across Apple workflows"
+  default_prompt: "Use $swift-style-tooling-workflow to choose the right SwiftLint or SwiftFormat integration path for CLI, Xcode, SwiftPM, Git hooks, GitHub Actions, or SwiftFormat config export."

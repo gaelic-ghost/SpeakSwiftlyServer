@@ -7,7 +7,7 @@ description: Bootstrap new Swift Package Manager repositories with consistent de
 
 ## Purpose
 
-Create a new Swift package repository with one top-level entry point and a simplicity-first Swift baseline. `scripts/run_workflow.py` is the runtime wrapper, and `scripts/bootstrap_swift_package.sh` remains the implementation core for scaffold creation and validation.
+Create a new Swift package repository with one top-level entry point, a simplicity-first Swift baseline, and a local-first maintainer toolkit. `scripts/run_workflow.py` is the runtime wrapper, and `scripts/bootstrap_swift_package.sh` is the deterministic implementation core for scaffold creation, testing-mode selection, validation, and repo-maintenance toolkit installation.
 
 ## When To Use
 
@@ -40,9 +40,10 @@ Create a new Swift package repository with one top-level entry point and a simpl
 3. Run `scripts/run_workflow.py` so documented defaults are loaded from customization state and normalized into one JSON contract.
 4. Select testing mode before scaffold creation:
    - require a supported and validated `Swift 5.10+` toolchain floor before bootstrap planning continues
-   - prefer `swift-testing` on supported current toolchains
-   - use `xctest` when explicitly requested or when the supported toolchain requires it
-   - stop with `blocked` when the local toolchain is older than `5.10` or when the local `swift package init` command cannot select the requested testing mode
+   - prefer `swift-testing` on supported toolchains that expose `swift package init --enable-swift-testing`
+   - use explicit XCTest-selection flags when `xctest` is requested and the active toolchain exposes them
+   - fall back to the toolchain's default XCTest template only when `xctest` is requested and the active `swift package init` command exposes no testing-selection flags at all
+   - stop with `blocked` when the local toolchain is older than `5.10` or when the active `swift package init` command cannot guarantee the requested testing mode
 5. Let the wrapper invoke the bundled script:
    ```bash
    scripts/bootstrap_swift_package.sh --name <Name> --type <library|executable|tool> --destination <dir> --platform <mac|macos|mobile|ios|multiplatform|both> --version-profile <latest-major|current-minus-one|current-minus-two|latest|minus-one|minus-two> --testing-mode <swift-testing|xctest>
@@ -51,6 +52,8 @@ Create a new Swift package repository with one top-level entry point and a simpl
    - `Package.swift`
    - `.git`
    - `AGENTS.md`
+   - `scripts/repo-maintenance/validate-all.sh`
+   - `scripts/repo-maintenance/release.sh`
    - `Tests/`
    - `swift build` and `swift test` unless `--skip-validation` was requested
 7. Ensure the generated guidance encodes the shared Swift policy:
@@ -82,6 +85,7 @@ Create a new Swift package repository with one top-level entry point and a simpl
   - `testing_mode` defaults to `swift-testing`
   - validation runs unless `--skip-validation` is passed
   - supported and validated Swift toolchain floor is `5.10+`
+  - the repo-maintenance toolkit is installed into `scripts/repo-maintenance/` on successful mutating runs
 
 ## Outputs
 
@@ -95,6 +99,9 @@ Create a new Swift package repository with one top-level entry point and a simpl
 - `output`
   - resolved package path
   - normalized inputs
+  - resolved `testing_strategy`
+  - detected `swift_toolchain` on real runs
+  - installed repo-maintenance toolkit paths
   - validation result
   - one concise next step
 
@@ -107,14 +114,16 @@ Create a new Swift package repository with one top-level entry point and a simpl
 - Stop with `blocked` if `assets/AGENTS.md` is missing.
 - Stop with `blocked` if the target exists and contains non-ignorable files.
 - Stop with `blocked` if `name` is missing.
-- Stop with `blocked` if the requested testing mode cannot be honored by the active `swift package init` command.
+- Stop with `blocked` if the requested testing mode cannot be honored or guaranteed by the active `swift package init` command.
 
 ## Fallbacks and Handoffs
 
 - Preferred path is always `scripts/bootstrap_swift_package.sh`.
 - Use manual `swift package init` guidance only when the script is unavailable or the user explicitly asks for the manual path.
 - `tool` is an advanced explicit passthrough, not a default branch of the workflow.
+- Within the supported `Swift 5.10+` floor, prefer current `swift package init` testing flags when the active toolchain exposes them; only rely on the older default XCTest template when `xctest` is requested and the active `swift package init` command exposes no testing-selection flags at all.
 - After a successful scaffold, hand off build, test, or Xcode-managed package execution tasks to `xcode-app-project-workflow`.
+- After a successful scaffold, use `scripts/repo-maintenance/validate-all.sh` for local maintainer validation and `scripts/repo-maintenance/release.sh` for releases.
 - After a successful scaffold, hand off later repo-guidance alignment work to `sync-swift-package-guidance`.
 - For ordinary package work, prefer `swift build` and `swift test`.
 - For package builds that need Xcode-managed SDK or toolchain behavior, use `xcode-app-project-workflow` and `xcodebuild` guidance instead of stretching the bootstrap skill into an execution skill.
@@ -149,4 +158,5 @@ Create a new Swift package repository with one top-level entry point and a simpl
 
 - `scripts/run_workflow.py`
 - `scripts/bootstrap_swift_package.sh`
+- `scripts/install_repo_maintenance_toolkit.py`
 - `scripts/customization_config.py`

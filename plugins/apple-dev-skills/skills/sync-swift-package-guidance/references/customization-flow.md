@@ -8,14 +8,13 @@ Adjust the documented guidance-sync defaults while keeping runtime behavior grou
 
 | Knob | Default | Status | Effect |
 | --- | --- | --- | --- |
-| `copyAgentsTemplateWhenMissing` | `true` | `runtime-enforced` | Controls whether the workflow creates `AGENTS.md` from `assets/AGENTS.md` when the file is missing. |
-| `appendSectionWhenAgentsExists` | `true` | `runtime-enforced` | Controls whether the workflow appends the bounded Swift package guidance section when `AGENTS.md` already exists but lacks that section. |
-| `validationMode` | `full` | `runtime-enforced` | Controls whether the supported path verifies the synced `AGENTS.md` content after writing. |
+| `writeMode` | `sync-if-needed` | `runtime-enforced` | Controls whether the workflow may create missing `AGENTS.md`, append the bounded Swift package section, or stay report-only. |
 
 ## Runtime Behavior
 
 - `scripts/customization_config.py` reads, writes, resets, and reports customization state.
 - `scripts/run_workflow.py` loads the effective merged customization state at runtime.
+- Post-sync validation remains a workflow invariant unless the user explicitly passes `--skip-validation`.
 - `scripts/sync_swift_package_guidance.py` remains the implementation core for the current guidance-sync path.
 
 ## Update Flow

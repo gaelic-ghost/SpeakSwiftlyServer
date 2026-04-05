@@ -3,6 +3,7 @@
 - Use `swift build` and `swift test` as the default first-pass validation commands for this package.
 - Use `bootstrap-swift-package` when a new Swift package repo still needs to be created from scratch.
 - Use `sync-swift-package-guidance` when the repo guidance for this package drifts and needs to be refreshed or merged forward.
+- Use `scripts/repo-maintenance/validate-all.sh` for local maintainer validation, `scripts/repo-maintenance/sync-shared.sh` for repo-local sync steps, and `scripts/repo-maintenance/release.sh` for releases.
 - Read relevant SwiftPM, Swift, and Apple documentation before proposing package-structure, dependency, manifest, concurrency, or architecture changes.
 - Prefer Dash or local Swift docs first, then official Swift or Apple docs when local docs are insufficient.
 - Prefer the simplest correct Swift that is easiest to read and reason about.

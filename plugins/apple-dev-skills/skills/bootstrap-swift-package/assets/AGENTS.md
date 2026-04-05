@@ -10,6 +10,7 @@
 
 - Use Swift Package Manager (SPM) as the source of truth for package structure and dependencies.
 - Use `sync-swift-package-guidance` if this repo's package-specific `AGENTS.md` guidance later drifts and needs to be refreshed or merged forward.
+- Use `scripts/repo-maintenance/validate-all.sh` for local maintainer validation, `scripts/repo-maintenance/sync-shared.sh` for repo-local sync steps, and `scripts/repo-maintenance/release.sh` for releases.
 - Prefer `swift package` CLI commands for structural changes whenever the command exists.
 - Use `swift package add-dependency` to add dependencies instead of hand-editing package graphs.
 - Use `swift package add-target` to add library, executable, or test targets.

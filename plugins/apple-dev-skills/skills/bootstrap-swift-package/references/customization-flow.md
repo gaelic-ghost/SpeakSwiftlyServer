@@ -8,9 +8,8 @@ Adjust the documented bootstrap defaults while keeping runtime behavior grounded
 
 | Knob | Default | Status | Effect |
 | --- | --- | --- | --- |
-| `defaultPackageType` | `library` | `runtime-enforced` | Sets the runtime default scaffold type used by `scripts/run_workflow.py`. |
-| `defaultPlatformPreset` | `multiplatform` | `runtime-enforced` | Sets the runtime default platform preset used by `scripts/run_workflow.py`. |
 | `defaultVersionProfile` | `current-minus-one` | `runtime-enforced` | Sets the runtime default version profile used by `scripts/run_workflow.py`. |
+| `defaultTestingMode` | `swift-testing` | `runtime-enforced` | Sets the runtime default testing mode used by `scripts/run_workflow.py`. |
 | `initializeGit` | `true` | `runtime-enforced` | Controls whether the wrapper asks the shell script to initialize git. |
 | `copyAgentsMd` | `true` | `runtime-enforced` | Controls whether the wrapper asks the shell script to copy `AGENTS.md`. |
 
@@ -18,6 +17,7 @@ Adjust the documented bootstrap defaults while keeping runtime behavior grounded
 
 - `scripts/customization_config.py` reads, writes, resets, and reports customization state.
 - `scripts/run_workflow.py` loads the effective merged customization state at runtime.
+- Package type and platform preset are now inference-first workflow choices or explicit CLI inputs rather than durable user customization.
 - `scripts/bootstrap_swift_package.sh` remains the implementation core and now honors the wrapper's git and `AGENTS.md` copy flags.
 
 ## Update Flow
@@ -34,4 +34,4 @@ Adjust the documented bootstrap defaults while keeping runtime behavior grounded
 1. Run the bootstrap workflow once with defaults.
 2. Run the bootstrap workflow once with explicit overrides.
 3. Verify `Package.swift`, `.git`, `AGENTS.md`, and `Tests/` exist.
-4. Verify `scripts/run_workflow.py` reflects the runtime-enforced knobs above.
+4. Verify `scripts/run_workflow.py` reflects the runtime-enforced knobs above, including the selected testing mode.

@@ -106,13 +106,12 @@ def main() -> int:
 
     name = args.name
     destination = args.destination or "."
-    project_kind = args.project_kind or str(settings.get("defaultProjectKind", "app"))
+    project_kind = args.project_kind or "app"
     platform_raw = args.platform or str(settings.get("defaultPlatform", "ask"))
-    ui_stack_raw = args.ui_stack or str(settings.get("defaultUIStack", "swiftui"))
-    generator_raw = args.project_generator or str(settings.get("defaultProjectGenerator", "ask"))
+    ui_stack_raw = args.ui_stack or "swiftui"
+    generator_raw = args.project_generator or "ask"
     org_identifier = args.org_identifier or str(settings.get("defaultOrgIdentifier", "com.example"))
     copy_agents = bool(settings.get("copyAgentsMd", True))
-    validation_mode = str(settings.get("validationMode", "full"))
 
     platform, platform_error = normalize_platform(platform_raw)
     ui_stack, ui_error = normalize_ui_stack(ui_stack_raw)
@@ -129,7 +128,6 @@ def main() -> int:
         "org_identifier": org_identifier,
         "skip_validation": args.skip_validation,
         "copy_agents_md": copy_agents,
-        "validation_mode": validation_mode,
     }
 
     if not name:

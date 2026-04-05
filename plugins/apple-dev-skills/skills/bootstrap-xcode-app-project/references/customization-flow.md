@@ -8,18 +8,15 @@ Adjust the documented bootstrap defaults while keeping runtime behavior grounded
 
 | Knob | Default | Status | Effect |
 | --- | --- | --- | --- |
-| `defaultProjectKind` | `app` | `runtime-enforced` | Keeps the workflow constrained to native Apple app bootstrap. |
 | `defaultPlatform` | `ask` | `runtime-enforced` | Sets the runtime default platform when the request does not make it clear. |
-| `defaultUIStack` | `swiftui` | `runtime-enforced` | Sets the runtime default UI stack. |
-| `defaultProjectGenerator` | `ask` | `runtime-enforced` | Controls whether the wrapper chooses `xcode`, `xcodegen`, or blocks for confirmation. |
 | `defaultOrgIdentifier` | `com.example` | `runtime-enforced` | Provides the bundle-ID prefix when an explicit bundle identifier is not supplied. |
 | `copyAgentsMd` | `true` | `runtime-enforced` | Controls whether the wrapper copies `assets/AGENTS.md` into the new repo. |
-| `validationMode` | `full` | `runtime-enforced` | Controls whether the supported path runs project introspection after generation. |
 
 ## Runtime Behavior
 
 - `scripts/customization_config.py` reads, writes, resets, and reports customization state.
 - `scripts/run_workflow.py` loads the effective merged customization state at runtime.
+- Project kind, UI stack, project generator, and post-bootstrap validation policy are now fixed workflow behavior or explicit invocation inputs instead of durable user customization.
 - `scripts/bootstrap_xcode_app_project.py` remains the implementation core for the current XcodeGen-backed scaffold path.
 
 ## Update Flow

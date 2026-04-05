@@ -187,11 +187,11 @@ def main() -> int:
     config = load_effective_config()
     settings = config["settings"]
 
-    advisory = advisory_status(int(settings.get("advisoryCooldownDays", 21)), args.advisory_state_file)
+    advisory = advisory_status(21, args.advisory_state_file)
     fallback_commands = build_fallback_commands(
         args.operation_type,
         args.workspace_path,
-        str(settings.get("fallbackCommandMappingProfile", "official-default")),
+        "official-default",
     )
 
     guard_result = {
@@ -213,7 +213,7 @@ def main() -> int:
             "reason": "mcp-or-explicit-opt-in",
             "markers": scope.get("markers", []),
         }
-        if scope.get("managed") and settings.get("requireExplicitMutationOptInForFilesystemFallback", True):
+        if scope.get("managed"):
             guard_result["filesystem_fallback_allowed"] = bool(args.filesystem_fallback_opt_in)
             if not args.filesystem_fallback_opt_in:
                 status = "blocked"
@@ -239,7 +239,7 @@ def main() -> int:
         "guard_result": guard_result,
         "advisory": advisory,
         "fallback_commands": fallback_commands,
-        "retry_count": int(settings.get("mcpRetryCount", 1)),
+        "retry_count": 1,
         "next_step": next_step,
         "execution_model": "agent-mcp-orchestrated",
         "dry_run": args.dry_run,
