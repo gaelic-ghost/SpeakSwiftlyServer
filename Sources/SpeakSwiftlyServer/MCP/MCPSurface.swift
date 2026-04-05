@@ -284,6 +284,17 @@ struct MCPSurface {
             case "speak://profiles":
                 return try resourceResult(uri: params.uri, payload: await host.cachedProfiles())
 
+            case "speak://profiles/guide":
+                return .init(
+                    contents: [
+                        .text(
+                            voiceProfilesGuideMarkdown(),
+                            uri: params.uri,
+                            mimeType: "text/markdown"
+                        ),
+                    ]
+                )
+
             case "speak://text-profiles":
                 return try resourceResult(uri: params.uri, payload: await host.textProfilesSnapshot())
 
@@ -292,6 +303,17 @@ struct MCPSurface {
                     contents: [
                         .text(
                             textProfilesGuideMarkdown(),
+                            uri: params.uri,
+                            mimeType: "text/markdown"
+                        ),
+                    ]
+                )
+
+            case "speak://playback/guide":
+                return .init(
+                    contents: [
+                        .text(
+                            playbackGuideMarkdown(),
                             uri: params.uri,
                             mimeType: "text/markdown"
                         ),
@@ -463,6 +485,26 @@ struct MCPSurface {
                 """
                 return .init(
                     description: "Reusable operator-facing prompt for accepted speech-request notices.",
+                    messages: [.user(.text(text: compactPrompt(body)))]
+                )
+
+            case "choose_surface_action":
+                let userGoal = try requiredPromptString("user_goal", in: arguments)
+                let body = """
+                Choose the most appropriate SpeakSwiftly MCP next step for the user request below.
+                User goal: \(userGoal)
+                Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
+                \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
+                Available action families:
+                - voice profile creation: create_profile, create_clone, list_profiles, remove_profile, speak://profiles, speak://profiles/guide
+                - speech submission: queue_speech_live, speak://jobs/{job_id}, speak://status
+                - text normalization: list_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://text-profiles, speak://text-profiles/guide
+                - playback and queue control: list_queue_generation, list_queue_playback, playback_state, playback_pause, playback_resume, clear_queue, cancel_request, speak://playback/guide
+                - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
+                Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
+                """
+                return .init(
+                    description: "Reusable routing prompt for choosing the right SpeakSwiftly MCP action.",
                     messages: [.user(.text(text: compactPrompt(body)))]
                 )
 
@@ -773,6 +815,53 @@ private func textProfilesGuideMarkdown() -> String {
     - Use `before_built_ins` when custom text should shape built-in normalization input.
     - Use `after_built_ins` when the custom rule should clean up the normalized output instead.
     - Restrict `formats` when a rule should only apply to source code, CLI output, or other narrow content types.
+    """
+}
+
+private func voiceProfilesGuideMarkdown() -> String {
+    """
+    # SpeakSwiftly Voice Profile Guide
+
+    Use voice-profile tools when the user wants to create, import, inspect, choose, or remove reusable speaking voices.
+
+    Recommended workflow:
+
+    1. Read `speak://profiles` or call `list_profiles` to inspect the currently cached voice profiles.
+    2. Use `create_profile` when the user wants a new synthetic profile from source text plus a voice description.
+    3. Use `create_clone` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
+    4. Provide `transcript` to `create_clone` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    5. Use `queue_speech_live` after the user has chosen the correct voice profile, then read `speak://jobs/{job_id}` or `speak://status` for progress.
+    6. Use `remove_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
+
+    Drafting guidance:
+
+    - Use `draft_profile_voice_description` when the user is still exploring how a synthetic profile should sound.
+    - Use `draft_profile_source_text` when the user needs a good source passage for profile creation.
+    - Use `draft_voice_design_instruction` when the user is shaping one spoken line rather than a reusable stored profile.
+    """
+}
+
+private func playbackGuideMarkdown() -> String {
+    """
+    # SpeakSwiftly Playback And Queue Guide
+
+    Use queue and playback tools when the user wants to know what is running, what is waiting, or how to control audible output.
+
+    Recommended workflow:
+
+    1. Read `speak://status` first for a broad overview of worker readiness, queues, playback state, and recent errors.
+    2. Read `speak://jobs` or `speak://jobs/{job_id}` when the user is asking about one specific request.
+    3. Use `list_queue_generation` when the question is about what is still generating.
+    4. Use `list_queue_playback` when the question is about what is waiting to be heard.
+    5. Use `playback_state` before `playback_pause` or `playback_resume` if the user first needs confirmation about whether anything is currently playing.
+    6. Use `cancel_request` to stop one specific request by id.
+    7. Use `clear_queue` only when the user wants to drop backlog broadly without interrupting the active request.
+
+    Safety guidance:
+
+    - Prefer the least destructive control that satisfies the user’s intent.
+    - Confirm the target request id before cancelling when multiple queued requests exist.
+    - Distinguish generation backlog from playback backlog so the user understands whether work is waiting on model generation or audible output.
     """
 }
 

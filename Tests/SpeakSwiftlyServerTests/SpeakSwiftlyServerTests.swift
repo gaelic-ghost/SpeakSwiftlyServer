@@ -1294,7 +1294,9 @@ actor MockRuntime: ServerRuntimeProtocol {
     let resources = try #require(listResourcesResult["resources"] as? [[String: Any]])
     #expect(resources.contains { $0["uri"] as? String == "speak://status" })
     #expect(resources.contains { $0["uri"] as? String == "speak://text-profiles" })
+    #expect(resources.contains { $0["uri"] as? String == "speak://profiles/guide" })
     #expect(resources.contains { $0["uri"] as? String == "speak://text-profiles/guide" })
+    #expect(resources.contains { $0["uri"] as? String == "speak://playback/guide" })
     #expect(resources.contains { $0["uri"] as? String == "speak://jobs" })
     #expect(resources.contains { $0["uri"] as? String == "speak://runtime" })
 
@@ -1352,6 +1354,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(prompts.contains { $0["name"] as? String == "draft_text_profile" })
     #expect(prompts.contains { $0["name"] as? String == "draft_text_replacement" })
     #expect(prompts.contains { $0["name"] as? String == "draft_queue_playback_notice" })
+    #expect(prompts.contains { $0["name"] as? String == "choose_surface_action" })
 
     let getPromptEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
@@ -1477,6 +1480,55 @@ actor MockRuntime: ServerRuntimeProtocol {
     let textProfilesGuideContents = try #require(textProfilesGuideResult["contents"] as? [[String: Any]])
     let textProfilesGuideText = try #require(textProfilesGuideContents.first?["text"] as? String)
     #expect(textProfilesGuideText.contains("text_profile_name"))
+
+    let voiceProfilesGuideEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpReadResourceRequestJSON(uri: "speak://profiles/guide"),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let voiceProfilesGuideResult = try #require(mcpResultPayload(from: voiceProfilesGuideEnvelope))
+    let voiceProfilesGuideContents = try #require(voiceProfilesGuideResult["contents"] as? [[String: Any]])
+    let voiceProfilesGuideText = try #require(voiceProfilesGuideContents.first?["text"] as? String)
+    #expect(voiceProfilesGuideText.contains("create_clone"))
+    #expect(voiceProfilesGuideText.contains("queue_speech_live"))
+
+    let playbackGuideEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpReadResourceRequestJSON(uri: "speak://playback/guide"),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let playbackGuideResult = try #require(mcpResultPayload(from: playbackGuideEnvelope))
+    let playbackGuideContents = try #require(playbackGuideResult["contents"] as? [[String: Any]])
+    let playbackGuideText = try #require(playbackGuideContents.first?["text"] as? String)
+    #expect(playbackGuideText.contains("cancel_request"))
+    #expect(playbackGuideText.contains("clear_queue"))
+
+    let chooseActionPromptEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpGetPromptRequestJSON(
+                    name: "choose_surface_action",
+                    arguments: [
+                        "user_goal": "Help the user decide whether to clone a voice or create a synthetic profile.",
+                        "current_context": "The user has not provided reference audio yet.",
+                    ]
+                ),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let chooseActionPromptResult = try #require(mcpResultPayload(from: chooseActionPromptEnvelope))
+    let chooseActionPromptMessages = try #require(chooseActionPromptResult["messages"] as? [[String: Any]])
+    let chooseActionPromptContent = try #require(chooseActionPromptMessages.first?["content"] as? [String: Any])
+    let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
+    #expect(chooseActionPromptText.contains("action_type"))
+    #expect(chooseActionPromptText.contains("create_profile"))
 
     let storedTextProfileEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(

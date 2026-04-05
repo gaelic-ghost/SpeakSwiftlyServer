@@ -21,7 +21,7 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "queue_speech_live",
-            description: "Queue live speech playback with a stored SpeakSwiftly profile and return once the shared server host has accepted the speech job.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this after choosing or creating a voice profile, optionally pass text_profile_name for one-shot normalization, and then read the returned speak://jobs/{job_id} resource until playback completes.",
             inputSchema: [
                 "type": "object",
                 "required": ["text", "profile_name"],
@@ -36,7 +36,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "create_profile",
-            description: "Create a new stored SpeakSwiftly voice profile through the shared server host.",
+            description: "Create a new stored SpeakSwiftly voice profile from source text and a voice description. Prefer drafting the text and voice description first when the user is still exploring voice direction, and use output_path when a downstream app wants the generated reference audio file preserved.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile_name", "text", "voice_description"],
@@ -50,7 +50,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "create_clone",
-            description: "Create a new stored SpeakSwiftly voice clone from local reference audio through the shared server host.",
+            description: "Create a new stored SpeakSwiftly voice clone from local reference audio. Provide transcript when the user already knows the spoken text to avoid unnecessary transcription work, otherwise omit it and let SpeakSwiftly infer the transcript internally.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile_name", "reference_audio_path"],
@@ -63,7 +63,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_profiles",
-            description: "Return the current in-memory snapshot of cached SpeakSwiftly profiles.",
+            description: "Return the current in-memory snapshot of cached SpeakSwiftly voice profiles. Read this before queueing speech if the user needs help choosing among existing profiles or before deleting a profile by name.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -77,7 +77,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_text_profiles",
-            description: "Return the current SpeakSwiftly text-profile state, including the base, active, stored, and effective profiles.",
+            description: "Return the current SpeakSwiftly text-profile state, including the base, active, stored, and effective profiles. Read this first when the user wants normalization help or before mutating replacements so the agent can see the current state.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -91,7 +91,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "create_text_profile",
-            description: "Create a stored SpeakSwiftly text profile with the provided id, display name, and optional replacement rules.",
+            description: "Create a stored SpeakSwiftly text profile with the provided id, display name, and optional replacement rules. Prefer this when the user needs a reusable named normalization policy rather than a temporary active override.",
             inputSchema: [
                 "type": "object",
                 "required": ["id", "name"],
@@ -104,7 +104,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "store_text_profile",
-            description: "Store or replace one persisted SpeakSwiftly text profile by passing the full profile payload.",
+            description: "Store or replace one persisted SpeakSwiftly text profile by passing the full profile payload. Use this when the agent has already drafted or edited the complete profile shape and wants one full-write operation instead of incremental edits.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile"],
@@ -115,7 +115,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "use_text_profile",
-            description: "Replace the active SpeakSwiftly custom text profile with the provided full profile payload.",
+            description: "Replace the active SpeakSwiftly custom text profile with the provided full profile payload. Use this for a temporary current-session normalization override when the caller does not want to queue speech with text_profile_name on each request.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile"],
@@ -126,7 +126,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "remove_text_profile",
-            description: "Remove one stored SpeakSwiftly text profile by profile id.",
+            description: "Remove one stored SpeakSwiftly text profile by profile id. Read speak://text-profiles or list_text_profiles first if the agent needs to confirm the available ids with the user.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile_id"],
@@ -137,7 +137,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "reset_text_profile",
-            description: "Reset the active SpeakSwiftly custom text profile back to the library default.",
+            description: "Reset the active SpeakSwiftly custom text profile back to the library default. Use this when the user wants to discard temporary active normalization changes without deleting stored text profiles.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -145,7 +145,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "add_text_replacement",
-            description: "Add one text replacement rule to the active custom text profile or to a stored text profile when profile_id is provided.",
+            description: "Add one text replacement rule to the active custom text profile or to a stored text profile when profile_id is provided. Prefer reading the text-profile guide or using the drafting prompts first when the right match mode, phase, or format scope is unclear.",
             inputSchema: [
                 "type": "object",
                 "required": ["replacement"],
@@ -157,7 +157,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "replace_text_replacement",
-            description: "Replace one existing text replacement rule in the active custom text profile or in a stored text profile when profile_id is provided.",
+            description: "Replace one existing text replacement rule in the active custom text profile or in a stored text profile when profile_id is provided. Use this when the replacement id already exists and the user wants to revise its behavior rather than add a second competing rule.",
             inputSchema: [
                 "type": "object",
                 "required": ["replacement"],
@@ -169,7 +169,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "remove_text_replacement",
-            description: "Remove one text replacement rule from the active custom text profile or from a stored text profile when profile_id is provided.",
+            description: "Remove one text replacement rule from the active custom text profile or from a stored text profile when profile_id is provided. Read the current profile first if the user needs help identifying the replacement id to remove.",
             inputSchema: [
                 "type": "object",
                 "required": ["replacement_id"],
@@ -181,7 +181,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "remove_profile",
-            description: "Remove a stored SpeakSwiftly voice profile through the shared server host.",
+            description: "Remove a stored SpeakSwiftly voice profile through the shared server host. Read list_profiles first when the agent needs to confirm profile names or avoid deleting the wrong voice profile.",
             inputSchema: [
                 "type": "object",
                 "required": ["profile_name"],
@@ -192,7 +192,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_queue_generation",
-            description: "Return the active SpeakSwiftly generation request plus the currently queued generation work, if any.",
+            description: "Return the active SpeakSwiftly generation request plus the currently queued generation work, if any. Use this when the user asks what is still generating or whether a request is waiting behind another one.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -206,7 +206,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_queue_playback",
-            description: "Return the active SpeakSwiftly playback request plus the currently queued playback work, if any.",
+            description: "Return the active SpeakSwiftly playback request plus the currently queued playback work, if any. Use this when the user wants to understand audible playback backlog separately from model generation backlog.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -220,7 +220,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "playback_pause",
-            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback state snapshot. Use this only for operator intent to halt audible output temporarily; it does not delete queued work.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -228,7 +228,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "playback_resume",
-            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback state snapshot after a previous pause.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -236,7 +236,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "playback_state",
-            description: "Return the current SpeakSwiftly playback state snapshot, including the active playback request when one exists.",
+            description: "Return the current SpeakSwiftly playback state snapshot, including the active playback request when one exists. Read this before pause or resume if the user first wants to know whether anything is currently playing.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -250,7 +250,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "clear_queue",
-            description: "Cancel all currently queued SpeakSwiftly requests without interrupting the active request.",
+            description: "Cancel all currently queued SpeakSwiftly requests without interrupting the active request. Use this for a broad queue cleanup when the user wants to drop backlog but preserve anything already running.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -264,7 +264,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "cancel_request",
-            description: "Cancel one queued or active SpeakSwiftly request by request id.",
+            description: "Cancel one queued or active SpeakSwiftly request by request id. Use this when the user wants to stop one specific request instead of clearing the whole queue.",
             inputSchema: [
                 "type": "object",
                 "required": ["request_id"],
@@ -281,7 +281,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "status",
-            description: "Report worker readiness, cached profiles, queue state, playback state, and transport status from the shared server host.",
+            description: "Report worker readiness, cached profiles, queue state, playback state, recent errors, and transport status from the shared server host. This is the best first read when an agent needs orientation before choosing other tools.",
             inputSchema: [
                 "type": "object",
                 "properties": [:],
@@ -300,8 +300,10 @@ enum MCPResourceCatalog {
     static let resourceURIs = Set([
         "speak://status",
         "speak://profiles",
+        "speak://profiles/guide",
         "speak://text-profiles",
         "speak://text-profiles/guide",
+        "speak://playback/guide",
         "speak://text-profiles/base",
         "speak://text-profiles/active",
         "speak://text-profiles/effective",
@@ -323,6 +325,12 @@ enum MCPResourceCatalog {
             mimeType: "application/json"
         ),
         Resource(
+            name: "Voice Profile Guide",
+            uri: "speak://profiles/guide",
+            description: "Operator-facing guidance for choosing between creating, cloning, listing, removing, and using SpeakSwiftly voice profiles.",
+            mimeType: "text/markdown"
+        ),
+        Resource(
             name: "Text Profiles",
             uri: "speak://text-profiles",
             description: "Current SpeakSwiftly text-profile state, including the base, active, stored, and effective profiles.",
@@ -332,6 +340,12 @@ enum MCPResourceCatalog {
             name: "Text Profile Guide",
             uri: "speak://text-profiles/guide",
             description: "Operator-facing guidance for when to use base, active, effective, and stored SpeakSwiftly text profiles.",
+            mimeType: "text/markdown"
+        ),
+        Resource(
+            name: "Playback And Queue Guide",
+            uri: "speak://playback/guide",
+            description: "Operator-facing guidance for reading job status, inspecting queues, and choosing between pause, resume, cancel, and clear operations.",
             mimeType: "text/markdown"
         ),
         Resource(
@@ -402,6 +416,7 @@ enum MCPPromptCatalog {
         "draft_text_replacement",
         "draft_voice_design_instruction",
         "draft_queue_playback_notice",
+        "choose_surface_action",
     ])
 
     static let prompts: [Prompt] = [
@@ -472,6 +487,16 @@ enum MCPPromptCatalog {
                 .init(name: "job_id", required: true),
                 .init(name: "status_resource_uri", required: true),
                 .init(name: "tone"),
+            ]
+        ),
+        Prompt(
+            name: "choose_surface_action",
+            title: "Choose Surface Action",
+            description: "Choose the most appropriate SpeakSwiftly MCP tool, resource, or prompt for the user’s request before taking action.",
+            arguments: [
+                .init(name: "user_goal", required: true),
+                .init(name: "current_context"),
+                .init(name: "constraints"),
             ]
         ),
     ]
