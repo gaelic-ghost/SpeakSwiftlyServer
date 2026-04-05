@@ -457,6 +457,22 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
+    func submitCreateClone(
+        profileName: String,
+        referenceAudioPath: String,
+        transcript: String?
+    ) async throws -> String {
+        try ensureWorkerReady()
+        let requestID = UUID().uuidString
+        let handle = await runtime.createCloneHandle(
+            profileName: profileName,
+            referenceAudioPath: referenceAudioPath,
+            transcript: transcript,
+            id: requestID
+        )
+        return await enqueuePublicJob(handle)
+    }
+
     func submitRemoveProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
@@ -646,13 +662,10 @@ actor ServerHost {
                 case .progress(let progress):
                     await record(mapProgressEvent(progress), for: handle.id, terminal: false)
                 case .completed(let success):
-                    if handle.operationName == "create_profile" {
-                        await finalizeMutationSuccess(
-                            success: success,
-                            requestID: handle.id,
-                            operationName: handle.operationName
-                        )
-                    } else if handle.operationName == "remove_profile" {
+                    if handle.operationName == "create_profile"
+                        || handle.operationName == "create_clone"
+                        || handle.operationName == "remove_profile"
+                    {
                         await finalizeMutationSuccess(
                             success: success,
                             requestID: handle.id,
@@ -802,6 +815,8 @@ actor ServerHost {
 
         switch op {
         case "create_profile":
+            return refreshedNames.contains(profileName) && refreshedNames != previousNames
+        case "create_clone":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
         case "remove_profile":
             return !refreshedNames.contains(profileName) && refreshedNames != previousNames

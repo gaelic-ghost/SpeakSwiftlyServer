@@ -54,6 +54,12 @@ protocol ServerRuntimeProtocol: Actor {
         outputPath: String?,
         id: String
     ) async -> RuntimeRequestHandle
+    func createCloneHandle(
+        profileName: String,
+        referenceAudioPath: String,
+        transcript: String?,
+        id: String
+    ) async -> RuntimeRequestHandle
     func listProfilesHandle(id: String) async -> RuntimeRequestHandle
     func removeProfileHandle(profileName: String, id: String) async -> RuntimeRequestHandle
     func listQueueHandle(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle
@@ -96,6 +102,22 @@ extension SpeakSwiftly.Runtime: ServerRuntimeProtocol {
                 from: text,
                 voice: voiceDescription,
                 outputPath: outputPath,
+                id: id
+            )
+        )
+    }
+
+    func createCloneHandle(
+        profileName: String,
+        referenceAudioPath: String,
+        transcript: String?,
+        id: String
+    ) async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(
+            await createClone(
+                named: profileName,
+                from: URL(fileURLWithPath: referenceAudioPath),
+                transcript: transcript,
                 id: id
             )
         )

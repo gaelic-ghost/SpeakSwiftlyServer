@@ -41,6 +41,18 @@ struct CreateProfileRequestPayload: Decodable {
     }
 }
 
+struct CreateCloneRequestPayload: Decodable {
+    let profileName: String
+    let referenceAudioPath: String
+    let transcript: String?
+
+    enum CodingKeys: String, CodingKey {
+        case profileName = "profile_name"
+        case referenceAudioPath = "reference_audio_path"
+        case transcript
+    }
+}
+
 struct JobCreatedResponse: ResponseEncodable, Sendable {
     let jobID: String
     let jobURL: String

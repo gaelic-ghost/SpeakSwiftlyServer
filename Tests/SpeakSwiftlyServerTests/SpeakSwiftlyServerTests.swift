@@ -25,6 +25,12 @@ actor MockRuntime: ServerRuntimeProtocol {
         let normalizationContext: SpeechNormalizationContext?
     }
 
+    struct CreateCloneInvocation: Sendable, Equatable {
+        let profileName: String
+        let referenceAudioPath: String
+        let transcript: String?
+    }
+
     struct QueuedRequestState: Sendable {
         let request: MockRequest
         let continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
@@ -48,6 +54,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     private var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     private var queuedRequests = [QueuedRequestState]()
     private var queuedSpeechInvocations = [QueuedSpeechInvocation]()
+    private var createCloneInvocations = [CreateCloneInvocation]()
     private var playbackState: SpeakSwiftly.PlaybackState = .idle
 
     // MARK: - Lifecycle
@@ -150,6 +157,36 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.finish()
         }
         return RuntimeRequestHandle(id: id, operationName: "create_profile", profileName: profileName, events: events)
+    }
+
+    func createCloneHandle(
+        profileName: String,
+        referenceAudioPath: String,
+        transcript: String?,
+        id: String
+    ) async -> RuntimeRequestHandle {
+        createCloneInvocations.append(
+            .init(
+                profileName: profileName,
+                referenceAudioPath: referenceAudioPath,
+                transcript: transcript
+            )
+        )
+        if mutationRefreshBehavior == .applyMutations {
+            profiles.append(
+                SpeakSwiftly.ProfileSummary(
+                    profileName: profileName,
+                    createdAt: Date(),
+                    voiceDescription: "Imported reference audio clone.",
+                    sourceText: transcript ?? "Imported clone transcript."
+                )
+            )
+        }
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: id, operationName: "create_clone", profileName: profileName, events: events)
     }
 
     func listProfilesHandle(id: String) async -> RuntimeRequestHandle {
@@ -298,6 +335,10 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     func latestQueuedSpeechInvocation() -> QueuedSpeechInvocation? {
         queuedSpeechInvocations.last
+    }
+
+    func latestCreateCloneInvocation() -> CreateCloneInvocation? {
+        createCloneInvocations.last
     }
 
     // MARK: - Internal Helpers
@@ -933,6 +974,24 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(profiles.count == 1)
         #expect(profiles.first?["profile_name"] as? String == "default")
 
+        let cloneResponse = try await client.execute(
+            uri: "/profiles/clone",
+            method: .post,
+            headers: [.contentType: "application/json"],
+            body: byteBuffer(
+                #"{"profile_name":"clone-default","reference_audio_path":"./Fixtures/reference.wav","transcript":"Cloned route test transcript."}"#
+            )
+        )
+        let cloneJSON = try jsonObject(from: cloneResponse.body)
+        let cloneJobID = try #require(cloneJSON["job_id"] as? String)
+        #expect(cloneResponse.status == .accepted)
+        _ = try await waitForJobSnapshot(cloneJobID, on: host)
+
+        let cloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
+        #expect(cloneInvocation.profileName == "clone-default")
+        #expect(cloneInvocation.referenceAudioPath == "./Fixtures/reference.wav")
+        #expect(cloneInvocation.transcript == "Cloned route test transcript.")
+
         let speakResponse = try await client.execute(
             uri: "/speak",
             method: .post,
@@ -1035,6 +1094,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let listToolsResult = try #require(mcpResultPayload(from: listToolsEnvelope))
     let tools = try #require(listToolsResult["tools"] as? [[String: Any]])
     #expect(tools.contains { $0["name"] as? String == "queue_speech_live" })
+    #expect(tools.contains { $0["name"] as? String == "create_clone" })
     #expect(tools.contains { $0["name"] as? String == "status" })
 
     let queueSpeechToolEnvelope = try await mcpEnvelope(
@@ -1062,6 +1122,29 @@ actor MockRuntime: ServerRuntimeProtocol {
         queuedSpeechInvocation.normalizationContext
             == SpeechNormalizationContext(cwd: "./Tests", repoRoot: "../SpeakSwiftlyServer")
     )
+
+    let createCloneToolEnvelope = try await mcpEnvelope(
+        from: await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpCallToolRequestJSON(
+                    name: "create_clone",
+                    arguments: [
+                        "profile_name": "clone-from-mcp",
+                        "reference_audio_path": "./Fixtures/mcp-reference.wav",
+                        "transcript": "Imported from MCP",
+                    ]
+                ),
+                sessionID: initializeSessionID
+            )
+        )
+    )
+    let createCloneToolPayload = try mcpToolPayload(from: createCloneToolEnvelope)
+    let createCloneJobID = try #require(createCloneToolPayload["job_id"] as? String)
+    #expect(createCloneToolPayload["job_resource_uri"] as? String == "speak://jobs/\(createCloneJobID)")
+    let createCloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
+    #expect(createCloneInvocation.profileName == "clone-from-mcp")
+    #expect(createCloneInvocation.referenceAudioPath == "./Fixtures/mcp-reference.wav")
+    #expect(createCloneInvocation.transcript == "Imported from MCP")
 
     let listResourcesEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(

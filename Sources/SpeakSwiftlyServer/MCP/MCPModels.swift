@@ -48,6 +48,19 @@ enum MCPToolCatalog {
             ]
         ),
         Tool(
+            name: "create_clone",
+            description: "Create a new stored SpeakSwiftly voice clone from local reference audio through the shared server host.",
+            inputSchema: [
+                "type": "object",
+                "required": ["profile_name", "reference_audio_path"],
+                "properties": [
+                    "profile_name": ["type": "string"],
+                    "reference_audio_path": ["type": "string"],
+                    "transcript": ["type": "string"],
+                ],
+            ]
+        ),
+        Tool(
             name: "list_profiles",
             description: "Return the current in-memory snapshot of cached SpeakSwiftly profiles.",
             inputSchema: [

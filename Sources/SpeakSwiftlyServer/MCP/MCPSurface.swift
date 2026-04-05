@@ -136,6 +136,19 @@ struct MCPSurface {
                     )
                 )
 
+            case "create_clone":
+                let jobID = try await host.submitCreateClone(
+                    profileName: requiredString("profile_name", in: arguments),
+                    referenceAudioPath: requiredString("reference_audio_path", in: arguments),
+                    transcript: optionalString("transcript", in: arguments)
+                )
+                return try toolResult(
+                    acceptedJobResult(
+                        jobID: jobID,
+                        message: "SpeakSwiftlyServer accepted the clone-creation request. Read the returned job resource for request progress or read speak://status to monitor worker state and the refreshed profile cache."
+                    )
+                )
+
             case "list_profiles":
                 return try toolResult(await host.cachedProfiles())
 

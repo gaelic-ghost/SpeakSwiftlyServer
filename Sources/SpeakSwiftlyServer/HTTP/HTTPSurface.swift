@@ -87,6 +87,16 @@ private func registerHTTPRoutes(
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }
 
+    router.post("profiles/clone") { request, context -> Response in
+        let payload = try await request.decode(as: CreateCloneRequestPayload.self, context: context)
+        let jobID = try await host.submitCreateClone(
+            profileName: payload.profileName,
+            referenceAudioPath: payload.referenceAudioPath,
+            transcript: payload.transcript
+        )
+        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
+    }
+
     router.delete("profiles/:profile_name") { request, context -> Response in
         let profileName = try context.parameters.require("profile_name")
         let jobID = try await host.submitRemoveProfile(profileName: profileName)
