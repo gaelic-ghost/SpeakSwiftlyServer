@@ -4,7 +4,7 @@
 
 `SpeakSwiftlyServer` is now the single runtime-owning host for both the app-facing HTTP API and the first embedded MCP surface.
 
-The goal is to remove the current split where separate hosts can each create their own in-process `SpeakSwiftlyCore` runtime. After consolidation, one process will own one `SpeakSwiftly.Runtime`, one playback controller, one queue view, one readiness state, and one profile cache.
+The goal is to remove the current split where separate hosts can each create their own in-process `SpeakSwiftly` runtime. After consolidation, one process will own one `SpeakSwiftly.Runtime`, one playback controller, one queue view, one readiness state, and one profile cache.
 
 ## Target Architecture
 

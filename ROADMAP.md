@@ -34,7 +34,7 @@
 ## Milestone 3: SpeakSwiftly Integration
 
 - [x] Decide and implement the first integration path to `SpeakSwiftly`.
-- [x] Switch the server to direct typed `SpeakSwiftlyCore` import instead of subprocess-backed integration.
+- [x] Switch the server to direct typed `SpeakSwiftly` import instead of subprocess-backed integration.
 - [x] Surface operator-facing startup, readiness, and worker failure details clearly.
 - [x] Support profile cache refresh and reconciliation behavior after profile mutations.
 - [ ] Compare downstream response payload expectations in adjacent consumers and close any remaining contract mismatches.
@@ -58,8 +58,8 @@
 - [x] Collapse temporary integration-only scaffolding that became unnecessary after direct import.
 - [x] Align the runtime bridge with the public `SpeakSwiftly` library surface instead of constructing raw worker requests across the library boundary.
 - [ ] Re-verify that adjacent consumers still agree with the current public HTTP API surface.
-- [ ] Remove any remaining server-local transport translation that `SpeakSwiftlyCore` can now express directly without making the server harder to reason about.
-- [x] Re-check the host bridge and docs against the sibling `SpeakSwiftly v0.9.0` public library surface.
+- [ ] Remove any remaining server-local transport translation that `SpeakSwiftly` can now express directly without making the server harder to reason about.
+- [x] Re-check the host bridge and docs against the sibling `SpeakSwiftly v0.9.1` public library surface.
 
 ## Milestone 6: App And LaunchAgent Handoff
 

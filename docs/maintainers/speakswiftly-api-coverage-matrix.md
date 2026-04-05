@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document compares the public `SpeakSwiftlyCore` library surface in the sibling `../SpeakSwiftly` checkout against the client-facing surfaces implemented by `SpeakSwiftlyServer`.
+This document compares the public `SpeakSwiftly` library surface in the sibling `../SpeakSwiftly` checkout against the client-facing surfaces implemented by `SpeakSwiftlyServer`.
 
 It is meant to answer three concrete questions:
 
@@ -10,7 +10,7 @@ It is meant to answer three concrete questions:
 2. Which public capabilities are only partially exposed or intentionally hidden?
 3. Which surface is the more appropriate client contract for each capability: HTTP, MCP, both, or neither?
 
-Current baseline checked against sibling tag `v0.9.0`.
+Current baseline checked against sibling tag `v0.9.1`.
 
 ## Summary
 
@@ -136,7 +136,6 @@ Why it works well:
 
 Main weaknesses:
 
-- accepted-job follow-up targeting could be better
 - tool names still skew low-level and protocol-shaped
 - some data is easier to discover through resource conventions than through tool-return schemas alone
 
