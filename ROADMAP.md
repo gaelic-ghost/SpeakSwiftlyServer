@@ -63,7 +63,7 @@
 - [x] Expose the new text-profile inspection and editing helpers across HTTP and MCP with a transport model that stays distinct from stored voice-profile jobs.
 - [x] Keep the public speech submission surface aligned with the evolving `SpeakSwiftly` library API, including stored text-profile selection on one-shot speech requests.
 - [x] Expand MCP prompts and resources so downstream apps and agents get first-class guidance for authoring and using SpeakSwiftly text profiles and replacements.
-- [ ] Remove any remaining server-local transport translation that `SpeakSwiftly` can now express directly without making the server harder to reason about.
+- [x] Remove any remaining server-local transport translation that `SpeakSwiftly` can now express directly without making the server harder to reason about.
 - [x] Re-check the host bridge and docs against the current sibling `SpeakSwiftly` public library surface.
 
 ## Milestone 6: App And LaunchAgent Handoff

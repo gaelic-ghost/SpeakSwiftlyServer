@@ -534,12 +534,12 @@ actor ServerHost {
     ) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
-        let handle = await runtime.queueSpeechHandle(
+        let handle = await runtime.speak(
             text: text,
-            profileName: profileName,
+            with: profileName,
+            as: .live,
             textProfileName: textProfileName,
             normalizationContext: normalizationContext,
-            as: .live,
             id: requestID
         )
         return await enqueuePublicJob(handle)
@@ -553,10 +553,10 @@ actor ServerHost {
     ) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
-        let handle = await runtime.createProfileHandle(
-            profileName: profileName,
-            text: text,
-            voiceDescription: voiceDescription,
+        let handle = await runtime.createProfile(
+            named: profileName,
+            from: text,
+            voice: voiceDescription,
             outputPath: outputPath,
             id: requestID
         )
@@ -570,9 +570,9 @@ actor ServerHost {
     ) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
-        let handle = await runtime.createCloneHandle(
-            profileName: profileName,
-            referenceAudioPath: referenceAudioPath,
+        let handle = await runtime.createClone(
+            named: profileName,
+            from: URL(fileURLWithPath: referenceAudioPath),
             transcript: transcript,
             id: requestID
         )
@@ -582,7 +582,7 @@ actor ServerHost {
     func submitRemoveProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
-        let handle = await runtime.removeProfileHandle(profileName: profileName, id: requestID)
+        let handle = await runtime.removeProfile(named: profileName, id: requestID)
         return await enqueuePublicJob(handle)
     }
 
@@ -590,11 +590,11 @@ actor ServerHost {
 
     func queueSnapshot(queueType: SpeakSwiftly.Queue) async throws -> QueueSnapshotResponse {
         let requestID = UUID().uuidString
-        let handle = await runtime.listQueueHandle(queueType, id: requestID)
+        let handle = await runtime.queue(queueType, id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
         )
         return .init(
             queueType: queueTypeName(queueType),
@@ -617,22 +617,22 @@ actor ServerHost {
 
     func clearQueue() async throws -> QueueClearedResponse {
         let requestID = UUID().uuidString
-        let handle = await runtime.clearQueueHandle(id: requestID)
+        let handle = await runtime.clearQueue(id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
         )
         return .init(clearedCount: success.clearedCount ?? 0)
     }
 
     func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
         let controlRequestID = UUID().uuidString
-        let handle = await runtime.cancelRequestHandle(with: requestID, requestID: controlRequestID)
+        let handle = await runtime.cancelRequest(requestID, requestID: controlRequestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
         )
         guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
             throw SpeakSwiftly.Error(
@@ -741,7 +741,7 @@ actor ServerHost {
     private func enqueuePublicJob(_ handle: RuntimeRequestHandle) async -> String {
         jobs[handle.id] = JobRecord(
             jobID: handle.id,
-            op: handle.operationName,
+            op: handle.operation,
             profileName: handle.profileName,
             submittedAt: Date()
         )
@@ -768,16 +768,16 @@ actor ServerHost {
                 case .progress(let progress):
                     await record(mapProgressEvent(progress), for: handle.id, terminal: false)
                 case .completed(let success):
-                    if handle.operationName == "create_profile"
-                        || handle.operationName == "create_clone"
-                        || handle.operationName == "remove_profile"
+                    if handle.operation == "create_profile"
+                        || handle.operation == "create_clone"
+                        || handle.operation == "remove_profile"
                     {
                         await finalizeMutationSuccess(
                             success: success,
                             requestID: handle.id,
-                            operationName: handle.operationName
+                            operationName: handle.operation
                         )
-                    } else if handle.operationName == "list_profiles" {
+                    } else if handle.operation == "list_profiles" {
                         await applyProfileRefresh(from: success)
                         await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
                     } else {
@@ -884,7 +884,7 @@ actor ServerHost {
 
     private func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
         let requestID = UUID().uuidString
-        let handle = await runtime.listProfilesHandle(id: requestID)
+        let handle = await runtime.profiles(id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the internal list_profiles request without yielding a terminal success payload.",
@@ -1130,7 +1130,7 @@ actor ServerHost {
 
     private func fetchQueueStatus(_ queueType: SpeakSwiftly.Queue) async throws -> QueueStatusSnapshot {
         let requestID = UUID().uuidString
-        let handle = await runtime.listQueueHandle(queueType, id: requestID)
+        let handle = await runtime.queue(queueType, id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the queue snapshot request without yielding a terminal success payload.",
@@ -1148,7 +1148,7 @@ actor ServerHost {
 
     private func fetchPlaybackStatus() async throws -> PlaybackStatusSnapshot {
         let requestID = UUID().uuidString
-        let handle = await runtime.playbackHandle(.state, id: requestID)
+        let handle = await runtime.playback(.state, id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the playback state request without yielding a terminal success payload.",
@@ -1505,11 +1505,11 @@ actor ServerHost {
 
     private func playbackStateResponse(for action: SpeakSwiftly.PlaybackAction) async throws -> PlaybackStateResponse {
         let requestID = UUID().uuidString
-        let handle = await runtime.playbackHandle(action, id: requestID)
+        let handle = await runtime.playback(action, id: requestID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operationName)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operationName)' control request."
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
         )
         guard let playbackState = success.playbackState else {
             throw SpeakSwiftly.Error(

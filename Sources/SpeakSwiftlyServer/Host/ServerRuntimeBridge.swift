@@ -8,7 +8,7 @@ typealias SpeechNormalizationContext = TextForSpeech.Context
 
 struct RuntimeRequestHandle: Sendable {
     let id: String
-    let operationName: String
+    let operation: String
     let profileName: String?
     let events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>
 
@@ -16,19 +16,19 @@ struct RuntimeRequestHandle: Sendable {
 
     init(
         id: String,
-        operationName: String,
+        operation: String,
         profileName: String?,
         events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>
     ) {
         self.id = id
-        self.operationName = operationName
+        self.operation = operation
         self.profileName = profileName
         self.events = events
     }
 
     init(_ handle: SpeakSwiftly.RequestHandle) {
         self.id = handle.id
-        self.operationName = handle.operation
+        self.operation = handle.operation
         self.profileName = handle.profileName
         self.events = handle.events
     }
@@ -40,33 +40,33 @@ protocol ServerRuntimeProtocol: Actor {
     func start()
     func shutdown() async
     func statusEvents() -> AsyncStream<SpeakSwiftly.StatusEvent>
-    func queueSpeechHandle(
+    func speak(
         text: String,
-        profileName: String,
+        with profileName: String,
+        as jobType: SpeakSwiftly.Job,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        as jobType: SpeakSwiftly.Job,
         id: String
     ) async -> RuntimeRequestHandle
-    func createProfileHandle(
-        profileName: String,
-        text: String,
-        voiceDescription: String,
+    func createProfile(
+        named profileName: String,
+        from text: String,
+        voice voiceDescription: String,
         outputPath: String?,
         id: String
     ) async -> RuntimeRequestHandle
-    func createCloneHandle(
-        profileName: String,
-        referenceAudioPath: String,
+    func createClone(
+        named profileName: String,
+        from referenceAudioURL: URL,
         transcript: String?,
         id: String
     ) async -> RuntimeRequestHandle
-    func listProfilesHandle(id: String) async -> RuntimeRequestHandle
-    func removeProfileHandle(profileName: String, id: String) async -> RuntimeRequestHandle
-    func listQueueHandle(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle
-    func playbackHandle(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle
-    func clearQueueHandle(id requestID: String) async -> RuntimeRequestHandle
-    func cancelRequestHandle(with id: String, requestID: String) async -> RuntimeRequestHandle
+    func profiles(id: String) async -> RuntimeRequestHandle
+    func removeProfile(named profileName: String, id: String) async -> RuntimeRequestHandle
+    func queue(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle
+    func playback(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle
+    func clearQueue(id requestID: String) async -> RuntimeRequestHandle
+    func cancelRequest(_ id: String, requestID: String) async -> RuntimeRequestHandle
     func activeTextProfile() async -> TextForSpeech.Profile
     func baseTextProfile() async -> TextForSpeech.Profile
     func textProfile(named profileID: String) async -> TextForSpeech.Profile?
@@ -89,12 +89,12 @@ protocol ServerRuntimeProtocol: Actor {
 // MARK: - Runtime Adapter
 
 extension SpeakSwiftly.Runtime: ServerRuntimeProtocol {
-    func queueSpeechHandle(
+    func speak(
         text: String,
-        profileName: String,
+        with profileName: String,
+        as jobType: SpeakSwiftly.Job,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        as jobType: SpeakSwiftly.Job,
         id: String
     ) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(
@@ -109,10 +109,10 @@ extension SpeakSwiftly.Runtime: ServerRuntimeProtocol {
         )
     }
 
-    func createProfileHandle(
-        profileName: String,
-        text: String,
-        voiceDescription: String,
+    func createProfile(
+        named profileName: String,
+        from text: String,
+        voice voiceDescription: String,
         outputPath: String?,
         id: String
     ) async -> RuntimeRequestHandle {
@@ -127,43 +127,43 @@ extension SpeakSwiftly.Runtime: ServerRuntimeProtocol {
         )
     }
 
-    func createCloneHandle(
-        profileName: String,
-        referenceAudioPath: String,
+    func createClone(
+        named profileName: String,
+        from referenceAudioURL: URL,
         transcript: String?,
         id: String
     ) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(
             await self.createClone(
                 named: profileName,
-                from: URL(fileURLWithPath: referenceAudioPath),
+                from: referenceAudioURL,
                 transcript: transcript,
                 id: id
             )
         )
     }
 
-    func listProfilesHandle(id: String) async -> RuntimeRequestHandle {
+    func profiles(id: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.profiles(id: id))
     }
 
-    func removeProfileHandle(profileName: String, id: String) async -> RuntimeRequestHandle {
+    func removeProfile(named profileName: String, id: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.removeProfile(named: profileName, id: id))
     }
 
-    func listQueueHandle(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle {
+    func queue(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.queue(queueType, id: requestID))
     }
 
-    func playbackHandle(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
+    func playback(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.playback(action, id: requestID))
     }
 
-    func clearQueueHandle(id requestID: String) async -> RuntimeRequestHandle {
+    func clearQueue(id requestID: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.clearQueue(id: requestID))
     }
 
-    func cancelRequestHandle(with id: String, requestID: String) async -> RuntimeRequestHandle {
+    func cancelRequest(_ id: String, requestID: String) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await self.cancelRequest(id, requestID: requestID))
     }
 

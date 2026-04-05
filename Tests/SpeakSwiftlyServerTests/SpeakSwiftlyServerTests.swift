@@ -15,7 +15,7 @@ import TextForSpeech
 actor MockRuntime: ServerRuntimeProtocol {
     struct MockRequest: Sendable {
         let id: String
-        let operationName: String
+        let operation: String
         let profileName: String?
     }
 
@@ -93,15 +93,15 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     // MARK: - Runtime Protocol
 
-    func queueSpeechHandle(
+    func speak(
         text: String,
-        profileName: String,
+        with profileName: String,
+        as jobType: SpeakSwiftly.Job,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        as jobType: SpeakSwiftly.Job,
         id: String
     ) async -> RuntimeRequestHandle {
-        let request = MockRequest(id: id, operationName: speechOperationName(for: jobType), profileName: profileName)
+        let request = MockRequest(id: id, operation: speechOperationName(for: jobType), profileName: profileName)
         queuedSpeechInvocations.append(
             .init(
                 text: text,
@@ -135,13 +135,13 @@ actor MockRuntime: ServerRuntimeProtocol {
             )
         }
 
-        return RuntimeRequestHandle(id: id, operationName: request.operationName, profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: id, operation: request.operation, profileName: profileName, events: events)
     }
 
-    func createProfileHandle(
-        profileName: String,
-        text: String,
-        voiceDescription: String,
+    func createProfile(
+        named profileName: String,
+        from text: String,
+        voice voiceDescription: String,
         outputPath: String?,
         id: String
     ) async -> RuntimeRequestHandle {
@@ -160,19 +160,19 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: id, operationName: "create_profile", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: id, operation: "create_profile", profileName: profileName, events: events)
     }
 
-    func createCloneHandle(
-        profileName: String,
-        referenceAudioPath: String,
+    func createClone(
+        named profileName: String,
+        from referenceAudioURL: URL,
         transcript: String?,
         id: String
     ) async -> RuntimeRequestHandle {
         createCloneInvocations.append(
             .init(
                 profileName: profileName,
-                referenceAudioPath: referenceAudioPath,
+                referenceAudioPath: referenceAudioURL.path,
                 transcript: transcript
             )
         )
@@ -190,19 +190,19 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: id, operationName: "create_clone", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: id, operation: "create_clone", profileName: profileName, events: events)
     }
 
-    func listProfilesHandle(id: String) async -> RuntimeRequestHandle {
+    func profiles(id: String) async -> RuntimeRequestHandle {
         let profiles = self.profiles
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: id, profiles: profiles)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: id, operationName: "list_profiles", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: id, operation: "list_profiles", profileName: nil, events: events)
     }
 
-    func removeProfileHandle(profileName: String, id: String) async -> RuntimeRequestHandle {
+    func removeProfile(named profileName: String, id: String) async -> RuntimeRequestHandle {
         if mutationRefreshBehavior == .applyMutations {
             profiles.removeAll { $0.profileName == profileName }
         }
@@ -210,10 +210,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: id, profileName: profileName)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: id, operationName: "remove_profile", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: id, operation: "remove_profile", profileName: profileName, events: events)
     }
 
-    func listQueueHandle(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle {
+    func queue(_ queueType: SpeakSwiftly.Queue, id requestID: String) async -> RuntimeRequestHandle {
         let activeRequest: SpeakSwiftly.ActiveRequest? =
             switch queueType {
             case .generation:
@@ -241,10 +241,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operationName: operationName, profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: operationName, profileName: nil, events: events)
     }
 
-    func playbackHandle(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
+    func playback(_ action: SpeakSwiftly.PlaybackAction, id requestID: String) async -> RuntimeRequestHandle {
         switch action {
         case .pause:
             if activeRequest != nil {
@@ -270,10 +270,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operationName: operationName, profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: operationName, profileName: nil, events: events)
     }
 
-    func clearQueueHandle(id requestID: String) async -> RuntimeRequestHandle {
+    func clearQueue(id requestID: String) async -> RuntimeRequestHandle {
         let clearedRequestIDs = queuedRequests.map(\.request.id)
         let clearedCount = clearedRequestIDs.count
         for queuedRequestID in clearedRequestIDs {
@@ -286,10 +286,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, clearedCount: clearedCount)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operationName: "clear_queue", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "clear_queue", profileName: nil, events: events)
     }
 
-    func cancelRequestHandle(with id: String, requestID: String) async -> RuntimeRequestHandle {
+    func cancelRequest(_ id: String, requestID: String) async -> RuntimeRequestHandle {
         do {
             let cancelledRequestID = try cancelRequestNow(id)
             let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -303,12 +303,12 @@ actor MockRuntime: ServerRuntimeProtocol {
                 )
                 continuation.finish()
             }
-            return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "cancel_request", profileName: nil, events: events)
         } catch {
             let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.finish(throwing: error)
             }
-            return RuntimeRequestHandle(id: requestID, operationName: "cancel_request", profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "cancel_request", profileName: nil, events: events)
         }
     }
 
@@ -434,7 +434,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     ) {
         activeRequest = request
         playbackState = .playing
-        continuation.yield(.started(.init(id: request.id, op: request.operationName)))
+        continuation.yield(.started(.init(id: request.id, op: request.operation)))
 
         if speakBehavior == .completeImmediately {
             continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
@@ -456,14 +456,14 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 
     private func activeSummary(for request: MockRequest) -> SpeakSwiftly.ActiveRequest {
-        .init(id: request.id, op: request.operationName, profileName: request.profileName)
+        .init(id: request.id, op: request.operation, profileName: request.profileName)
     }
 
     private func queuedSummaries() -> [SpeakSwiftly.QueuedRequest] {
         queuedRequests.enumerated().map { offset, queued in
             .init(
                 id: queued.request.id,
-                op: queued.request.operationName,
+                op: queued.request.operation,
                 profileName: queued.request.profileName,
                 queuePosition: offset + 1
             )
@@ -1122,7 +1122,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
         let cloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
         #expect(cloneInvocation.profileName == "clone-default")
-        #expect(cloneInvocation.referenceAudioPath == "./Fixtures/reference.wav")
+        #expect(cloneInvocation.referenceAudioPath == URL(fileURLWithPath: "./Fixtures/reference.wav").path)
         #expect(cloneInvocation.transcript == "Cloned route test transcript.")
 
         let speakResponse = try await client.execute(
@@ -1279,7 +1279,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(createCloneToolPayload["job_resource_uri"] as? String == "speak://jobs/\(createCloneJobID)")
     let createCloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
     #expect(createCloneInvocation.profileName == "clone-from-mcp")
-    #expect(createCloneInvocation.referenceAudioPath == "./Fixtures/mcp-reference.wav")
+    #expect(createCloneInvocation.referenceAudioPath == URL(fileURLWithPath: "./Fixtures/mcp-reference.wav").path)
     #expect(createCloneInvocation.transcript == "Imported from MCP")
 
     let listResourcesEnvelope = try await mcpEnvelope(
