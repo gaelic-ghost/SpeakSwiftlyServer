@@ -25,7 +25,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.0"),
         .package(path: "../SpeakSwiftly"),
-        .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.9.1"),
+        .package(path: "../TextForSpeech"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.0"),
         .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.10.0"),
         .package(
