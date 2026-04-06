@@ -675,8 +675,8 @@ actor MockRuntime: ServerRuntimeProtocol {
       mcp:
         enabled: false
         path: /mcp
-        serverName: speak-to-user-mcp
-        title: SpeakSwiftlyMCP
+        serverName: speak-swiftly-mcp
+        title: SpeakSwiftly
     """.write(to: yamlURL, atomically: true, encoding: .utf8)
 
     let store = try await ConfigStore(environment: [
@@ -808,8 +808,8 @@ actor MockRuntime: ServerRuntimeProtocol {
         mcpConfig: .init(
             enabled: true,
             path: "/mcp",
-            serverName: "speak-to-user-mcp",
-            title: "SpeakSwiftlyMCP"
+            serverName: "speak-swiftly-mcp",
+            title: "SpeakSwiftly"
         ),
         runtime: runtime,
         state: state
@@ -861,8 +861,8 @@ actor MockRuntime: ServerRuntimeProtocol {
         mcpConfig: .init(
             enabled: true,
             path: "/mcp",
-            serverName: "speak-to-user-mcp",
-            title: "SpeakSwiftlyMCP"
+            serverName: "speak-swiftly-mcp",
+            title: "SpeakSwiftly"
         ),
         runtime: runtime,
         state: state
@@ -939,8 +939,8 @@ actor MockRuntime: ServerRuntimeProtocol {
         mcpConfig: .init(
             enabled: true,
             path: "/mcp",
-            serverName: "speak-to-user-mcp",
-            title: "SpeakSwiftlyMCP"
+            serverName: "speak-swiftly-mcp",
+            title: "SpeakSwiftly"
         ),
         runtime: runtime,
         state: state
@@ -969,8 +969,8 @@ actor MockRuntime: ServerRuntimeProtocol {
         mcpConfig: .init(
             enabled: true,
             path: "/mcp",
-            serverName: "speak-to-user-mcp",
-            title: "SpeakSwiftlyMCP"
+            serverName: "speak-swiftly-mcp",
+            title: "SpeakSwiftly"
         ),
         runtime: runtime,
         state: state

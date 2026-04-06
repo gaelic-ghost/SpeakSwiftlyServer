@@ -130,8 +130,8 @@ actor ServerHost {
         self.mcpConfig = mcpConfig ?? .init(
             enabled: false,
             path: "/mcp",
-            serverName: "speak-to-user-mcp",
-            title: "SpeakSwiftlyMCP"
+            serverName: "speak-swiftly-mcp",
+            title: "SpeakSwiftly"
         )
         self.runtime = runtime
         self.state = state

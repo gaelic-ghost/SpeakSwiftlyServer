@@ -176,8 +176,8 @@ app:
   mcp:
     enabled: false
     path: /mcp
-    serverName: speak-to-user-mcp
-    title: SpeakSwiftlyMCP
+    serverName: speak-swiftly-mcp
+    title: SpeakSwiftly
 ```
 
 Top-level transport settings and HTTP-specific overrides intentionally compose this way:

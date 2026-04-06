@@ -100,8 +100,8 @@ struct ConfigStore: Sendable {
         .init(["app", "http", "enabled"]): true,
         .init(["app", "mcp", "enabled"]): false,
         .init(["app", "mcp", "path"]): "/mcp",
-        .init(["app", "mcp", "serverName"]): "speak-to-user-mcp",
-        .init(["app", "mcp", "title"]): "SpeakSwiftlyMCP",
+        .init(["app", "mcp", "serverName"]): "speak-swiftly-mcp",
+        .init(["app", "mcp", "title"]): "SpeakSwiftly",
     ]
 
     // MARK: - Helpers
