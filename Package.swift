@@ -76,6 +76,14 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "SpeakSwiftlyServerE2ETests",
+            dependencies: [
+                "SpeakSwiftlyServerCore",
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "TextForSpeech", package: "TextForSpeech"),
+            ]
+        ),
+        .testTarget(
             name: "SpeakSwiftlyServerCliTests",
             dependencies: [
                 "SpeakSwiftlyServerCore",

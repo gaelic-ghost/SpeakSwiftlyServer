@@ -9,6 +9,12 @@
     }
   ],
   "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "SPEAKSWIFTLYSERVER_E2E",
+        "value" : "0"
+      }
+    ],
     "performanceAntipatternCheckerEnabled" : true,
     "targetForVariableExpansion" : {
       "containerPath" : "container:",
@@ -18,14 +24,6 @@
   },
   "testTargets" : [
     {
-      "skippedTests" : [
-        "SpeakSwiftlyServerE2ETests/httpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage()",
-        "SpeakSwiftlyServerE2ETests/httpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage()",
-        "SpeakSwiftlyServerE2ETests/httpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage()",
-        "SpeakSwiftlyServerE2ETests/mcpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage()",
-        "SpeakSwiftlyServerE2ETests/mcpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage()",
-        "SpeakSwiftlyServerE2ETests/mcpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage()"
-      ],
       "target" : {
         "containerPath" : "container:",
         "identifier" : "SpeakSwiftlyServerTests",

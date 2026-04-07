@@ -7,7 +7,13 @@ import Darwin
 // MARK: - End-to-End Tests
 
 /// Keep the suite type name stable so Xcode test plans can target it directly.
-@Suite(.serialized)
+@Suite(
+    .serialized,
+    .enabled(
+        if: ProcessInfo.processInfo.environment["SPEAKSWIFTLYSERVER_E2E"] == "1",
+        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
+    )
+)
 struct SpeakSwiftlyServerE2ETests {
     // MARK: Test Fixtures
 
@@ -23,32 +29,26 @@ struct SpeakSwiftlyServerE2ETests {
     // MARK: Sequential End-to-End Workflows
 
     @Test func httpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runVoiceDesignLane(using: .http)
     }
 
     @Test func httpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runCloneLane(using: .http, transcriptMode: .provided)
     }
 
     @Test func httpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runCloneLane(using: .http, transcriptMode: .inferred)
     }
 
     @Test func mcpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runVoiceDesignLane(using: .mcp)
     }
 
     @Test func mcpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runCloneLane(using: .mcp, transcriptMode: .provided)
     }
 
     @Test func mcpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
-        guard Self.isE2EEnabled else { return }
         try await Self.runCloneLane(using: .mcp, transcriptMode: .inferred)
     }
 
@@ -838,10 +838,6 @@ struct SpeakSwiftlyServerE2ETests {
 
     private static func randomPort(in range: Range<Int>) -> Int {
         Int.random(in: range)
-    }
-
-    private static var isE2EEnabled: Bool {
-        ProcessInfo.processInfo.environment["SPEAKSWIFTLYSERVER_E2E"] == "1"
     }
 
     private static var isPlaybackTraceEnabled: Bool {

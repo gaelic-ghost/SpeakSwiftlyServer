@@ -5,5 +5,12 @@ xcuserdata/
 DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/*.xctestplan
-.swiftpm/xcode/
+.swiftpm/xcode/*
+!.swiftpm/xcode/xcshareddata/
+.swiftpm/xcode/xcshareddata/*
+!.swiftpm/xcode/xcshareddata/xcschemes/
+.swiftpm/xcode/xcshareddata/xcschemes/*
+!.swiftpm/xcode/xcshareddata/xcschemes/SpeakSwiftlyServer-Package.xcscheme
+!.swiftpm/xcode/xcshareddata/xcschemes/SpeakSwiftlyServer-Package-Main.xcscheme
+!.swiftpm/xcode/xcshareddata/xcschemes/SpeakSwiftlyServer-Package-E2E.xcscheme
 .netrc
