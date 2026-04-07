@@ -6,6 +6,7 @@ import Darwin
 
 // MARK: - End-to-End Tests
 
+/// Keep the suite type name stable so Xcode test plans can target it directly.
 @Suite(.serialized)
 struct SpeakSwiftlyServerE2ETests {
     // MARK: Test Fixtures
