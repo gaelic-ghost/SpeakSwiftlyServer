@@ -385,7 +385,7 @@ For repository maintenance, treat this standalone repository as the source of tr
 
 The repo-maintenance toolkit is now the maintainer-facing wrapper around that release flow. Use `scripts/repo-maintenance/validate-all.sh` for local validation, `scripts/repo-maintenance/sync-shared.sh` for deterministic repo-local sync hooks, and `scripts/repo-maintenance/release.sh` for the tagged release path after verification passes.
 
-That tagged release path now also builds `SpeakSwiftlyServerTool` in `release` mode and stages the resulting binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, then refreshes `.release-artifacts/current` to that tagged build. The live LaunchAgent install path is expected to consume that staged release artifact by default.
+That tagged release path now also builds `SpeakSwiftlyServerTool` in `release` mode and stages the resulting binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, copies the required adjacent `Resources/default.metallib` into that same staged artifact directory, and then refreshes `.release-artifacts/current` to that tagged build. The live LaunchAgent install path is expected to consume that staged release artifact by default.
 
 ## Repository Layout
 

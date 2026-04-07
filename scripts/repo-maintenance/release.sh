@@ -104,16 +104,21 @@ else
   source_tool="$bin_path/SpeakSwiftlyServerTool"
   [ -f "$source_tool" ] || die "Release build completed, but the expected tool executable was not found at $source_tool."
   [ -x "$source_tool" ] || die "Release build completed, but $source_tool is not executable."
+  source_metallib="$(find_speak_swiftly_metallib)"
 
   mkdir -p "$tag_dir"
   cp "$source_tool" "$tag_dir/SpeakSwiftlyServerTool"
   chmod 755 "$tag_dir/SpeakSwiftlyServerTool"
+  resources_dir="$(release_artifact_resources_dir "$tag_dir")"
+  mkdir -p "$resources_dir"
+  cp "$source_metallib" "$resources_dir/default.metallib"
 
   mkdir -p "$artifact_root"
   rm -f "$current_link"
   ln -s "$RELEASE_TAG" "$current_link"
 
   log "Staged release artifact at $tag_dir/SpeakSwiftlyServerTool."
+  log "Staged metallib resource at $resources_dir/default.metallib."
   log "Updated current release artifact link at $current_link."
 fi
 

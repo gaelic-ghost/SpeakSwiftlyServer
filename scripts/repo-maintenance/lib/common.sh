@@ -51,6 +51,30 @@ release_artifact_current_dir() {
   printf '%s\n' "$(release_artifacts_root)/current"
 }
 
+release_artifact_resources_dir() {
+  dir="$1"
+  printf '%s\n' "$dir/Resources"
+}
+
+find_speak_swiftly_metallib() {
+  speak_swiftly_root="$REPO_ROOT/../SpeakSwiftly"
+
+  for candidate in \
+    "$speak_swiftly_root/.local/xcode/derived-data/Release/Build/Products/Release/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+    "$speak_swiftly_root/.local/xcode/Release/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+    "$speak_swiftly_root/.derived/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+    "$speak_swiftly_root/.local/xcode/derived-data/Debug/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+    "$speak_swiftly_root/.local/xcode/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib"
+  do
+    if [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  die "Could not find SpeakSwiftly's default.metallib in the expected sibling Xcode build locations under $speak_swiftly_root."
+}
+
 run_dispatch_dir() {
   dir="$1"
   label="$2"
