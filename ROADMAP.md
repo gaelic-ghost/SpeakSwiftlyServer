@@ -1,5 +1,11 @@
 # ROADMAP
 
+## Current Release Gate: v1.0.0
+
+- [ ] Document the app-managed install and configuration contract the macOS app will rely on.
+- [ ] Decide and document how app-managed installs own logs, profile roots, and cache paths.
+- [x] Trim the roadmap so the remaining unchecked items are clearly split between the v1.0.0 gate and post-1.0 follow-up work.
+
 ## Milestone 1: Bootstrap And Repo Hygiene
 
 - [x] Scaffold the Swift executable package.
@@ -67,9 +73,9 @@
 
 ## Milestone 6: App And LaunchAgent Handoff
 
-- [ ] Document the server configuration contract the forthcoming macOS app will need.
+- [ ] Document the app-managed install and configuration contract the forthcoming macOS app will need.
 - [x] Add any server-side hooks needed for LaunchAgent-friendly lifecycle management.
-- [ ] Decide how logs, profile roots, and cache paths should be configured for app-managed installs.
+- [ ] Decide how logs, profile roots, and cache paths should be configured and owned for app-managed installs.
 - [x] Prepare an initial tagged release once the service is meaningfully usable.
 
 ## Milestone 7: Live Update Convergence
@@ -82,6 +88,8 @@
 
 ## Milestone 8: Config Reload Policy
 
+Post-1.0 note: these are important transport-policy decisions, but they are not part of the current `v1.0.0` release gate.
+
 - [x] Adopt `swift-configuration` reloading providers for YAML-backed server config.
 - [x] Keep malformed reloads non-fatal so the watcher survives bad file edits.
 - [x] Apply the safe host-level subset live through `ServerHost`.
@@ -90,11 +98,15 @@
 
 ## Milestone 9: Formatting And Linting
 
+Post-1.0 note: repo-discipline and CI-hardening work, not a current product-correctness blocker for `v1.0.0`.
+
 - [ ] Add SwiftFormat configuration and a maintainer-facing formatting command.
 - [ ] Decide whether SwiftLint should join SwiftFormat as a required local and CI check.
 - [ ] Wire the chosen formatting and linting checks into repo-maintenance validation and GitHub Actions.
 
 ## Milestone 10: Swift Package Index Readiness
+
+Post-1.0 note: distribution polish for discovery and packaging, not part of the current `v1.0.0` gate.
 
 - [ ] Add a project `.spi.yml` file with an intentionally minimal initial configuration.
 - [ ] Re-check README, package metadata, and release guidance against Swift Package Index expectations after `.spi.yml` lands.
