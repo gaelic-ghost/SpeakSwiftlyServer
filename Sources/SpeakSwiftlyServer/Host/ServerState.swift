@@ -5,8 +5,8 @@ import Observation
 
 @Observable
 @MainActor
-final class ServerState {
-    var overview = HostOverviewSnapshot(
+public final class ServerState {
+    public internal(set) var overview = HostOverviewSnapshot(
         service: "speak-swiftly-server",
         environment: "development",
         serverMode: "degraded",
@@ -20,29 +20,29 @@ final class ServerState {
         lastProfileRefreshAt: nil
     )
 
-    var generationQueue = QueueStatusSnapshot(
+    public internal(set) var generationQueue = QueueStatusSnapshot(
         queueType: "generation",
         activeCount: 0,
         queuedCount: 0,
         activeRequest: nil
     )
 
-    var playbackQueue = QueueStatusSnapshot(
+    public internal(set) var playbackQueue = QueueStatusSnapshot(
         queueType: "playback",
         activeCount: 0,
         queuedCount: 0,
         activeRequest: nil
     )
 
-    var playback = PlaybackStatusSnapshot(
+    public internal(set) var playback = PlaybackStatusSnapshot(
         state: "idle",
         activeRequest: nil
     )
 
-    var currentGenerationJob: CurrentGenerationJobSnapshot?
-    var transports = [TransportStatusSnapshot]()
-    var recentErrors = [RecentErrorSnapshot]()
-    var jobsByID: [String: JobSnapshot] = [:]
+    public internal(set) var currentGenerationJob: CurrentGenerationJobSnapshot?
+    public internal(set) var transports = [TransportStatusSnapshot]()
+    public internal(set) var recentErrors = [RecentErrorSnapshot]()
+    public internal(set) var jobsByID: [String: JobSnapshot] = [:]
 
-    init() {}
+    public init() {}
 }

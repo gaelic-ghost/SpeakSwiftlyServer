@@ -97,11 +97,11 @@ struct JobListResponse: ResponseEncodable, Sendable {
 
 // MARK: - Profile Models
 
-struct ProfileSnapshot: Codable, Sendable, Equatable {
-    let profileName: String
-    let createdAt: String
-    let voiceDescription: String
-    let sourceText: String
+public struct ProfileSnapshot: Codable, Sendable, Equatable {
+    public let profileName: String
+    public let createdAt: String
+    public let voiceDescription: String
+    public let sourceText: String
 
     enum CodingKeys: String, CodingKey {
         case profileName = "profile_name"
@@ -252,10 +252,10 @@ struct TextReplacementRequestPayload: Decodable {
 
 // MARK: - Queue Models
 
-struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
-    let id: String
-    let op: String
-    let profileName: String?
+public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
+    public let id: String
+    public let op: String
+    public let profileName: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -276,11 +276,11 @@ struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
-    let id: String
-    let op: String
-    let profileName: String?
-    let queuePosition: Int
+public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
+    public let id: String
+    public let op: String
+    public let profileName: String?
+    public let queuePosition: Int
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -309,9 +309,9 @@ struct QueueSnapshotResponse: ResponseEncodable, Sendable {
     }
 }
 
-struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
-    let state: String
-    let activeRequest: ActiveRequestSnapshot?
+public struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
+    public let state: String
+    public let activeRequest: ActiveRequestSnapshot?
 
     enum CodingKeys: String, CodingKey {
         case state
@@ -438,10 +438,10 @@ struct StatusSnapshot: ResponseEncodable, Sendable {
 
 // MARK: - Job Event Models
 
-struct ServerWorkerStatusEvent: Encodable, Sendable, Equatable {
-    let event = "worker_status"
-    let stage: String
-    let workerMode: String
+public struct ServerWorkerStatusEvent: Encodable, Sendable, Equatable {
+    public let event = "worker_status"
+    public let stage: String
+    public let workerMode: String
 
     enum CodingKeys: String, CodingKey {
         case event
@@ -450,11 +450,11 @@ struct ServerWorkerStatusEvent: Encodable, Sendable, Equatable {
     }
 }
 
-struct ServerQueuedEvent: Encodable, Sendable, Equatable {
-    let id: String
-    let event = "queued"
-    let reason: String
-    let queuePosition: Int
+public struct ServerQueuedEvent: Encodable, Sendable, Equatable {
+    public let id: String
+    public let event = "queued"
+    public let reason: String
+    public let queuePosition: Int
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -464,29 +464,29 @@ struct ServerQueuedEvent: Encodable, Sendable, Equatable {
     }
 }
 
-struct ServerStartedEvent: Encodable, Sendable, Equatable {
-    let id: String
-    let event = "started"
-    let op: String
+public struct ServerStartedEvent: Encodable, Sendable, Equatable {
+    public let id: String
+    public let event = "started"
+    public let op: String
 }
 
-struct ServerProgressEvent: Encodable, Sendable, Equatable {
-    let id: String
-    let event = "progress"
-    let stage: String
+public struct ServerProgressEvent: Encodable, Sendable, Equatable {
+    public let id: String
+    public let event = "progress"
+    public let stage: String
 }
 
-struct ServerSuccessEvent: Encodable, Sendable, Equatable {
-    let id: String
-    let ok = true
-    let profileName: String?
-    let profilePath: String?
-    let profiles: [ProfileSnapshot]?
-    let activeRequest: ActiveRequestSnapshot?
-    let queue: [QueuedRequestSnapshot]?
-    let playbackState: PlaybackStateSnapshot?
-    let clearedCount: Int?
-    let cancelledRequestID: String?
+public struct ServerSuccessEvent: Encodable, Sendable, Equatable {
+    public let id: String
+    public let ok = true
+    public let profileName: String?
+    public let profilePath: String?
+    public let profiles: [ProfileSnapshot]?
+    public let activeRequest: ActiveRequestSnapshot?
+    public let queue: [QueuedRequestSnapshot]?
+    public let playbackState: PlaybackStateSnapshot?
+    public let clearedCount: Int?
+    public let cancelledRequestID: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -502,14 +502,14 @@ struct ServerSuccessEvent: Encodable, Sendable, Equatable {
     }
 }
 
-struct ServerFailureEvent: Encodable, Sendable, Equatable {
-    let id: String
-    let ok = false
-    let code: String
-    let message: String
+public struct ServerFailureEvent: Encodable, Sendable, Equatable {
+    public let id: String
+    public let ok = false
+    public let code: String
+    public let message: String
 }
 
-enum ServerJobEvent: Sendable, Equatable, Encodable {
+public enum ServerJobEvent: Sendable, Equatable, Encodable {
     case workerStatus(ServerWorkerStatusEvent)
     case queued(ServerQueuedEvent)
     case acknowledged(ServerSuccessEvent)
@@ -518,7 +518,7 @@ enum ServerJobEvent: Sendable, Equatable, Encodable {
     case completed(ServerSuccessEvent)
     case failed(ServerFailureEvent)
 
-    var isTerminal: Bool {
+    public var isTerminal: Bool {
         switch self {
         case .completed, .failed:
             true
@@ -527,7 +527,7 @@ enum ServerJobEvent: Sendable, Equatable, Encodable {
         }
     }
 
-    var id: String? {
+    public var id: String? {
         switch self {
         case .workerStatus:
             nil
@@ -546,7 +546,7 @@ enum ServerJobEvent: Sendable, Equatable, Encodable {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         switch self {
         case .workerStatus(let event):
             try event.encode(to: encoder)
@@ -566,15 +566,15 @@ enum ServerJobEvent: Sendable, Equatable, Encodable {
     }
 }
 
-struct JobSnapshot: ResponseEncodable, Sendable {
-    let jobID: String
-    let op: String
-    let submittedAt: String
-    let startedAt: String?
-    let status: String
-    let latestEvent: ServerJobEvent?
-    let terminalEvent: ServerJobEvent?
-    let history: [ServerJobEvent]
+public struct JobSnapshot: ResponseEncodable, Sendable {
+    public let jobID: String
+    public let op: String
+    public let submittedAt: String
+    public let startedAt: String?
+    public let status: String
+    public let latestEvent: ServerJobEvent?
+    public let terminalEvent: ServerJobEvent?
+    public let history: [ServerJobEvent]
 
     enum CodingKeys: String, CodingKey {
         case jobID = "job_id"

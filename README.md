@@ -7,6 +7,7 @@ Swift executable package for a shared localhost host process that exposes the pu
 - [Overview](#overview)
 - [Setup](#setup)
 - [Usage](#usage)
+- [Embedding](#embedding)
 - [Configuration](#configuration)
 - [Development](#development)
 - [Repository Layout](#repository-layout)
@@ -133,6 +134,57 @@ To inspect or remove the installed LaunchAgent:
 swift run SpeakSwiftlyServerCli launch-agent status
 swift run SpeakSwiftlyServerCli launch-agent uninstall
 ```
+
+## Embedding
+
+`SpeakSwiftlyServerCore` now exposes a small app-facing embedding surface for SwiftUI and other Apple-platform app code:
+
+- [`EmbeddedServerSession.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/EmbeddedServerSession.swift) is the supported public lifecycle wrapper for starting and stopping an embedded shared server session.
+- [`ServerState.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerState.swift) is the supported public `@Observable` projection that app UI can read directly.
+- [`HostStateModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/HostStateModels.swift) and the job snapshot types in [`ServerModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerModels.swift) are the public read-only value models that back that observable state.
+
+That public surface is intentionally small. `ServerHost` remains internal so app code does not couple itself to transport orchestration, async stream plumbing, or other backend ownership details.
+
+Start an embedded session from app code like this:
+
+```swift
+import SpeakSwiftlyServerCore
+import SwiftUI
+
+@main
+struct ExampleApp: App {
+    @State private var session: EmbeddedServerSession?
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView(session: session)
+                .task {
+                    if session == nil {
+                        session = try? await EmbeddedServerSession.start()
+                    }
+                }
+        }
+    }
+}
+
+struct ContentView: View {
+    let session: EmbeddedServerSession?
+
+    var body: some View {
+        if let session {
+            Text(session.state.overview.workerMode)
+        } else {
+            ProgressView("Starting SpeakSwiftlyServer…")
+        }
+    }
+}
+```
+
+If a subview needs bindings into mutable session-backed state, use SwiftUI's `@Bindable` support for `@Observable` models instead of `@ObservedObject`. Apple documents that `@Observable` types are tracked by the properties a view reads directly, and that binding support should come through `@Bindable` when a view needs writable bindings:
+
+- [Observation](https://developer.apple.com/documentation/observation)
+- [Managing model data in your app](https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app)
+- [Migrating from the observable object protocol to the observable macro](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro)
 
 ## Configuration
 

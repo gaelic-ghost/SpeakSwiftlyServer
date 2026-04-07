@@ -2,18 +2,18 @@ import Foundation
 
 // MARK: - Host State Models
 
-struct HostOverviewSnapshot: Codable, Sendable, Equatable {
-    let service: String
-    let environment: String
-    let serverMode: String
-    let workerMode: String
-    let workerStage: String
-    let workerReady: Bool
-    let startupError: String?
-    let profileCacheState: String
-    let profileCacheWarning: String?
-    let profileCount: Int
-    let lastProfileRefreshAt: String?
+public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
+    public let service: String
+    public let environment: String
+    public let serverMode: String
+    public let workerMode: String
+    public let workerStage: String
+    public let workerReady: Bool
+    public let startupError: String?
+    public let profileCacheState: String
+    public let profileCacheWarning: String?
+    public let profileCount: Int
+    public let lastProfileRefreshAt: String?
 
     enum CodingKeys: String, CodingKey {
         case service
@@ -30,11 +30,11 @@ struct HostOverviewSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct QueueStatusSnapshot: Codable, Sendable, Equatable {
-    let queueType: String
-    let activeCount: Int
-    let queuedCount: Int
-    let activeRequest: ActiveRequestSnapshot?
+public struct QueueStatusSnapshot: Codable, Sendable, Equatable {
+    public let queueType: String
+    public let activeCount: Int
+    public let queuedCount: Int
+    public let activeRequest: ActiveRequestSnapshot?
 
     enum CodingKeys: String, CodingKey {
         case queueType = "queue_type"
@@ -44,9 +44,9 @@ struct QueueStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
-    let state: String
-    let activeRequest: ActiveRequestSnapshot?
+public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
+    public let state: String
+    public let activeRequest: ActiveRequestSnapshot?
 
     enum CodingKeys: String, CodingKey {
         case state
@@ -54,14 +54,14 @@ struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct CurrentGenerationJobSnapshot: Codable, Sendable, Equatable {
-    let jobID: String
-    let op: String
-    let profileName: String?
-    let submittedAt: String
-    let startedAt: String?
-    let latestStage: String?
-    let elapsedGenerationSeconds: Double?
+public struct CurrentGenerationJobSnapshot: Codable, Sendable, Equatable {
+    public let jobID: String
+    public let op: String
+    public let profileName: String?
+    public let submittedAt: String
+    public let startedAt: String?
+    public let latestStage: String?
+    public let elapsedGenerationSeconds: Double?
 
     enum CodingKeys: String, CodingKey {
         case jobID = "job_id"
@@ -74,14 +74,14 @@ struct CurrentGenerationJobSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct TransportStatusSnapshot: Codable, Sendable, Equatable {
-    let name: String
-    let enabled: Bool
-    let state: String
-    let host: String?
-    let port: Int?
-    let path: String?
-    let advertisedAddress: String?
+public struct TransportStatusSnapshot: Codable, Sendable, Equatable {
+    public let name: String
+    public let enabled: Bool
+    public let state: String
+    public let host: String?
+    public let port: Int?
+    public let path: String?
+    public let advertisedAddress: String?
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -94,11 +94,11 @@ struct TransportStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct RecentErrorSnapshot: Codable, Sendable, Equatable {
-    let occurredAt: String
-    let source: String
-    let code: String
-    let message: String
+public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
+    public let occurredAt: String
+    public let source: String
+    public let code: String
+    public let message: String
 
     enum CodingKeys: String, CodingKey {
         case occurredAt = "occurred_at"
@@ -108,12 +108,12 @@ struct RecentErrorSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct HostStateSnapshot: Codable, Sendable, Equatable {
-    let overview: HostOverviewSnapshot
-    let generationQueue: QueueStatusSnapshot
-    let playbackQueue: QueueStatusSnapshot
-    let playback: PlaybackStatusSnapshot
-    let currentGenerationJob: CurrentGenerationJobSnapshot?
-    let transports: [TransportStatusSnapshot]
-    let recentErrors: [RecentErrorSnapshot]
+public struct HostStateSnapshot: Codable, Sendable, Equatable {
+    public let overview: HostOverviewSnapshot
+    public let generationQueue: QueueStatusSnapshot
+    public let playbackQueue: QueueStatusSnapshot
+    public let playback: PlaybackStatusSnapshot
+    public let currentGenerationJob: CurrentGenerationJobSnapshot?
+    public let transports: [TransportStatusSnapshot]
+    public let recentErrors: [RecentErrorSnapshot]
 }
