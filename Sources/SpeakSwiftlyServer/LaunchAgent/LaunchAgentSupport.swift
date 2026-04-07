@@ -186,10 +186,8 @@ struct LaunchAgentOptions {
 
     static func parse(arguments: [String], currentDirectoryPath: String, currentExecutablePath: String) throws -> LaunchAgentOptions {
         var label = LaunchAgentDefaults.label
-        var toolExecutablePath = resolveDefaultToolExecutablePath(
-            currentDirectoryPath: currentDirectoryPath,
-            currentExecutablePath: currentExecutablePath
-        )
+        let _ = currentExecutablePath
+        var toolExecutablePath = try resolveDefaultToolExecutablePath(currentDirectoryPath: currentDirectoryPath)
         var plistPath = LaunchAgentDefaults.plistPath(for: label)
         var configFilePath: String?
         var reloadIntervalSeconds: String?
@@ -364,8 +362,49 @@ struct LaunchAgentOptions {
 
     // MARK: - Helpers
 
-    static func resolveDefaultToolExecutablePath(currentDirectoryPath: String, currentExecutablePath: String) -> String {
-        resolvePath(currentExecutablePath, relativeTo: currentDirectoryPath)
+    static func resolveDefaultToolExecutablePath(currentDirectoryPath: String) throws -> String {
+        let repositoryRoot = try resolveRepositoryRoot(startingAt: currentDirectoryPath)
+        let stagedReleasePath = LaunchAgentDefaults.stagedReleaseToolExecutablePath(for: repositoryRoot)
+
+        guard FileManager.default.fileExists(atPath: stagedReleasePath) else {
+            throw LaunchAgentCommandError(
+                """
+                \(speakSwiftlyServerToolName) could not find the staged release artifact at '\(stagedReleasePath)'.
+                Likely cause: this checkout has not staged a release build for the live service yet.
+                Build and stage the release artifact first, or pass --tool-executable-path explicitly.
+                """
+            )
+        }
+
+        return stagedReleasePath
+    }
+
+    static func resolveRepositoryRoot(startingAt currentDirectoryPath: String) throws -> String {
+        let fileManager = FileManager.default
+        var candidateURL = URL(fileURLWithPath: resolvePath(currentDirectoryPath), isDirectory: true)
+
+        while true {
+            let packageURL = candidateURL.appendingPathComponent("Package.swift")
+            let toolSourcesURL = candidateURL.appendingPathComponent("Sources/SpeakSwiftlyServerTool", isDirectory: true)
+            if fileManager.fileExists(atPath: packageURL.path),
+               fileManager.fileExists(atPath: toolSourcesURL.path)
+            {
+                return candidateURL.path
+            }
+
+            let parentURL = candidateURL.deletingLastPathComponent()
+            if parentURL.path == candidateURL.path {
+                break
+            }
+            candidateURL = parentURL
+        }
+
+        throw LaunchAgentCommandError(
+            """
+            \(speakSwiftlyServerToolName) could not find the SpeakSwiftlyServer repository root from '\(currentDirectoryPath)'.
+            Likely cause: run the launch-agent command from this repository or pass --tool-executable-path explicitly.
+            """
+        )
     }
 
     static func resolvePath(_ rawPath: String, relativeTo basePath: String = FileManager.default.currentDirectoryPath) -> String {
@@ -493,6 +532,8 @@ enum LaunchAgentDefaults {
     static let label = "com.gaelic-ghost.speak-swiftly-server"
     static let launchctlPath = "/bin/launchctl"
     static let userDomain = "gui/\(getuid())"
+    static let stagedReleaseDirectoryName = ".release-artifacts"
+    static let stagedReleaseCurrentDirectoryName = "current"
     static let workingDirectory = FileManager.default.homeDirectoryForCurrentUser.path
     static let standardOutPath = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Logs/SpeakSwiftlyServer/stdout.log")
@@ -504,6 +545,14 @@ enum LaunchAgentDefaults {
     static func plistPath(for label: String) -> String {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/LaunchAgents/\(label).plist")
+            .path
+    }
+
+    static func stagedReleaseToolExecutablePath(for repositoryRoot: String) -> String {
+        URL(fileURLWithPath: repositoryRoot, isDirectory: true)
+            .appendingPathComponent(stagedReleaseDirectoryName, isDirectory: true)
+            .appendingPathComponent(stagedReleaseCurrentDirectoryName, isDirectory: true)
+            .appendingPathComponent(speakSwiftlyServerToolName)
             .path
     }
 }

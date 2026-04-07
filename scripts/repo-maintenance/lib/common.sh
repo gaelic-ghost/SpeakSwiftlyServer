@@ -38,6 +38,19 @@ ensure_git_repo() {
   git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "The repo-maintenance toolkit must run inside a git worktree rooted at $REPO_ROOT."
 }
 
+release_artifacts_root() {
+  printf '%s\n' "$REPO_ROOT/.release-artifacts"
+}
+
+release_artifact_tag_dir() {
+  [ -n "${RELEASE_TAG:-}" ] || die "RELEASE_TAG must be set before resolving a tagged release artifact directory."
+  printf '%s\n' "$(release_artifacts_root)/$RELEASE_TAG"
+}
+
+release_artifact_current_dir() {
+  printf '%s\n' "$(release_artifacts_root)/current"
+}
+
 run_dispatch_dir() {
   dir="$1"
   label="$2"

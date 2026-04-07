@@ -126,7 +126,7 @@ swift run SpeakSwiftlyServerTool launch-agent install \
   --config-file ./server.yaml
 ```
 
-That command writes a user-owned property list into `~/Library/LaunchAgents`, points `ProgramArguments` at `SpeakSwiftlyServerTool serve`, and uses `launchctl bootstrap` / `bootout` against the current `gui/<uid>` domain. If your tool binary lives somewhere other than the current executable path, pass `--tool-executable-path /absolute/path/to/SpeakSwiftlyServerTool`.
+That command writes a user-owned property list into `~/Library/LaunchAgents`, points `ProgramArguments` at the staged release artifact under `.release-artifacts/current/SpeakSwiftlyServerTool serve`, and uses `launchctl bootstrap` / `bootout` against the current `gui/<uid>` domain. That default keeps the live service on the repo's staged release build instead of whichever debug or transient executable happened to invoke the command. If your tool binary lives somewhere other than the staged release path, pass `--tool-executable-path /absolute/path/to/SpeakSwiftlyServerTool` explicitly.
 
 To inspect or remove the installed LaunchAgent:
 
@@ -385,6 +385,8 @@ For repository maintenance, treat this standalone repository as the source of tr
 
 The repo-maintenance toolkit is now the maintainer-facing wrapper around that release flow. Use `scripts/repo-maintenance/validate-all.sh` for local validation, `scripts/repo-maintenance/sync-shared.sh` for deterministic repo-local sync hooks, and `scripts/repo-maintenance/release.sh` for the tagged release path after verification passes.
 
+That tagged release path now also builds `SpeakSwiftlyServerTool` in `release` mode and stages the resulting binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, then refreshes `.release-artifacts/current` to that tagged build. The live LaunchAgent install path is expected to consume that staged release artifact by default.
+
 ## Repository Layout
 
 - `Sources/SpeakSwiftlyServer/` contains the reusable `SpeakSwiftlyServer` library target with the HTTP, MCP, host, config, and LaunchAgent support code.
@@ -431,7 +433,7 @@ If you want the underlying playback trace logs too, add `SPEAKSWIFTLY_PLAYBACK_T
 
 That live path expects the sibling [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) checkout to have already been built with Xcode at least once so `../SpeakSwiftly/.derived/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib` exists for the server process.
 
-After the live suite passes, use `scripts/repo-maintenance/release.sh` for the tagged release flow so local validation, tag creation, push, and GitHub release creation stay on the same documented path.
+After the live suite passes, use `scripts/repo-maintenance/release.sh` for the tagged release flow so local validation, release artifact staging, tag creation, push, and GitHub release creation stay on the same documented path.
 
 The remaining coverage work is now narrower and more cleanup-focused. The main open checks are trimming any transport-local wrappers that no longer buy clarity and expanding end-to-end assertions when the sibling runtime surface settles again.
 

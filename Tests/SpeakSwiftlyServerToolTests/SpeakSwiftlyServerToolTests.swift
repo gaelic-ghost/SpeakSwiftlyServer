@@ -4,15 +4,30 @@ import Testing
 
 // MARK: - Tool Tests
 
-@Test func toolParsesLaunchAgentInstallAndDefaultsToCurrentToolExecutable() throws {
+@Test func toolParsesLaunchAgentInstallAndDefaultsToStagedReleaseArtifact() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let currentDirectory = tempDirectory.path
-    let debugDirectory = tempDirectory.appendingPathComponent("bin", isDirectory: true)
-    try FileManager.default.createDirectory(at: debugDirectory, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(
+        at: tempDirectory.appendingPathComponent("Sources/SpeakSwiftlyServerTool", isDirectory: true),
+        withIntermediateDirectories: true
+    )
+    try "// test package\n".write(
+        to: tempDirectory.appendingPathComponent("Package.swift"),
+        atomically: true,
+        encoding: .utf8
+    )
 
-    let toolURL = debugDirectory.appendingPathComponent("SpeakSwiftlyServerTool")
-    try "#!/bin/sh\nexit 0\n".write(to: toolURL, atomically: true, encoding: .utf8)
-    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: toolURL.path)
+    let stagedToolURL = tempDirectory
+        .appendingPathComponent(".release-artifacts/current", isDirectory: true)
+        .appendingPathComponent("SpeakSwiftlyServerTool")
+    try FileManager.default.createDirectory(at: stagedToolURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try "#!/bin/sh\nexit 0\n".write(to: stagedToolURL, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: stagedToolURL.path)
+
+    let currentToolURL = tempDirectory.appendingPathComponent("bin/SpeakSwiftlyServerTool")
+    try FileManager.default.createDirectory(at: currentToolURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try "#!/bin/sh\nexit 0\n".write(to: currentToolURL, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: currentToolURL.path)
 
     let command = try SpeakSwiftlyServerToolCommand.parse(
         arguments: [
@@ -22,7 +37,7 @@ import Testing
             "--reload-interval-seconds", "2",
         ],
         currentDirectoryPath: currentDirectory,
-        currentExecutablePath: toolURL.path
+        currentExecutablePath: currentToolURL.path
     )
 
     guard case .launchAgent(let launchAgentCommand) = command,
@@ -31,9 +46,35 @@ import Testing
         return
     }
 
-    #expect(options.toolExecutablePath == toolURL.path)
+    #expect(options.toolExecutablePath == stagedToolURL.path)
     #expect(options.configFilePath == tempDirectory.appendingPathComponent("server.yaml").path)
     #expect(options.reloadIntervalSeconds == "2")
+}
+
+@Test func toolRejectsInstallWhenStagedReleaseArtifactIsMissing() throws {
+    let tempDirectory = try makeTemporaryDirectory()
+    try FileManager.default.createDirectory(
+        at: tempDirectory.appendingPathComponent("Sources/SpeakSwiftlyServerTool", isDirectory: true),
+        withIntermediateDirectories: true
+    )
+    try "// test package\n".write(
+        to: tempDirectory.appendingPathComponent("Package.swift"),
+        atomically: true,
+        encoding: .utf8
+    )
+
+    let currentToolURL = tempDirectory.appendingPathComponent("bin/SpeakSwiftlyServerTool")
+    try FileManager.default.createDirectory(at: currentToolURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try "#!/bin/sh\nexit 0\n".write(to: currentToolURL, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: currentToolURL.path)
+
+    #expect(throws: LaunchAgentCommandError.self) {
+        try SpeakSwiftlyServerToolCommand.parse(
+            arguments: ["launch-agent", "install"],
+            currentDirectoryPath: tempDirectory.path,
+            currentExecutablePath: currentToolURL.path
+        )
+    }
 }
 
 @Test func launchAgentPropertyListIncludesServeCommandAndEnvironmentOverrides() throws {
