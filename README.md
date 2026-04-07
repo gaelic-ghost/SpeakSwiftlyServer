@@ -330,6 +330,7 @@ The embedded MCP resources are:
 
 - `speak://status`
 - `speak://profiles`
+- `speak://profiles/guide`
 - `speak://profiles/{profile_name}/detail`
 - `speak://jobs`
 - `speak://jobs/{job_id}`
@@ -341,6 +342,7 @@ The embedded MCP resources are:
 - `speak://text-profiles/effective/{profile_id}`
 - `speak://text-profiles/stored/{profile_id}`
 - `speak://text-profiles/guide`
+- `speak://playback/guide`
 
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`.
 
@@ -354,10 +356,11 @@ The embedded MCP surface also now carries a small prompt catalog migrated from t
 - `draft_queue_playback_notice`
 - `draft_text_profile`
 - `draft_text_replacement`
+- `choose_surface_action`
 
 The text-profile prompts and the `speak://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail. That parity is intentional because text profiles are meant to be downstream-user-facing, whether the downstream caller is a SwiftUI app, an MCP client, or a local HTTP consumer.
 
-The embedded MCP surface now also supports resource subscriptions for those URIs. Clients connected to the standalone MCP event stream can subscribe to `speak://status`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, and `speak://runtime` and receive `notifications/resources/updated` when shared host events change the underlying state.
+The embedded MCP surface now also supports resource subscriptions for the live state resources and templates backed by shared host updates. Clients connected to the standalone MCP event stream can subscribe to `speak://status`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, `speak://runtime`, `speak://text-profiles`, `speak://text-profiles/base`, `speak://text-profiles/active`, `speak://text-profiles/effective`, `speak://text-profiles/effective/{profile_id}`, and `speak://text-profiles/stored/{profile_id}` and receive `notifications/resources/updated` when shared host events change the underlying state.
 
 Transport lifecycle snapshots are now intentionally tied to the shared Hummingbird process rather than static config alone. `listening` means the shared HTTP host has actually reached Hummingbird's `onServerRunning` boundary, so HTTP and MCP surface status now describe real network availability instead of only configuration intent.
 
