@@ -72,6 +72,7 @@ public enum SpeakSwiftlyServerToolCommand {
       --config-file <path>
       --reload-interval-seconds <seconds>
       --working-directory <path>
+      --profile-root <path>
       --stdout-path <path>
       --stderr-path <path>
 
@@ -177,6 +178,7 @@ struct LaunchAgentOptions {
     let configFilePath: String?
     let reloadIntervalSeconds: String?
     let workingDirectory: String
+    let profileRootPath: String
     let standardOutPath: String
     let standardErrorPath: String
     let launchctlPath: String
@@ -192,6 +194,7 @@ struct LaunchAgentOptions {
         var configFilePath: String?
         var reloadIntervalSeconds: String?
         var workingDirectory = LaunchAgentDefaults.workingDirectory
+        var profileRootPath = LaunchAgentDefaults.runtimeProfileRootPath
         var standardOutPath = LaunchAgentDefaults.standardOutPath
         var standardErrorPath = LaunchAgentDefaults.standardErrorPath
         var index = 0
@@ -223,6 +226,10 @@ struct LaunchAgentOptions {
                 workingDirectory = try requireValue(after: arguments, index: index, option: "--working-directory")
                 index += 2
 
+            case "--profile-root":
+                profileRootPath = try requireValue(after: arguments, index: index, option: "--profile-root")
+                index += 2
+
             case "--stdout-path":
                 standardOutPath = try requireValue(after: arguments, index: index, option: "--stdout-path")
                 index += 2
@@ -245,6 +252,7 @@ struct LaunchAgentOptions {
             configFilePath: configFilePath.map { resolvePath($0, relativeTo: currentDirectoryPath) },
             reloadIntervalSeconds: reloadIntervalSeconds,
             workingDirectory: resolvePath(workingDirectory, relativeTo: currentDirectoryPath),
+            profileRootPath: resolvePath(profileRootPath, relativeTo: currentDirectoryPath),
             standardOutPath: resolvePath(standardOutPath, relativeTo: currentDirectoryPath),
             standardErrorPath: resolvePath(standardErrorPath, relativeTo: currentDirectoryPath)
         )
@@ -259,6 +267,7 @@ struct LaunchAgentOptions {
         configFilePath: String? = nil,
         reloadIntervalSeconds: String? = nil,
         workingDirectory: String = LaunchAgentDefaults.workingDirectory,
+        profileRootPath: String = LaunchAgentDefaults.runtimeProfileRootPath,
         standardOutPath: String = LaunchAgentDefaults.standardOutPath,
         standardErrorPath: String = LaunchAgentDefaults.standardErrorPath,
         launchctlPath: String = LaunchAgentDefaults.launchctlPath,
@@ -286,6 +295,7 @@ struct LaunchAgentOptions {
         self.configFilePath = configFilePath.map { Self.resolvePath($0) }
         self.reloadIntervalSeconds = reloadIntervalSeconds
         self.workingDirectory = Self.resolvePath(workingDirectory)
+        self.profileRootPath = Self.resolvePath(profileRootPath)
         self.standardOutPath = Self.resolvePath(standardOutPath)
         self.standardErrorPath = Self.resolvePath(standardErrorPath)
         self.launchctlPath = launchctlPath
@@ -305,13 +315,11 @@ struct LaunchAgentOptions {
             "StandardErrorPath": standardErrorPath,
         ]
 
-        var environmentVariables = [String: String]()
-        if let configFilePath, !configFilePath.isEmpty {
-            environmentVariables["APP_CONFIG_FILE"] = configFilePath
-        }
-        if let reloadIntervalSeconds, !reloadIntervalSeconds.isEmpty {
-            environmentVariables["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] = reloadIntervalSeconds
-        }
+        let layout = ServerInstallLayout.defaultForCurrentUser(launchAgentLabel: label)
+        let environmentVariables = layout.launchAgentEnvironmentVariables(
+            configFilePath: configFilePath,
+            reloadIntervalSeconds: reloadIntervalSeconds
+        ).merging(["SPEAKSWIFTLY_PROFILE_ROOT": profileRootPath]) { _, rhs in rhs }
         if !environmentVariables.isEmpty {
             propertyList["EnvironmentVariables"] = environmentVariables
         }
@@ -337,6 +345,7 @@ struct LaunchAgentOptions {
 
     func install() throws {
         try ensureParentDirectory(for: plistPath)
+        try FileManager.default.createDirectory(atPath: profileRootPath, withIntermediateDirectories: true)
         try ensureParentDirectory(for: standardOutPath)
         try ensureParentDirectory(for: standardErrorPath)
 
@@ -534,18 +543,14 @@ enum LaunchAgentDefaults {
     static let userDomain = "gui/\(getuid())"
     static let stagedReleaseDirectoryName = ".release-artifacts"
     static let stagedReleaseCurrentDirectoryName = "current"
-    static let workingDirectory = FileManager.default.homeDirectoryForCurrentUser.path
-    static let standardOutPath = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Logs/SpeakSwiftlyServer/stdout.log")
-        .path
-    static let standardErrorPath = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Logs/SpeakSwiftlyServer/stderr.log")
-        .path
+    private static let installLayout = ServerInstallLayout.defaultForCurrentUser()
+    static let workingDirectory = installLayout.workingDirectoryURL.path
+    static let standardOutPath = installLayout.standardOutLogURL.path
+    static let standardErrorPath = installLayout.standardErrorLogURL.path
+    static let runtimeProfileRootPath = installLayout.runtimeProfileRootURL.path
 
     static func plistPath(for label: String) -> String {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/\(label).plist")
-            .path
+        ServerInstallLayout.defaultForCurrentUser(launchAgentLabel: label).launchAgentPlistURL.path
     }
 
     static func stagedReleaseToolExecutablePath(for repositoryRoot: String) -> String {

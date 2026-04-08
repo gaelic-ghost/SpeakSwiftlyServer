@@ -89,6 +89,7 @@ import Testing
         configFilePath: tempDirectory.appendingPathComponent("config/server.yaml").path,
         reloadIntervalSeconds: "0.5",
         workingDirectory: tempDirectory.path,
+        profileRootPath: tempDirectory.appendingPathComponent("runtime/profiles").path,
         standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
         standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path
     )
@@ -102,6 +103,7 @@ import Testing
     #expect(propertyList["KeepAlive"] as? Bool == true)
     #expect(environment["APP_CONFIG_FILE"] == tempDirectory.appendingPathComponent("config/server.yaml").path)
     #expect(environment["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] == "0.5")
+    #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == tempDirectory.appendingPathComponent("runtime/profiles").path)
 }
 
 @Test func launchAgentInstallWritesPlistAndBootstrapsService() throws {
@@ -148,6 +150,7 @@ import Testing
         toolExecutablePath: executableURL.path,
         plistPath: plistURL.path,
         workingDirectory: tempDirectory.path,
+        profileRootPath: tempDirectory.appendingPathComponent("runtime/profiles").path,
         standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
         standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path,
         launchctlPath: fakeLaunchctlURL.path,

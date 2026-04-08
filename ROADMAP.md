@@ -2,8 +2,8 @@
 
 ## Current Release Gate: v1.0.0
 
-- [ ] Document the app-managed install and configuration contract the macOS app will rely on.
-- [ ] Decide and document how app-managed installs own logs, profile roots, and cache paths.
+- [x] Document the app-managed install and configuration contract the macOS app will rely on.
+- [x] Decide and document how app-managed installs own logs, profile roots, and cache paths.
 - [x] Trim the roadmap so the remaining unchecked items are clearly split between the v1.0.0 gate and post-1.0 follow-up work.
 
 ## Milestone 1: Bootstrap And Repo Hygiene
@@ -73,9 +73,9 @@
 
 ## Milestone 6: App And LaunchAgent Handoff
 
-- [ ] Document the app-managed install and configuration contract the forthcoming macOS app will need.
+- [x] Document the app-managed install and configuration contract the forthcoming macOS app will need.
 - [x] Add any server-side hooks needed for LaunchAgent-friendly lifecycle management.
-- [ ] Decide how logs, profile roots, and cache paths should be configured and owned for app-managed installs.
+- [x] Decide how logs, profile roots, and cache paths should be configured and owned for app-managed installs.
 - [x] Prepare an initial tagged release once the service is meaningfully usable.
 
 ## Milestone 7: Live Update Convergence

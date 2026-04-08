@@ -135,6 +135,51 @@ swift run SpeakSwiftlyServerTool launch-agent status
 swift run SpeakSwiftlyServerTool launch-agent uninstall
 ```
 
+### App-Managed Install Contract
+
+The `v1.0.0` app-managed install contract is now explicit and centered on one per-user layout instead of ad hoc paths:
+
+- server support root: `~/Library/Application Support/SpeakSwiftlyServer`
+- server config file: `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`
+- runtime base directory: `~/Library/Application Support/SpeakSwiftlyServer/runtime`
+- runtime profile root: `~/Library/Application Support/SpeakSwiftlyServer/runtime/profiles`
+- runtime configuration file: `~/Library/Application Support/SpeakSwiftlyServer/runtime/configuration.json`
+- logs directory: `~/Library/Logs/SpeakSwiftlyServer`
+- stdout log: `~/Library/Logs/SpeakSwiftlyServer/stdout.log`
+- stderr log: `~/Library/Logs/SpeakSwiftlyServer/stderr.log`
+- reserved cache root: `~/Library/Caches/SpeakSwiftlyServer`
+
+That runtime profile root is now the default LaunchAgent-owned `SPEAKSWIFTLY_PROFILE_ROOT`, which means the standalone server no longer has to share the generic default `SpeakSwiftly` per-user profile store unless an operator intentionally points it somewhere else.
+
+The package exposes that same contract directly to app code through [`ServerInstallLayout`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/AppManagedInstallLayout.swift), so the app can inspect or reuse the owned paths without re-deriving them by hand:
+
+```swift
+import SpeakSwiftlyServer
+
+let layout = ServerInstallLayout.defaultForCurrentUser()
+print(layout.standardErrorLogURL.path)
+print(layout.runtimeProfileRootURL.path)
+```
+
+The package also now exposes [`ServerInstalledLogs`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/AppManagedInstallLayout.swift), which lets the app read the owned stdout and stderr files as plain text, line arrays, or decodable JSON-line payloads:
+
+```swift
+import SpeakSwiftlyServer
+
+let logs = try ServerInstalledLogs.read()
+let stderrText = logs.stderr.text
+let stderrLines = logs.stderr.lines
+
+struct RuntimeLog: Decodable, Sendable {
+    let event: String
+    let ok: Bool?
+}
+
+let runtimeEvents = try logs.stderr.decodeJSONLines(as: RuntimeLog.self)
+```
+
+That API is intentionally file-backed. The app can call one package function and get useful in-process formats without scraping Console, tailing files manually, or hardcoding LaunchAgent defaults in a second place.
+
 ## Embedding
 
 `SpeakSwiftlyServer` now exposes a small app-facing embedding surface for SwiftUI and other Apple-platform app code:
