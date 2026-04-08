@@ -117,7 +117,8 @@ struct MCPSurface {
                     vibe: try requiredVibe("vibe", in: arguments),
                     text: requiredString("text", in: arguments),
                     voiceDescription: requiredString("voice_description", in: arguments),
-                    outputPath: optionalString("output_path", in: arguments)
+                    outputPath: optionalString("output_path", in: arguments),
+                    cwd: optionalString("cwd", in: arguments)
                 )
                 return try toolResult(
                     acceptedJobResult(
@@ -131,7 +132,8 @@ struct MCPSurface {
                     profileName: requiredString("profile_name", in: arguments),
                     vibe: try requiredVibe("vibe", in: arguments),
                     referenceAudioPath: requiredString("reference_audio_path", in: arguments),
-                    transcript: optionalString("transcript", in: arguments)
+                    transcript: optionalString("transcript", in: arguments),
+                    cwd: optionalString("cwd", in: arguments)
                 )
                 return try toolResult(
                     acceptedJobResult(

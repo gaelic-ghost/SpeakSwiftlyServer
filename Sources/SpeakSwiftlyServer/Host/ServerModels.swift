@@ -59,6 +59,7 @@ struct CreateProfileRequestPayload: Decodable {
     let text: String
     let voiceDescription: String
     let outputPath: String?
+    let cwd: String?
 
     enum CodingKeys: String, CodingKey {
         case profileName = "profile_name"
@@ -66,6 +67,7 @@ struct CreateProfileRequestPayload: Decodable {
         case text
         case voiceDescription = "voice_description"
         case outputPath = "output_path"
+        case cwd
     }
 
     func vibeModel() throws -> SpeakSwiftly.Vibe {
@@ -78,12 +80,14 @@ struct CreateCloneRequestPayload: Decodable {
     let vibe: String
     let referenceAudioPath: String
     let transcript: String?
+    let cwd: String?
 
     enum CodingKeys: String, CodingKey {
         case profileName = "profile_name"
         case vibe
         case referenceAudioPath = "reference_audio_path"
         case transcript
+        case cwd
     }
 
     func vibeModel() throws -> SpeakSwiftly.Vibe {

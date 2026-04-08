@@ -49,6 +49,7 @@ enum MCPToolCatalog {
                     "text": ["type": "string"],
                     "voice_description": ["type": "string"],
                     "output_path": ["type": "string"],
+                    "cwd": ["type": "string"],
                 ],
             ]
         ),
@@ -63,6 +64,7 @@ enum MCPToolCatalog {
                     "vibe": ["type": "string", "enum": ["masc", "femme", "androgenous"]],
                     "reference_audio_path": ["type": "string"],
                     "transcript": ["type": "string"],
+                    "cwd": ["type": "string"],
                 ],
             ]
         ),

@@ -566,7 +566,8 @@ actor ServerHost {
         vibe: SpeakSwiftly.Vibe,
         text: String,
         voiceDescription: String,
-        outputPath: String?
+        outputPath: String?,
+        cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
@@ -576,6 +577,7 @@ actor ServerHost {
             from: text,
             voice: voiceDescription,
             outputPath: outputPath,
+            cwd: cwd,
             id: requestID
         )
         return await enqueuePublicJob(handle)
@@ -585,15 +587,17 @@ actor ServerHost {
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         referenceAudioPath: String,
-        transcript: String?
+        transcript: String?,
+        cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
         let requestID = UUID().uuidString
         let handle = await runtime.createClone(
             named: profileName,
             vibe: vibe,
-            from: URL(fileURLWithPath: referenceAudioPath),
+            from: referenceAudioPath,
             transcript: transcript,
+            cwd: cwd,
             id: requestID
         )
         return await enqueuePublicJob(handle)

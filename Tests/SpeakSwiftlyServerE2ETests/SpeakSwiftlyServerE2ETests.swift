@@ -68,6 +68,14 @@ struct SpeakSwiftlyServerE2ETests {
         try await Self.runQueuedMarvisTripletLane(using: .mcp)
     }
 
+    @Test func httpProfileAndCloneCreationResolveRelativePathsAgainstExplicitCallerWorkingDirectory() async throws {
+        try await Self.runRelativePathProfileAndCloneLane(using: .http)
+    }
+
+    @Test func mcpProfileAndCloneCreationResolveRelativePathsAgainstExplicitCallerWorkingDirectory() async throws {
+        try await Self.runRelativePathProfileAndCloneLane(using: .mcp)
+    }
+
     @Test func httpOperatorControlSurfaceCoversReadQueuePlaybackAndRemovalFlows() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }
@@ -1253,6 +1261,91 @@ struct SpeakSwiftlyServerE2ETests {
         }
     }
 
+    private static func runRelativePathProfileAndCloneLane(using transport: E2ETransport) async throws {
+        let sandbox = try ServerE2ESandbox()
+        defer { sandbox.cleanup() }
+
+        let callerWorkingDirectory = sandbox.rootURL.appendingPathComponent("\(transport.profilePrefix)-caller-cwd", isDirectory: true)
+        try FileManager.default.createDirectory(at: callerWorkingDirectory, withIntermediateDirectories: true)
+
+        let relativeReferencePath = "exports/reference.wav"
+        let exportedReferenceURL = callerWorkingDirectory.appending(path: relativeReferencePath)
+        let fixtureProfileName = "\(transport.profilePrefix)-relative-profile-source"
+        let cloneProfileName = "\(transport.profilePrefix)-relative-profile-clone"
+
+        let server = try makeServer(
+            port: randomPort(in: 58_600..<58_800),
+            profileRootURL: sandbox.profileRootURL,
+            silentPlayback: true,
+            mcpEnabled: transport == .mcp
+        )
+        try server.start()
+        defer { server.stop() }
+
+        switch transport {
+        case .http:
+            let client = E2EHTTPClient(baseURL: server.baseURL)
+            try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
+            try await createVoiceDesignProfile(
+                using: client,
+                server: server,
+                profileName: fixtureProfileName,
+                text: testingCloneSourceText,
+                voiceDescription: testingProfileVoiceDescription,
+                outputPath: relativeReferencePath,
+                cwd: callerWorkingDirectory.path
+            )
+            #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
+
+            try await createCloneProfile(
+                using: client,
+                server: server,
+                profileName: cloneProfileName,
+                referenceAudioPath: relativeReferencePath,
+                transcript: testingCloneSourceText,
+                expectTranscription: false,
+                cwd: callerWorkingDirectory.path
+            )
+            try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
+
+        case .mcp:
+            let client = try await E2EMCPClient.connect(
+                baseURL: server.baseURL,
+                path: "/mcp",
+                timeout: e2eTimeout,
+                server: server
+            )
+            try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
+            try await createVoiceDesignProfile(
+                using: client,
+                server: server,
+                profileName: fixtureProfileName,
+                text: testingCloneSourceText,
+                voiceDescription: testingProfileVoiceDescription,
+                outputPath: relativeReferencePath,
+                cwd: callerWorkingDirectory.path
+            )
+            #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
+
+            try await createCloneProfile(
+                using: client,
+                server: server,
+                profileName: cloneProfileName,
+                referenceAudioPath: relativeReferencePath,
+                transcript: testingCloneSourceText,
+                expectTranscription: false,
+                cwd: callerWorkingDirectory.path
+            )
+            try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
+        }
+
+        let storedProfile = try loadStoredProfileManifest(
+            named: cloneProfileName,
+            from: sandbox.profileRootURL
+        )
+        #expect(storedProfile.sourceText == testingCloneSourceText)
+    }
+
     private static func runQueuedMarvisTripletLane(using transport: E2ETransport) async throws {
         struct MarvisQueuedLane {
             let profileName: String
@@ -1485,7 +1578,8 @@ struct SpeakSwiftlyServerE2ETests {
         vibe: String = "femme",
         text: String,
         voiceDescription: String,
-        outputPath: String? = nil
+        outputPath: String? = nil,
+        cwd: String? = nil
     ) async throws {
         var body: [String: Any] = [
             "profile_name": profileName,
@@ -1495,6 +1589,9 @@ struct SpeakSwiftlyServerE2ETests {
         ]
         if let outputPath {
             body["output_path"] = outputPath
+        }
+        if let cwd {
+            body["cwd"] = cwd
         }
 
         let response = try await client.request(path: "/profiles", method: "POST", jsonBody: body)
@@ -1522,7 +1619,8 @@ struct SpeakSwiftlyServerE2ETests {
         vibe: String = "femme",
         referenceAudioPath: String,
         transcript: String?,
-        expectTranscription: Bool
+        expectTranscription: Bool,
+        cwd: String? = nil
     ) async throws {
         var body: [String: Any] = [
             "profile_name": profileName,
@@ -1531,6 +1629,9 @@ struct SpeakSwiftlyServerE2ETests {
         ]
         if let transcript {
             body["transcript"] = transcript
+        }
+        if let cwd {
+            body["cwd"] = cwd
         }
 
         let response = try await client.request(path: "/profiles/clone", method: "POST", jsonBody: body)
@@ -1742,7 +1843,8 @@ struct SpeakSwiftlyServerE2ETests {
         vibe: String = "femme",
         text: String,
         voiceDescription: String,
-        outputPath: String? = nil
+        outputPath: String? = nil,
+        cwd: String? = nil
     ) async throws {
         var arguments = [
             "profile_name": profileName,
@@ -1752,6 +1854,9 @@ struct SpeakSwiftlyServerE2ETests {
         ]
         if let outputPath {
             arguments["output_path"] = outputPath
+        }
+        if let cwd {
+            arguments["cwd"] = cwd
         }
 
         let payload = try await client.callTool(name: "create_profile", arguments: arguments)
@@ -1779,7 +1884,8 @@ struct SpeakSwiftlyServerE2ETests {
         vibe: String = "femme",
         referenceAudioPath: String,
         transcript: String?,
-        expectTranscription: Bool
+        expectTranscription: Bool,
+        cwd: String? = nil
     ) async throws {
         var arguments = [
             "profile_name": profileName,
@@ -1788,6 +1894,9 @@ struct SpeakSwiftlyServerE2ETests {
         ]
         if let transcript {
             arguments["transcript"] = transcript
+        }
+        if let cwd {
+            arguments["cwd"] = cwd
         }
 
         let payload = try await client.callTool(name: "create_clone", arguments: arguments)

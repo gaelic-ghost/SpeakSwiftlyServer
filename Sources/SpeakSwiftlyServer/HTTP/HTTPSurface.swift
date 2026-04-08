@@ -206,7 +206,8 @@ private func registerHTTPRoutes(
             vibe: try payload.vibeModel(),
             text: payload.text,
             voiceDescription: payload.voiceDescription,
-            outputPath: payload.outputPath
+            outputPath: payload.outputPath,
+            cwd: payload.cwd
         )
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }
@@ -217,7 +218,8 @@ private func registerHTTPRoutes(
             profileName: payload.profileName,
             vibe: try payload.vibeModel(),
             referenceAudioPath: payload.referenceAudioPath,
-            transcript: payload.transcript
+            transcript: payload.transcript,
+            cwd: payload.cwd
         )
         return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
     }

@@ -32,6 +32,16 @@ actor MockRuntime: ServerRuntimeProtocol {
         let vibe: SpeakSwiftly.Vibe
         let referenceAudioPath: String
         let transcript: String?
+        let cwd: String?
+    }
+
+    struct CreateProfileInvocation: Sendable, Equatable {
+        let profileName: String
+        let vibe: SpeakSwiftly.Vibe
+        let text: String
+        let voiceDescription: String
+        let outputPath: String?
+        let cwd: String?
     }
 
     struct QueuedRequestState: Sendable {
@@ -58,6 +68,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     private var queuedRequests = [QueuedRequestState]()
     private var queuedSpeechInvocations = [QueuedSpeechInvocation]()
     private var createCloneInvocations = [CreateCloneInvocation]()
+    private var createProfileInvocations = [CreateProfileInvocation]()
     private var playbackState: SpeakSwiftly.PlaybackState = .idle
     private var textRuntime = TextForSpeechRuntime()
     private var loadTextProfilesCallCount = 0
@@ -150,9 +161,19 @@ actor MockRuntime: ServerRuntimeProtocol {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle {
-        _ = outputPath
+        createProfileInvocations.append(
+            .init(
+                profileName: profileName,
+                vibe: vibe,
+                text: text,
+                voiceDescription: voiceDescription,
+                outputPath: outputPath,
+                cwd: cwd
+            )
+        )
         if mutationRefreshBehavior == .applyMutations {
             profiles.append(
                 SpeakSwiftly.ProfileSummary(
@@ -174,16 +195,18 @@ actor MockRuntime: ServerRuntimeProtocol {
     func createClone(
         named profileName: String,
         vibe: SpeakSwiftly.Vibe,
-        from referenceAudioURL: URL,
+        from referenceAudioPath: String,
         transcript: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle {
         createCloneInvocations.append(
             .init(
                 profileName: profileName,
                 vibe: vibe,
-                referenceAudioPath: referenceAudioURL.path,
-                transcript: transcript
+                referenceAudioPath: referenceAudioPath,
+                transcript: transcript,
+                cwd: cwd
             )
         )
         if mutationRefreshBehavior == .applyMutations {
@@ -441,6 +464,10 @@ actor MockRuntime: ServerRuntimeProtocol {
         queuedSpeechInvocations.last
     }
 
+    func latestCreateProfileInvocation() -> CreateProfileInvocation? {
+        createProfileInvocations.last
+    }
+
     func latestCreateCloneInvocation() -> CreateCloneInvocation? {
         createCloneInvocations.last
     }
@@ -655,7 +682,7 @@ actor MockRuntime: ServerRuntimeProtocol {
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(
-                #"{"profile_name":"clone-default","vibe":"femme","reference_audio_path":"./Fixtures/reference.wav","transcript":"Cloned route test transcript."}"#
+                #"{"profile_name":"clone-default","vibe":"femme","reference_audio_path":"./Fixtures/reference.wav","transcript":"Cloned route test transcript.","cwd":"/tmp/http-clone-cwd"}"#
             )
         )
         let cloneJSON = try jsonObject(from: cloneResponse.body)
@@ -665,8 +692,9 @@ actor MockRuntime: ServerRuntimeProtocol {
 
         let cloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
         #expect(cloneInvocation.profileName == "clone-default")
-        #expect(cloneInvocation.referenceAudioPath == URL(fileURLWithPath: "./Fixtures/reference.wav").path)
+        #expect(cloneInvocation.referenceAudioPath == "./Fixtures/reference.wav")
         #expect(cloneInvocation.transcript == "Cloned route test transcript.")
+        #expect(cloneInvocation.cwd == "/tmp/http-clone-cwd")
 
         let speakResponse = try await client.execute(
             uri: "/speak",
@@ -829,6 +857,7 @@ actor MockRuntime: ServerRuntimeProtocol {
                         "vibe": "androgenous",
                         "reference_audio_path": "./Fixtures/mcp-reference.wav",
                         "transcript": "Imported from MCP",
+                        "cwd": "/tmp/mcp-clone-cwd",
                     ]
                 ),
                 sessionID: initializeSessionID
@@ -841,8 +870,9 @@ actor MockRuntime: ServerRuntimeProtocol {
     let createCloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
     #expect(createCloneInvocation.profileName == "clone-from-mcp")
     #expect(createCloneInvocation.vibe == .androgenous)
-    #expect(createCloneInvocation.referenceAudioPath == URL(fileURLWithPath: "./Fixtures/mcp-reference.wav").path)
+    #expect(createCloneInvocation.referenceAudioPath == "./Fixtures/mcp-reference.wav")
     #expect(createCloneInvocation.transcript == "Imported from MCP")
+    #expect(createCloneInvocation.cwd == "/tmp/mcp-clone-cwd")
 
     let listResourcesEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
@@ -1799,7 +1829,8 @@ actor MockRuntime: ServerRuntimeProtocol {
         vibe: .femme,
         text: "Hello there",
         voiceDescription: "Warm and bright",
-        outputPath: nil
+        outputPath: nil,
+        cwd: nil
     )
     let snapshot = try await waitForJobSnapshot(jobID, on: host)
 

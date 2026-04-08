@@ -55,13 +55,15 @@ protocol ServerRuntimeProtocol: Actor {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle
     func createClone(
         named profileName: String,
         vibe: SpeakSwiftly.Vibe,
-        from referenceAudioURL: URL,
+        from referenceAudioPath: String,
         transcript: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle
     func profiles(id: String) async -> RuntimeRequestHandle
@@ -142,6 +144,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(
@@ -151,6 +154,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
                 vibe: vibe,
                 voice: voiceDescription,
                 outputPath: outputPath,
+                cwd: cwd,
                 id: id
             )
         )
@@ -159,16 +163,18 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     func createClone(
         named profileName: String,
         vibe: SpeakSwiftly.Vibe,
-        from referenceAudioURL: URL,
+        from referenceAudioPath: String,
         transcript: String?,
+        cwd: String?,
         id: String
     ) async -> RuntimeRequestHandle {
         RuntimeRequestHandle(
             await runtime.createClone(
                 named: profileName,
-                from: referenceAudioURL,
+                from: referenceAudioPath,
                 vibe: vibe,
                 transcript: transcript,
+                cwd: cwd,
                 id: id
             )
         )
