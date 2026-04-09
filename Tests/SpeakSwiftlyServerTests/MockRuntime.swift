@@ -70,7 +70,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     private var createCloneInvocations = [CreateCloneInvocation]()
     private var createProfileInvocations = [CreateProfileInvocation]()
     private var playbackState: SpeakSwiftly.PlaybackState = .idle
-    private var textRuntime = TextForSpeechRuntime()
+    private var textRuntime = TextForSpeech.Runtime()
     private var loadTextProfilesCallCount = 0
     private var saveTextProfilesCallCount = 0
     private var generatedFiles = [SpeakSwiftly.GeneratedFile]()
@@ -728,23 +728,23 @@ actor MockRuntime: ServerRuntimeProtocol {
     }
 
     func activeTextProfile() async -> TextForSpeech.Profile {
-        textRuntime.customProfile
+        textRuntime.profiles.active() ?? .default
     }
 
     func baseTextProfile() async -> TextForSpeech.Profile {
-        textRuntime.baseProfile
+        .init(id: "base", name: "Base")
     }
 
     func textProfile(id profileID: String) async -> TextForSpeech.Profile? {
-        textRuntime.profile(named: profileID)
+        textRuntime.profiles.stored(id: profileID)
     }
 
     func textProfiles() async -> [TextForSpeech.Profile] {
-        textRuntime.storedProfiles()
+        textRuntime.profiles.list()
     }
 
     func effectiveTextProfile(id profileID: String?) async -> TextForSpeech.Profile {
-        textRuntime.snapshot(named: profileID)
+        textRuntime.profiles.effective(id: profileID) ?? .default
     }
 
     func loadTextProfiles() async throws {
@@ -760,56 +760,56 @@ actor MockRuntime: ServerRuntimeProtocol {
         named name: String,
         replacements: [TextForSpeech.Replacement]
     ) async throws -> TextForSpeech.Profile {
-        try textRuntime.createProfile(id: id, named: name, replacements: replacements)
+        try textRuntime.profiles.create(id: id, name: name, replacements: replacements)
     }
 
     func storeTextProfile(_ profile: TextForSpeech.Profile) async throws {
-        textRuntime.store(profile)
+        textRuntime.profiles.store(profile)
     }
 
     func useTextProfile(_ profile: TextForSpeech.Profile) async throws {
-        textRuntime.use(profile)
+        textRuntime.profiles.use(profile)
     }
 
     func removeTextProfile(id profileID: String) async throws {
-        textRuntime.removeProfile(named: profileID)
+        textRuntime.profiles.delete(id: profileID)
     }
 
     func resetTextProfile() async throws {
-        textRuntime.reset()
+        textRuntime.profiles.reset()
     }
 
     func addTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> TextForSpeech.Profile {
-        textRuntime.addReplacement(replacement)
+        textRuntime.profiles.add(replacement)
     }
 
     func addTextReplacement(
         _ replacement: TextForSpeech.Replacement,
         toStoredTextProfileID profileID: String
     ) async throws -> TextForSpeech.Profile {
-        try textRuntime.addReplacement(replacement, toStoredProfileNamed: profileID)
+        try textRuntime.profiles.add(replacement, toStoredProfileID: profileID)
     }
 
     func replaceTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> TextForSpeech.Profile {
-        try textRuntime.replaceReplacement(replacement)
+        try textRuntime.profiles.replace(replacement)
     }
 
     func replaceTextReplacement(
         _ replacement: TextForSpeech.Replacement,
         inStoredTextProfileID profileID: String
     ) async throws -> TextForSpeech.Profile {
-        try textRuntime.replaceReplacement(replacement, inStoredProfileNamed: profileID)
+        try textRuntime.profiles.replace(replacement, inStoredProfileID: profileID)
     }
 
     func removeTextReplacement(id replacementID: String) async throws -> TextForSpeech.Profile {
-        try textRuntime.removeReplacement(id: replacementID)
+        try textRuntime.profiles.removeReplacement(id: replacementID)
     }
 
     func removeTextReplacement(
         id replacementID: String,
         fromStoredTextProfileID profileID: String
     ) async throws -> TextForSpeech.Profile {
-        try textRuntime.removeReplacement(id: replacementID, fromStoredProfileNamed: profileID)
+        try textRuntime.profiles.removeReplacement(id: replacementID, fromStoredProfileID: profileID)
     }
 
     // MARK: - Test Control

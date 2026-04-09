@@ -263,7 +263,10 @@ public struct TextReplacementSnapshot: Codable, Sendable, Equatable {
         self.match = replacement.match.rawValue
         self.phase = replacement.phase.rawValue
         self.isCaseSensitive = replacement.isCaseSensitive
-        self.formats = replacement.formats.map(\.rawValue).sorted()
+        self.formats = (
+            replacement.textFormats.map(\.rawValue)
+            + replacement.sourceFormats.map(\.rawValue)
+        ).sorted()
         self.priority = replacement.priority
     }
 
@@ -281,15 +284,28 @@ public struct TextReplacementSnapshot: Codable, Sendable, Equatable {
             )
         }
 
-        let resolvedFormats = try Set(formats.map(resolveTextFormat(_:)))
+        let resolvedFormats = try formats.map(resolveNormalizationFormat(_:))
+        let textFormats: Set<TextForSpeech.TextFormat> = Set(resolvedFormats.compactMap { format in
+            guard case .text(let textFormat) = format else {
+                return nil
+            }
+            return textFormat
+        })
+        let sourceFormats: Set<TextForSpeech.SourceFormat> = Set(resolvedFormats.compactMap { format in
+            guard case .source(let sourceFormat) = format else {
+                return nil
+            }
+            return sourceFormat
+        })
         return TextForSpeech.Replacement(
             text,
             with: replacement,
             id: id,
-            as: match,
-            in: phase,
+            matching: match,
+            during: phase,
             caseSensitive: isCaseSensitive,
-            for: resolvedFormats,
+            forTextFormats: textFormats,
+            forSourceFormats: sourceFormats,
             priority: priority
         )
     }
@@ -766,15 +782,27 @@ enum TimestampFormatter {
     }
 }
 
-private func resolveTextFormat(_ rawValue: String) throws -> TextForSpeech.Format {
-    guard let format = TextForSpeech.Format(rawValue: rawValue) else {
-        let supportedFormats = TextForSpeech.Format.allCases.map(\.rawValue).joined(separator: ", ")
-        throw HTTPError(
-            .badRequest,
-            message: "Text replacement format '\(rawValue)' is not supported. Expected one of: \(supportedFormats)."
-        )
+private enum NormalizationFormat: Sendable {
+    case text(TextForSpeech.TextFormat)
+    case source(TextForSpeech.SourceFormat)
+}
+
+private func resolveNormalizationFormat(_ rawValue: String) throws -> NormalizationFormat {
+    if let format = TextForSpeech.TextFormat(rawValue: rawValue) {
+        return .text(format)
     }
-    return format
+    if let format = TextForSpeech.SourceFormat(rawValue: rawValue) {
+        return .source(format)
+    }
+
+    let supportedFormats = (
+        TextForSpeech.TextFormat.allCases.map(\.rawValue)
+        + TextForSpeech.SourceFormat.allCases.map(\.rawValue)
+    ).joined(separator: ", ")
+    throw HTTPError(
+        .badRequest,
+        message: "Text replacement format '\(rawValue)' is not supported. Expected one of: \(supportedFormats)."
+    )
 }
 
 private func resolveRequestTextFormat(_ rawValue: String) throws -> TextForSpeech.TextFormat {

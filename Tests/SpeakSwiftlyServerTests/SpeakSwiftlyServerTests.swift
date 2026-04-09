@@ -11,6 +11,11 @@ import TextForSpeech
 
 // MARK: - Route and MCP Tests
 
+/// Keep these lifecycle-heavy route and MCP tests serialized so Swift Testing
+/// does not interleave independent hosts, MCP surfaces, and held-open requests.
+@Suite(.serialized)
+struct SpeakSwiftlyServerTests {
+
 @available(macOS 14, *)
 @Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
     let runtime = MockRuntime()
@@ -986,6 +991,7 @@ import TextForSpeech
     #expect(message.contains("totally_invalid"))
     #expect(message.contains("plain"))
 
+    await mcpSurface.stop()
     await host.shutdown()
 }
 
@@ -1053,7 +1059,7 @@ import TextForSpeech
     let subscribeEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpSubscribeResourceRequestJSON(uri: "speak://runtime"),
+                body: mcpSubscribeResourceRequestJSON(uri: "speak://runtime/overview"),
                 sessionID: sessionID
             )
         )
@@ -1068,7 +1074,7 @@ import TextForSpeech
     let updatedNotification = try await nextMCPStreamEnvelope(from: &streamIterator)
     #expect(updatedNotification["method"] as? String == "notifications/resources/updated")
     let notificationParams = try #require(updatedNotification["params"] as? [String: Any])
-    #expect(notificationParams["uri"] as? String == "speak://runtime")
+    #expect(notificationParams["uri"] as? String == "speak://runtime/overview")
 
     await mcpSurface.stop()
     await host.shutdown()
@@ -1322,9 +1328,9 @@ import TextForSpeech
     #expect(degradedReadiness.1.startupError?.contains("startup failure") == true)
 
     let degradedHostState = await host.hostStateSnapshot()
-    #expect(degradedHostState.playback.state == "playing")
-    #expect(degradedHostState.playbackQueue.activeRequest?.id == activeJobID)
-    #expect(degradedHostState.runtimeRefresh?.source == "fallback")
+    #expect(degradedHostState.playback.state == "idle")
+    #expect(degradedHostState.playbackQueue.activeRequest == nil)
+    #expect(degradedHostState.runtimeRefresh?.source == "cached_worker_not_ready")
 
     let activeSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         let snapshot = try await host.jobSnapshot(id: activeJobID)
@@ -1393,4 +1399,6 @@ import TextForSpeech
     #expect(status.profileCacheWarning?.contains("could not confirm the refreshed profile list") == true)
 
     await host.shutdown()
+}
+
 }

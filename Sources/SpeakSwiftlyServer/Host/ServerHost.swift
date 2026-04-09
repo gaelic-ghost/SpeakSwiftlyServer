@@ -1354,41 +1354,42 @@ actor ServerHost {
         nextRuntimeRefreshSequenceID += 1
         let startedAt = Date()
         guard workerMode == "ready" else {
-            applyFallbackRuntimeDerivedState(
+            applyCachedRuntimeDerivedState(
                 sequenceID: refreshSequenceID,
                 startedAt: startedAt,
-                previousPlaybackStatus: previousPlaybackStatus
+                previousPlaybackStatus: previousPlaybackStatus,
+                source: "cached_worker_not_ready"
             )
             return
         }
 
-        var usedFallback = false
         var runtimeOverviewRefreshedAt = Date()
         do {
             try await applyRuntimeOverviewSnapshot()
             runtimeOverviewRefreshedAt = Date()
+            runtimeRefreshSnapshot = .init(
+                sequenceID: refreshSequenceID,
+                source: "runtime_overview",
+                startedAt: TimestampFormatter.string(from: startedAt),
+                generationQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
+                playbackQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
+                playbackStateRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
+                completedAt: TimestampFormatter.string(from: Date())
+            )
         } catch {
             recordRecentError(
                 source: "runtime:overview",
                 code: "runtime_overview_failed",
                 message: "SpeakSwiftlyServer could not refresh the atomic runtime overview snapshot. Likely cause: \(error.localizedDescription)"
             )
-            runtimeOverviewRefreshedAt = Date()
-            generationQueueStatus = deriveGenerationQueueStatusFallback()
-            playbackQueueStatus = derivePlaybackQueueStatusFallback()
-            playbackStatus = derivePlaybackStatusFallback()
-            usedFallback = true
+            applyCachedRuntimeDerivedState(
+                sequenceID: refreshSequenceID,
+                startedAt: startedAt,
+                previousPlaybackStatus: previousPlaybackStatus,
+                source: "cached_runtime_overview_failed"
+            )
+            return
         }
-
-        runtimeRefreshSnapshot = .init(
-            sequenceID: refreshSequenceID,
-            source: usedFallback ? "fallback" : "runtime_overview",
-            startedAt: TimestampFormatter.string(from: startedAt),
-            generationQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-            playbackQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-            playbackStateRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-            completedAt: TimestampFormatter.string(from: Date())
-        )
 
         if playbackStatus != previousPlaybackStatus {
             hostEventContinuation.yield(.playbackChanged(playbackStatus))
@@ -1403,18 +1404,16 @@ actor ServerHost {
         await refreshRuntimeDerivedState()
     }
 
-    private func applyFallbackRuntimeDerivedState(
+    private func applyCachedRuntimeDerivedState(
         sequenceID: Int,
         startedAt: Date,
-        previousPlaybackStatus: PlaybackStatusSnapshot
+        previousPlaybackStatus: PlaybackStatusSnapshot,
+        source: String
     ) {
         let refreshedAt = Date()
-        generationQueueStatus = deriveGenerationQueueStatusFallback()
-        playbackQueueStatus = derivePlaybackQueueStatusFallback()
-        playbackStatus = derivePlaybackStatusFallback()
         runtimeRefreshSnapshot = .init(
             sequenceID: sequenceID,
-            source: "fallback",
+            source: source,
             startedAt: TimestampFormatter.string(from: startedAt),
             generationQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
             playbackQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
@@ -1463,63 +1462,13 @@ actor ServerHost {
     }
 
     private func activeGenerationJobRecords() -> [JobRecord] {
-        let runtimeActiveJobs: [JobRecord] = generationQueueStatus.activeRequests.compactMap { activeRequest in
+        generationQueueStatus.activeRequests.compactMap { activeRequest in
             guard let job = jobs[activeRequest.id], isGenerationOperation(job.op), job.terminalEvent == nil else {
                 return nil
             }
             return job
         }
-        if runtimeActiveJobs.isEmpty == false {
-            return runtimeActiveJobs.sorted(by: generationJobOrdering)
-        }
-
-        return fallbackGenerationJobRecords()
-    }
-
-    private func fallbackGenerationJobRecords() -> [JobRecord] {
-        jobs.values
-            .filter { isGenerationOperation($0.op) && $0.terminalEvent == nil }
-            .sorted(by: generationJobOrdering)
-    }
-
-    private func currentLiveSpeechJobs() -> [JobRecord] {
-        jobs.values
-            .filter { $0.op == "queue_speech_live" && $0.terminalEvent == nil }
-            .sorted { lhs, rhs in lhs.submittedAt < rhs.submittedAt }
-    }
-
-    private func playbackCandidateRecords() -> [JobRecord] {
-        currentLiveSpeechJobs().filter { job in
-            switch latestOperationalEvent(for: job) {
-            case .started(let event):
-                return event.op == "queue_speech_live"
-            case .progress(let event):
-                switch event.stage {
-                case "starting_playback", "buffering_audio", "preroll_ready", "playback_finished":
-                    return true
-                default:
-                    return false
-                }
-            default:
-                return false
-            }
-        }
-    }
-
-    private func inferredPlaybackActiveRequest() -> ActiveRequestSnapshot? {
-        if let activeRequest = playbackQueueStatus.activeRequest {
-            return activeRequest
-        }
-        if let activeRequest = playbackQueueStatus.activeRequests.first {
-            return activeRequest
-        }
-
-        let candidates = playbackCandidateRecords()
-        guard candidates.count == 1, let candidate = candidates.first else {
-            return nil
-        }
-
-        return .init(id: candidate.jobID, op: candidate.op, profileName: candidate.profileName)
+        .sorted(by: generationJobOrdering)
     }
 
     private func generationPriority(for job: JobRecord) -> Int {
@@ -1555,77 +1504,6 @@ actor ServerHost {
             }
             return true
         }
-    }
-
-    private func deriveGenerationQueueStatusFallback() -> QueueStatusSnapshot {
-        let activeJobs = fallbackGenerationJobRecords().filter { job in
-            switch latestOperationalEvent(for: job) {
-            case .started, .progress:
-                return true
-            default:
-                return false
-            }
-        }
-        let queuedCount = jobs.values.filter {
-            guard isGenerationOperation($0.op), $0.terminalEvent == nil else {
-                return false
-            }
-            if case .queued = latestOperationalEvent(for: $0) {
-                return true
-            }
-            return false
-        }.count
-
-        return .init(
-            queueType: "generation",
-            activeCount: activeJobs.count,
-            queuedCount: queuedCount,
-            activeRequest: activeJobs.first.map {
-                .init(id: $0.jobID, op: $0.op, profileName: $0.profileName)
-            },
-            activeRequests: activeJobs.map {
-                .init(id: $0.jobID, op: $0.op, profileName: $0.profileName)
-            },
-            queuedRequests: queuedGenerationRequestSnapshots()
-        )
-    }
-
-    private func derivePlaybackQueueStatusFallback() -> QueueStatusSnapshot {
-        let liveJobs = currentLiveSpeechJobs()
-        let activeRequest = inferredPlaybackActiveRequest()
-        let activeRequests = activeRequest.map { [$0] } ?? []
-        let hasPlaybackWork = !liveJobs.isEmpty
-        return .init(
-            queueType: "playback",
-            activeCount: activeRequests.count,
-            queuedCount: max(liveJobs.count - (hasPlaybackWork ? 1 : 0), 0),
-            activeRequest: activeRequest,
-            activeRequests: activeRequests,
-            queuedRequests: queuedPlaybackRequestSnapshots()
-        )
-    }
-
-    private func derivePlaybackStatusFallback() -> PlaybackStatusSnapshot {
-        if let activeRequest = inferredPlaybackActiveRequest() {
-            return .init(
-                state: SpeakSwiftly.PlaybackState.playing.rawValue,
-                activeRequest: activeRequest,
-                isStableForConcurrentGeneration: false,
-                isRebuffering: false,
-                stableBufferedAudioMS: nil,
-                stableBufferTargetMS: nil
-            )
-        }
-
-        let hasPlaybackCandidates = !playbackCandidateRecords().isEmpty
-        return .init(
-            state: hasPlaybackCandidates ? SpeakSwiftly.PlaybackState.playing.rawValue : SpeakSwiftly.PlaybackState.idle.rawValue,
-            activeRequest: nil,
-            isStableForConcurrentGeneration: false,
-            isRebuffering: false,
-            stableBufferedAudioMS: nil,
-            stableBufferTargetMS: nil
-        )
     }
 
     private func transportSnapshots() -> [TransportStatusSnapshot] {
@@ -1856,46 +1734,6 @@ actor ServerHost {
             activeRequests: activeRequests,
             queuedRequests: summary.queue.map(QueuedRequestSnapshot.init(summary:))
         )
-    }
-
-    private func queuedGenerationRequestSnapshots() -> [QueuedRequestSnapshot] {
-        fallbackGenerationJobRecords()
-            .filter {
-                guard case .queued = latestOperationalEvent(for: $0) else {
-                    return false
-                }
-                return true
-            }
-            .enumerated()
-            .map { index, job in
-                .init(
-                    id: job.jobID,
-                    op: job.op,
-                    profileName: job.profileName,
-                    queuePosition: index + 1
-                )
-            }
-    }
-
-    private func queuedPlaybackRequestSnapshots() -> [QueuedRequestSnapshot] {
-        let activePlaybackID = inferredPlaybackActiveRequest()?.id
-        return currentLiveSpeechJobs()
-            .filter { $0.jobID != activePlaybackID }
-            .filter {
-                guard case .queued = latestOperationalEvent(for: $0) else {
-                    return false
-                }
-                return true
-            }
-            .enumerated()
-            .map { index, job in
-                .init(
-                    id: job.jobID,
-                    op: job.op,
-                    profileName: job.profileName,
-                    queuePosition: index + 1
-                )
-            }
     }
 
     private func queueSnapshotResponse(from snapshot: QueueStatusSnapshot) -> QueueSnapshotResponse {
