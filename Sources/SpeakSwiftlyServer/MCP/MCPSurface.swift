@@ -96,8 +96,8 @@ struct MCPSurface {
             let arguments = params.arguments ?? [:]
 
             switch params.name {
-            case "queue_speech_live":
-                let jobID = try await host.submitSpeak(
+            case "generate_speech_live":
+                let requestID = try await host.submitGenerateSpeechLive(
                     text: requiredString("text", in: arguments),
                     profileName: requiredString("profile_name", in: arguments),
                     textProfileName: optionalString("text_profile_name", in: arguments),
@@ -105,14 +105,42 @@ struct MCPSurface {
                     sourceFormat: try sourceFormat(in: arguments)
                 )
                 return try toolResult(
-                    acceptedJobResult(
-                        jobID: jobID,
-                        message: "SpeakSwiftlyServer accepted the speech request. Read the returned job resource for request progress or read speak://status to monitor generation, playback, and transport state."
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the live speech request. Read the returned request resource for progress or read speak://runtime/overview to monitor generation, playback, and transport state."
                     )
                 )
 
-            case "create_profile":
-                let jobID = try await host.submitCreateProfile(
+            case "generate_audio_file":
+                let requestID = try await host.submitGenerateAudioFile(
+                    text: requiredString("text", in: arguments),
+                    profileName: requiredString("profile_name", in: arguments),
+                    textProfileName: optionalString("text_profile_name", in: arguments),
+                    normalizationContext: try normalizationContext(in: arguments),
+                    sourceFormat: try sourceFormat(in: arguments)
+                )
+                return try toolResult(
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak://generation/files or speak://generation/jobs."
+                    )
+                )
+
+            case "generate_audio_batch":
+                let items: [BatchItemRequestPayload] = try decodeArgument("items", in: arguments)
+                let requestID = try await host.submitGenerateAudioBatch(
+                    items: try items.map { try $0.model() },
+                    profileName: requiredString("profile_name", in: arguments)
+                )
+                return try toolResult(
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak://generation/batches or speak://generation/jobs."
+                    )
+                )
+
+            case "create_voice_profile":
+                let requestID = try await host.submitCreateVoiceProfile(
                     profileName: requiredString("profile_name", in: arguments),
                     vibe: try requiredVibe("vibe", in: arguments),
                     text: requiredString("text", in: arguments),
@@ -121,14 +149,14 @@ struct MCPSurface {
                     cwd: optionalString("cwd", in: arguments)
                 )
                 return try toolResult(
-                    acceptedJobResult(
-                        jobID: jobID,
-                        message: "SpeakSwiftlyServer accepted the profile-creation request. Read the returned job resource for request progress or read speak://status to monitor worker state and the refreshed profile cache."
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the voice-profile creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache."
                     )
                 )
 
-            case "create_clone":
-                let jobID = try await host.submitCreateClone(
+            case "clone_voice_profile":
+                let requestID = try await host.submitCloneVoiceProfile(
                     profileName: requiredString("profile_name", in: arguments),
                     vibe: try requiredVibe("vibe", in: arguments),
                     referenceAudioPath: requiredString("reference_audio_path", in: arguments),
@@ -136,16 +164,56 @@ struct MCPSurface {
                     cwd: optionalString("cwd", in: arguments)
                 )
                 return try toolResult(
-                    acceptedJobResult(
-                        jobID: jobID,
-                        message: "SpeakSwiftlyServer accepted the clone-creation request. Read the returned job resource for request progress or read speak://status to monitor worker state and the refreshed profile cache."
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache."
                     )
                 )
 
-            case "list_profiles":
+            case "list_voice_profiles":
                 return try toolResult(await host.cachedProfiles())
 
-            case "list_text_profiles":
+            case "delete_voice_profile":
+                let requestID = try await host.submitDeleteVoiceProfile(
+                    profileName: requiredString("profile_name", in: arguments)
+                )
+                return try toolResult(
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache."
+                    )
+                )
+
+            case "get_runtime_overview":
+                return try toolResult(await host.statusSnapshot())
+
+            case "get_runtime_status":
+                return try toolResult(try await host.runtimeStatus())
+
+            case "get_runtime_configuration":
+                return try toolResult(await host.runtimeConfigurationSnapshot())
+
+            case "set_runtime_configuration":
+                return try toolResult(
+                    try await host.saveRuntimeConfiguration(
+                        speechBackend: try requiredSpeechBackend("speech_backend", in: arguments)
+                    )
+                )
+
+            case "switch_speech_backend":
+                return try toolResult(
+                    try await host.switchSpeechBackend(
+                        to: try requiredSpeechBackend("speech_backend", in: arguments)
+                    )
+                )
+
+            case "reload_models":
+                return try toolResult(try await host.reloadModels())
+
+            case "unload_models":
+                return try toolResult(try await host.unloadModels())
+
+            case "get_normalizer_state":
                 return try toolResult(await host.textProfilesSnapshot())
 
             case "create_text_profile":
@@ -172,12 +240,12 @@ struct MCPSurface {
                 let profile: TextProfileSnapshot = try decodeArgument("profile", in: arguments)
                 return try toolResult(try await host.useTextProfile(try profile.model()))
 
-            case "remove_text_profile":
+            case "delete_text_profile":
                 return try toolResult(
                     try await host.removeTextProfile(named: requiredString("profile_id", in: arguments))
                 )
 
-            case "reset_text_profile":
+            case "reset_active_text_profile":
                 return try toolResult(try await host.resetTextProfile())
 
             case "add_text_replacement":
@@ -206,33 +274,22 @@ struct MCPSurface {
                     )
                 )
 
-            case "remove_profile":
-                let jobID = try await host.submitRemoveProfile(
-                    profileName: requiredString("profile_name", in: arguments)
-                )
-                return try toolResult(
-                    acceptedJobResult(
-                        jobID: jobID,
-                        message: "SpeakSwiftlyServer accepted the profile-removal request. Read the returned job resource for request progress or read speak://status to monitor worker state and the refreshed profile cache."
-                    )
-                )
-
-            case "list_queue_generation":
+            case "list_generation_queue":
                 return try toolResult(try await host.queueSnapshot(queueType: .generation))
 
-            case "list_queue_playback":
+            case "list_playback_queue":
                 return try toolResult(try await host.queueSnapshot(queueType: .playback))
 
-            case "playback_pause":
-                return try toolResult(try await host.pausePlayback())
-
-            case "playback_resume":
-                return try toolResult(try await host.resumePlayback())
-
-            case "playback_state":
+            case "get_playback_state":
                 return try toolResult(try await host.playbackStateSnapshot())
 
-            case "clear_queue":
+            case "pause_playback":
+                return try toolResult(try await host.pausePlayback())
+
+            case "resume_playback":
+                return try toolResult(try await host.resumePlayback())
+
+            case "clear_playback_queue":
                 return try toolResult(try await host.clearQueue())
 
             case "cancel_request":
@@ -242,18 +299,29 @@ struct MCPSurface {
                     )
                 )
 
-            case "get_runtime_config":
-                return try toolResult(await host.runtimeConfigurationSnapshot())
+            case "list_requests":
+                return try toolResult(await host.jobSnapshots())
 
-            case "set_runtime_config":
-                return try toolResult(
-                    try await host.saveRuntimeConfiguration(
-                        speechBackend: try requiredSpeechBackend("speech_backend", in: arguments)
-                    )
-                )
+            case "list_generation_jobs":
+                return try toolResult(try await host.generationJobs())
 
-            case "status":
-                return try toolResult(await host.statusSnapshot())
+            case "get_generation_job":
+                return try toolResult(try await host.generationJob(id: requiredString("job_id", in: arguments)))
+
+            case "expire_generation_job":
+                return try toolResult(try await host.expireGenerationJob(id: requiredString("job_id", in: arguments)))
+
+            case "list_generated_files":
+                return try toolResult(try await host.generatedFiles())
+
+            case "get_generated_file":
+                return try toolResult(try await host.generatedFile(id: requiredString("artifact_id", in: arguments)))
+
+            case "list_generated_batches":
+                return try toolResult(try await host.generatedBatches())
+
+            case "get_generated_batch":
+                return try toolResult(try await host.generatedBatch(id: requiredString("batch_id", in: arguments)))
 
             default:
                 throw MCPError.methodNotFound(
@@ -286,16 +354,19 @@ struct MCPSurface {
 
         await server.withMethodHandler(ReadResource.self) { params in
             switch params.uri {
-            case "speak://status":
+            case "speak://runtime/overview":
                 return try resourceResult(uri: params.uri, payload: await host.statusSnapshot())
 
-            case "speak://runtime-config":
+            case "speak://runtime/status":
+                return try resourceResult(uri: params.uri, payload: try await host.runtimeStatus())
+
+            case "speak://runtime/configuration":
                 return try resourceResult(uri: params.uri, payload: await host.runtimeConfigurationSnapshot())
 
-            case "speak://profiles":
+            case "speak://voices":
                 return try resourceResult(uri: params.uri, payload: await host.cachedProfiles())
 
-            case "speak://profiles/guide":
+            case "speak://voices/guide":
                 return .init(
                     contents: [
                         .text(
@@ -306,10 +377,10 @@ struct MCPSurface {
                     ]
                 )
 
-            case "speak://text-profiles":
+            case "speak://normalizer":
                 return try resourceResult(uri: params.uri, payload: await host.textProfilesSnapshot())
 
-            case "speak://text-profiles/guide":
+            case "speak://normalizer/guide":
                 return .init(
                     contents: [
                         .text(
@@ -331,20 +402,26 @@ struct MCPSurface {
                     ]
                 )
 
-            case "speak://text-profiles/base":
+            case "speak://normalizer/base-profile":
                 return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).baseProfile)
 
-            case "speak://text-profiles/active":
+            case "speak://normalizer/active-profile":
                 return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).activeProfile)
 
-            case "speak://text-profiles/effective":
+            case "speak://normalizer/effective-profile":
                 return try resourceResult(uri: params.uri, payload: await host.effectiveTextProfile(nil))
 
-            case "speak://jobs":
+            case "speak://requests":
                 return try resourceResult(uri: params.uri, payload: await host.jobSnapshots())
 
-            case "speak://runtime":
-                return try resourceResult(uri: params.uri, payload: await host.hostStateSnapshot())
+            case "speak://generation/jobs":
+                return try resourceResult(uri: params.uri, payload: try await host.generationJobs())
+
+            case "speak://generation/files":
+                return try resourceResult(uri: params.uri, payload: try await host.generatedFiles())
+
+            case "speak://generation/batches":
+                return try resourceResult(uri: params.uri, payload: try await host.generatedBatches())
 
             default:
                 if let profileName = profileDetailName(from: params.uri) {
@@ -359,7 +436,7 @@ struct MCPSurface {
                 if let profileID = storedTextProfileID(from: params.uri) {
                     guard let profile = await host.storedTextProfile(profileID) else {
                         throw MCPError.invalidRequest(
-                            "No stored SpeakSwiftly text profile matched that profile id. Read speak://text-profiles first to inspect the current stored profile set."
+                            "No stored SpeakSwiftly text profile matched that profile id. Read speak://normalizer first to inspect the current stored profile set."
                         )
                     }
                     return try resourceResult(uri: params.uri, payload: profile)
@@ -369,14 +446,26 @@ struct MCPSurface {
                     return try resourceResult(uri: params.uri, payload: await host.effectiveTextProfile(profileID))
                 }
 
-                if let jobID = jobID(from: params.uri) {
+                if let requestID = requestID(from: params.uri) {
                     do {
-                        return try resourceResult(uri: params.uri, payload: try await host.jobSnapshot(id: jobID))
+                        return try resourceResult(uri: params.uri, payload: try await host.jobSnapshot(id: requestID))
                     } catch {
                         throw MCPError.invalidRequest(
-                            "No tracked SpeakSwiftly job matched that job id. Submit speech or profile work first, or read speak://jobs to inspect retained jobs."
+                            "No tracked SpeakSwiftly request matched that request id. Submit work first, or read speak://requests to inspect retained request state."
                         )
                     }
+                }
+
+                if let jobID = generationJobID(from: params.uri) {
+                    return try resourceResult(uri: params.uri, payload: try await host.generationJob(id: jobID))
+                }
+
+                if let artifactID = generatedFileID(from: params.uri) {
+                    return try resourceResult(uri: params.uri, payload: try await host.generatedFile(id: artifactID))
+                }
+
+                if let batchID = generatedBatchID(from: params.uri) {
+                    return try resourceResult(uri: params.uri, payload: try await host.generatedBatch(id: batchID))
                 }
 
                 throw MCPError.invalidRequest(
@@ -484,12 +573,12 @@ struct MCPSurface {
 
             case "draft_queue_playback_notice":
                 let spokenTextSummary = try requiredPromptString("spoken_text_summary", in: arguments)
-                let jobID = try requiredPromptString("job_id", in: arguments)
+                let requestID = try requiredPromptString("request_id", in: arguments)
                 let statusResourceURI = try requiredPromptString("status_resource_uri", in: arguments)
                 let body = """
                 Write exactly one short operator-facing acknowledgement for a speech request that was accepted by the shared SpeakSwiftly server host.
                 Spoken text summary: \(spokenTextSummary)
-                Shared host job id: \(jobID)
+                Shared host request id: \(requestID)
                 Status resource URI: \(statusResourceURI)
                 Requested tone: \(textIfPresent("tone", in: arguments) ?? "calm and direct")
                 State that the request was accepted and queued or running under the shared host, avoid promising that playback has already finished, and point to the status resource for follow-up. Return only the acknowledgement text.
@@ -507,10 +596,11 @@ struct MCPSurface {
                 Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                 \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
                 Available action families:
-                - voice profile creation: create_profile, create_clone, list_profiles, remove_profile, speak://profiles, speak://profiles/guide
-                - speech submission: queue_speech_live, speak://jobs/{job_id}, speak://status
-                - text normalization: list_text_profiles, load_text_profiles, save_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://text-profiles, speak://text-profiles/guide
-                - playback and queue control: list_queue_generation, list_queue_playback, playback_state, playback_pause, playback_resume, clear_queue, cancel_request, speak://playback/guide
+                - voice profile work: create_voice_profile, clone_voice_profile, list_voice_profiles, delete_voice_profile, speak://voices, speak://voices/guide
+                - speech and retained generation: generate_speech_live, generate_audio_file, generate_audio_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
+                - text normalization: get_normalizer_state, load_text_profiles, save_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_active_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://normalizer, speak://normalizer/guide
+                - playback and queue control: list_generation_queue, list_playback_queue, get_playback_state, pause_playback, resume_playback, clear_playback_queue, cancel_request, speak://playback/guide
+                - runtime controls: get_runtime_overview, get_runtime_status, get_runtime_configuration, set_runtime_configuration, switch_speech_backend, reload_models, unload_models, speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
                 - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
                 Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
                 """
@@ -752,39 +842,36 @@ private actor MCPSubscriptionBroker {
         let candidateURIs: Set<String>
         switch event {
         case .transportChanged, .playbackChanged, .recentErrorRecorded:
-            candidateURIs = ["speak://status", "speak://runtime"]
+            candidateURIs = ["speak://runtime/overview"]
         case .jobEvent:
             candidateURIs = []
         case .jobChanged(let snapshot):
             candidateURIs = [
-                "speak://status",
-                "speak://runtime",
-                "speak://jobs",
-                "speak://jobs/\(snapshot.jobID)",
+                "speak://runtime/overview",
+                "speak://requests",
+                "speak://requests/\(snapshot.requestID)",
             ]
         case .profileCacheChanged:
             candidateURIs = Set(
                 [
-                    "speak://status",
-                    "speak://runtime",
-                    "speak://profiles",
-                ] + subscribedResourceURIs.filter(isProfileDetailURI)
+                    "speak://runtime/overview",
+                    "speak://voices",
+                ] + subscribedResourceURIs.filter(isVoiceProfileURI)
             )
         case .textProfilesChanged:
             candidateURIs = Set(
                 [
-                    "speak://text-profiles",
-                    "speak://text-profiles/base",
-                    "speak://text-profiles/active",
-                    "speak://text-profiles/effective",
+                    "speak://normalizer",
+                    "speak://normalizer/base-profile",
+                    "speak://normalizer/active-profile",
+                    "speak://normalizer/effective-profile",
                 ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
                     + subscribedResourceURIs.filter(isEffectiveTextProfileURI)
             )
         case .runtimeConfigurationChanged:
             candidateURIs = [
-                "speak://status",
-                "speak://runtime",
-                "speak://runtime-config",
+                "speak://runtime/overview",
+                "speak://runtime/configuration",
             ]
         }
         return candidateURIs
@@ -800,7 +887,10 @@ private func ensureKnownResourceURI(_ uri: String) throws {
         || profileDetailName(from: uri) != nil
         || storedTextProfileID(from: uri) != nil
         || effectiveTextProfileID(from: uri) != nil
-        || jobID(from: uri) != nil
+        || requestID(from: uri) != nil
+        || generationJobID(from: uri) != nil
+        || generatedFileID(from: uri) != nil
+        || generatedBatchID(from: uri) != nil
     else {
         throw MCPError.invalidRequest(
             "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface."
@@ -1042,11 +1132,11 @@ private func legacyRequestTextFormat(for format: TextForSpeech.Format) -> TextFo
     }
 }
 
-private func acceptedJobResult(jobID: String, message: String) -> MCPAcceptedJobResult {
+private func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedRequestResult {
     .init(
-        jobID: jobID,
-        jobResourceURI: "speak://jobs/\(jobID)",
-        statusResourceURI: "speak://status",
+        requestID: requestID,
+        requestResourceURI: "speak://requests/\(requestID)",
+        statusResourceURI: "speak://runtime/overview",
         message: message
     )
 }
@@ -1077,7 +1167,7 @@ private func compactPrompt(_ raw: String) -> String {
 
 private func textProfilesGuideMarkdown() -> String {
     """
-    # SpeakSwiftly Text Profile Guide
+    # SpeakSwiftly Normalizer Guide
 
     Use text profiles when a downstream app or agent needs to normalize phrasing before speech generation without changing the underlying voice profile.
 
@@ -1088,12 +1178,12 @@ private func textProfilesGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak://text-profiles` to inspect the current base, active, stored, and effective state.
+    1. Read `speak://normalizer` to inspect the current base, active, stored, and effective state.
     2. Draft or edit rules with the `draft_text_profile` and `draft_text_replacement` prompts when a user needs help authoring replacements.
     3. Store reusable policies with `create_text_profile` or `store_text_profile`.
     4. Use `use_text_profile` when the downstream app wants a temporary active custom profile, or pass `text_profile_name` on one speech request when the caller wants stored-profile selection without mutating the active profile.
     5. Use `save_text_profiles` when the operator wants an explicit persistence checkpoint, and `load_text_profiles` when another process changed the persistence file and the in-memory state should be refreshed from disk.
-    6. Read `speak://text-profiles/effective/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
+    6. Read `speak://normalizer/effective-profile/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
 
     Replacement guidance:
 
@@ -1113,13 +1203,13 @@ private func voiceProfilesGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak://profiles` or call `list_profiles` to inspect the currently cached voice profiles.
-    2. Use `create_profile` when the user wants a new synthetic profile from source text plus a voice description.
-    3. Use `create_clone` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
-    4. Provide `transcript` to `create_clone` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    5. Pass `text_format`, `nested_source_format`, or `source_format` to `queue_speech_live` when the input needs explicit format-aware normalization instead of automatic detection.
-    6. Use `queue_speech_live` after the user has chosen the correct voice profile, then read `speak://jobs/{job_id}` or `speak://status` for progress.
-    7. Use `remove_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
+    1. Read `speak://voices` or call `list_voice_profiles` to inspect the currently cached voice profiles.
+    2. Use `create_voice_profile` when the user wants a new synthetic profile from source text plus a voice description.
+    3. Use `clone_voice_profile` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
+    4. Provide `transcript` to `clone_voice_profile` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    5. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech_live` when the input needs explicit format-aware normalization instead of automatic detection.
+    6. Use `generate_speech_live` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
+    7. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
 
     Drafting guidance:
 
@@ -1137,13 +1227,13 @@ private func playbackGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak://status` first for a broad overview of worker readiness, queues, playback state, and recent errors.
-    2. Read `speak://jobs` or `speak://jobs/{job_id}` when the user is asking about one specific request.
-    3. Use `list_queue_generation` when the question is about what is still generating.
-    4. Use `list_queue_playback` when the question is about what is waiting to be heard.
-    5. Use `playback_state` before `playback_pause` or `playback_resume` if the user first needs confirmation about whether anything is currently playing.
+    1. Read `speak://runtime/overview` first for a broad overview of worker readiness, queues, playback state, and recent errors.
+    2. Read `speak://requests` or `speak://requests/{request_id}` when the user is asking about one specific server-tracked request.
+    3. Use `list_generation_queue` when the question is about what is still generating.
+    4. Use `list_playback_queue` when the question is about what is waiting to be heard.
+    5. Use `get_playback_state` before `pause_playback` or `resume_playback` if the user first needs confirmation about whether anything is currently playing.
     6. Use `cancel_request` to stop one specific request by id.
-    7. Use `clear_queue` only when the user wants to drop backlog broadly without interrupting the active request.
+    7. Use `clear_playback_queue` only when the user wants to drop backlog broadly without interrupting the active request.
 
     Safety guidance:
 
@@ -1154,18 +1244,18 @@ private func playbackGuideMarkdown() -> String {
 }
 
 private func profileDetailName(from uri: String) -> String? {
-    let prefix = "speak://profiles/"
-    let suffix = "/detail"
-    guard uri.hasPrefix(prefix), uri.hasSuffix(suffix) else { return nil }
-    return String(uri.dropFirst(prefix.count).dropLast(suffix.count))
+    let prefix = "speak://voices/"
+    guard uri.hasPrefix(prefix) else { return nil }
+    let profileName = String(uri.dropFirst(prefix.count))
+    return profileName.isEmpty ? nil : profileName
 }
 
-private func isProfileDetailURI(_ uri: String) -> Bool {
+private func isVoiceProfileURI(_ uri: String) -> Bool {
     profileDetailName(from: uri) != nil
 }
 
 private func storedTextProfileID(from uri: String) -> String? {
-    let prefix = "speak://text-profiles/stored/"
+    let prefix = "speak://normalizer/stored-profiles/"
     guard uri.hasPrefix(prefix) else { return nil }
     return String(uri.dropFirst(prefix.count))
 }
@@ -1175,7 +1265,7 @@ private func isStoredTextProfileURI(_ uri: String) -> Bool {
 }
 
 private func effectiveTextProfileID(from uri: String) -> String? {
-    let prefix = "speak://text-profiles/effective/"
+    let prefix = "speak://normalizer/effective-profile/"
     guard uri.hasPrefix(prefix) else { return nil }
     return String(uri.dropFirst(prefix.count))
 }
@@ -1184,8 +1274,26 @@ private func isEffectiveTextProfileURI(_ uri: String) -> Bool {
     effectiveTextProfileID(from: uri) != nil
 }
 
-private func jobID(from uri: String) -> String? {
-    let prefix = "speak://jobs/"
+private func requestID(from uri: String) -> String? {
+    let prefix = "speak://requests/"
+    guard uri.hasPrefix(prefix) else { return nil }
+    return String(uri.dropFirst(prefix.count))
+}
+
+private func generationJobID(from uri: String) -> String? {
+    let prefix = "speak://generation/jobs/"
+    guard uri.hasPrefix(prefix) else { return nil }
+    return String(uri.dropFirst(prefix.count))
+}
+
+private func generatedFileID(from uri: String) -> String? {
+    let prefix = "speak://generation/files/"
+    guard uri.hasPrefix(prefix) else { return nil }
+    return String(uri.dropFirst(prefix.count))
+}
+
+private func generatedBatchID(from uri: String) -> String? {
+    let prefix = "speak://generation/batches/"
     guard uri.hasPrefix(prefix) else { return nil }
     return String(uri.dropFirst(prefix.count))
 }

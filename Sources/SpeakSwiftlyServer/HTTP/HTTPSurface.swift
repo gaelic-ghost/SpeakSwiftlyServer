@@ -47,45 +47,93 @@ private func registerHTTPRoutes(
         return try encodeJSONResponse(snapshot, status: status)
     }
 
-    router.get("status") { _, _ -> StatusSnapshot in
+    router.get("runtime/host") { _, _ -> StatusSnapshot in
         await host.statusSnapshot()
     }
 
-    router.get("runtime-config") { _, _ -> RuntimeConfigurationSnapshot in
+    router.get("runtime/status") { _, _ -> RuntimeStatusResponse in
+        try await host.runtimeStatus()
+    }
+
+    router.get("runtime/configuration") { _, _ -> RuntimeConfigurationSnapshot in
         await host.runtimeConfigurationSnapshot()
     }
 
-    router.put("runtime-config") { request, context -> RuntimeConfigurationSnapshot in
+    router.put("runtime/configuration") { request, context -> RuntimeConfigurationSnapshot in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
         return try await host.saveRuntimeConfiguration(speechBackend: payload.speechBackendModel())
     }
 
-    router.get("profiles") { _, _ -> ProfileListResponse in
+    router.post("runtime/backend") { request, context -> RuntimeBackendResponse in
+        let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
+        return try await host.switchSpeechBackend(to: payload.speechBackendModel())
+    }
+
+    router.post("runtime/models/reload") { _, _ -> RuntimeStatusResponse in
+        try await host.reloadModels()
+    }
+
+    router.post("runtime/models/unload") { _, _ -> RuntimeStatusResponse in
+        try await host.unloadModels()
+    }
+
+    router.get("voices") { _, _ -> ProfileListResponse in
         .init(profiles: await host.cachedProfiles())
     }
 
-    router.get("text-profiles") { _, _ -> TextProfileListResponse in
+    router.post("voices") { request, context -> Response in
+        let payload = try await request.decode(as: CreateProfileRequestPayload.self, context: context)
+        let requestID = try await host.submitCreateVoiceProfile(
+            profileName: payload.profileName,
+            vibe: try payload.vibeModel(),
+            text: payload.text,
+            voiceDescription: payload.voiceDescription,
+            outputPath: payload.outputPath,
+            cwd: payload.cwd
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.post("voices/clones") { request, context -> Response in
+        let payload = try await request.decode(as: CreateCloneRequestPayload.self, context: context)
+        let requestID = try await host.submitCloneVoiceProfile(
+            profileName: payload.profileName,
+            vibe: try payload.vibeModel(),
+            referenceAudioPath: payload.referenceAudioPath,
+            transcript: payload.transcript,
+            cwd: payload.cwd
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.delete("voices/:profile_name") { request, context -> Response in
+        let profileName = try context.parameters.require("profile_name")
+        let requestID = try await host.submitDeleteVoiceProfile(profileName: profileName)
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.get("normalizer") { _, _ -> TextProfileListResponse in
         .init(textProfiles: await host.textProfilesSnapshot())
     }
 
-    router.get("text-profiles/base") { _, _ -> TextProfileResponse in
+    router.get("normalizer/base-profile") { _, _ -> TextProfileResponse in
         .init(profile: (await host.textProfilesSnapshot()).baseProfile)
     }
 
-    router.get("text-profiles/active") { _, _ -> TextProfileResponse in
+    router.get("normalizer/active-profile") { _, _ -> TextProfileResponse in
         .init(profile: (await host.textProfilesSnapshot()).activeProfile)
     }
 
-    router.get("text-profiles/effective") { _, _ -> TextProfileResponse in
+    router.get("normalizer/effective-profile") { _, _ -> TextProfileResponse in
         .init(profile: await host.effectiveTextProfile(nil))
     }
 
-    router.get("text-profiles/effective/:profile_id") { _, context -> TextProfileResponse in
+    router.get("normalizer/effective-profile/:profile_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         return .init(profile: await host.effectiveTextProfile(profileID))
     }
 
-    router.get("text-profiles/stored/:profile_id") { _, context -> TextProfileResponse in
+    router.get("normalizer/stored-profiles/:profile_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         guard let profile = await host.storedTextProfile(profileID) else {
             throw HTTPError(
@@ -96,7 +144,7 @@ private func registerHTTPRoutes(
         return .init(profile: profile)
     }
 
-    router.post("text-profiles/stored") { request, context -> TextProfileResponse in
+    router.post("normalizer/stored-profiles") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: CreateTextProfileRequestPayload.self, context: context)
         let profile = try await host.createTextProfile(
             id: payload.id,
@@ -106,15 +154,15 @@ private func registerHTTPRoutes(
         return .init(profile: profile)
     }
 
-    router.post("text-profiles/load") { _, _ -> TextProfileListResponse in
+    router.post("normalizer/load") { _, _ -> TextProfileListResponse in
         .init(textProfiles: try await host.loadTextProfiles())
     }
 
-    router.post("text-profiles/save") { _, _ -> TextProfileListResponse in
+    router.post("normalizer/save") { _, _ -> TextProfileListResponse in
         .init(textProfiles: try await host.saveTextProfiles())
     }
 
-    router.put("text-profiles/stored/:profile_id") { request, context -> TextProfileResponse in
+    router.put("normalizer/stored-profiles/:profile_id") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let payload = try await request.decode(as: StoreTextProfileRequestPayload.self, context: context)
         guard payload.profile.id == profileID else {
@@ -126,32 +174,32 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.storeTextProfile(try payload.profile.model()))
     }
 
-    router.put("text-profiles/active") { request, context -> TextProfileResponse in
+    router.put("normalizer/active-profile") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: UseTextProfileRequestPayload.self, context: context)
         return .init(profile: try await host.useTextProfile(try payload.profile.model()))
     }
 
-    router.post("text-profiles/active/reset") { _, _ -> TextProfileResponse in
+    router.post("normalizer/active-profile/reset") { _, _ -> TextProfileResponse in
         .init(profile: try await host.resetTextProfile())
     }
 
-    router.delete("text-profiles/stored/:profile_id") { _, context -> TextProfileListResponse in
+    router.delete("normalizer/stored-profiles/:profile_id") { _, context -> TextProfileListResponse in
         let profileID = try context.parameters.require("profile_id")
         return .init(textProfiles: try await host.removeTextProfile(named: profileID))
     }
 
-    router.post("text-profiles/active/replacements") { request, context -> TextProfileResponse in
+    router.post("normalizer/active-profile/replacements") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         return .init(profile: try await host.addTextReplacement(try payload.replacement.model()))
     }
 
-    router.post("text-profiles/stored/:profile_id/replacements") { request, context -> TextProfileResponse in
+    router.post("normalizer/stored-profiles/:profile_id/replacements") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         return .init(profile: try await host.addTextReplacement(try payload.replacement.model(), toStoredTextProfileNamed: profileID))
     }
 
-    router.put("text-profiles/active/replacements/:replacement_id") { request, context -> TextProfileResponse in
+    router.put("normalizer/active-profile/replacements/:replacement_id") { request, context -> TextProfileResponse in
         let replacementID = try context.parameters.require("replacement_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         guard payload.replacement.id == replacementID else {
@@ -163,7 +211,7 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.replaceTextReplacement(try payload.replacement.model()))
     }
 
-    router.put("text-profiles/stored/:profile_id/replacements/:replacement_id") { request, context -> TextProfileResponse in
+    router.put("normalizer/stored-profiles/:profile_id/replacements/:replacement_id") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let replacementID = try context.parameters.require("replacement_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
@@ -176,71 +224,92 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.replaceTextReplacement(try payload.replacement.model(), inStoredTextProfileNamed: profileID))
     }
 
-    router.delete("text-profiles/active/replacements/:replacement_id") { _, context -> TextProfileResponse in
+    router.delete("normalizer/active-profile/replacements/:replacement_id") { _, context -> TextProfileResponse in
         let replacementID = try context.parameters.require("replacement_id")
         return .init(profile: try await host.removeTextReplacement(id: replacementID))
     }
 
-    router.delete("text-profiles/stored/:profile_id/replacements/:replacement_id") { _, context -> TextProfileResponse in
+    router.delete("normalizer/stored-profiles/:profile_id/replacements/:replacement_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let replacementID = try context.parameters.require("replacement_id")
         return .init(profile: try await host.removeTextReplacement(id: replacementID, fromStoredTextProfileNamed: profileID))
     }
 
-    router.get("jobs") { _, _ -> JobListResponse in
-        .init(jobs: await host.jobSnapshots())
+    router.post("generation/live") { request, context -> Response in
+        let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
+        let requestID = try await host.submitGenerateSpeechLive(
+            text: payload.text,
+            profileName: payload.profileName,
+            textProfileName: payload.textProfileName,
+            normalizationContext: try payload.normalizationContext(),
+            sourceFormat: try payload.sourceFormatModel()
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.get("queue/generation") { _, _ -> QueueSnapshotResponse in
+    router.post("generation/files") { request, context -> Response in
+        let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
+        let requestID = try await host.submitGenerateAudioFile(
+            text: payload.text,
+            profileName: payload.profileName,
+            textProfileName: payload.textProfileName,
+            normalizationContext: try payload.normalizationContext(),
+            sourceFormat: try payload.sourceFormatModel()
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.post("generation/batches") { request, context -> Response in
+        let payload = try await request.decode(as: GenerateBatchRequestPayload.self, context: context)
+        let requestID = try await host.submitGenerateAudioBatch(
+            items: try payload.items.map { try $0.model() },
+            profileName: payload.profileName
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.get("generation/queue") { _, _ -> QueueSnapshotResponse in
         try await host.queueSnapshot(queueType: .generation)
     }
 
-    router.get("queue/playback") { _, _ -> QueueSnapshotResponse in
-        try await host.queueSnapshot(queueType: .playback)
+    router.get("generation/jobs") { request, _ -> Response in
+        try encodeJSONResponse(try await host.generationJobs(), status: .ok)
     }
 
-    router.delete("queue") { _, _ -> QueueClearedResponse in
-        try await host.clearQueue()
+    router.get("generation/jobs/:job_id") { _, context -> Response in
+        let jobID = try context.parameters.require("job_id")
+        return try encodeJSONResponse(try await host.generationJob(id: jobID), status: .ok)
     }
 
-    router.delete("queue/:request_id") { _, context -> QueueCancellationResponse in
-        let requestID = try context.parameters.require("request_id")
-        return try await host.cancelQueuedOrActiveRequest(requestID: requestID)
+    router.delete("generation/jobs/:job_id") { _, context -> Response in
+        let jobID = try context.parameters.require("job_id")
+        return try encodeJSONResponse(try await host.expireGenerationJob(id: jobID), status: .ok)
     }
 
-    router.post("profiles") { request, context -> Response in
-        let payload = try await request.decode(as: CreateProfileRequestPayload.self, context: context)
-        let jobID = try await host.submitCreateProfile(
-            profileName: payload.profileName,
-            vibe: try payload.vibeModel(),
-            text: payload.text,
-            voiceDescription: payload.voiceDescription,
-            outputPath: payload.outputPath,
-            cwd: payload.cwd
-        )
-        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
+    router.get("generation/files") { _, _ -> Response in
+        try encodeJSONResponse(try await host.generatedFiles(), status: .ok)
     }
 
-    router.post("profiles/clone") { request, context -> Response in
-        let payload = try await request.decode(as: CreateCloneRequestPayload.self, context: context)
-        let jobID = try await host.submitCreateClone(
-            profileName: payload.profileName,
-            vibe: try payload.vibeModel(),
-            referenceAudioPath: payload.referenceAudioPath,
-            transcript: payload.transcript,
-            cwd: payload.cwd
-        )
-        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
+    router.get("generation/files/:artifact_id") { _, context -> Response in
+        let artifactID = try context.parameters.require("artifact_id")
+        return try encodeJSONResponse(try await host.generatedFile(id: artifactID), status: .ok)
     }
 
-    router.delete("profiles/:profile_name") { request, context -> Response in
-        let profileName = try context.parameters.require("profile_name")
-        let jobID = try await host.submitRemoveProfile(profileName: profileName)
-        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
+    router.get("generation/batches") { _, _ -> Response in
+        try encodeJSONResponse(try await host.generatedBatches(), status: .ok)
     }
 
-    router.get("playback") { _, _ -> PlaybackStateResponse in
+    router.get("generation/batches/:batch_id") { _, context -> Response in
+        let batchID = try context.parameters.require("batch_id")
+        return try encodeJSONResponse(try await host.generatedBatch(id: batchID), status: .ok)
+    }
+
+    router.get("playback/state") { _, _ -> PlaybackStateResponse in
         try await host.playbackStateSnapshot()
+    }
+
+    router.get("playback/queue") { _, _ -> QueueSnapshotResponse in
+        try await host.queueSnapshot(queueType: .playback)
     }
 
     router.post("playback/pause") { _, _ -> PlaybackStateResponse in
@@ -251,27 +320,28 @@ private func registerHTTPRoutes(
         try await host.resumePlayback()
     }
 
-    router.post("speak") { request, context -> Response in
-        let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
-        let jobID = try await host.submitSpeak(
-            text: payload.text,
-            profileName: payload.profileName,
-            textProfileName: payload.textProfileName,
-            normalizationContext: try payload.normalizationContext(),
-            sourceFormat: try payload.sourceFormatModel()
-        )
-        return try buildAcceptedJobResponse(request: request, configuration: configuration, jobID: jobID)
+    router.delete("playback/queue") { _, _ -> QueueClearedResponse in
+        try await host.clearQueue()
     }
 
-    router.get("jobs/:job_id") { _, context -> JobSnapshot in
-        let jobID = try context.parameters.require("job_id")
-        return try await host.jobSnapshot(id: jobID)
+    router.delete("playback/requests/:request_id") { _, context -> QueueCancellationResponse in
+        let requestID = try context.parameters.require("request_id")
+        return try await host.cancelQueuedOrActiveRequest(requestID: requestID)
     }
 
-    router.get("jobs/:job_id/events") { _, context -> Response in
-        let jobID = try context.parameters.require("job_id")
+    router.get("requests") { _, _ -> RequestListResponse in
+        .init(requests: await host.jobSnapshots())
+    }
+
+    router.get("requests/:request_id") { _, context -> JobSnapshot in
+        let requestID = try context.parameters.require("request_id")
+        return try await host.jobSnapshot(id: requestID)
+    }
+
+    router.get("requests/:request_id/events") { _, context -> Response in
+        let requestID = try context.parameters.require("request_id")
         let body = ResponseBody(
-            asyncSequence: try await host.sseStream(for: jobID)
+            asyncSequence: try await host.sseStream(for: requestID)
         )
         var headers = HTTPFields()
         headers[.contentType] = "text/event-stream"
@@ -281,16 +351,16 @@ private func registerHTTPRoutes(
     }
 }
 
-private func buildAcceptedJobResponse(
+private func buildAcceptedRequestResponse(
     request: Request,
     configuration: HTTPConfig,
-    jobID: String
+    requestID: String
 ) throws -> Response {
     try encodeJSONResponse(
-        JobCreatedResponse(
-            jobID: jobID,
-            jobURL: absoluteURL(for: request, configuration: configuration, path: "/jobs/\(jobID)"),
-            eventsURL: absoluteURL(for: request, configuration: configuration, path: "/jobs/\(jobID)/events")
+        RequestAcceptedResponse(
+            requestID: requestID,
+            requestURL: absoluteURL(for: request, configuration: configuration, path: "/requests/\(requestID)"),
+            eventsURL: absoluteURL(for: request, configuration: configuration, path: "/requests/\(requestID)/events")
         ),
         status: .accepted
     )

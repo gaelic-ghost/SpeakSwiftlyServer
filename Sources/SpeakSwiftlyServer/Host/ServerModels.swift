@@ -95,6 +95,74 @@ struct CreateCloneRequestPayload: Decodable {
     }
 }
 
+struct GenerateBatchRequestPayload: Decodable {
+    let profileName: String
+    let items: [BatchItemRequestPayload]
+
+    enum CodingKeys: String, CodingKey {
+        case profileName = "profile_name"
+        case items
+    }
+}
+
+struct BatchItemRequestPayload: Decodable {
+    let artifactID: String?
+    let text: String
+    let textProfileName: String?
+    let cwd: String?
+    let repoRoot: String?
+    let textFormat: String?
+    let nestedSourceFormat: String?
+    let sourceFormat: String?
+
+    enum CodingKeys: String, CodingKey {
+        case artifactID = "artifact_id"
+        case text
+        case textProfileName = "text_profile_name"
+        case cwd
+        case repoRoot = "repo_root"
+        case textFormat = "text_format"
+        case nestedSourceFormat = "nested_source_format"
+        case sourceFormat = "source_format"
+    }
+
+    func model() throws -> SpeakSwiftly.BatchItem {
+        .init(
+            artifactID: artifactID,
+            text: text,
+            textProfileName: textProfileName,
+            textContext: try normalizationContext(),
+            sourceFormat: try sourceFormatModel()
+        )
+    }
+
+    private func normalizationContext() throws -> SpeechNormalizationContext? {
+        let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
+        let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
+            try resolveSourceFormat($0, fieldName: "nested_source_format")
+        }
+        let context = SpeechNormalizationContext(
+            cwd: cwd,
+            repoRoot: repoRoot,
+            textFormat: resolvedTextFormat,
+            nestedSourceFormat: resolvedNestedSourceFormat
+        )
+        guard
+            context.cwd != nil
+                || context.repoRoot != nil
+                || context.textFormat != nil
+                || context.nestedSourceFormat != nil
+        else {
+            return nil
+        }
+        return context
+    }
+
+    private func sourceFormatModel() throws -> TextForSpeech.SourceFormat? {
+        try sourceFormat.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
+    }
+}
+
 struct RuntimeConfigurationUpdatePayload: Decodable {
     let speechBackend: String
 
@@ -107,20 +175,32 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
     }
 }
 
-struct JobCreatedResponse: ResponseEncodable, Sendable {
-    let jobID: String
-    let jobURL: String
+struct RequestAcceptedResponse: ResponseEncodable, Sendable {
+    let requestID: String
+    let requestURL: String
     let eventsURL: String
 
     enum CodingKeys: String, CodingKey {
-        case jobID = "job_id"
-        case jobURL = "job_url"
+        case requestID = "request_id"
+        case requestURL = "request_url"
         case eventsURL = "events_url"
     }
 }
 
-struct JobListResponse: ResponseEncodable, Sendable {
-    let jobs: [JobSnapshot]
+struct RequestListResponse: ResponseEncodable, Sendable {
+    let requests: [JobSnapshot]
+}
+
+struct RuntimeStatusResponse: ResponseEncodable, Sendable {
+    let status: SpeakSwiftly.StatusEvent
+}
+
+struct RuntimeBackendResponse: ResponseEncodable, Sendable {
+    let speechBackend: String
+
+    enum CodingKeys: String, CodingKey {
+        case speechBackend = "speech_backend"
+    }
 }
 
 // MARK: - Profile Models
@@ -155,7 +235,7 @@ struct ProfileListResponse: ResponseEncodable, Sendable {
 
 // MARK: - Text Profile Models
 
-struct TextReplacementSnapshot: Codable, Sendable, Equatable {
+public struct TextReplacementSnapshot: Codable, Sendable, Equatable {
     let id: String
     let text: String
     let replacement: String
@@ -215,7 +295,7 @@ struct TextReplacementSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct TextProfileSnapshot: Codable, Sendable, Equatable {
+public struct TextProfileSnapshot: Codable, Sendable, Equatable {
     let id: String
     let name: String
     let replacements: [TextReplacementSnapshot]
@@ -512,24 +592,46 @@ public struct ServerProgressEvent: Encodable, Sendable, Equatable {
 public struct ServerSuccessEvent: Encodable, Sendable, Equatable {
     public let id: String
     public let ok = true
+    public let generatedFile: SpeakSwiftly.GeneratedFile?
+    public let generatedFiles: [SpeakSwiftly.GeneratedFile]?
+    public let generatedBatch: SpeakSwiftly.GeneratedBatch?
+    public let generatedBatches: [SpeakSwiftly.GeneratedBatch]?
+    public let generationJob: SpeakSwiftly.GenerationJob?
+    public let generationJobs: [SpeakSwiftly.GenerationJob]?
     public let profileName: String?
     public let profilePath: String?
     public let profiles: [ProfileSnapshot]?
+    public let textProfile: TextProfileSnapshot?
+    public let textProfiles: [TextProfileSnapshot]?
+    public let textProfilePath: String?
     public let activeRequest: ActiveRequestSnapshot?
     public let queue: [QueuedRequestSnapshot]?
     public let playbackState: PlaybackStateSnapshot?
+    public let status: SpeakSwiftly.StatusEvent?
+    public let speechBackend: String?
     public let clearedCount: Int?
     public let cancelledRequestID: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case ok
+        case generatedFile = "generated_file"
+        case generatedFiles = "generated_files"
+        case generatedBatch = "generated_batch"
+        case generatedBatches = "generated_batches"
+        case generationJob = "generation_job"
+        case generationJobs = "generation_jobs"
         case profileName = "profile_name"
         case profilePath = "profile_path"
         case profiles
+        case textProfile = "text_profile"
+        case textProfiles = "text_profiles"
+        case textProfilePath = "text_profile_path"
         case activeRequest = "active_request"
         case queue
         case playbackState = "playback_state"
+        case status
+        case speechBackend = "speech_backend"
         case clearedCount = "cleared_count"
         case cancelledRequestID = "cancelled_request_id"
     }
@@ -600,7 +702,7 @@ public enum ServerJobEvent: Sendable, Equatable, Encodable {
 }
 
 public struct JobSnapshot: ResponseEncodable, Sendable {
-    public let jobID: String
+    public let requestID: String
     public let op: String
     public let submittedAt: String
     public let startedAt: String?
@@ -610,8 +712,8 @@ public struct JobSnapshot: ResponseEncodable, Sendable {
     public let history: [ServerJobEvent]
 
     enum CodingKeys: String, CodingKey {
-        case jobID = "job_id"
-        case op
+        case requestID = "request_id"
+        case op = "operation"
         case submittedAt = "submitted_at"
         case startedAt = "started_at"
         case status

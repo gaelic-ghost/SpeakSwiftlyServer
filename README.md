@@ -300,105 +300,135 @@ The current HTTP surface is:
 
 - `GET /healthz`
 - `GET /readyz`
-- `GET /status`
-- `GET /runtime-config`
-- `GET /profiles`
-- `POST /profiles/clone`
-- `GET /jobs`
-- `GET /queue/generation`
-- `GET /queue/playback`
-- `GET /playback`
-- `GET /text-profiles`
-- `GET /text-profiles/base`
-- `GET /text-profiles/active`
-- `GET /text-profiles/effective`
-- `GET /text-profiles/effective/{profile_id}`
-- `GET /text-profiles/stored/{profile_id}`
-- `POST /profiles`
+- `GET /runtime/host`
+- `GET /runtime/status`
+- `GET /runtime/configuration`
+- `GET /voices`
+- `GET /normalizer`
+- `GET /normalizer/base-profile`
+- `GET /normalizer/active-profile`
+- `GET /normalizer/effective-profile`
+- `GET /normalizer/effective-profile/{profile_id}`
+- `GET /normalizer/stored-profiles/{profile_id}`
+- `GET /generation/queue`
+- `GET /generation/jobs`
+- `GET /generation/jobs/{job_id}`
+- `GET /generation/files`
+- `GET /generation/files/{artifact_id}`
+- `GET /generation/batches`
+- `GET /generation/batches/{batch_id}`
+- `GET /playback/state`
+- `GET /playback/queue`
+- `GET /requests`
+- `GET /requests/{request_id}`
+- `GET /requests/{request_id}/events`
+- `POST /voices`
+- `POST /voices/clones`
+- `POST /generation/live`
+- `POST /generation/files`
+- `POST /generation/batches`
 - `POST /playback/pause`
 - `POST /playback/resume`
-- `POST /text-profiles/stored`
-- `POST /text-profiles/load`
-- `POST /text-profiles/save`
-- `POST /text-profiles/active/reset`
-- `POST /text-profiles/active/replacements`
-- `POST /text-profiles/stored/{profile_id}/replacements`
-- `DELETE /profiles/{profile_name}`
-- `DELETE /queue`
-- `DELETE /queue/{request_id}`
-- `DELETE /text-profiles/stored/{profile_id}`
-- `DELETE /text-profiles/active/replacements/{replacement_id}`
-- `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
-- `PUT /text-profiles/stored/{profile_id}`
-- `PUT /text-profiles/active`
-- `PUT /text-profiles/active/replacements/{replacement_id}`
-- `PUT /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
-- `PUT /runtime-config`
-- `POST /speak`
-- `GET /jobs/{job_id}`
-- `GET /jobs/{job_id}/events`
+- `POST /normalizer/stored-profiles`
+- `POST /normalizer/load`
+- `POST /normalizer/save`
+- `POST /normalizer/active-profile/reset`
+- `POST /normalizer/active-profile/replacements`
+- `POST /normalizer/stored-profiles/{profile_id}/replacements`
+- `POST /runtime/backend`
+- `POST /runtime/models/reload`
+- `POST /runtime/models/unload`
+- `PUT /normalizer/stored-profiles/{profile_id}`
+- `PUT /normalizer/active-profile`
+- `PUT /normalizer/active-profile/replacements/{replacement_id}`
+- `PUT /normalizer/stored-profiles/{profile_id}/replacements/{replacement_id}`
+- `PUT /runtime/configuration`
+- `DELETE /voices/{profile_name}`
+- `DELETE /playback/queue`
+- `DELETE /playback/requests/{request_id}`
+- `DELETE /normalizer/stored-profiles/{profile_id}`
+- `DELETE /normalizer/active-profile/replacements/{replacement_id}`
+- `DELETE /normalizer/stored-profiles/{profile_id}/replacements/{replacement_id}`
 
-`POST /speak`, `POST /profiles`, `POST /profiles/clone`, and `DELETE /profiles/{profile_name}` all return job metadata immediately. `POST /speak` mirrors the current public `SpeakSwiftly.Runtime.speak(... as: .live)` path directly, which means every speech request records the initial acknowledgement event before it starts and eventually reaches terminal completion. `POST /speak` also accepts optional `cwd`, `repo_root`, `text_profile_name`, `text_format`, `nested_source_format`, and `source_format` fields so clients can pass path-aware, stored-profile-aware, and explicit format-aware normalization context through to the runtime when speech input should not rely on automatic format detection. Live playback is still a single-speaker path on one worker, so when one audible `POST /speak` request is already playing, later live requests can still be accepted and queued immediately, but their generation waits until the active playback drains before the next live request starts. `POST /profiles` and `POST /profiles/clone` now require an explicit `vibe` value of `masc`, `femme`, or `androgenous` so the server stays aligned with the current `SpeakSwiftly` profile model instead of guessing. Both profile routes also accept optional `cwd` values, and relative `output_path` or `reference_audio_path` values now rely on that explicit caller working directory instead of inheriting the long-lived server process launch directory. Progress, worker status changes, acknowledgements, and terminal results are exposed through `GET /jobs/{job_id}/events` as SSE, and retained job state is discoverable through `GET /jobs`.
+`POST /generation/live`, `POST /voices`, `POST /voices/clones`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately. Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first. `POST /generation/live` mirrors the current public live-speech generation lane and accepts optional `cwd`, `repo_root`, `text_profile_name`, `text_format`, `nested_source_format`, and `source_format` fields so callers can pass path-aware and normalization-aware context explicitly.
 
-The `/text-profiles` route family is intentionally synchronous and state-oriented rather than job-oriented. It exposes the current base, active, stored, and effective `TextForSpeech.Profile` state plus replacement editing and profile persistence paths for downstream apps or agents that need to help a user shape text normalization directly. `POST /text-profiles/load` and `POST /text-profiles/save` map directly to the public normalizer persistence calls so operators can refresh or flush stored normalization state without reaching into the runtime process manually.
+The `/normalizer` route family is synchronous and state-oriented rather than request-oriented. It exposes the current base, active, stored, and effective `TextForSpeech.Profile` state plus replacement editing and profile persistence paths for downstream apps or agents that need to shape normalization deliberately. `POST /normalizer/load` and `POST /normalizer/save` map directly to the public normalizer persistence calls so operators can refresh or flush stored normalization state without reaching into the runtime process manually.
 
-The queue and playback control routes are immediate control operations rather than long-running jobs. `GET /queue/generation` and `GET /queue/playback` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface. `GET /playback`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. `DELETE /queue` clears queued work and returns the number of cancelled queued requests. `DELETE /queue/{request_id}` cancels one active or queued request and returns the cancelled request ID.
+The queue and playback control routes are immediate control operations rather than long-running requests. `GET /generation/queue` and `GET /playback/queue` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface. `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. `DELETE /playback/queue` clears queued playback work and returns the number of cancelled queued requests. `DELETE /playback/requests/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
-The runtime-configuration routes are also synchronous and state-oriented. `GET /runtime-config` returns the active runtime backend, the backend that would win on the next runtime start, the persisted configuration file path, the saved backend if one exists, and any active environment override that still takes precedence. `PUT /runtime-config` persists one `speech_backend` value for the next runtime start. It does not hot-swap the already-running worker backend, so the returned snapshot explicitly tells you whether the saved configuration will affect the next start or whether an environment override will still win.
-
-The route surface now mirrors the current `SpeakSwiftly` control model directly instead of preserving the older foreground/background split. The remaining alignment work is narrower: keeping the transport docs accurate as the sibling runtime evolves and deciding whether any server-local transport shaping should disappear now that the public library surface is more expressive.
+The runtime routes are also state-oriented. `GET /runtime/host` returns the shared-host overview with readiness, queues, transports, cached profiles, and recent errors. `GET /runtime/status` returns the underlying `SpeakSwiftly.StatusEvent`. `GET /runtime/configuration` and `PUT /runtime/configuration` expose the saved next-start backend configuration. `POST /runtime/backend` hot-switches the active backend, while `POST /runtime/models/reload` and `POST /runtime/models/unload` follow the current v2 runtime-control verbs directly.
 
 The current MCP surface is optional and mounts on the same shared Hummingbird process at `APP_MCP_PATH` when `APP_MCP_ENABLED=true`. It currently exposes these tools:
 
-- `queue_speech_live`
-- `create_profile`
-- `create_clone`
-- `get_runtime_config`
-- `set_runtime_config`
-- `list_profiles`
-- `remove_profile`
-- `list_queue_generation`
-- `list_queue_playback`
-- `playback_pause`
-- `playback_resume`
-- `playback_state`
-- `clear_queue`
+- `generate_speech_live`
+- `generate_audio_file`
+- `generate_audio_batch`
+- `create_voice_profile`
+- `clone_voice_profile`
+- `get_runtime_overview`
+- `get_runtime_status`
+- `get_runtime_configuration`
+- `set_runtime_configuration`
+- `switch_speech_backend`
+- `reload_models`
+- `unload_models`
+- `list_voice_profiles`
+- `delete_voice_profile`
+- `get_normalizer_state`
+- `list_generation_queue`
+- `list_playback_queue`
+- `pause_playback`
+- `resume_playback`
+- `get_playback_state`
+- `clear_playback_queue`
 - `cancel_request`
-- `status`
 - `load_text_profiles`
 - `save_text_profiles`
-- `list_text_profiles`
 - `create_text_profile`
 - `store_text_profile`
 - `use_text_profile`
-- `remove_text_profile`
-- `reset_text_profile`
+- `delete_text_profile`
+- `reset_active_text_profile`
 - `add_text_replacement`
 - `replace_text_replacement`
 - `remove_text_replacement`
+- `list_requests`
+- `list_generation_jobs`
+- `get_generation_job`
+- `expire_generation_job`
+- `list_generated_files`
+- `get_generated_file`
+- `list_generated_batches`
+- `get_generated_batch`
 
 The embedded MCP resources are:
 
-- `speak://status`
-- `speak://runtime-config`
-- `speak://profiles`
-- `speak://profiles/guide`
-- `speak://profiles/{profile_name}/detail`
-- `speak://jobs`
-- `speak://jobs/{job_id}`
-- `speak://runtime`
-- `speak://text-profiles`
-- `speak://text-profiles/base`
-- `speak://text-profiles/active`
-- `speak://text-profiles/effective`
-- `speak://text-profiles/effective/{profile_id}`
-- `speak://text-profiles/stored/{profile_id}`
-- `speak://text-profiles/guide`
+- `speak://runtime/overview`
+- `speak://runtime/status`
+- `speak://runtime/configuration`
+- `speak://voices`
+- `speak://voices/guide`
+- `speak://normalizer`
+- `speak://normalizer/base-profile`
+- `speak://normalizer/active-profile`
+- `speak://normalizer/effective-profile`
+- `speak://requests`
+- `speak://generation/jobs`
+- `speak://generation/files`
+- `speak://generation/batches`
+- `speak://voices/{profile_name}`
+- `speak://requests/{request_id}`
+- `speak://generation/jobs/{job_id}`
+- `speak://generation/files/{artifact_id}`
+- `speak://generation/batches/{batch_id}`
+- `speak://normalizer/effective-profile/{profile_id}`
+- `speak://normalizer/stored-profiles/{profile_id}`
+- `speak://normalizer/guide`
 - `speak://playback/guide`
 
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`.
 
-Accepted-job MCP tool results now return both `status_resource_uri` and a direct `job_resource_uri` so MCP clients can jump straight to one request's retained job detail.
+Accepted-request MCP tool results now return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 
 The embedded MCP surface also now carries a small prompt catalog migrated from the standalone package where those prompts still map cleanly onto the shared host model:
 
@@ -410,9 +440,9 @@ The embedded MCP surface also now carries a small prompt catalog migrated from t
 - `draft_text_replacement`
 - `choose_surface_action`
 
-The text-profile prompts and the `speak://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail. That parity is intentional because text profiles are meant to be downstream-user-facing, whether the downstream caller is a SwiftUI app, an MCP client, or a local HTTP consumer.
+The text-profile prompts and the `speak://normalizer/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail. That parity is intentional because text profiles are meant to be downstream-user-facing, whether the downstream caller is a SwiftUI app, an MCP client, or a local HTTP consumer.
 
-The embedded MCP surface now also supports resource subscriptions for the live state resources and templates backed by shared host updates. Clients connected to the standalone MCP event stream can subscribe to `speak://status`, `speak://runtime-config`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, `speak://runtime`, `speak://text-profiles`, `speak://text-profiles/base`, `speak://text-profiles/active`, `speak://text-profiles/effective`, `speak://text-profiles/effective/{profile_id}`, and `speak://text-profiles/stored/{profile_id}` and receive `notifications/resources/updated` when shared host events change the underlying state.
+The embedded MCP surface also supports resource subscriptions for the live state resources and templates backed by shared host updates. Clients connected to the standalone MCP event stream can subscribe to `speak://runtime/overview`, `speak://runtime/status`, `speak://runtime/configuration`, `speak://voices`, `speak://voices/{profile_name}`, `speak://requests`, `speak://requests/{request_id}`, `speak://generation/jobs`, `speak://generation/jobs/{job_id}`, `speak://generation/files`, `speak://generation/files/{artifact_id}`, `speak://generation/batches`, `speak://generation/batches/{batch_id}`, `speak://normalizer`, `speak://normalizer/base-profile`, `speak://normalizer/active-profile`, `speak://normalizer/effective-profile`, `speak://normalizer/effective-profile/{profile_id}`, and `speak://normalizer/stored-profiles/{profile_id}` and receive `notifications/resources/updated` when shared host events change the underlying state.
 
 Transport lifecycle snapshots are now intentionally tied to the shared Hummingbird process rather than static config alone. `listening` means the shared HTTP host has actually reached Hummingbird's `onServerRunning` boundary, so HTTP and MCP surface status now describe real network availability instead of only configuration intent.
 

@@ -31,7 +31,7 @@ actor ServerHost {
 
         var snapshot: JobSnapshot {
             .init(
-                jobID: jobID,
+                requestID: jobID,
                 op: op,
                 submittedAt: TimestampFormatter.string(from: submittedAt),
                 startedAt: startedAt.map(TimestampFormatter.string(from:)),
@@ -549,6 +549,100 @@ actor ServerHost {
             .map(\.snapshot)
     }
 
+    func generationJobs() async throws -> [SpeakSwiftly.GenerationJob] {
+        let handle = await runtime.generationJobs()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generation-jobs request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation jobs."
+        )
+        return success.generationJobs ?? []
+    }
+
+    func generationJob(id jobID: String) async throws -> SpeakSwiftly.GenerationJob {
+        let handle = await runtime.generationJob(id: jobID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generation-job request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation job '\(jobID)'."
+        )
+        guard let generationJob = success.generationJob else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the generation-job request for '\(jobID)', but it did not return a generation_job payload."
+            )
+        }
+        return generationJob
+    }
+
+    func expireGenerationJob(id jobID: String) async throws -> SpeakSwiftly.GenerationJob {
+        let handle = await runtime.expireGenerationJob(id: jobID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generation-job expiry request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while expiring retained generation job '\(jobID)'."
+        )
+        guard let generationJob = success.generationJob else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the generation-job expiry request for '\(jobID)', but it did not return a generation_job payload."
+            )
+        }
+        return generationJob
+    }
+
+    func generatedFiles() async throws -> [SpeakSwiftly.GeneratedFile] {
+        let handle = await runtime.generatedFiles()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generated-files request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio files."
+        )
+        return success.generatedFiles ?? []
+    }
+
+    func generatedFile(id artifactID: String) async throws -> SpeakSwiftly.GeneratedFile {
+        let handle = await runtime.generatedFile(id: artifactID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generated-file request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio file '\(artifactID)'."
+        )
+        guard let generatedFile = success.generatedFile else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the generated-file request for '\(artifactID)', but it did not return a generated_file payload."
+            )
+        }
+        return generatedFile
+    }
+
+    func generatedBatches() async throws -> [SpeakSwiftly.GeneratedBatch] {
+        let handle = await runtime.generatedBatches()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generated-batches request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio batches."
+        )
+        return success.generatedBatches ?? []
+    }
+
+    func generatedBatch(id batchID: String) async throws -> SpeakSwiftly.GeneratedBatch {
+        let handle = await runtime.generatedBatch(id: batchID)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the generated-batch request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio batch '\(batchID)'."
+        )
+        guard let generatedBatch = success.generatedBatch else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the generated-batch request for '\(batchID)', but it did not return a generated_batch payload."
+            )
+        }
+        return generatedBatch
+    }
+
     func currentWorkerStatusEvent() -> ServerJobEvent {
         .workerStatus(
             .init(
@@ -558,9 +652,55 @@ actor ServerHost {
         )
     }
 
+    func runtimeStatus() async throws -> RuntimeStatusResponse {
+        let handle = await runtime.runtimeStatus()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the runtime-status request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading runtime status."
+        )
+        guard let status = success.status else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the runtime-status request, but it did not return a status payload."
+            )
+        }
+        return .init(status: status)
+    }
+
+    func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> RuntimeBackendResponse {
+        let handle = await runtime.switchSpeechBackend(to: speechBackend)
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the speech-backend switch request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while switching the active speech backend."
+        )
+        guard let resolvedSpeechBackend = success.speechBackend else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a speech_backend payload."
+            )
+        }
+        return .init(speechBackend: resolvedSpeechBackend.rawValue)
+    }
+
+    func reloadModels() async throws -> RuntimeStatusResponse {
+        try await runtimeStatusResponse(
+            handle: await runtime.reloadModels(),
+            requestName: "reload-models"
+        )
+    }
+
+    func unloadModels() async throws -> RuntimeStatusResponse {
+        try await runtimeStatusResponse(
+            handle: await runtime.unloadModels(),
+            requestName: "unload-models"
+        )
+    }
+
     // MARK: - Job Submission
 
-    func submitSpeak(
+    func submitGenerateSpeechLive(
         text: String,
         profileName: String,
         textProfileName: String? = nil,
@@ -568,7 +708,7 @@ actor ServerHost {
         sourceFormat: TextForSpeech.SourceFormat? = nil
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.speak(
+        let handle = await runtime.generateSpeechLive(
             text: text,
             with: profileName,
             textProfileName: textProfileName,
@@ -578,7 +718,34 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitCreateProfile(
+    func submitGenerateAudioFile(
+        text: String,
+        profileName: String,
+        textProfileName: String? = nil,
+        normalizationContext: SpeechNormalizationContext? = nil,
+        sourceFormat: TextForSpeech.SourceFormat? = nil
+    ) async throws -> String {
+        try ensureWorkerReady()
+        let handle = await runtime.generateAudioFile(
+            text: text,
+            with: profileName,
+            textProfileName: textProfileName,
+            normalizationContext: normalizationContext,
+            sourceFormat: sourceFormat
+        )
+        return await enqueuePublicJob(handle)
+    }
+
+    func submitGenerateAudioBatch(
+        items: [SpeakSwiftly.BatchItem],
+        profileName: String
+    ) async throws -> String {
+        try ensureWorkerReady()
+        let handle = await runtime.generateAudioBatch(items, with: profileName)
+        return await enqueuePublicJob(handle)
+    }
+
+    func submitCreateVoiceProfile(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         text: String,
@@ -587,7 +754,7 @@ actor ServerHost {
         cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.createProfile(
+        let handle = await runtime.createVoiceProfile(
             named: profileName,
             vibe: vibe,
             from: text,
@@ -598,7 +765,7 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitCreateClone(
+    func submitCloneVoiceProfile(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         referenceAudioPath: String,
@@ -606,7 +773,7 @@ actor ServerHost {
         cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.createClone(
+        let handle = await runtime.cloneVoiceProfile(
             named: profileName,
             vibe: vibe,
             from: referenceAudioPath,
@@ -616,9 +783,9 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitRemoveProfile(profileName: String) async throws -> String {
+    func submitDeleteVoiceProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.removeProfile(named: profileName)
+        let handle = await runtime.deleteVoiceProfile(named: profileName)
         return await enqueuePublicJob(handle)
     }
 
@@ -670,7 +837,7 @@ actor ServerHost {
         guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the cancel_request control operation, but it did not report which request was cancelled."
+                message: "SpeakSwiftly accepted the cancel-request control operation, but it did not report which request was cancelled."
             )
         }
         return .init(cancelledRequestID: cancelledRequestID)
@@ -683,7 +850,7 @@ actor ServerHost {
         guard let job = jobs[id] else {
             throw HTTPError(
                 .notFound,
-                message: "Job '\(id)' was not found in the server request cache. It may be unknown or may have expired from in-memory retention."
+                message: "Request '\(id)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention."
             )
         }
         return job.snapshot
@@ -695,7 +862,7 @@ actor ServerHost {
         guard let job = jobs[jobID] else {
             throw HTTPError(
                 .notFound,
-                message: "Job '\(jobID)' was not found in the server request cache. It may be unknown or may have expired from in-memory retention."
+                message: "Request '\(jobID)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention."
             )
         }
 
@@ -801,16 +968,16 @@ actor ServerHost {
                 case .progress(let progress):
                     await record(mapProgressEvent(progress), for: handle.id, terminal: false)
                 case .completed(let success):
-                    if handle.operation == "create_profile"
-                        || handle.operation == "create_clone"
-                        || handle.operation == "remove_profile"
+                    if handle.operation == "create_voice_profile"
+                        || handle.operation == "clone_voice_profile"
+                        || handle.operation == "delete_voice_profile"
                     {
                         await finalizeMutationSuccess(
                             success: success,
                             requestID: handle.id,
                             operationName: handle.operation
                         )
-                    } else if handle.operation == "list_profiles" {
+                    } else if handle.operation == "list_voice_profiles" {
                         await applyProfileRefresh(from: success)
                         await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
                     } else {
@@ -851,12 +1018,23 @@ actor ServerHost {
             self.profileCacheWarning = nil
             let finalSuccess = ServerSuccessEvent(
                 id: success.id,
+                generatedFile: success.generatedFile,
+                generatedFiles: success.generatedFiles,
+                generatedBatch: success.generatedBatch,
+                generatedBatches: success.generatedBatches,
+                generationJob: success.generationJob,
+                generationJobs: success.generationJobs,
                 profileName: success.profileName,
                 profilePath: success.profilePath,
                 profiles: nil,
+                textProfile: success.textProfile.map(TextProfileSnapshot.init(profile:)),
+                textProfiles: success.textProfiles?.map(TextProfileSnapshot.init(profile:)),
+                textProfilePath: success.textProfilePath,
                 activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
                 queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)),
                 playbackState: success.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+                status: success.status,
+                speechBackend: success.speechBackend?.rawValue,
                 clearedCount: success.clearedCount,
                 cancelledRequestID: success.cancelledRequestID
             )
@@ -916,10 +1094,10 @@ actor ServerHost {
     }
 
     private func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
-        let handle = await runtime.profiles()
+        let handle = await runtime.voiceProfiles()
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the internal list_profiles request without yielding a terminal success payload.",
+            missingTerminalMessage: "SpeakSwiftly finished the internal list_voice_profiles request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles."
         )
         let profiles = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
@@ -952,11 +1130,11 @@ actor ServerHost {
         let refreshedNames = Set(refreshedProfiles.map(\.profileName))
 
         switch op {
-        case "create_profile":
+        case "create_voice_profile":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
-        case "create_clone":
+        case "clone_voice_profile":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
-        case "remove_profile":
+        case "delete_voice_profile":
             return !refreshedNames.contains(profileName) && refreshedNames != previousNames
         default:
             return false
@@ -1219,7 +1397,7 @@ actor ServerHost {
 
     private func currentGenerationJobRecord() -> JobRecord? {
         jobs.values
-            .filter { $0.op == "queue_speech_live" && $0.terminalEvent == nil }
+            .filter { isGenerationOperation($0.op) && $0.terminalEvent == nil }
             .sorted { lhs, rhs in
                 generationPriority(for: lhs) > generationPriority(for: rhs)
                     || (
@@ -1227,6 +1405,13 @@ actor ServerHost {
                         && lhs.submittedAt < rhs.submittedAt
                     )
             }
+            .first
+    }
+
+    private func currentLiveSpeechJobRecord() -> JobRecord? {
+        jobs.values
+            .filter { $0.op == "generate_speech_live" && $0.terminalEvent == nil }
+            .sorted { lhs, rhs in lhs.submittedAt < rhs.submittedAt }
             .first
     }
 
@@ -1259,7 +1444,7 @@ actor ServerHost {
     private func deriveGenerationQueueStatusFallback() -> QueueStatusSnapshot {
         let activeJob = currentGenerationJobRecord()
         let queuedCount = jobs.values.filter {
-            guard $0.op == "queue_speech_live", $0.terminalEvent == nil else {
+            guard isGenerationOperation($0.op), $0.terminalEvent == nil else {
                 return false
             }
             if case .queued = $0.latestEvent {
@@ -1288,7 +1473,7 @@ actor ServerHost {
     }
 
     private func derivePlaybackStatusFallback() -> PlaybackStatusSnapshot {
-        if let activeRequest = currentGenerationJobRecord().map({
+        if let activeRequest = currentLiveSpeechJobRecord().map({
             ActiveRequestSnapshot(id: $0.jobID, op: $0.op, profileName: $0.profileName)
         }) {
             return .init(state: SpeakSwiftly.PlaybackState.playing.rawValue, activeRequest: activeRequest)
@@ -1508,12 +1693,23 @@ actor ServerHost {
     private func mapSuccessEvent(_ event: SpeakSwiftly.Success, acknowledged: Bool) -> ServerJobEvent {
         let success = ServerSuccessEvent(
             id: event.id,
+            generatedFile: event.generatedFile,
+            generatedFiles: event.generatedFiles,
+            generatedBatch: event.generatedBatch,
+            generatedBatches: event.generatedBatches,
+            generationJob: event.generationJob,
+            generationJobs: event.generationJobs,
             profileName: event.profileName,
             profilePath: event.profilePath,
             profiles: event.profiles?.map(ProfileSnapshot.init(profile:)),
+            textProfile: event.textProfile.map(TextProfileSnapshot.init(profile:)),
+            textProfiles: event.textProfiles?.map(TextProfileSnapshot.init(profile:)),
+            textProfilePath: event.textProfilePath,
             activeRequest: event.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
             queue: event.queue?.map(QueuedRequestSnapshot.init(summary:)),
             playbackState: event.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+            status: event.status,
+            speechBackend: event.speechBackend?.rawValue,
             clearedCount: event.clearedCount,
             cancelledRequestID: event.cancelledRequestID
         )
@@ -1572,11 +1768,11 @@ actor ServerHost {
     private func requestName(for action: RuntimePlaybackAction) -> String {
         switch action {
         case .pause:
-            "playback_pause"
+            "pause-playback"
         case .resume:
-            "playback_resume"
+            "resume-playback"
         case .state:
-            "playback_state"
+            "playback-state"
         }
     }
 
@@ -1587,6 +1783,30 @@ actor ServerHost {
         case .playback:
             "playback"
         }
+    }
+
+    private func isGenerationOperation(_ operation: String) -> Bool {
+        operation == "generate_speech_live"
+            || operation == "generate_audio_file"
+            || operation == "generate_audio_batch"
+    }
+
+    private func runtimeStatusResponse(
+        handle: RuntimeRequestHandle,
+        requestName: String
+    ) async throws -> RuntimeStatusResponse {
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the \(requestName) request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request."
+        )
+        guard let status = success.status else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload."
+            )
+        }
+        return .init(status: status)
     }
 
     private func awaitImmediateSuccess(

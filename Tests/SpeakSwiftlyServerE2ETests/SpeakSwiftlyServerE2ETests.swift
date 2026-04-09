@@ -117,7 +117,7 @@ struct SpeakSwiftlyServerE2ETests {
 
         let status = try decode(
             E2EStatusSnapshot.self,
-            from: try await client.request(path: "/status", method: "GET").data
+            from: try await client.request(path: "/runtime/host", method: "GET").data
         )
         #expect(status.workerMode == "ready")
         #expect(status.cachedProfiles.contains { $0.profileName == profileName })
@@ -135,7 +135,7 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: .seconds(180),
             matching: { $0.state == "playing" && $0.activeRequest?.id == firstJobID }
         )
-        #expect(playingState.activeRequest?.op == "queue_speech_live")
+        #expect(playingState.activeRequest?.op == "generate_speech_live")
 
         let paused = try decode(
             E2EPlaybackStateResponse.self,
@@ -233,7 +233,7 @@ struct SpeakSwiftlyServerE2ETests {
             server: server
         )
 
-        let removeResponse = try await client.request(path: "/profiles/\(profileName)", method: "DELETE")
+        let removeResponse = try await client.request(path: "/voices/\(profileName)", method: "DELETE")
         #expect(removeResponse.statusCode == 202)
         let removeJobID = try decode(E2EJobCreatedResponse.self, from: removeResponse.data).jobID
         let removeSnapshot = try await waitForTerminalJob(
@@ -264,7 +264,7 @@ struct SpeakSwiftlyServerE2ETests {
 
         let initialTextProfiles = try decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles", method: "GET").data
+            from: try await client.request(path: "/normalizer", method: "GET").data
         ).textProfiles
         #expect(initialTextProfiles.baseProfile.id.isEmpty == false)
         #expect(initialTextProfiles.activeProfile.id.isEmpty == false)
@@ -272,7 +272,7 @@ struct SpeakSwiftlyServerE2ETests {
         let createdStored = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/stored",
+                path: "/normalizer/stored-profiles",
                 method: "POST",
                 jsonBody: [
                     "id": "http-text-profile",
@@ -293,14 +293,14 @@ struct SpeakSwiftlyServerE2ETests {
 
         let storedRoute = try decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/stored/http-text-profile", method: "GET").data
+            from: try await client.request(path: "/normalizer/stored-profiles/http-text-profile", method: "GET").data
         ).profile
         #expect(storedRoute.id == "http-text-profile")
 
         let replacedStored = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/stored/http-text-profile",
+                path: "/normalizer/stored-profiles/http-text-profile",
                 method: "PUT",
                 jsonBody: [
                     "profile": [
@@ -329,7 +329,7 @@ struct SpeakSwiftlyServerE2ETests {
         let storedWithAddedReplacement = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/stored/http-text-profile/replacements",
+                path: "/normalizer/stored-profiles/http-text-profile/replacements",
                 method: "POST",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
@@ -345,7 +345,7 @@ struct SpeakSwiftlyServerE2ETests {
         let storedWithReplacedReplacement = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/stored/http-text-profile/replacements/expand-tts",
+                path: "/normalizer/stored-profiles/http-text-profile/replacements/expand-tts",
                 method: "PUT",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
@@ -364,7 +364,7 @@ struct SpeakSwiftlyServerE2ETests {
         let activeProfile = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/active",
+                path: "/normalizer/active-profile",
                 method: "PUT",
                 jsonBody: [
                     "profile": [
@@ -387,7 +387,7 @@ struct SpeakSwiftlyServerE2ETests {
         let activeWithAddedReplacement = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/active/replacements",
+                path: "/normalizer/active-profile/replacements",
                 method: "POST",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
@@ -403,7 +403,7 @@ struct SpeakSwiftlyServerE2ETests {
         let activeWithReplacedReplacement = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/active/replacements/expand-repo",
+                path: "/normalizer/active-profile/replacements/expand-repo",
                 method: "PUT",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
@@ -422,7 +422,7 @@ struct SpeakSwiftlyServerE2ETests {
         let activeAfterRemoval = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/active/replacements/expand-repo",
+                path: "/normalizer/active-profile/replacements/expand-repo",
                 method: "DELETE"
             ).data
         ).profile
@@ -430,46 +430,46 @@ struct SpeakSwiftlyServerE2ETests {
 
         let effectiveDefault = try decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/effective", method: "GET").data
+            from: try await client.request(path: "/normalizer/effective-profile", method: "GET").data
         ).profile
         #expect(effectiveDefault.id == "http-session-profile")
 
         let effectiveStored = try decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/effective/http-text-profile", method: "GET").data
+            from: try await client.request(path: "/normalizer/effective-profile/http-text-profile", method: "GET").data
         ).profile
         #expect(effectiveStored.id == "http-text-profile")
 
         let baseProfile = try decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/base", method: "GET").data
+            from: try await client.request(path: "/normalizer/base-profile", method: "GET").data
         ).profile
         #expect(baseProfile.id.isEmpty == false)
 
         let savedSnapshot = try decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/save", method: "POST").data
+            from: try await client.request(path: "/normalizer/save", method: "POST").data
         ).textProfiles
         #expect(savedSnapshot.persistenceURL?.isEmpty == false)
         #expect(savedSnapshot.storedProfiles.contains { $0.id == "http-text-profile" })
 
         let loadedSnapshot = try decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/load", method: "POST").data
+            from: try await client.request(path: "/normalizer/load", method: "POST").data
         ).textProfiles
         #expect(loadedSnapshot.persistenceURL == savedSnapshot.persistenceURL)
         #expect(loadedSnapshot.storedProfiles.contains { $0.id == "http-text-profile" })
 
         let resetProfile = try decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/active/reset", method: "POST").data
+            from: try await client.request(path: "/normalizer/active-profile/reset", method: "POST").data
         ).profile
         #expect(resetProfile.id == initialTextProfiles.activeProfile.id)
 
         let storedAfterStoredRemoval = try decode(
             E2ETextProfileResponse.self,
             from: try await client.request(
-                path: "/text-profiles/stored/http-text-profile/replacements/expand-tts",
+                path: "/normalizer/stored-profiles/http-text-profile/replacements/expand-tts",
                 method: "DELETE"
             ).data
         ).profile
@@ -477,7 +477,7 @@ struct SpeakSwiftlyServerE2ETests {
 
         let finalSnapshot = try decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/stored/http-text-profile", method: "DELETE").data
+            from: try await client.request(path: "/normalizer/stored-profiles/http-text-profile", method: "DELETE").data
         ).textProfiles
         #expect(finalSnapshot.storedProfiles.contains { $0.id == "http-text-profile" } == false)
     }
@@ -505,17 +505,17 @@ struct SpeakSwiftlyServerE2ETests {
 
         let resources = try await client.listResources()
         let resourceURIs = Set(resources.compactMap { $0["uri"] as? String })
-        #expect(resourceURIs.contains("speak://status"))
-        #expect(resourceURIs.contains("speak://profiles"))
-        #expect(resourceURIs.contains("speak://text-profiles"))
+        #expect(resourceURIs.contains("speak://runtime/overview"))
+        #expect(resourceURIs.contains("speak://voices"))
+        #expect(resourceURIs.contains("speak://normalizer"))
         #expect(resourceURIs.contains("speak://playback/guide"))
 
         let templates = try await client.listResourceTemplates()
         let templateURIs = Set(templates.compactMap { $0["uriTemplate"] as? String })
-        #expect(templateURIs.contains("speak://profiles/{profile_name}/detail"))
-        #expect(templateURIs.contains("speak://text-profiles/stored/{profile_id}"))
-        #expect(templateURIs.contains("speak://text-profiles/effective/{profile_id}"))
-        #expect(templateURIs.contains("speak://jobs/{job_id}"))
+        #expect(templateURIs.contains("speak://voices/{profile_name}"))
+        #expect(templateURIs.contains("speak://normalizer/stored-profiles/{profile_id}"))
+        #expect(templateURIs.contains("speak://normalizer/effective-profile/{profile_id}"))
+        #expect(templateURIs.contains("speak://requests/{request_id}"))
 
         let prompts = try await client.listPrompts()
         let promptNames = Set(prompts.compactMap { $0["name"] as? String })
@@ -543,32 +543,32 @@ struct SpeakSwiftlyServerE2ETests {
         )
         let chooseSurfaceText = try Self.requirePromptText(in: chooseSurfacePrompt)
         #expect(chooseSurfaceText.contains("action_type"))
-        #expect(chooseSurfaceText.contains("create_profile"))
+        #expect(chooseSurfaceText.contains("create_voice_profile"))
 
         let statusPayload = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "status", arguments: [:])
+            from: try await client.callToolJSON(name: "get_runtime_overview", arguments: [:])
         )
         #expect(statusPayload["worker_mode"] as? String == "ready")
 
-        let runtimePayload = try Self.requireObjectPayload(from: try await client.readResourceJSON(uri: "speak://runtime"))
+        let runtimePayload = try Self.requireObjectPayload(from: try await client.readResourceJSON(uri: "speak://runtime/overview"))
         let runtimeTransports = try requireArray("transports", in: runtimePayload)
         #expect(runtimeTransports.contains {
             $0["name"] as? String == "mcp" && ($0["advertised_address"] as? String)?.contains("/mcp") == true
         })
 
-        let textGuide = try await client.readResourceText(uri: "speak://text-profiles/guide")
+        let textGuide = try await client.readResourceText(uri: "speak://normalizer/guide")
         #expect(textGuide.contains("text_profile_name"))
-        let voiceGuide = try await client.readResourceText(uri: "speak://profiles/guide")
-        #expect(voiceGuide.contains("create_clone"))
+        let voiceGuide = try await client.readResourceText(uri: "speak://voices/guide")
+        #expect(voiceGuide.contains("clone_voice_profile"))
         let playbackGuide = try await client.readResourceText(uri: "speak://playback/guide")
-        #expect(playbackGuide.contains("clear_queue"))
+        #expect(playbackGuide.contains("clear_playback_queue"))
 
         let eventStream = client.openEventStream()
         eventStream.start()
         defer { eventStream.stop() }
 
-        try await client.subscribe(to: "speak://text-profiles")
-        try await client.subscribe(to: "speak://profiles")
+        try await client.subscribe(to: "speak://normalizer")
+        try await client.subscribe(to: "speak://voices")
 
         _ = try await client.callTool(
             name: "create_text_profile",
@@ -593,13 +593,13 @@ struct SpeakSwiftlyServerE2ETests {
             guard let params = $0["params"] as? [String: Any] else {
                 return false
             }
-            return params["uri"] as? String == "speak://text-profiles"
+            return params["uri"] as? String == "speak://normalizer"
         }
         let textProfileNotificationParams = try requireDictionary("params", in: textProfileNotification)
-        #expect(textProfileNotificationParams["uri"] as? String == "speak://text-profiles")
+        #expect(textProfileNotificationParams["uri"] as? String == "speak://normalizer")
 
         let storedTextProfilesPayload = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles")
+            from: try await client.readResourceJSON(uri: "speak://normalizer")
         )
         let storedProfiles = try requireArray("stored_profiles", in: storedTextProfilesPayload)
         #expect(storedProfiles.contains { $0["id"] as? String == "mcp-text-profile" })
@@ -708,18 +708,18 @@ struct SpeakSwiftlyServerE2ETests {
         #expect(loadedStoredProfiles.contains { $0["id"] as? String == "mcp-text-profile" })
 
         let effectiveStoredProfile = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles/effective/mcp-text-profile")
+            from: try await client.readResourceJSON(uri: "speak://normalizer/effective-profile/mcp-text-profile")
         )
         #expect(effectiveStoredProfile["id"] as? String == "mcp-text-profile")
 
         let storedProfileDetail = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles/stored/mcp-text-profile")
+            from: try await client.readResourceJSON(uri: "speak://normalizer/stored-profiles/mcp-text-profile")
         )
         #expect(storedProfileDetail["id"] as? String == "mcp-text-profile")
 
         let createdProfileName = "mcp-control-profile"
         let createProfilePayload = try await client.callTool(
-            name: "create_profile",
+            name: "create_voice_profile",
             arguments: [
                 "profile_name": createdProfileName,
                 "vibe": "femme",
@@ -727,7 +727,7 @@ struct SpeakSwiftlyServerE2ETests {
                 "voice_description": Self.testingProfileVoiceDescription,
             ]
         )
-        let createProfileJobID = try requireString("job_id", in: createProfilePayload)
+        let createProfileJobID = try requireString("request_id", in: createProfilePayload)
         _ = try await waitForTerminalJob(
             id: createProfileJobID,
             using: client,
@@ -742,23 +742,23 @@ struct SpeakSwiftlyServerE2ETests {
             guard let params = $0["params"] as? [String: Any] else {
                 return false
             }
-            return params["uri"] as? String == "speak://profiles"
+            return params["uri"] as? String == "speak://voices"
         }
         let profileNotificationParams = try requireDictionary("params", in: profileNotification)
-        #expect(profileNotificationParams["uri"] as? String == "speak://profiles")
+        #expect(profileNotificationParams["uri"] as? String == "speak://voices")
 
-        let profilesPayload = try requireProfiles(from: try await client.callToolJSON(name: "list_profiles", arguments: [:]))
+        let profilesPayload = try requireProfiles(from: try await client.callToolJSON(name: "list_voice_profiles", arguments: [:]))
         #expect(profilesPayload.contains { $0.profileName == createdProfileName })
 
         let profileDetail = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://profiles/\(createdProfileName)/detail")
+            from: try await client.readResourceJSON(uri: "speak://voices/\(createdProfileName)")
         )
         #expect(profileDetail["profile_name"] as? String == createdProfileName)
 
         let firstSpeechJobID = try requireString(
-            "job_id",
+            "request_id",
             in: try await client.callTool(
-                name: "queue_speech_live",
+                name: "generate_speech_live",
                 arguments: [
                     "text": String(repeating: Self.testingPlaybackText + " ", count: 12),
                     "profile_name": createdProfileName,
@@ -770,15 +770,15 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: .seconds(180),
             matching: { $0.state == "playing" && $0.activeRequest?.id == firstSpeechJobID }
         )
-        let pausedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "playback_pause", arguments: [:]))
+        let pausedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "pause_playback", arguments: [:]))
         #expect(pausedPayload["state"] as? String == "paused")
-        let resumedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "playback_resume", arguments: [:]))
+        let resumedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "resume_playback", arguments: [:]))
         #expect(resumedPayload["state"] as? String == "playing")
 
         let secondSpeechJobID = try requireString(
-            "job_id",
+            "request_id",
             in: try await client.callTool(
-                name: "queue_speech_live",
+                name: "generate_speech_live",
                 arguments: [
                     "text": String(repeating: Self.testingPlaybackText + " ", count: 12),
                     "profile_name": createdProfileName,
@@ -799,9 +799,9 @@ struct SpeakSwiftlyServerE2ETests {
         #expect(cancelledPayload["cancelled_request_id"] as? String == secondSpeechJobID)
 
         let thirdSpeechJobID = try requireString(
-            "job_id",
+            "request_id",
             in: try await client.callTool(
-                name: "queue_speech_live",
+                name: "generate_speech_live",
                 arguments: [
                     "text": String(repeating: Self.testingPlaybackText + " ", count: 12),
                     "profile_name": createdProfileName,
@@ -809,9 +809,9 @@ struct SpeakSwiftlyServerE2ETests {
             )
         )
         let fourthSpeechJobID = try requireString(
-            "job_id",
+            "request_id",
             in: try await client.callTool(
-                name: "queue_speech_live",
+                name: "generate_speech_live",
                 arguments: [
                     "text": String(repeating: Self.testingPlaybackText + " ", count: 12),
                     "profile_name": createdProfileName,
@@ -826,7 +826,7 @@ struct SpeakSwiftlyServerE2ETests {
                 return ids.contains(thirdSpeechJobID) && ids.contains(fourthSpeechJobID)
             }
         )
-        let clearedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "clear_queue", arguments: [:]))
+        let clearedPayload = try Self.requireObjectPayload(from: try await client.callToolJSON(name: "clear_playback_queue", arguments: [:]))
         #expect((clearedPayload["cleared_count"] as? Int) ?? 0 >= 2)
 
         _ = try await waitForTerminalJob(
@@ -835,36 +835,36 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: Self.e2eTimeout,
             server: server
         )
-        let jobsResourcePayload = try Self.requireArrayPayload(from: try await client.readResourceJSON(uri: "speak://jobs"))
-        #expect(jobsResourcePayload.contains { $0["job_id"] as? String == firstSpeechJobID })
+        let jobsResourcePayload = try Self.requireArrayPayload(from: try await client.readResourceJSON(uri: "speak://requests"))
+        #expect(jobsResourcePayload.contains { $0["request_id"] as? String == firstSpeechJobID })
 
         let removeProfilePayload = try await client.callTool(
-            name: "remove_profile",
+            name: "delete_voice_profile",
             arguments: ["profile_name": createdProfileName]
         )
-        let removeProfileJobID = try requireString("job_id", in: removeProfilePayload)
+        let removeProfileJobID = try requireString("request_id", in: removeProfilePayload)
         _ = try await waitForTerminalJob(
             id: removeProfileJobID,
             using: client,
             timeout: Self.e2eTimeout,
             server: server
         )
-        let remainingProfiles = try requireProfiles(from: try await client.callToolJSON(name: "list_profiles", arguments: [:]))
+        let remainingProfiles = try requireProfiles(from: try await client.callToolJSON(name: "list_voice_profiles", arguments: [:]))
         #expect(remainingProfiles.contains { $0.profileName == createdProfileName } == false)
 
-        _ = try await client.callToolJSON(name: "reset_text_profile", arguments: [:])
+        _ = try await client.callToolJSON(name: "reset_active_text_profile", arguments: [:])
         _ = try await client.callToolJSON(
-            name: "remove_text_profile",
+            name: "delete_text_profile",
             arguments: ["profile_id": "mcp-text-profile"]
         )
         let finalTextProfiles = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "list_text_profiles", arguments: [:])
+            from: try await client.callToolJSON(name: "get_normalizer_state", arguments: [:])
         )
         let finalStoredProfiles = try requireArray("stored_profiles", in: finalTextProfiles)
         #expect(finalStoredProfiles.contains { $0["id"] as? String == "mcp-text-profile" } == false)
 
-        try await client.unsubscribe(from: "speak://text-profiles")
-        try await client.unsubscribe(from: "speak://profiles")
+        try await client.unsubscribe(from: "speak://normalizer")
+        try await client.unsubscribe(from: "speak://voices")
     }
 
     // MARK: Lane Workflows
@@ -1189,7 +1189,7 @@ struct SpeakSwiftlyServerE2ETests {
                 )
             }
 
-            let profilesResponse = try await client.request(path: "/profiles", method: "GET")
+            let profilesResponse = try await client.request(path: "/voices", method: "GET")
             #expect(profilesResponse.statusCode == 200)
             let profiles = try decode(E2EProfileListResponse.self, from: profilesResponse.data).profiles
             for lane in lanes {
@@ -1237,7 +1237,7 @@ struct SpeakSwiftlyServerE2ETests {
                 )
             }
 
-            let profilesPayload = try await client.callToolJSON(name: "list_profiles", arguments: [:])
+            let profilesPayload = try await client.callToolJSON(name: "list_voice_profiles", arguments: [:])
             let profiles = try requireProfiles(from: profilesPayload)
             for lane in lanes {
                 #expect(profiles.contains {
@@ -1505,14 +1505,14 @@ struct SpeakSwiftlyServerE2ETests {
             var jobIDs = [String]()
             for lane in lanes {
                 let payload = try await client.callTool(
-                    name: "queue_speech_live",
+                    name: "generate_speech_live",
                     arguments: [
                         "text": testingPlaybackText,
                         "profile_name": lane.profileName,
                     ]
                 )
-                let jobID = try requireString("job_id", in: payload)
-                #expect(payload["job_resource_uri"] as? String == "speak://jobs/\(jobID)")
+                let jobID = try requireString("request_id", in: payload)
+                #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
                 jobIDs.append(jobID)
             }
 
@@ -1594,7 +1594,7 @@ struct SpeakSwiftlyServerE2ETests {
             body["cwd"] = cwd
         }
 
-        let response = try await client.request(path: "/profiles", method: "POST", jsonBody: body)
+        let response = try await client.request(path: "/voices", method: "POST", jsonBody: body)
         #expect(response.statusCode == 202)
 
         let createJobID = try decode(E2EJobCreatedResponse.self, from: response.data).jobID
@@ -1634,7 +1634,7 @@ struct SpeakSwiftlyServerE2ETests {
             body["cwd"] = cwd
         }
 
-        let response = try await client.request(path: "/profiles/clone", method: "POST", jsonBody: body)
+        let response = try await client.request(path: "/voices/clones", method: "POST", jsonBody: body)
         #expect(response.statusCode == 202)
 
         let cloneJobID = try decode(E2EJobCreatedResponse.self, from: response.data).jobID
@@ -1658,7 +1658,7 @@ struct SpeakSwiftlyServerE2ETests {
         using client: E2EHTTPClient,
         profileName: String
     ) async throws {
-        let profilesResponse = try await client.request(path: "/profiles", method: "GET")
+        let profilesResponse = try await client.request(path: "/voices", method: "GET")
         #expect(profilesResponse.statusCode == 200)
         let profiles = try decode(E2EProfileListResponse.self, from: profilesResponse.data).profiles
         #expect(profiles.contains { $0.profileName == profileName })
@@ -1668,7 +1668,7 @@ struct SpeakSwiftlyServerE2ETests {
         using client: E2EHTTPClient,
         profileName: String
     ) async throws {
-        let profilesResponse = try await client.request(path: "/profiles", method: "GET")
+        let profilesResponse = try await client.request(path: "/voices", method: "GET")
         #expect(profilesResponse.statusCode == 200)
         let profiles = try decode(E2EProfileListResponse.self, from: profilesResponse.data).profiles
         #expect(profiles.contains { $0.profileName == profileName } == false)
@@ -1681,7 +1681,7 @@ struct SpeakSwiftlyServerE2ETests {
         profileName: String
     ) async throws {
         let response = try await client.request(
-            path: "/speak",
+            path: "/generation/live",
             method: "POST",
             jsonBody: [
                 "text": text,
@@ -1699,11 +1699,11 @@ struct SpeakSwiftlyServerE2ETests {
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
-        #expect(snapshot.history.contains { $0.event == "started" && $0.op == "queue_speech_live" })
+        #expect(snapshot.history.contains { $0.event == "started" && $0.op == "generate_speech_live" })
         #expect(snapshot.history.contains { $0.event == "progress" && $0.stage == "playback_finished" })
         #expect(!snapshot.history.contains { $0.event == "queued" })
 
-        let eventsResponse = try await client.request(path: "/jobs/\(jobID)/events", method: "GET")
+        let eventsResponse = try await client.request(path: "/requests/\(jobID)/events", method: "GET")
         #expect(eventsResponse.statusCode == 200)
         #expect(eventsResponse.text.contains("event: worker_status"))
         #expect(eventsResponse.text.contains(#""event":"started""#))
@@ -1731,7 +1731,7 @@ struct SpeakSwiftlyServerE2ETests {
         #expect(engineReadyLog["event"] as? String == "playback_engine_ready")
 
         let response = try await client.request(
-            path: "/speak",
+            path: "/generation/live",
             method: "POST",
             jsonBody: [
                 "text": text,
@@ -1797,7 +1797,7 @@ struct SpeakSwiftlyServerE2ETests {
         profileName: String
     ) async throws -> String {
         let response = try await client.request(
-            path: "/speak",
+            path: "/generation/live",
             method: "POST",
             jsonBody: [
                 "text": text,
@@ -1814,7 +1814,7 @@ struct SpeakSwiftlyServerE2ETests {
         matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool
     ) async throws -> E2EPlaybackStateSnapshot {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let response = try await client.request(path: "/playback", method: "GET")
+            let response = try await client.request(path: "/playback/state", method: "GET")
             guard response.statusCode == 200 else { return nil }
             let snapshot = try decode(E2EPlaybackStateResponse.self, from: response.data).playback
             return predicate(snapshot) ? snapshot : nil
@@ -1827,7 +1827,7 @@ struct SpeakSwiftlyServerE2ETests {
         matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool
     ) async throws -> E2EQueueSnapshotResponse {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let response = try await client.request(path: "/queue/generation", method: "GET")
+            let response = try await client.request(path: "/generation/queue", method: "GET")
             guard response.statusCode == 200 else { return nil }
             let snapshot = try decode(E2EQueueSnapshotResponse.self, from: response.data)
             return predicate(snapshot) ? snapshot : nil
@@ -1859,9 +1859,9 @@ struct SpeakSwiftlyServerE2ETests {
             arguments["cwd"] = cwd
         }
 
-        let payload = try await client.callTool(name: "create_profile", arguments: arguments)
-        let jobID = try requireString("job_id", in: payload)
-        #expect(payload["job_resource_uri"] as? String == "speak://jobs/\(jobID)")
+        let payload = try await client.callTool(name: "create_voice_profile", arguments: arguments)
+        let jobID = try requireString("request_id", in: payload)
+        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -1899,9 +1899,9 @@ struct SpeakSwiftlyServerE2ETests {
             arguments["cwd"] = cwd
         }
 
-        let payload = try await client.callTool(name: "create_clone", arguments: arguments)
-        let jobID = try requireString("job_id", in: payload)
-        #expect(payload["job_resource_uri"] as? String == "speak://jobs/\(jobID)")
+        let payload = try await client.callTool(name: "clone_voice_profile", arguments: arguments)
+        let jobID = try requireString("request_id", in: payload)
+        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -1923,7 +1923,7 @@ struct SpeakSwiftlyServerE2ETests {
         using client: E2EMCPClient,
         profileName: String
     ) async throws {
-        let payload = try await client.callToolJSON(name: "list_profiles", arguments: [:])
+        let payload = try await client.callToolJSON(name: "list_voice_profiles", arguments: [:])
         let profiles = try requireProfiles(from: payload)
         #expect(profiles.contains { $0.profileName == profileName })
     }
@@ -1935,14 +1935,14 @@ struct SpeakSwiftlyServerE2ETests {
         profileName: String
     ) async throws {
         let payload = try await client.callTool(
-            name: "queue_speech_live",
+            name: "generate_speech_live",
             arguments: [
                 "text": text,
                 "profile_name": profileName,
             ]
         )
-        let jobID = try requireString("job_id", in: payload)
-        #expect(payload["job_resource_uri"] as? String == "speak://jobs/\(jobID)")
+        let jobID = try requireString("request_id", in: payload)
+        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -1952,7 +1952,7 @@ struct SpeakSwiftlyServerE2ETests {
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
-        #expect(snapshot.history.contains { $0.event == "started" && $0.op == "queue_speech_live" })
+        #expect(snapshot.history.contains { $0.event == "started" && $0.op == "generate_speech_live" })
         #expect(snapshot.history.contains { $0.event == "progress" && $0.stage == "playback_finished" })
         #expect(!snapshot.history.contains { $0.event == "queued" })
     }
@@ -1977,14 +1977,14 @@ struct SpeakSwiftlyServerE2ETests {
         #expect(engineReadyLog["event"] as? String == "playback_engine_ready")
 
         let payload = try await client.callTool(
-            name: "queue_speech_live",
+            name: "generate_speech_live",
             arguments: [
                 "text": text,
                 "profile_name": profileName,
             ]
         )
-        let jobID = try requireString("job_id", in: payload)
-        #expect(payload["job_resource_uri"] as? String == "speak://jobs/\(jobID)")
+        let jobID = try requireString("request_id", in: payload)
+        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
 
         _ = try await server.waitForStderrJSONObject(timeout: e2eTimeout) {
             guard

@@ -677,7 +677,7 @@ func waitUntilWorkerReady(
             )
         }
 
-        let payload = try await client.callTool(name: "status", arguments: [:])
+        let payload = try await client.callTool(name: "get_runtime_overview", arguments: [:])
         guard payload["worker_mode"] as? String == "ready" else { return nil }
         return true
     }
@@ -698,7 +698,7 @@ func waitUntilWorkerReady(
 }
 
 func waitForTerminalJob(
-    id jobID: String,
+    id requestID: String,
     using client: E2EHTTPClient,
     timeout: Duration,
     server: ServerProcess
@@ -706,11 +706,11 @@ func waitForTerminalJob(
     try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
         guard server.isStillRunning else {
             throw E2ETransportError(
-                "The live SpeakSwiftlyServer process exited before job '\(jobID)' reached a terminal state.\n\(server.combinedOutput)"
+                "The live SpeakSwiftlyServer process exited before request '\(requestID)' reached a terminal state.\n\(server.combinedOutput)"
             )
         }
 
-        let response = try await client.request(path: "/jobs/\(jobID)", method: "GET")
+        let response = try await client.request(path: "/requests/\(requestID)", method: "GET")
         guard response.statusCode == 200 else { return nil }
         let snapshot = try decode(E2EJobSnapshot.self, from: response.data)
         return snapshot.terminalEvent == nil ? nil : snapshot
@@ -718,7 +718,7 @@ func waitForTerminalJob(
 }
 
 func waitForTerminalJob(
-    id jobID: String,
+    id requestID: String,
     using client: E2EMCPClient,
     timeout: Duration,
     server: ServerProcess
@@ -726,11 +726,11 @@ func waitForTerminalJob(
     try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
         guard server.isStillRunning else {
             throw E2ETransportError(
-                "The live SpeakSwiftlyServer process exited before MCP job resource '\(jobID)' reached a terminal state.\n\(server.combinedOutput)"
+                "The live SpeakSwiftlyServer process exited before MCP request resource '\(requestID)' reached a terminal state.\n\(server.combinedOutput)"
             )
         }
 
-        let text = try await client.readResourceText(uri: "speak://jobs/\(jobID)")
+        let text = try await client.readResourceText(uri: "speak://requests/\(requestID)")
         let snapshot = try decode(E2EJobSnapshot.self, from: Data(text.utf8))
         return snapshot.terminalEvent == nil ? nil : snapshot
     }
@@ -971,11 +971,13 @@ struct E2EReadinessSnapshot: Decodable, Sendable {
 }
 
 struct E2EJobCreatedResponse: Decodable, Sendable {
-    let jobID: String
+    let requestID: String
 
     enum CodingKeys: String, CodingKey {
-        case jobID = "job_id"
+        case requestID = "request_id"
     }
+
+    var jobID: String { requestID }
 }
 
 struct E2EProfileListResponse: Decodable, Sendable {
@@ -1183,17 +1185,19 @@ struct E2ETextReplacementSnapshot: Decodable, Sendable, Equatable {
 }
 
 struct E2EJobSnapshot: Decodable, Sendable {
-    let jobID: String
+    let requestID: String
     let status: String
     let history: [E2EJobEvent]
     let terminalEvent: E2EJobEvent?
 
     enum CodingKeys: String, CodingKey {
-        case jobID = "job_id"
+        case requestID = "request_id"
         case status
         case history
         case terminalEvent = "terminal_event"
     }
+
+    var jobID: String { requestID }
 }
 
 struct E2EJobEvent: Decodable, Sendable {
