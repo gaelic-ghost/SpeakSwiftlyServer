@@ -43,8 +43,8 @@ func mcpListPromptsRequestJSON() -> String {
     #"{"jsonrpc":"2.0","id":"prompts-1","method":"prompts/list","params":{}}"#
 }
 
-func mcpStatusToolRequestJSON() -> String {
-    mcpCallToolRequestJSON(name: "status", arguments: [:], id: "status-1")
+func mcpRuntimeOverviewToolRequestJSON() -> String {
+    mcpCallToolRequestJSON(name: "get_runtime_overview", arguments: [:], id: "runtime-overview-1")
 }
 
 func mcpCallToolRequestJSON(

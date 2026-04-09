@@ -831,7 +831,7 @@ import TextForSpeech
     let firstStatusEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpStatusToolRequestJSON(),
+                body: mcpRuntimeOverviewToolRequestJSON(),
                 sessionID: firstSessionID
             )
         )
@@ -849,7 +849,7 @@ import TextForSpeech
     )
     let secondToolsResult = try #require(mcpResultPayload(from: secondToolsEnvelope))
     let secondTools = try #require(secondToolsResult["tools"] as? [[String: Any]])
-    #expect(secondTools.contains { $0["name"] as? String == "status" })
+    #expect(secondTools.contains { $0["name"] as? String == "get_runtime_overview" })
 
     let deleteFirstSessionResponse = await mcpSurface.handle(
         mcpDELETERequest(sessionID: firstSessionID)
@@ -858,7 +858,7 @@ import TextForSpeech
 
     let deletedSessionResponse = await mcpSurface.handle(
         mcpPOSTRequest(
-            body: mcpStatusToolRequestJSON(),
+            body: mcpRuntimeOverviewToolRequestJSON(),
             sessionID: firstSessionID
         )
     )
@@ -867,7 +867,7 @@ import TextForSpeech
     let survivingSessionEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpStatusToolRequestJSON(),
+                body: mcpRuntimeOverviewToolRequestJSON(),
                 sessionID: secondSessionID
             )
         )
