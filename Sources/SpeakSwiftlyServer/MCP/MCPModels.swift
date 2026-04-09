@@ -20,7 +20,7 @@ struct MCPAcceptedRequestResult: Codable, Sendable {
 enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
-            name: "generate_speech_live",
+            name: "queue_speech_live",
             description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide text_profile_name plus explicit normalization-format arguments when the input should not rely on automatic format detection.",
             inputSchema: [
                 "type": "object",
@@ -38,7 +38,7 @@ enum MCPToolCatalog {
             ]
         ),
         Tool(
-            name: "generate_audio_file",
+            name: "queue_speech_file",
             description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later.",
             inputSchema: [
                 "type": "object",
@@ -56,7 +56,7 @@ enum MCPToolCatalog {
             ]
         ),
         Tool(
-            name: "generate_audio_batch",
+            name: "queue_speech_batch",
             description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together.",
             inputSchema: [
                 "type": "object",
@@ -68,7 +68,7 @@ enum MCPToolCatalog {
             ]
         ),
         Tool(
-            name: "create_voice_profile",
+            name: "create_voice_profile_from_description",
             description: "Create a new stored SpeakSwiftly voice profile from source text, an explicit vibe, and a voice description.",
             inputSchema: [
                 "type": "object",
@@ -84,7 +84,7 @@ enum MCPToolCatalog {
             ]
         ),
         Tool(
-            name: "clone_voice_profile",
+            name: "create_voice_profile_from_audio",
             description: "Create a new stored SpeakSwiftly voice clone from local reference audio with an explicit vibe.",
             inputSchema: [
                 "type": "object",
@@ -166,8 +166,8 @@ enum MCPToolCatalog {
             inputSchema: ["type": "object", "properties": [:]]
         ),
         Tool(
-            name: "get_normalizer_state",
-            description: "Return the full SpeakSwiftly normalizer snapshot, including base, active, stored, and effective text profiles.",
+            name: "get_text_profiles_state",
+            description: "Return the full SpeakSwiftly text-profile snapshot, including base, active, stored, and effective profiles.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
         ),
@@ -186,12 +186,12 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "load_text_profiles",
-            description: "Reload persisted SpeakSwiftly text profiles from disk and return the refreshed normalizer state.",
+            description: "Reload persisted SpeakSwiftly text profiles from disk and return the refreshed text-profile state.",
             inputSchema: ["type": "object", "properties": [:]]
         ),
         Tool(
             name: "save_text_profiles",
-            description: "Persist the current SpeakSwiftly text-profile state to disk and return the refreshed normalizer state.",
+            description: "Persist the current SpeakSwiftly text-profile state to disk and return the refreshed text-profile state.",
             inputSchema: ["type": "object", "properties": [:]]
         ),
         Tool(
@@ -395,11 +395,11 @@ enum MCPResourceCatalog {
         "speak://runtime/configuration",
         "speak://voices",
         "speak://voices/guide",
-        "speak://normalizer",
-        "speak://normalizer/guide",
-        "speak://normalizer/base-profile",
-        "speak://normalizer/active-profile",
-        "speak://normalizer/effective-profile",
+        "speak://text-profiles",
+        "speak://text-profiles/guide",
+        "speak://text-profiles/base",
+        "speak://text-profiles/active",
+        "speak://text-profiles/effective",
         "speak://playback/guide",
         "speak://requests",
         "speak://generation/jobs",
@@ -413,11 +413,11 @@ enum MCPResourceCatalog {
         .init(name: "Runtime Configuration", uri: "speak://runtime/configuration", description: "Persisted runtime configuration snapshot for the next runtime start.", mimeType: "application/json"),
         .init(name: "Voice Profiles", uri: "speak://voices", description: "Current cached SpeakSwiftly voice profiles.", mimeType: "application/json"),
         .init(name: "Voice Profile Guide", uri: "speak://voices/guide", description: "Operator guidance for creating, cloning, listing, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
-        .init(name: "Normalizer State", uri: "speak://normalizer", description: "Current SpeakSwiftly normalizer snapshot, including base, active, stored, and effective profiles.", mimeType: "application/json"),
-        .init(name: "Normalizer Guide", uri: "speak://normalizer/guide", description: "Operator guidance for working with SpeakSwiftly text normalization.", mimeType: "text/markdown"),
-        .init(name: "Base Normalizer Profile", uri: "speak://normalizer/base-profile", description: "Immutable base SpeakSwiftly text profile.", mimeType: "application/json"),
-        .init(name: "Active Normalizer Profile", uri: "speak://normalizer/active-profile", description: "Current active custom SpeakSwiftly text profile.", mimeType: "application/json"),
-        .init(name: "Effective Normalizer Profile", uri: "speak://normalizer/effective-profile", description: "Default effective SpeakSwiftly text profile after merging base and active custom state.", mimeType: "application/json"),
+        .init(name: "Text Profiles", uri: "speak://text-profiles", description: "Current SpeakSwiftly text-profile snapshot, including base, active, stored, and effective profiles.", mimeType: "application/json"),
+        .init(name: "Text Profile Guide", uri: "speak://text-profiles/guide", description: "Operator guidance for working with SpeakSwiftly text profiles and replacements.", mimeType: "text/markdown"),
+        .init(name: "Base Text Profile", uri: "speak://text-profiles/base", description: "Immutable base SpeakSwiftly text profile.", mimeType: "application/json"),
+        .init(name: "Active Text Profile", uri: "speak://text-profiles/active", description: "Current active custom SpeakSwiftly text profile.", mimeType: "application/json"),
+        .init(name: "Effective Text Profile", uri: "speak://text-profiles/effective", description: "Default effective SpeakSwiftly text profile after merging base and active custom state.", mimeType: "application/json"),
         .init(name: "Playback Guide", uri: "speak://playback/guide", description: "Operator guidance for reading queues, controlling playback, and choosing the least destructive action.", mimeType: "text/markdown"),
         .init(name: "Tracked Requests", uri: "speak://requests", description: "Retained shared-host request snapshots for live server operations.", mimeType: "application/json"),
         .init(name: "Generation Jobs", uri: "speak://generation/jobs", description: "Retained v2 generation jobs known to the SpeakSwiftly runtime.", mimeType: "application/json"),
@@ -427,8 +427,8 @@ enum MCPResourceCatalog {
 
     static let templates: [Resource.Template] = [
         .init(uriTemplate: "speak://voices/{profile_name}", name: "Voice Profile Detail", description: "Cached SpeakSwiftly voice profile detail for one profile.", mimeType: "application/json"),
-        .init(uriTemplate: "speak://normalizer/stored-profiles/{profile_id}", name: "Stored Text Profile", description: "One persisted SpeakSwiftly text profile by profile id.", mimeType: "application/json"),
-        .init(uriTemplate: "speak://normalizer/effective-profile/{profile_id}", name: "Effective Stored Text Profile", description: "The effective text profile produced by merging the base profile with one stored profile.", mimeType: "application/json"),
+        .init(uriTemplate: "speak://text-profiles/stored/{profile_id}", name: "Stored Text Profile", description: "One persisted SpeakSwiftly text profile by profile id.", mimeType: "application/json"),
+        .init(uriTemplate: "speak://text-profiles/effective/{profile_id}", name: "Effective Stored Text Profile", description: "The effective text profile produced by merging the base profile with one stored profile.", mimeType: "application/json"),
         .init(uriTemplate: "speak://requests/{request_id}", name: "Request Detail", description: "Detailed shared-host state for one tracked request.", mimeType: "application/json"),
         .init(uriTemplate: "speak://generation/jobs/{job_id}", name: "Generation Job Detail", description: "One retained v2 generation job.", mimeType: "application/json"),
         .init(uriTemplate: "speak://generation/files/{artifact_id}", name: "Generated File Detail", description: "One retained generated audio file.", mimeType: "application/json"),

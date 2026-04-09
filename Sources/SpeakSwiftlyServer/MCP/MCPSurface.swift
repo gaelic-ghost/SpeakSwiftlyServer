@@ -96,8 +96,8 @@ struct MCPSurface {
             let arguments = params.arguments ?? [:]
 
             switch params.name {
-            case "generate_speech_live":
-                let requestID = try await host.submitGenerateSpeechLive(
+            case "queue_speech_live":
+                let requestID = try await host.queueSpeechLive(
                     text: requiredString("text", in: arguments),
                     profileName: requiredString("profile_name", in: arguments),
                     textProfileName: optionalString("text_profile_name", in: arguments),
@@ -111,8 +111,8 @@ struct MCPSurface {
                     )
                 )
 
-            case "generate_audio_file":
-                let requestID = try await host.submitGenerateAudioFile(
+            case "queue_speech_file":
+                let requestID = try await host.queueSpeechFile(
                     text: requiredString("text", in: arguments),
                     profileName: requiredString("profile_name", in: arguments),
                     textProfileName: optionalString("text_profile_name", in: arguments),
@@ -126,9 +126,9 @@ struct MCPSurface {
                     )
                 )
 
-            case "generate_audio_batch":
+            case "queue_speech_batch":
                 let items: [BatchItemRequestPayload] = try decodeArgument("items", in: arguments)
-                let requestID = try await host.submitGenerateAudioBatch(
+                let requestID = try await host.queueSpeechBatch(
                     items: try items.map { try $0.model() },
                     profileName: requiredString("profile_name", in: arguments)
                 )
@@ -139,8 +139,8 @@ struct MCPSurface {
                     )
                 )
 
-            case "create_voice_profile":
-                let requestID = try await host.submitCreateVoiceProfile(
+            case "create_voice_profile_from_description":
+                let requestID = try await host.createVoiceProfileFromDescription(
                     profileName: requiredString("profile_name", in: arguments),
                     vibe: try requiredVibe("vibe", in: arguments),
                     text: requiredString("text", in: arguments),
@@ -155,8 +155,8 @@ struct MCPSurface {
                     )
                 )
 
-            case "clone_voice_profile":
-                let requestID = try await host.submitCloneVoiceProfile(
+            case "create_voice_profile_from_audio":
+                let requestID = try await host.createVoiceProfileFromAudio(
                     profileName: requiredString("profile_name", in: arguments),
                     vibe: try requiredVibe("vibe", in: arguments),
                     referenceAudioPath: requiredString("reference_audio_path", in: arguments),
@@ -213,7 +213,7 @@ struct MCPSurface {
             case "unload_models":
                 return try toolResult(try await host.unloadModels())
 
-            case "get_normalizer_state":
+            case "get_text_profiles_state":
                 return try toolResult(await host.textProfilesSnapshot())
 
             case "create_text_profile":
@@ -275,10 +275,10 @@ struct MCPSurface {
                 )
 
             case "list_generation_queue":
-                return try toolResult(try await host.queueSnapshot(queueType: .generation))
+                return try toolResult(try await host.generationQueueSnapshot())
 
             case "list_playback_queue":
-                return try toolResult(try await host.queueSnapshot(queueType: .playback))
+                return try toolResult(try await host.playbackQueueSnapshot())
 
             case "get_playback_state":
                 return try toolResult(try await host.playbackStateSnapshot())
@@ -303,7 +303,7 @@ struct MCPSurface {
                 return try toolResult(await host.jobSnapshots())
 
             case "list_generation_jobs":
-                return try toolResult(try await host.generationJobs())
+                return try toolResult(try await host.listGenerationJobs())
 
             case "get_generation_job":
                 return try toolResult(try await host.generationJob(id: requiredString("job_id", in: arguments)))
@@ -312,13 +312,13 @@ struct MCPSurface {
                 return try toolResult(try await host.expireGenerationJob(id: requiredString("job_id", in: arguments)))
 
             case "list_generated_files":
-                return try toolResult(try await host.generatedFiles())
+                return try toolResult(try await host.listGeneratedFiles())
 
             case "get_generated_file":
                 return try toolResult(try await host.generatedFile(id: requiredString("artifact_id", in: arguments)))
 
             case "list_generated_batches":
-                return try toolResult(try await host.generatedBatches())
+                return try toolResult(try await host.listGeneratedBatches())
 
             case "get_generated_batch":
                 return try toolResult(try await host.generatedBatch(id: requiredString("batch_id", in: arguments)))
@@ -377,10 +377,10 @@ struct MCPSurface {
                     ]
                 )
 
-            case "speak://normalizer":
+            case "speak://text-profiles":
                 return try resourceResult(uri: params.uri, payload: await host.textProfilesSnapshot())
 
-            case "speak://normalizer/guide":
+            case "speak://text-profiles/guide":
                 return .init(
                     contents: [
                         .text(
@@ -402,26 +402,26 @@ struct MCPSurface {
                     ]
                 )
 
-            case "speak://normalizer/base-profile":
+            case "speak://text-profiles/base":
                 return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).baseProfile)
 
-            case "speak://normalizer/active-profile":
+            case "speak://text-profiles/active":
                 return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).activeProfile)
 
-            case "speak://normalizer/effective-profile":
+            case "speak://text-profiles/effective":
                 return try resourceResult(uri: params.uri, payload: await host.effectiveTextProfile(nil))
 
             case "speak://requests":
                 return try resourceResult(uri: params.uri, payload: await host.jobSnapshots())
 
             case "speak://generation/jobs":
-                return try resourceResult(uri: params.uri, payload: try await host.generationJobs())
+                return try resourceResult(uri: params.uri, payload: try await host.listGenerationJobs())
 
             case "speak://generation/files":
-                return try resourceResult(uri: params.uri, payload: try await host.generatedFiles())
+                return try resourceResult(uri: params.uri, payload: try await host.listGeneratedFiles())
 
             case "speak://generation/batches":
-                return try resourceResult(uri: params.uri, payload: try await host.generatedBatches())
+                return try resourceResult(uri: params.uri, payload: try await host.listGeneratedBatches())
 
             default:
                 if let profileName = profileDetailName(from: params.uri) {
@@ -436,7 +436,7 @@ struct MCPSurface {
                 if let profileID = storedTextProfileID(from: params.uri) {
                     guard let profile = await host.storedTextProfile(profileID) else {
                         throw MCPError.invalidRequest(
-                            "No stored SpeakSwiftly text profile matched that profile id. Read speak://normalizer first to inspect the current stored profile set."
+                            "No stored SpeakSwiftly text profile matched that profile id. Read speak://text-profiles first to inspect the current stored profile set."
                         )
                     }
                     return try resourceResult(uri: params.uri, payload: profile)
@@ -596,9 +596,9 @@ struct MCPSurface {
                 Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                 \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
                 Available action families:
-                - voice profile work: create_voice_profile, clone_voice_profile, list_voice_profiles, delete_voice_profile, speak://voices, speak://voices/guide
-                - speech and retained generation: generate_speech_live, generate_audio_file, generate_audio_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
-                - text normalization: get_normalizer_state, load_text_profiles, save_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_active_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://normalizer, speak://normalizer/guide
+                - voice profile work: create_voice_profile_from_description, create_voice_profile_from_audio, list_voice_profiles, delete_voice_profile, speak://voices, speak://voices/guide
+                - speech and retained generation: queue_speech_live, queue_speech_file, queue_speech_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
+                - text profile work: get_text_profiles_state, load_text_profiles, save_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_active_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://text-profiles, speak://text-profiles/guide
                 - playback and queue control: list_generation_queue, list_playback_queue, get_playback_state, pause_playback, resume_playback, clear_playback_queue, cancel_request, speak://playback/guide
                 - runtime controls: get_runtime_overview, get_runtime_status, get_runtime_configuration, set_runtime_configuration, switch_speech_backend, reload_models, unload_models, speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
                 - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
@@ -861,10 +861,10 @@ private actor MCPSubscriptionBroker {
         case .textProfilesChanged:
             candidateURIs = Set(
                 [
-                    "speak://normalizer",
-                    "speak://normalizer/base-profile",
-                    "speak://normalizer/active-profile",
-                    "speak://normalizer/effective-profile",
+                    "speak://text-profiles",
+                    "speak://text-profiles/base",
+                    "speak://text-profiles/active",
+                    "speak://text-profiles/effective",
                 ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
                     + subscribedResourceURIs.filter(isEffectiveTextProfileURI)
             )
@@ -1059,21 +1059,13 @@ private func requestTextFormat(in arguments: [String: Value]) throws -> TextForS
     guard let rawValue = optionalString("text_format", in: arguments) else {
         return nil
     }
-    if let format = TextForSpeech.TextFormat(rawValue: rawValue) {
-        return format
+    guard let format = TextForSpeech.TextFormat(rawValue: rawValue) else {
+        let acceptedValues = TextForSpeech.TextFormat.allCases.map(\.rawValue).joined(separator: ", ")
+        throw MCPError.invalidParams(
+            "Tool argument 'text_format' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues)."
+        )
     }
-    if let legacyFormat = TextForSpeech.Format(rawValue: rawValue),
-       let textFormat = legacyRequestTextFormat(for: legacyFormat)
-    {
-        return textFormat
-    }
-
-    let supportedFormats = TextForSpeech.TextFormat.allCases.map(\.rawValue)
-    let legacyFormats = TextForSpeech.Format.allCases.map(\.rawValue)
-    let acceptedValues = (supportedFormats + legacyFormats).joined(separator: ", ")
-    throw MCPError.invalidParams(
-        "Tool argument 'text_format' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues)."
-    )
+    return format
 }
 
 private func requestSourceFormat(
@@ -1120,18 +1112,6 @@ private func requiredSpeechBackend(
     return speechBackend
 }
 
-private func legacyRequestTextFormat(for format: TextForSpeech.Format) -> TextForSpeech.TextFormat? {
-    switch format {
-    case .plain: .plain
-    case .markdown: .markdown
-    case .html: .html
-    case .log: .log
-    case .cli: .cli
-    case .list: .list
-    case .source, .swift, .python, .rust: nil
-    }
-}
-
 private func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedRequestResult {
     .init(
         requestID: requestID,
@@ -1167,7 +1147,7 @@ private func compactPrompt(_ raw: String) -> String {
 
 private func textProfilesGuideMarkdown() -> String {
     """
-    # SpeakSwiftly Normalizer Guide
+    # SpeakSwiftly Text Profile Guide
 
     Use text profiles when a downstream app or agent needs to normalize phrasing before speech generation without changing the underlying voice profile.
 
@@ -1178,12 +1158,12 @@ private func textProfilesGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak://normalizer` to inspect the current base, active, stored, and effective state.
+    1. Read `speak://text-profiles` to inspect the current base, active, stored, and effective state.
     2. Draft or edit rules with the `draft_text_profile` and `draft_text_replacement` prompts when a user needs help authoring replacements.
     3. Store reusable policies with `create_text_profile` or `store_text_profile`.
     4. Use `use_text_profile` when the downstream app wants a temporary active custom profile, or pass `text_profile_name` on one speech request when the caller wants stored-profile selection without mutating the active profile.
     5. Use `save_text_profiles` when the operator wants an explicit persistence checkpoint, and `load_text_profiles` when another process changed the persistence file and the in-memory state should be refreshed from disk.
-    6. Read `speak://normalizer/effective-profile/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
+    6. Read `speak://text-profiles/effective/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
 
     Replacement guidance:
 
@@ -1204,11 +1184,11 @@ private func voiceProfilesGuideMarkdown() -> String {
     Recommended workflow:
 
     1. Read `speak://voices` or call `list_voice_profiles` to inspect the currently cached voice profiles.
-    2. Use `create_voice_profile` when the user wants a new synthetic profile from source text plus a voice description.
-    3. Use `clone_voice_profile` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
-    4. Provide `transcript` to `clone_voice_profile` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    5. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech_live` when the input needs explicit format-aware normalization instead of automatic detection.
-    6. Use `generate_speech_live` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
+    2. Use `create_voice_profile_from_description` when the user wants a new synthetic profile from source text plus a voice description.
+    3. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
+    4. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    5. Pass `text_format`, `nested_source_format`, or `source_format` to `queue_speech_live` when the input needs explicit format-aware normalization instead of automatic detection.
+    6. Use `queue_speech_live` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
     7. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
 
     Drafting guidance:
@@ -1255,7 +1235,7 @@ private func isVoiceProfileURI(_ uri: String) -> Bool {
 }
 
 private func storedTextProfileID(from uri: String) -> String? {
-    let prefix = "speak://normalizer/stored-profiles/"
+    let prefix = "speak://text-profiles/stored/"
     guard uri.hasPrefix(prefix) else { return nil }
     return String(uri.dropFirst(prefix.count))
 }
@@ -1265,7 +1245,7 @@ private func isStoredTextProfileURI(_ uri: String) -> Bool {
 }
 
 private func effectiveTextProfileID(from uri: String) -> String? {
-    let prefix = "speak://normalizer/effective-profile/"
+    let prefix = "speak://text-profiles/effective/"
     guard uri.hasPrefix(prefix) else { return nil }
     return String(uri.dropFirst(prefix.count))
 }

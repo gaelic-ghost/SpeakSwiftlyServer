@@ -34,71 +34,63 @@ struct RuntimeRequestHandle: Sendable {
     }
 }
 
-enum RuntimeQueueType: Sendable {
-    case generation
-    case playback
-}
-
-enum RuntimePlaybackAction: Sendable {
-    case pause
-    case resume
-    case state
-}
-
 // MARK: - Runtime Protocol
 
 protocol ServerRuntimeProtocol: Actor {
     func start()
     func shutdown() async
     func statusEvents() async -> AsyncStream<SpeakSwiftly.StatusEvent>
-    func generateSpeechLive(
+    func queueSpeechLive(
         text: String,
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?
     ) async -> RuntimeRequestHandle
-    func generateAudioFile(
+    func queueSpeechFile(
         text: String,
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?
     ) async -> RuntimeRequestHandle
-    func generateAudioBatch(
+    func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
         with profileName: String
     ) async -> RuntimeRequestHandle
-    func createVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromDescription(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
         cwd: String?
     ) async -> RuntimeRequestHandle
-    func cloneVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromAudio(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
         cwd: String?
     ) async -> RuntimeRequestHandle
-    func voiceProfiles() async -> RuntimeRequestHandle
-    func deleteVoiceProfile(named profileName: String) async -> RuntimeRequestHandle
+    func listVoiceProfiles() async -> RuntimeRequestHandle
+    func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle
     func generationJob(id jobID: String) async -> RuntimeRequestHandle
-    func generationJobs() async -> RuntimeRequestHandle
+    func listGenerationJobs() async -> RuntimeRequestHandle
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle
     func generatedFile(id artifactID: String) async -> RuntimeRequestHandle
-    func generatedFiles() async -> RuntimeRequestHandle
+    func listGeneratedFiles() async -> RuntimeRequestHandle
     func generatedBatch(id batchID: String) async -> RuntimeRequestHandle
-    func generatedBatches() async -> RuntimeRequestHandle
+    func listGeneratedBatches() async -> RuntimeRequestHandle
     func runtimeStatus() async -> RuntimeRequestHandle
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle
     func reloadModels() async -> RuntimeRequestHandle
     func unloadModels() async -> RuntimeRequestHandle
-    func queue(_ queueType: RuntimeQueueType) async -> RuntimeRequestHandle
-    func playback(_ action: RuntimePlaybackAction) async -> RuntimeRequestHandle
+    func generationQueue() async -> RuntimeRequestHandle
+    func playbackQueue() async -> RuntimeRequestHandle
+    func playbackState() async -> RuntimeRequestHandle
+    func pausePlayback() async -> RuntimeRequestHandle
+    func resumePlayback() async -> RuntimeRequestHandle
     func clearQueue() async -> RuntimeRequestHandle
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle
     func activeTextProfile() async -> TextForSpeech.Profile
@@ -144,7 +136,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         await runtime.statusEvents()
     }
 
-    func generateSpeechLive(
+    func queueSpeechLive(
         text: String,
         with profileName: String,
         textProfileName: String?,
@@ -158,10 +150,10 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
             textContext: normalizationContext,
             sourceFormat: sourceFormat
         )
-        return .init(id: handle.id, operation: "generate_speech_live", profileName: profileName, events: handle.events)
+        return .init(id: handle.id, operation: "queue_speech_live", profileName: profileName, events: handle.events)
     }
 
-    func generateAudioFile(
+    func queueSpeechFile(
         text: String,
         with profileName: String,
         textProfileName: String?,
@@ -175,19 +167,19 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
             textContext: normalizationContext,
             sourceFormat: sourceFormat
         )
-        return .init(id: handle.id, operation: "generate_audio_file", profileName: profileName, events: handle.events)
+        return .init(id: handle.id, operation: "queue_speech_file", profileName: profileName, events: handle.events)
     }
 
-    func generateAudioBatch(
+    func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
         with profileName: String
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.generate.batch(items, with: profileName)
-        return .init(id: handle.id, operation: "generate_audio_batch", profileName: profileName, events: handle.events)
+        return .init(id: handle.id, operation: "queue_speech_batch", profileName: profileName, events: handle.events)
     }
 
-    func createVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromDescription(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from text: String,
         voice voiceDescription: String,
@@ -201,11 +193,11 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
             voice: voiceDescription,
             outputPath: resolvedAbsoluteFilesystemPath(outputPath, cwd: cwd)
         )
-        return .init(id: handle.id, operation: "create_voice_profile", profileName: profileName, events: handle.events)
+        return .init(id: handle.id, operation: "create_voice_profile_from_description", profileName: profileName, events: handle.events)
     }
 
-    func cloneVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromAudio(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
@@ -218,15 +210,15 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
             vibe: vibe,
             transcript: transcript
         )
-        return .init(id: handle.id, operation: "clone_voice_profile", profileName: profileName, events: handle.events)
+        return .init(id: handle.id, operation: "create_voice_profile_from_audio", profileName: profileName, events: handle.events)
     }
 
-    func voiceProfiles() async -> RuntimeRequestHandle {
+    func listVoiceProfiles() async -> RuntimeRequestHandle {
         let handle = await runtime.voices.list()
         return .init(id: handle.id, operation: "list_voice_profiles", profileName: nil, events: handle.events)
     }
 
-    func deleteVoiceProfile(named profileName: String) async -> RuntimeRequestHandle {
+    func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
         let handle = await runtime.voices.delete(named: profileName)
         return .init(id: handle.id, operation: "delete_voice_profile", profileName: profileName, events: handle.events)
     }
@@ -236,7 +228,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "get_generation_job", profileName: nil, events: handle.events)
     }
 
-    func generationJobs() async -> RuntimeRequestHandle {
+    func listGenerationJobs() async -> RuntimeRequestHandle {
         let handle = await runtime.jobs.list()
         return .init(id: handle.id, operation: "list_generation_jobs", profileName: nil, events: handle.events)
     }
@@ -251,7 +243,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "get_generated_file", profileName: nil, events: handle.events)
     }
 
-    func generatedFiles() async -> RuntimeRequestHandle {
+    func listGeneratedFiles() async -> RuntimeRequestHandle {
         let handle = await runtime.artifacts.files()
         return .init(id: handle.id, operation: "list_generated_files", profileName: nil, events: handle.events)
     }
@@ -261,7 +253,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "get_generated_batch", profileName: nil, events: handle.events)
     }
 
-    func generatedBatches() async -> RuntimeRequestHandle {
+    func listGeneratedBatches() async -> RuntimeRequestHandle {
         let handle = await runtime.artifacts.batches()
         return .init(id: handle.id, operation: "list_generated_batches", profileName: nil, events: handle.events)
     }
@@ -286,24 +278,24 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "unload_models", profileName: nil, events: handle.events)
     }
 
-    func queue(_ queueType: RuntimeQueueType) async -> RuntimeRequestHandle {
-        switch queueType {
-        case .generation:
-            RuntimeRequestHandle(await runtime.jobs.generationQueue())
-        case .playback:
-            RuntimeRequestHandle(await runtime.player.list())
-        }
+    func generationQueue() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.jobs.generationQueue())
     }
 
-    func playback(_ action: RuntimePlaybackAction) async -> RuntimeRequestHandle {
-        switch action {
-        case .pause:
-            RuntimeRequestHandle(await runtime.player.pause())
-        case .resume:
-            RuntimeRequestHandle(await runtime.player.resume())
-        case .state:
-            RuntimeRequestHandle(await runtime.player.state())
-        }
+    func playbackQueue() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.player.list())
+    }
+
+    func playbackState() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.player.state())
+    }
+
+    func pausePlayback() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.player.pause())
+    }
+
+    func resumePlayback() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.player.resume())
     }
 
     func clearQueue() async -> RuntimeRequestHandle {

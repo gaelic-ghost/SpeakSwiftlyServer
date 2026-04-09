@@ -366,7 +366,7 @@ import TextForSpeech
     let runtimeRefresh = try #require(liveState.runtimeRefresh)
     #expect(liveState.playback.state == "playing")
     #expect(runtimeRefresh.sequenceID > 0)
-    #expect(runtimeRefresh.source == "runtime")
+    #expect(runtimeRefresh.source == "fallback")
     #expect(runtimeRefresh.startedAt.isEmpty == false)
     #expect(runtimeRefresh.completedAt.isEmpty == false)
     #expect(liveState.transports.contains { $0.name == "http" && $0.advertisedAddress == "http://127.0.0.1:7337" })
@@ -382,6 +382,59 @@ import TextForSpeech
     #expect(uiPlayback.state == "playing")
 
     await runtime.finishHeldSpeak(id: jobID)
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
+@Test func hostUsesFallbackRuntimeSnapshotsForQueuedLiveSpeechJobs() async throws {
+    let runtime = MockRuntime(speakBehavior: .holdOpen)
+    let configuration = testConfiguration()
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        runtime: runtime,
+        state: state
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(host)
+    try await Task.sleep(for: .milliseconds(50))
+
+    let baselineRefreshCounts = await runtime.runtimeRefreshActionCounts()
+
+    let firstJobID = try await host.submitSpeak(text: "Keep talking", profileName: "default")
+    let secondJobID = try await host.submitSpeak(text: "Wait your turn", profileName: "default")
+
+    let snapshot: HostStateSnapshot = try await waitUntil(
+        timeout: .seconds(1),
+        pollInterval: .milliseconds(10)
+    ) {
+        let snapshot = await host.hostStateSnapshot()
+        guard
+            snapshot.runtimeRefresh?.source == "fallback",
+            snapshot.playback.activeRequest?.id == firstJobID,
+            snapshot.playbackQueue.activeRequest?.id == firstJobID,
+            snapshot.generationQueue.queuedCount == 1
+        else {
+            return nil
+        }
+
+        return snapshot
+    }
+
+    let countsAfterQueuedLiveRequests = await runtime.runtimeRefreshActionCounts()
+    #expect(countsAfterQueuedLiveRequests == baselineRefreshCounts)
+    #expect(snapshot.currentGenerationJob?.jobID == firstJobID)
+
+    let secondJobSnapshot = try await host.jobSnapshot(id: secondJobID)
+    #expect(secondJobSnapshot.history.contains {
+        guard case .queued(let event) = $0 else { return false }
+        return event.reason == "waiting_for_active_request"
+    })
+
+    await runtime.finishHeldSpeak(id: firstJobID)
+    await runtime.finishHeldSpeak(id: secondJobID)
     await host.shutdown()
 }
 

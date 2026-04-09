@@ -354,7 +354,7 @@ func waitUntil<T: Sendable>(
 @available(macOS 14, *)
 func waitForActiveRequestID(on host: ServerHost) async throws -> String {
     try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-        let snapshot = try await host.queueSnapshot(queueType: .generation)
+        let snapshot = try await host.generationQueueSnapshot()
         return snapshot.activeRequest?.id
     }
 }
@@ -369,7 +369,7 @@ extension ServerHost {
         normalizationContext: SpeechNormalizationContext? = nil,
         sourceFormat: TextForSpeech.SourceFormat? = nil
     ) async throws -> String {
-        try await submitGenerateSpeechLive(
+        try await queueSpeechLive(
             text: text,
             profileName: profileName,
             textProfileName: textProfileName,
@@ -386,7 +386,7 @@ extension ServerHost {
         outputPath: String?,
         cwd: String?
     ) async throws -> String {
-        try await submitCreateVoiceProfile(
+        try await createVoiceProfileFromDescription(
             profileName: profileName,
             vibe: vibe,
             text: text,
@@ -403,7 +403,7 @@ extension ServerHost {
         transcript: String?,
         cwd: String?
     ) async throws -> String {
-        try await submitCloneVoiceProfile(
+        try await createVoiceProfileFromAudio(
             profileName: profileName,
             vibe: vibe,
             referenceAudioPath: referenceAudioPath,

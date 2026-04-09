@@ -81,9 +81,9 @@ private func registerHTTPRoutes(
         .init(profiles: await host.cachedProfiles())
     }
 
-    router.post("voices") { request, context -> Response in
+    router.post("voices/from-description") { request, context -> Response in
         let payload = try await request.decode(as: CreateProfileRequestPayload.self, context: context)
-        let requestID = try await host.submitCreateVoiceProfile(
+        let requestID = try await host.createVoiceProfileFromDescription(
             profileName: payload.profileName,
             vibe: try payload.vibeModel(),
             text: payload.text,
@@ -94,9 +94,9 @@ private func registerHTTPRoutes(
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.post("voices/clones") { request, context -> Response in
+    router.post("voices/from-audio") { request, context -> Response in
         let payload = try await request.decode(as: CreateCloneRequestPayload.self, context: context)
-        let requestID = try await host.submitCloneVoiceProfile(
+        let requestID = try await host.createVoiceProfileFromAudio(
             profileName: payload.profileName,
             vibe: try payload.vibeModel(),
             referenceAudioPath: payload.referenceAudioPath,
@@ -112,28 +112,28 @@ private func registerHTTPRoutes(
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.get("normalizer") { _, _ -> TextProfileListResponse in
+    router.get("text-profiles") { _, _ -> TextProfileListResponse in
         .init(textProfiles: await host.textProfilesSnapshot())
     }
 
-    router.get("normalizer/base-profile") { _, _ -> TextProfileResponse in
+    router.get("text-profiles/base") { _, _ -> TextProfileResponse in
         .init(profile: (await host.textProfilesSnapshot()).baseProfile)
     }
 
-    router.get("normalizer/active-profile") { _, _ -> TextProfileResponse in
+    router.get("text-profiles/active") { _, _ -> TextProfileResponse in
         .init(profile: (await host.textProfilesSnapshot()).activeProfile)
     }
 
-    router.get("normalizer/effective-profile") { _, _ -> TextProfileResponse in
+    router.get("text-profiles/effective") { _, _ -> TextProfileResponse in
         .init(profile: await host.effectiveTextProfile(nil))
     }
 
-    router.get("normalizer/effective-profile/:profile_id") { _, context -> TextProfileResponse in
+    router.get("text-profiles/effective/:profile_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         return .init(profile: await host.effectiveTextProfile(profileID))
     }
 
-    router.get("normalizer/stored-profiles/:profile_id") { _, context -> TextProfileResponse in
+    router.get("text-profiles/stored/:profile_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         guard let profile = await host.storedTextProfile(profileID) else {
             throw HTTPError(
@@ -144,7 +144,7 @@ private func registerHTTPRoutes(
         return .init(profile: profile)
     }
 
-    router.post("normalizer/stored-profiles") { request, context -> TextProfileResponse in
+    router.post("text-profiles/stored") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: CreateTextProfileRequestPayload.self, context: context)
         let profile = try await host.createTextProfile(
             id: payload.id,
@@ -154,15 +154,15 @@ private func registerHTTPRoutes(
         return .init(profile: profile)
     }
 
-    router.post("normalizer/load") { _, _ -> TextProfileListResponse in
+    router.post("text-profiles/load") { _, _ -> TextProfileListResponse in
         .init(textProfiles: try await host.loadTextProfiles())
     }
 
-    router.post("normalizer/save") { _, _ -> TextProfileListResponse in
+    router.post("text-profiles/save") { _, _ -> TextProfileListResponse in
         .init(textProfiles: try await host.saveTextProfiles())
     }
 
-    router.put("normalizer/stored-profiles/:profile_id") { request, context -> TextProfileResponse in
+    router.put("text-profiles/stored/:profile_id") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let payload = try await request.decode(as: StoreTextProfileRequestPayload.self, context: context)
         guard payload.profile.id == profileID else {
@@ -174,32 +174,32 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.storeTextProfile(try payload.profile.model()))
     }
 
-    router.put("normalizer/active-profile") { request, context -> TextProfileResponse in
+    router.put("text-profiles/active") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: UseTextProfileRequestPayload.self, context: context)
         return .init(profile: try await host.useTextProfile(try payload.profile.model()))
     }
 
-    router.post("normalizer/active-profile/reset") { _, _ -> TextProfileResponse in
+    router.post("text-profiles/active/reset") { _, _ -> TextProfileResponse in
         .init(profile: try await host.resetTextProfile())
     }
 
-    router.delete("normalizer/stored-profiles/:profile_id") { _, context -> TextProfileListResponse in
+    router.delete("text-profiles/stored/:profile_id") { _, context -> TextProfileListResponse in
         let profileID = try context.parameters.require("profile_id")
         return .init(textProfiles: try await host.removeTextProfile(id: profileID))
     }
 
-    router.post("normalizer/active-profile/replacements") { request, context -> TextProfileResponse in
+    router.post("text-profiles/active/replacements") { request, context -> TextProfileResponse in
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         return .init(profile: try await host.addTextReplacement(try payload.replacement.model()))
     }
 
-    router.post("normalizer/stored-profiles/:profile_id/replacements") { request, context -> TextProfileResponse in
+    router.post("text-profiles/stored/:profile_id/replacements") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         return .init(profile: try await host.addTextReplacement(try payload.replacement.model(), toStoredTextProfileID: profileID))
     }
 
-    router.put("normalizer/active-profile/replacements/:replacement_id") { request, context -> TextProfileResponse in
+    router.put("text-profiles/active/replacements/:replacement_id") { request, context -> TextProfileResponse in
         let replacementID = try context.parameters.require("replacement_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
         guard payload.replacement.id == replacementID else {
@@ -211,7 +211,7 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.replaceTextReplacement(try payload.replacement.model()))
     }
 
-    router.put("normalizer/stored-profiles/:profile_id/replacements/:replacement_id") { request, context -> TextProfileResponse in
+    router.put("text-profiles/stored/:profile_id/replacements/:replacement_id") { request, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let replacementID = try context.parameters.require("replacement_id")
         let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
@@ -224,20 +224,20 @@ private func registerHTTPRoutes(
         return .init(profile: try await host.replaceTextReplacement(try payload.replacement.model(), inStoredTextProfileID: profileID))
     }
 
-    router.delete("normalizer/active-profile/replacements/:replacement_id") { _, context -> TextProfileResponse in
+    router.delete("text-profiles/active/replacements/:replacement_id") { _, context -> TextProfileResponse in
         let replacementID = try context.parameters.require("replacement_id")
         return .init(profile: try await host.removeTextReplacement(id: replacementID))
     }
 
-    router.delete("normalizer/stored-profiles/:profile_id/replacements/:replacement_id") { _, context -> TextProfileResponse in
+    router.delete("text-profiles/stored/:profile_id/replacements/:replacement_id") { _, context -> TextProfileResponse in
         let profileID = try context.parameters.require("profile_id")
         let replacementID = try context.parameters.require("replacement_id")
         return .init(profile: try await host.removeTextReplacement(id: replacementID, fromStoredTextProfileID: profileID))
     }
 
-    router.post("generation/live") { request, context -> Response in
+    router.post("speech/live") { request, context -> Response in
         let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
-        let requestID = try await host.submitGenerateSpeechLive(
+        let requestID = try await host.queueSpeechLive(
             text: payload.text,
             profileName: payload.profileName,
             textProfileName: payload.textProfileName,
@@ -247,9 +247,9 @@ private func registerHTTPRoutes(
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.post("generation/files") { request, context -> Response in
+    router.post("speech/files") { request, context -> Response in
         let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
-        let requestID = try await host.submitGenerateAudioFile(
+        let requestID = try await host.queueSpeechFile(
             text: payload.text,
             profileName: payload.profileName,
             textProfileName: payload.textProfileName,
@@ -259,9 +259,9 @@ private func registerHTTPRoutes(
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.post("generation/batches") { request, context -> Response in
+    router.post("speech/batches") { request, context -> Response in
         let payload = try await request.decode(as: GenerateBatchRequestPayload.self, context: context)
-        let requestID = try await host.submitGenerateAudioBatch(
+        let requestID = try await host.queueSpeechBatch(
             items: try payload.items.map { try $0.model() },
             profileName: payload.profileName
         )
@@ -269,11 +269,11 @@ private func registerHTTPRoutes(
     }
 
     router.get("generation/queue") { _, _ -> QueueSnapshotResponse in
-        try await host.queueSnapshot(queueType: .generation)
+        try await host.generationQueueSnapshot()
     }
 
     router.get("generation/jobs") { request, _ -> Response in
-        try encodeJSONResponse(try await host.generationJobs(), status: .ok)
+        try encodeJSONResponse(try await host.listGenerationJobs(), status: .ok)
     }
 
     router.get("generation/jobs/:job_id") { _, context -> Response in
@@ -287,7 +287,7 @@ private func registerHTTPRoutes(
     }
 
     router.get("generation/files") { _, _ -> Response in
-        try encodeJSONResponse(try await host.generatedFiles(), status: .ok)
+        try encodeJSONResponse(try await host.listGeneratedFiles(), status: .ok)
     }
 
     router.get("generation/files/:artifact_id") { _, context -> Response in
@@ -296,7 +296,7 @@ private func registerHTTPRoutes(
     }
 
     router.get("generation/batches") { _, _ -> Response in
-        try encodeJSONResponse(try await host.generatedBatches(), status: .ok)
+        try encodeJSONResponse(try await host.listGeneratedBatches(), status: .ok)
     }
 
     router.get("generation/batches/:batch_id") { _, context -> Response in
@@ -309,7 +309,7 @@ private func registerHTTPRoutes(
     }
 
     router.get("playback/queue") { _, _ -> QueueSnapshotResponse in
-        try await host.queueSnapshot(queueType: .playback)
+        try await host.playbackQueueSnapshot()
     }
 
     router.post("playback/pause") { _, _ -> PlaybackStateResponse in

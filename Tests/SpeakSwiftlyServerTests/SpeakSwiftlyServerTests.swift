@@ -114,7 +114,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     // MARK: - Runtime Protocol
 
-    func generateSpeechLive(
+    func queueSpeechLive(
         text: String,
         with profileName: String,
         textProfileName: String?,
@@ -122,7 +122,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let request = MockRequest(id: requestID, operation: "generate_speech_live", profileName: profileName)
+        let request = MockRequest(id: requestID, operation: "queue_speech_live", profileName: profileName)
         queuedSpeechInvocations.append(
             .init(
                 text: text,
@@ -160,7 +160,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: request.operation, profileName: profileName, events: events)
     }
 
-    func generateAudioFile(
+    func queueSpeechFile(
         text: String,
         with profileName: String,
         textProfileName: String?,
@@ -222,10 +222,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedFile: generatedFile, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "generate_audio_file", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "queue_speech_file", profileName: profileName, events: events)
     }
 
-    func generateAudioBatch(
+    func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
         with profileName: String
     ) async -> RuntimeRequestHandle {
@@ -310,11 +310,11 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedBatch: generatedBatch, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "generate_audio_batch", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "queue_speech_batch", profileName: profileName, events: events)
     }
 
-    func createVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromDescription(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from text: String,
         voice voiceDescription: String,
@@ -347,11 +347,11 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, profileName: profileName, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "create_voice_profile", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "create_voice_profile_from_description", profileName: profileName, events: events)
     }
 
-    func cloneVoiceProfile(
-        named profileName: String,
+    func createVoiceProfileFromAudio(
+        profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
@@ -382,10 +382,10 @@ actor MockRuntime: ServerRuntimeProtocol {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, profileName: profileName, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "clone_voice_profile", profileName: profileName, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "create_voice_profile_from_audio", profileName: profileName, events: events)
     }
 
-    func voiceProfiles() async -> RuntimeRequestHandle {
+    func listVoiceProfiles() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let profiles = self.profiles
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -395,7 +395,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: "list_voice_profiles", profileName: nil, events: events)
     }
 
-    func deleteVoiceProfile(named profileName: String) async -> RuntimeRequestHandle {
+    func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         if mutationRefreshBehavior == .applyMutations {
             profiles.removeAll { $0.profileName == profileName }
@@ -417,7 +417,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: "get_generation_job", profileName: nil, events: events)
     }
 
-    func generationJobs() async -> RuntimeRequestHandle {
+    func listGenerationJobs() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let jobs = generationJobs
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -495,7 +495,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: "get_generated_file", profileName: nil, events: events)
     }
 
-    func generatedFiles() async -> RuntimeRequestHandle {
+    func listGeneratedFiles() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let files = generatedFiles
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -515,7 +515,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: "get_generated_batch", profileName: nil, events: events)
     }
 
-    func generatedBatches() async -> RuntimeRequestHandle {
+    func listGeneratedBatches() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let batches = generatedBatches
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -564,29 +564,11 @@ actor MockRuntime: ServerRuntimeProtocol {
         return RuntimeRequestHandle(id: requestID, operation: "unload_models", profileName: nil, events: events)
     }
 
-    func queue(_ queueType: RuntimeQueueType) async -> RuntimeRequestHandle {
+    func generationQueue() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        switch queueType {
-        case .generation:
-            generationQueueRequestCount += 1
-        case .playback:
-            playbackQueueRequestCount += 1
-        }
-        let activeRequest: SpeakSwiftly.ActiveRequest? =
-            switch queueType {
-            case .generation:
-                self.activeRequest.map(self.activeSummary(for:))
-            case .playback:
-                playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
-            }
-        let queue: [SpeakSwiftly.QueuedRequest] =
-            switch queueType {
-            case .generation:
-                self.queuedSummaries()
-            case .playback:
-                []
-            }
-        let operationName = queueType == .generation ? "list_generation_queue" : "list_playback_queue"
+        generationQueueRequestCount += 1
+        let activeRequest = self.activeRequest.map(self.activeSummary(for:))
+        let queue = self.queuedSummaries()
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
@@ -600,28 +582,33 @@ actor MockRuntime: ServerRuntimeProtocol {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: operationName, profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "list_generation_queue", profileName: nil, events: events)
     }
 
-    func playback(_ action: RuntimePlaybackAction) async -> RuntimeRequestHandle {
+    func playbackQueue() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        if action == .state {
-            playbackStateRequestCount += 1
+        playbackQueueRequestCount += 1
+        let activeRequest = playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(
+                .completed(
+                    SpeakSwiftly.Success(
+                        id: requestID,
+                        activeRequest: activeRequest,
+                        activeRequests: nil,
+                        queue: []
+                    )
+                )
+            )
+            continuation.finish()
         }
-        switch action {
-        case .pause:
-            if activeRequest != nil {
-                playbackState = .paused
-            }
-        case .resume:
-            if activeRequest != nil {
-                playbackState = .playing
-            }
-        case .state:
-            break
-        }
+        return RuntimeRequestHandle(id: requestID, operation: "list_playback_queue", profileName: nil, events: events)
+    }
+
+    func playbackState() async -> RuntimeRequestHandle {
+        let requestID = UUID().uuidString
+        playbackStateRequestCount += 1
         let playbackState = self.playbackStateSummary()
-        let operationName = playbackOperationName(for: action)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
@@ -634,7 +621,47 @@ actor MockRuntime: ServerRuntimeProtocol {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: operationName, profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "get_playback_state", profileName: nil, events: events)
+    }
+
+    func pausePlayback() async -> RuntimeRequestHandle {
+        let requestID = UUID().uuidString
+        if activeRequest != nil {
+            playbackState = .paused
+        }
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(
+                .completed(
+                    SpeakSwiftly.Success(
+                        id: requestID,
+                        activeRequests: nil,
+                        playbackState: self.playbackStateSummary()
+                    )
+                )
+            )
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operation: "pause_playback", profileName: nil, events: events)
+    }
+
+    func resumePlayback() async -> RuntimeRequestHandle {
+        let requestID = UUID().uuidString
+        if activeRequest != nil {
+            playbackState = .playing
+        }
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(
+                .completed(
+                    SpeakSwiftly.Success(
+                        id: requestID,
+                        activeRequests: nil,
+                        playbackState: self.playbackStateSummary()
+                    )
+                )
+            )
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operation: "resume_playback", profileName: nil, events: events)
     }
 
     func clearQueue() async -> RuntimeRequestHandle {
@@ -872,17 +899,6 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
     }
 
-    private func playbackOperationName(for action: RuntimePlaybackAction) -> String {
-        switch action {
-        case .pause:
-            "pause_playback"
-        case .resume:
-            "resume_playback"
-        case .state:
-            "get_playback_state"
-        }
-    }
-
     private func playbackStateSummary() -> SpeakSwiftly.PlaybackStateSnapshot {
         .init(
             state: playbackState,
@@ -998,7 +1014,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(profiles.first?["profile_name"] as? String == "default")
 
         let createTextProfileResponse = try await client.execute(
-            uri: "/normalizer/stored-profiles",
+            uri: "/text-profiles/stored",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(
@@ -1010,26 +1026,26 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(createTextProfileResponse.status == .ok)
         #expect(createdTextProfile["id"] as? String == "swift-docs")
 
-        let textProfilesResponse = try await client.execute(uri: "/normalizer", method: .get)
+        let textProfilesResponse = try await client.execute(uri: "/text-profiles", method: .get)
         let textProfilesJSON = try jsonObject(from: textProfilesResponse.body)
         let textProfiles = try #require(textProfilesJSON["text_profiles"] as? [String: Any])
         let storedTextProfiles = try #require(textProfiles["stored_profiles"] as? [[String: Any]])
         #expect(storedTextProfiles.contains { $0["id"] as? String == "swift-docs" })
 
-        let loadTextProfilesResponse = try await client.execute(uri: "/normalizer/load", method: .post)
+        let loadTextProfilesResponse = try await client.execute(uri: "/text-profiles/load", method: .post)
         let loadTextProfilesJSON = try jsonObject(from: loadTextProfilesResponse.body)
         let loadedTextProfiles = try #require(loadTextProfilesJSON["text_profiles"] as? [String: Any])
         let loadedStoredProfiles = try #require(loadedTextProfiles["stored_profiles"] as? [[String: Any]])
         #expect(loadedStoredProfiles.contains { $0["id"] as? String == "swift-docs" })
 
-        let saveTextProfilesResponse = try await client.execute(uri: "/normalizer/save", method: .post)
+        let saveTextProfilesResponse = try await client.execute(uri: "/text-profiles/save", method: .post)
         let saveTextProfilesJSON = try jsonObject(from: saveTextProfilesResponse.body)
         let savedTextProfiles = try #require(saveTextProfilesJSON["text_profiles"] as? [String: Any])
         let savedStoredProfiles = try #require(savedTextProfiles["stored_profiles"] as? [[String: Any]])
         #expect(savedStoredProfiles.contains { $0["id"] as? String == "swift-docs" })
 
         let useTextProfileResponse = try await client.execute(
-            uri: "/normalizer/active-profile",
+            uri: "/text-profiles/active",
             method: .put,
             headers: [.contentType: "application/json"],
             body: byteBuffer(
@@ -1040,14 +1056,14 @@ actor MockRuntime: ServerRuntimeProtocol {
         let activeTextProfile = try #require(useTextProfileJSON["profile"] as? [String: Any])
         #expect(activeTextProfile["id"] as? String == "operator")
 
-        let effectiveTextProfileResponse = try await client.execute(uri: "/normalizer/effective-profile/swift-docs", method: .get)
+        let effectiveTextProfileResponse = try await client.execute(uri: "/text-profiles/effective/swift-docs", method: .get)
         let effectiveTextProfileJSON = try jsonObject(from: effectiveTextProfileResponse.body)
         let effectiveTextProfile = try #require(effectiveTextProfileJSON["profile"] as? [String: Any])
         let effectiveReplacements = try #require(effectiveTextProfile["replacements"] as? [[String: Any]])
         #expect(effectiveReplacements.contains { $0["id"] as? String == "replace-1" })
 
         let removeTextReplacementResponse = try await client.execute(
-            uri: "/normalizer/stored-profiles/swift-docs/replacements/replace-1",
+            uri: "/text-profiles/stored/swift-docs/replacements/replace-1",
             method: .delete
         )
         let removeTextReplacementJSON = try jsonObject(from: removeTextReplacementResponse.body)
@@ -1059,7 +1075,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(persistenceActionCounts.save == 1)
 
         let cloneResponse = try await client.execute(
-            uri: "/voices/clones",
+            uri: "/voices/from-audio",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(
@@ -1078,7 +1094,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(cloneInvocation.cwd == "/tmp/http-clone-cwd")
 
         let speakResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Route test","profile_name":"default","text_profile_name":"swift-docs","cwd":"./Sources","repo_root":"../SpeakSwiftlyServer","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source"}"#)
@@ -1194,8 +1210,8 @@ actor MockRuntime: ServerRuntimeProtocol {
     let tools = try #require(listToolsResult["tools"] as? [[String: Any]])
     let toolNames = Set(tools.compactMap { $0["name"] as? String })
     #expect(toolNames == Set(MCPToolCatalog.definitions.map(\.name)))
-    #expect(tools.contains { $0["name"] as? String == "generate_speech_live" })
-    #expect(tools.contains { $0["name"] as? String == "clone_voice_profile" })
+    #expect(tools.contains { $0["name"] as? String == "queue_speech_live" })
+    #expect(tools.contains { $0["name"] as? String == "create_voice_profile_from_audio" })
     #expect(tools.contains { $0["name"] as? String == "get_runtime_configuration" })
     #expect(tools.contains { $0["name"] as? String == "set_runtime_configuration" })
     #expect(tools.contains { $0["name"] as? String == "get_runtime_overview" })
@@ -1204,7 +1220,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         from: await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpCallToolRequestJSON(
-                    name: "generate_speech_live",
+                    name: "queue_speech_live",
                     arguments: [
                         "text": "Inspect MCP resources",
                         "profile_name": "default",
@@ -1241,7 +1257,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         from: await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpCallToolRequestJSON(
-                    name: "clone_voice_profile",
+                    name: "create_voice_profile_from_audio",
                     arguments: [
                         "profile_name": "clone-from-mcp",
                         "vibe": "androgenous",
@@ -1277,9 +1293,9 @@ actor MockRuntime: ServerRuntimeProtocol {
     let resourceURIs = Set(resources.compactMap { $0["uri"] as? String })
     #expect(resourceURIs == Set(MCPResourceCatalog.resources.map(\.uri)))
     #expect(resources.contains { $0["uri"] as? String == "speak://runtime/overview" })
-    #expect(resources.contains { $0["uri"] as? String == "speak://normalizer" })
+    #expect(resources.contains { $0["uri"] as? String == "speak://text-profiles" })
     #expect(resources.contains { $0["uri"] as? String == "speak://voices/guide" })
-    #expect(resources.contains { $0["uri"] as? String == "speak://normalizer/guide" })
+    #expect(resources.contains { $0["uri"] as? String == "speak://text-profiles/guide" })
     #expect(resources.contains { $0["uri"] as? String == "speak://playback/guide" })
     #expect(resources.contains { $0["uri"] as? String == "speak://requests" })
     #expect(resources.contains { $0["uri"] as? String == "speak://runtime/configuration" })
@@ -1298,7 +1314,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let templateURIs = Set(templates.compactMap { $0["uriTemplate"] as? String })
     #expect(templateURIs == Set(MCPResourceCatalog.templates.map(\.uriTemplate)))
     #expect(templates.contains { $0["uriTemplate"] as? String == "speak://voices/{profile_name}" })
-    #expect(templates.contains { $0["uriTemplate"] as? String == "speak://normalizer/stored-profiles/{profile_id}" })
+    #expect(templates.contains { $0["uriTemplate"] as? String == "speak://text-profiles/stored/{profile_id}" })
     #expect(templates.contains { $0["uriTemplate"] as? String == "speak://requests/{request_id}" })
 
     let createTextProfileEnvelope = try await mcpEnvelope(
@@ -1316,7 +1332,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         from: await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpCallToolRequestJSON(
-                    name: "get_normalizer_state",
+                    name: "get_text_profiles_state",
                     arguments: [:]
                 ),
                 sessionID: initializeSessionID
@@ -1478,7 +1494,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     #expect(runtimeTransports.contains { $0["name"] as? String == "mcp" && $0["advertised_address"] as? String == "http://127.0.0.1:7337/mcp" })
     let runtimeRefresh = try #require(runtimePayload["runtime_refresh"] as? [String: Any])
     #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
-    #expect(runtimeRefresh["source"] as? String == "runtime")
+    #expect(runtimeRefresh["source"] as? String == "fallback")
     let runtimeConfiguration = try #require(runtimePayload["runtime_configuration"] as? [String: Any])
     #expect(runtimeConfiguration["next_runtime_speech_backend"] as? String == "marvis")
 
@@ -1542,7 +1558,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let textProfilesResourceEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpReadResourceRequestJSON(uri: "speak://normalizer"),
+                body: mcpReadResourceRequestJSON(uri: "speak://text-profiles"),
                 sessionID: initializeSessionID
             )
         )
@@ -1557,7 +1573,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let textProfilesGuideEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpReadResourceRequestJSON(uri: "speak://normalizer/guide"),
+                body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/guide"),
                 sessionID: initializeSessionID
             )
         )
@@ -1578,8 +1594,8 @@ actor MockRuntime: ServerRuntimeProtocol {
     let voiceProfilesGuideResult = try #require(mcpResultPayload(from: voiceProfilesGuideEnvelope))
     let voiceProfilesGuideContents = try #require(voiceProfilesGuideResult["contents"] as? [[String: Any]])
     let voiceProfilesGuideText = try #require(voiceProfilesGuideContents.first?["text"] as? String)
-    #expect(voiceProfilesGuideText.contains("clone_voice_profile"))
-    #expect(voiceProfilesGuideText.contains("generate_speech_live"))
+    #expect(voiceProfilesGuideText.contains("create_voice_profile_from_audio"))
+    #expect(voiceProfilesGuideText.contains("queue_speech_live"))
 
     let playbackGuideEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
@@ -1614,12 +1630,12 @@ actor MockRuntime: ServerRuntimeProtocol {
     let chooseActionPromptContent = try #require(chooseActionPromptMessages.first?["content"] as? [String: Any])
     let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
     #expect(chooseActionPromptText.contains("action_type"))
-    #expect(chooseActionPromptText.contains("create_voice_profile"))
+    #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
 
     let storedTextProfileEnvelope = try await mcpEnvelope(
         from: await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpReadResourceRequestJSON(uri: "speak://normalizer/stored-profiles/mcp-text"),
+                body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/stored/mcp-text"),
                 sessionID: initializeSessionID
             )
         )
@@ -1816,7 +1832,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
     try await app.test(.router) { client in
         let response = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(
@@ -1888,7 +1904,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         from: await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpCallToolRequestJSON(
-                    name: "generate_speech_live",
+                    name: "queue_speech_live",
                     arguments: [
                         "text": "Bad format",
                         "profile_name": "default",
@@ -2011,7 +2027,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
     try await app.test(.router) { client in
         let activeResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Hold the line","profile_name":"default"}"#)
@@ -2019,7 +2035,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         let activeJobID = try #require(try jsonObject(from: activeResponse.body)["request_id"] as? String)
 
         let queuedResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Queue this request","profile_name":"default"}"#)
@@ -2076,7 +2092,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         }
 
         let anotherQueuedResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Queue another request","profile_name":"default"}"#)
@@ -2128,7 +2144,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(readyJSON["status"] as? String == "not_ready")
 
         let speakResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Too soon","profile_name":"default"}"#)
@@ -2185,7 +2201,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect((statusJSON["worker_failure_summary"] as? String)?.contains("startup failure") == true)
 
         let speakResponse = try await client.execute(
-            uri: "/generation/live",
+            uri: "/speech/live",
             method: .post,
             headers: [.contentType: "application/json"],
             body: byteBuffer(#"{"text":"Still broken","profile_name":"default"}"#)
@@ -2299,7 +2315,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         #expect(failure.code == "profile_refresh_mismatch")
         #expect(failure.message.contains("could not confirm the profile list"))
     default:
-        Issue.record("Expected create_voice_profile reconciliation failure to produce a failed terminal event.")
+        Issue.record("Expected create_voice_profile_from_description reconciliation failure to produce a failed terminal event.")
     }
 
     let status = await host.statusSnapshot()

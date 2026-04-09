@@ -561,8 +561,8 @@ actor ServerHost {
             .map(\.snapshot)
     }
 
-    func generationJobs() async throws -> [SpeakSwiftly.GenerationJob] {
-        let handle = await runtime.generationJobs()
+    func listGenerationJobs() async throws -> [SpeakSwiftly.GenerationJob] {
+        let handle = await runtime.listGenerationJobs()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-jobs request without yielding a terminal success payload.",
@@ -603,8 +603,8 @@ actor ServerHost {
         return generationJob
     }
 
-    func generatedFiles() async throws -> [SpeakSwiftly.GeneratedFile] {
-        let handle = await runtime.generatedFiles()
+    func listGeneratedFiles() async throws -> [SpeakSwiftly.GeneratedFile] {
+        let handle = await runtime.listGeneratedFiles()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-files request without yielding a terminal success payload.",
@@ -629,8 +629,8 @@ actor ServerHost {
         return generatedFile
     }
 
-    func generatedBatches() async throws -> [SpeakSwiftly.GeneratedBatch] {
-        let handle = await runtime.generatedBatches()
+    func listGeneratedBatches() async throws -> [SpeakSwiftly.GeneratedBatch] {
+        let handle = await runtime.listGeneratedBatches()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-batches request without yielding a terminal success payload.",
@@ -718,7 +718,7 @@ actor ServerHost {
 
     // MARK: - Job Submission
 
-    func submitGenerateSpeechLive(
+    func queueSpeechLive(
         text: String,
         profileName: String,
         textProfileName: String? = nil,
@@ -726,7 +726,7 @@ actor ServerHost {
         sourceFormat: TextForSpeech.SourceFormat? = nil
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.generateSpeechLive(
+        let handle = await runtime.queueSpeechLive(
             text: text,
             with: profileName,
             textProfileName: textProfileName,
@@ -736,7 +736,7 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitGenerateAudioFile(
+    func queueSpeechFile(
         text: String,
         profileName: String,
         textProfileName: String? = nil,
@@ -744,7 +744,7 @@ actor ServerHost {
         sourceFormat: TextForSpeech.SourceFormat? = nil
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.generateAudioFile(
+        let handle = await runtime.queueSpeechFile(
             text: text,
             with: profileName,
             textProfileName: textProfileName,
@@ -754,16 +754,16 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitGenerateAudioBatch(
+    func queueSpeechBatch(
         items: [SpeakSwiftly.BatchItem],
         profileName: String
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.generateAudioBatch(items, with: profileName)
+        let handle = await runtime.queueSpeechBatch(items, with: profileName)
         return await enqueuePublicJob(handle)
     }
 
-    func submitCreateVoiceProfile(
+    func createVoiceProfileFromDescription(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         text: String,
@@ -772,8 +772,8 @@ actor ServerHost {
         cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.createVoiceProfile(
-            named: profileName,
+        let handle = await runtime.createVoiceProfileFromDescription(
+            profileName: profileName,
             vibe: vibe,
             from: text,
             voice: voiceDescription,
@@ -783,7 +783,7 @@ actor ServerHost {
         return await enqueuePublicJob(handle)
     }
 
-    func submitCloneVoiceProfile(
+    func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         referenceAudioPath: String,
@@ -791,8 +791,8 @@ actor ServerHost {
         cwd: String?
     ) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.cloneVoiceProfile(
-            named: profileName,
+        let handle = await runtime.createVoiceProfileFromAudio(
+            profileName: profileName,
             vibe: vibe,
             from: referenceAudioPath,
             transcript: transcript,
@@ -803,36 +803,50 @@ actor ServerHost {
 
     func submitDeleteVoiceProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
-        let handle = await runtime.deleteVoiceProfile(named: profileName)
+        let handle = await runtime.deleteVoiceProfile(profileName: profileName)
         return await enqueuePublicJob(handle)
     }
 
     // MARK: - Immediate Control Operations
 
-    func queueSnapshot(queueType: RuntimeQueueType) async throws -> QueueSnapshotResponse {
-        let handle = await runtime.queue(queueType)
+    func generationQueueSnapshot() async throws -> QueueSnapshotResponse {
+        let handle = await runtime.generationQueue()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
         )
         return .init(
-            queueType: queueTypeName(queueType),
+            queueType: "generation",
             activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
             queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)) ?? []
         )
     }
 
     func playbackStateSnapshot() async throws -> PlaybackStateResponse {
-        try await playbackStateResponse(for: .state)
+        try await playbackStateResponse(handle: await runtime.playbackState(), requestName: "playback-state")
     }
 
     func pausePlayback() async throws -> PlaybackStateResponse {
-        try await playbackStateResponse(for: .pause)
+        try await playbackStateResponse(handle: await runtime.pausePlayback(), requestName: "pause-playback")
     }
 
     func resumePlayback() async throws -> PlaybackStateResponse {
-        try await playbackStateResponse(for: .resume)
+        try await playbackStateResponse(handle: await runtime.resumePlayback(), requestName: "resume-playback")
+    }
+
+    func playbackQueueSnapshot() async throws -> QueueSnapshotResponse {
+        let handle = await runtime.playbackQueue()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
+        )
+        return .init(
+            queueType: "playback",
+            activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
+            queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)) ?? []
+        )
     }
 
     func clearQueue() async throws -> QueueClearedResponse {
@@ -986,8 +1000,8 @@ actor ServerHost {
                 case .progress(let progress):
                     await record(mapProgressEvent(progress), for: handle.id, terminal: false)
                 case .completed(let success):
-                    if handle.operation == "create_voice_profile"
-                        || handle.operation == "clone_voice_profile"
+                    if handle.operation == "create_voice_profile_from_description"
+                        || handle.operation == "create_voice_profile_from_audio"
                         || handle.operation == "delete_voice_profile"
                     {
                         await finalizeMutationSuccess(
@@ -1112,7 +1126,7 @@ actor ServerHost {
     }
 
     private func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
-        let handle = await runtime.voiceProfiles()
+        let handle = await runtime.listVoiceProfiles()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the internal list_voice_profiles request without yielding a terminal success payload.",
@@ -1148,9 +1162,9 @@ actor ServerHost {
         let refreshedNames = Set(refreshedProfiles.map(\.profileName))
 
         switch op {
-        case "create_voice_profile":
+        case "create_voice_profile_from_description":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
-        case "clone_voice_profile":
+        case "create_voice_profile_from_audio":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
         case "delete_voice_profile":
             return !refreshedNames.contains(profileName) && refreshedNames != previousNames
@@ -1335,29 +1349,27 @@ actor ServerHost {
         nextRuntimeRefreshSequenceID += 1
         let startedAt = Date()
         guard workerMode == "ready" else {
-            let refreshedAt = Date()
-            generationQueueStatus = deriveGenerationQueueStatusFallback()
-            playbackQueueStatus = derivePlaybackQueueStatusFallback()
-            playbackStatus = derivePlaybackStatusFallback()
-            runtimeRefreshSnapshot = .init(
+            applyFallbackRuntimeDerivedState(
                 sequenceID: refreshSequenceID,
-                source: "fallback",
-                startedAt: TimestampFormatter.string(from: startedAt),
-                generationQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
-                playbackQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
-                playbackStateRefreshedAt: TimestampFormatter.string(from: refreshedAt),
-                completedAt: TimestampFormatter.string(from: refreshedAt)
+                startedAt: startedAt,
+                previousPlaybackStatus: previousPlaybackStatus
             )
-            if playbackStatus != previousPlaybackStatus {
-                hostEventContinuation.yield(.playbackChanged(playbackStatus))
-            }
+            return
+        }
+
+        if shouldUseFallbackRuntimeDerivedState() {
+            applyFallbackRuntimeDerivedState(
+                sequenceID: refreshSequenceID,
+                startedAt: startedAt,
+                previousPlaybackStatus: previousPlaybackStatus
+            )
             return
         }
 
         var usedFallback = false
         var generationQueueRefreshedAt = Date()
         do {
-            generationQueueStatus = try await fetchQueueStatus(.generation)
+            generationQueueStatus = try await fetchGenerationQueueStatus()
             generationQueueRefreshedAt = Date()
         } catch {
             recordRecentError(
@@ -1372,7 +1384,7 @@ actor ServerHost {
 
         var playbackQueueRefreshedAt = Date()
         do {
-            playbackQueueStatus = try await fetchQueueStatus(.playback)
+            playbackQueueStatus = try await fetchPlaybackQueueStatus()
             playbackQueueRefreshedAt = Date()
         } catch {
             recordRecentError(
@@ -1415,19 +1427,60 @@ actor ServerHost {
         }
     }
 
+    private func shouldUseFallbackRuntimeDerivedState() -> Bool {
+        !currentLiveSpeechJobs().isEmpty
+    }
+
+    private func applyFallbackRuntimeDerivedState(
+        sequenceID: Int,
+        startedAt: Date,
+        previousPlaybackStatus: PlaybackStatusSnapshot
+    ) {
+        let refreshedAt = Date()
+        generationQueueStatus = deriveGenerationQueueStatusFallback()
+        playbackQueueStatus = derivePlaybackQueueStatusFallback()
+        playbackStatus = derivePlaybackStatusFallback()
+        runtimeRefreshSnapshot = .init(
+            sequenceID: sequenceID,
+            source: "fallback",
+            startedAt: TimestampFormatter.string(from: startedAt),
+            generationQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
+            playbackQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
+            playbackStateRefreshedAt: TimestampFormatter.string(from: refreshedAt),
+            completedAt: TimestampFormatter.string(from: refreshedAt)
+        )
+        if playbackStatus != previousPlaybackStatus {
+            hostEventContinuation.yield(.playbackChanged(playbackStatus))
+        }
+    }
+
     // MARK: - Runtime Snapshot Fetches
 
-    private func fetchQueueStatus(_ queueType: RuntimeQueueType) async throws -> QueueStatusSnapshot {
-        let handle = await runtime.queue(queueType)
+    private func fetchGenerationQueueStatus() async throws -> QueueStatusSnapshot {
+        let handle = await runtime.generationQueue()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the queue snapshot request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing a queue snapshot."
         )
 
-        let queueName = queueTypeName(queueType)
         return .init(
-            queueType: queueName,
+            queueType: "generation",
+            activeCount: success.activeRequest == nil ? 0 : 1,
+            queuedCount: success.queue?.count ?? 0,
+            activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:))
+        )
+    }
+
+    private func fetchPlaybackQueueStatus() async throws -> QueueStatusSnapshot {
+        let handle = await runtime.playbackQueue()
+        let success = try await awaitImmediateSuccess(
+            handle: handle,
+            missingTerminalMessage: "SpeakSwiftly finished the queue snapshot request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing a queue snapshot."
+        )
+        return .init(
+            queueType: "playback",
             activeCount: success.activeRequest == nil ? 0 : 1,
             queuedCount: success.queue?.count ?? 0,
             activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:))
@@ -1435,7 +1488,7 @@ actor ServerHost {
     }
 
     private func fetchPlaybackStatus() async throws -> PlaybackStatusSnapshot {
-        let handle = await runtime.playback(.state)
+        let handle = await runtime.playbackState()
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the playback state request without yielding a terminal success payload.",
@@ -1504,19 +1557,22 @@ actor ServerHost {
 
     private func currentLiveSpeechJobs() -> [JobRecord] {
         jobs.values
-            .filter { $0.op == "generate_speech_live" && $0.terminalEvent == nil }
+            .filter { $0.op == "queue_speech_live" && $0.terminalEvent == nil }
             .sorted { lhs, rhs in lhs.submittedAt < rhs.submittedAt }
     }
 
     private func playbackCandidateRecords() -> [JobRecord] {
         currentLiveSpeechJobs().filter { job in
-            guard case .progress(let event) = latestOperationalEvent(for: job) else {
-                return false
-            }
-
-            switch event.stage {
-            case "starting_playback", "buffering_audio", "preroll_ready", "playback_finished":
-                return true
+            switch latestOperationalEvent(for: job) {
+            case .started(let event):
+                return event.op == "queue_speech_live"
+            case .progress(let event):
+                switch event.stage {
+                case "starting_playback", "buffering_audio", "preroll_ready", "playback_finished":
+                    return true
+                default:
+                    return false
+                }
             default:
                 return false
             }
@@ -1884,8 +1940,10 @@ actor ServerHost {
         return buffer
     }
 
-    private func playbackStateResponse(for action: RuntimePlaybackAction) async throws -> PlaybackStateResponse {
-        let handle = await runtime.playback(action)
+    private func playbackStateResponse(
+        handle: RuntimeRequestHandle,
+        requestName: String
+    ) async throws -> PlaybackStateResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
@@ -1894,36 +1952,16 @@ actor ServerHost {
         guard let playbackState = success.playbackState else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the '\(requestName(for: action))' control request, but it did not return a playback state payload."
+                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload."
             )
         }
         return .init(playback: .init(summary: playbackState))
     }
 
-    private func requestName(for action: RuntimePlaybackAction) -> String {
-        switch action {
-        case .pause:
-            "pause-playback"
-        case .resume:
-            "resume-playback"
-        case .state:
-            "playback-state"
-        }
-    }
-
-    private func queueTypeName(_ queueType: RuntimeQueueType) -> String {
-        switch queueType {
-        case .generation:
-            "generation"
-        case .playback:
-            "playback"
-        }
-    }
-
     private func isGenerationOperation(_ operation: String) -> Bool {
-        operation == "generate_speech_live"
-            || operation == "generate_audio_file"
-            || operation == "generate_audio_batch"
+        operation == "queue_speech_live"
+            || operation == "queue_speech_file"
+            || operation == "queue_speech_batch"
     }
 
     private func runtimeStatusResponse(
