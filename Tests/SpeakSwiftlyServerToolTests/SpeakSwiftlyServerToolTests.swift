@@ -165,6 +165,83 @@ import Testing
     #expect(launchctlLog.contains("bootstrap gui/501 \(plistURL.path)"))
 }
 
+@Test func launchAgentInstallWaitsForBootoutAndRetriesBootstrapRace() throws {
+    let tempDirectory = try makeTemporaryDirectory()
+    let executableURL = tempDirectory.appendingPathComponent("SpeakSwiftlyServerTool")
+    let plistURL = tempDirectory.appendingPathComponent("LaunchAgents/com.example.test.plist")
+    let logURL = tempDirectory.appendingPathComponent("launchctl.log")
+    let stateURL = tempDirectory.appendingPathComponent("launchctl.state")
+    let pendingRemovalURL = tempDirectory.appendingPathComponent("launchctl.pending-removal")
+    let bootstrapAttemptsURL = tempDirectory.appendingPathComponent("launchctl.bootstrap-attempts")
+    let fakeLaunchctlURL = tempDirectory.appendingPathComponent("launchctl")
+
+    try "#!/bin/sh\nexit 0\n".write(to: executableURL, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executableURL.path)
+    try Data().write(to: stateURL)
+
+    let fakeLaunchctlScript = """
+    #!/bin/sh
+    set -eu
+    printf '%s\\n' "$*" >> "\(logURL.path)"
+    command="$1"
+    shift
+    case "$command" in
+      print)
+        if [ -f "\(stateURL.path)" ]; then
+          if [ -f "\(pendingRemovalURL.path)" ]; then
+            rm -f "\(stateURL.path)" "\(pendingRemovalURL.path)"
+          fi
+          printf 'loaded\\n'
+          exit 0
+        fi
+        printf 'not loaded\\n' >&2
+        exit 113
+        ;;
+      bootout)
+        : > "\(pendingRemovalURL.path)"
+        exit 0
+        ;;
+      bootstrap)
+        count=0
+        if [ -f "\(bootstrapAttemptsURL.path)" ]; then
+          count=$(cat "\(bootstrapAttemptsURL.path)")
+        fi
+        count=$((count + 1))
+        printf '%s' "$count" > "\(bootstrapAttemptsURL.path)"
+        if [ "$count" -eq 1 ]; then
+          printf 'Bootstrap failed: 37: Operation already in progress\\n' >&2
+          exit 5
+        fi
+        : > "\(stateURL.path)"
+        exit 0
+        ;;
+    esac
+    """
+    try fakeLaunchctlScript.write(to: fakeLaunchctlURL, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: fakeLaunchctlURL.path)
+
+    let options = try LaunchAgentOptions(
+        label: "com.example.test",
+        toolExecutablePath: executableURL.path,
+        plistPath: plistURL.path,
+        workingDirectory: tempDirectory.path,
+        profileRootPath: tempDirectory.appendingPathComponent("runtime/profiles").path,
+        standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
+        standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path,
+        launchctlPath: fakeLaunchctlURL.path,
+        userDomain: "gui/501"
+    )
+
+    try options.install()
+
+    #expect(FileManager.default.fileExists(atPath: plistURL.path))
+    let launchctlLog = try String(contentsOf: logURL, encoding: .utf8)
+    #expect(launchctlLog.contains("bootout gui/501/com.example.test"))
+    #expect(launchctlLog.contains("bootstrap gui/501 \(plistURL.path)"))
+    let bootstrapAttempts = try String(contentsOf: bootstrapAttemptsURL, encoding: .utf8)
+    #expect(bootstrapAttempts == "2")
+}
+
 @Test func launchAgentUninstallBootsOutLoadedServiceAndRemovesPlist() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let plistURL = tempDirectory.appendingPathComponent("LaunchAgents/com.example.test.plist")

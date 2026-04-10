@@ -3,6 +3,9 @@ import Foundation
 
 // MARK: - Launch Agent Status
 
+let launchAgentGraceIntervalMicroseconds: useconds_t = 100_000
+let launchAgentBootstrapRetryCount = 10
+
 struct LaunchAgentStatusOptions {
     let label: String
     let plistPath: String
@@ -96,6 +99,26 @@ struct LaunchAgentStatusOptions {
             )
         }
     }
+
+    func waitUntilNotLoaded(
+        timeout: TimeInterval = 5,
+        pollIntervalMicroseconds: useconds_t = launchAgentGraceIntervalMicroseconds
+    ) throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if try !isLoaded() {
+                return
+            }
+            usleep(pollIntervalMicroseconds)
+        }
+
+        throw LaunchAgentCommandError(
+            """
+            \(speakSwiftlyServerToolName) unloaded '\(userDomain)/\(label)', but launchctl still reported the service as loaded after \(timeout) seconds.
+            Likely cause: launchd has not finished tearing the old job down yet.
+            """
+        )
+    }
 }
 
 // MARK: - Launch Agent Defaults
@@ -172,4 +195,14 @@ func runLaunchctl(
     }
 
     return result
+}
+
+func shouldRetryLaunchAgentBootstrap(_ result: LaunchctlResult) -> Bool {
+    guard result.exitCode != 0 else {
+        return false
+    }
+
+    let diagnostic = "\(result.standardOutput)\n\(result.standardError)".lowercased()
+    return diagnostic.contains("operation already in progress")
+        || diagnostic.contains("bootstrap failed: 37")
 }

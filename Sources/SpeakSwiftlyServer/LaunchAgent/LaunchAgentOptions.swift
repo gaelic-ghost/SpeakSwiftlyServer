@@ -191,12 +191,10 @@ struct LaunchAgentOptions {
         )
         if try status.isLoaded() {
             try status.bootoutLoadedService()
+            try status.waitUntilNotLoaded()
         }
 
-        _ = try runLaunchctl(
-            arguments: ["bootstrap", userDomain, plistPath],
-            launchctlPath: launchctlPath
-        )
+        try bootstrapInstalledService()
         print("Installed LaunchAgent '\(label)' at '\(plistPath)' and bootstrapped it into '\(userDomain)'.")
     }
 
@@ -245,6 +243,27 @@ struct LaunchAgentOptions {
             Likely cause: run the launch-agent command from this repository or pass --tool-executable-path explicitly.
             """
         )
+    }
+
+    private func bootstrapInstalledService() throws {
+        for attempt in 0..<launchAgentBootstrapRetryCount {
+            let result = try runLaunchctl(
+                arguments: ["bootstrap", userDomain, plistPath],
+                allowNonZeroExit: true,
+                launchctlPath: launchctlPath
+            )
+            if result.exitCode == 0 {
+                return
+            }
+
+            guard shouldRetryLaunchAgentBootstrap(result), attempt < launchAgentBootstrapRetryCount - 1 else {
+                throw LaunchAgentCommandError(
+                    "\(speakSwiftlyServerToolName) asked launchctl to run `bootstrap \(userDomain) \(plistPath)`, but launchctl exited with status \(result.exitCode). stderr: \(result.standardError)"
+                )
+            }
+
+            usleep(launchAgentGraceIntervalMicroseconds)
+        }
     }
 
     static func resolvePath(_ rawPath: String, relativeTo basePath: String = FileManager.default.currentDirectoryPath) -> String {
