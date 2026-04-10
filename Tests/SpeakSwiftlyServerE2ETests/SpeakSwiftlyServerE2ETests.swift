@@ -181,7 +181,7 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: Self.e2eTimeout,
             server: server
         )
-        #expect(secondTerminal.terminalEvent?.cancelledRequestID == secondJobID)
+        Self.assertSpeechJobCancelled(secondTerminal, expectedJobID: secondJobID)
 
         let thirdJobID = try await Self.submitSpeechJob(
             using: client,
@@ -226,8 +226,8 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: Self.e2eTimeout,
             server: server
         )
-        #expect(thirdTerminal.terminalEvent?.cancelledRequestID == thirdJobID)
-        #expect(fourthTerminal.terminalEvent?.cancelledRequestID == fourthJobID)
+        Self.assertSpeechJobCancelled(thirdTerminal, expectedJobID: thirdJobID)
+        Self.assertSpeechJobCancelled(fourthTerminal, expectedJobID: fourthJobID)
 
         _ = try await waitForTerminalJob(
             id: firstJobID,
@@ -350,7 +350,7 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: Self.e2eTimeout,
             server: server
         )
-        #expect(secondTerminal.terminalEvent?.cancelledRequestID == secondJobID)
+        Self.assertSpeechJobCancelled(secondTerminal, expectedJobID: secondJobID)
 
         let thirdJobID = try requireString(
             "request_id",
@@ -404,8 +404,8 @@ struct SpeakSwiftlyServerE2ETests {
             timeout: Self.e2eTimeout,
             server: server
         )
-        #expect(thirdTerminal.terminalEvent?.cancelledRequestID == thirdJobID)
-        #expect(fourthTerminal.terminalEvent?.cancelledRequestID == fourthJobID)
+        Self.assertSpeechJobCancelled(thirdTerminal, expectedJobID: thirdJobID)
+        Self.assertSpeechJobCancelled(fourthTerminal, expectedJobID: fourthJobID)
 
         let firstTerminal = try await waitForTerminalJob(
             id: firstJobID,

@@ -121,6 +121,24 @@ extension ServerHost {
         previousPlaybackStatus: PlaybackStatusSnapshot,
         source: String
     ) {
+        if source == "cached_worker_not_ready" {
+            playbackQueueStatus = .init(
+                queueType: "playback",
+                activeCount: 0,
+                queuedCount: 0,
+                activeRequest: nil,
+                activeRequests: [],
+                queuedRequests: []
+            )
+            playbackStatus = .init(
+                state: SpeakSwiftly.PlaybackState.idle.rawValue,
+                activeRequest: nil,
+                isStableForConcurrentGeneration: false,
+                isRebuffering: false,
+                stableBufferedAudioMS: nil,
+                stableBufferTargetMS: nil
+            )
+        }
         let refreshedAt = Date()
         runtimeRefreshSnapshot = .init(
             sequenceID: sequenceID,

@@ -87,6 +87,7 @@ protocol ServerRuntimeProtocol: Actor {
     func reloadModels() async -> RuntimeRequestHandle
     func unloadModels() async -> RuntimeRequestHandle
     func runtimeOverview() async -> RuntimeRequestHandle
+    func playbackState() async -> RuntimeRequestHandle
     func pausePlayback() async -> RuntimeRequestHandle
     func resumePlayback() async -> RuntimeRequestHandle
     func clearQueue() async -> RuntimeRequestHandle
@@ -278,6 +279,10 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func runtimeOverview() async -> RuntimeRequestHandle {
         RuntimeRequestHandle(await runtime.overview())
+    }
+
+    func playbackState() async -> RuntimeRequestHandle {
+        RuntimeRequestHandle(await runtime.player.state())
     }
 
     func pausePlayback() async -> RuntimeRequestHandle {

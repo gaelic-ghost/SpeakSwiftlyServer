@@ -347,11 +347,19 @@ extension ServerHost {
     }
 
     func pausePlayback() async throws -> PlaybackStateResponse {
-        try await playbackStateResponse(handle: await runtime.pausePlayback(), requestName: "pause-playback")
+        try await playbackControlResponse(
+            handle: await runtime.pausePlayback(),
+            requestName: "pause-playback",
+            expectedState: .paused
+        )
     }
 
     func resumePlayback() async throws -> PlaybackStateResponse {
-        try await playbackStateResponse(handle: await runtime.resumePlayback(), requestName: "resume-playback")
+        try await playbackControlResponse(
+            handle: await runtime.resumePlayback(),
+            requestName: "resume-playback",
+            expectedState: .playing
+        )
     }
 
     func playbackQueueSnapshot() async -> QueueSnapshotResponse {

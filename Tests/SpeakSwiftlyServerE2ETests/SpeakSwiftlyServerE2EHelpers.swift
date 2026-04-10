@@ -1,4 +1,5 @@
 import Foundation
+import SpeakSwiftlyCore
 import Testing
 #if canImport(Darwin)
 import Darwin
@@ -631,6 +632,13 @@ extension SpeakSwiftlyServerE2ETests {
         #expect(snapshot.terminalEvent?.id == jobID)
         #expect(snapshot.terminalEvent?.ok == true)
         #expect(snapshot.history.contains { $0.ok == true })
+    }
+
+    static func assertSpeechJobCancelled(_ snapshot: E2EJobSnapshot, expectedJobID jobID: String) {
+        #expect(snapshot.status == "completed")
+        #expect(snapshot.terminalEvent?.id == jobID)
+        #expect(snapshot.terminalEvent?.ok == false)
+        #expect(snapshot.terminalEvent?.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
     }
 
     static func assertCloneTranscriptionStages(
