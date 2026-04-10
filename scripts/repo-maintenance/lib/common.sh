@@ -60,6 +60,7 @@ find_speak_swiftly_metallib() {
   metadata_path="$(speak_swiftly_runtime_metadata_path Release)"
   runtime_metallib_path="$(speak_swiftly_runtime_metadata_value "$metadata_path" metallib_path)"
   [ -n "$runtime_metallib_path" ] || die "SpeakSwiftly runtime metadata at $metadata_path did not include a metallib_path value."
+  runtime_metallib_path="$(rebase_speak_swiftly_runtime_path "$metadata_path" "$runtime_metallib_path")"
   [ -f "$runtime_metallib_path" ] || die "SpeakSwiftly runtime metadata at $metadata_path pointed at a missing metallib path: $runtime_metallib_path"
   printf '%s\n' "$runtime_metallib_path"
 }
@@ -81,6 +82,32 @@ speak_swiftly_runtime_metadata_value() {
   key="$2"
   value=$(sed -n "s/^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\"\\(.*\\)\"[[:space:]]*,\{0,1\}[[:space:]]*$/\\1/p" "$metadata_path" | head -n 1)
   printf '%s\n' "$value"
+}
+
+rebase_speak_swiftly_runtime_path() {
+  metadata_path="$1"
+  runtime_path="$2"
+
+  if [ -f "$runtime_path" ]; then
+    printf '%s\n' "$runtime_path"
+    return 0
+  fi
+
+  metadata_source_root="$(speak_swiftly_runtime_metadata_value "$metadata_path" source_root)"
+  actual_source_root="$(CDPATH= cd -- "$REPO_ROOT/../SpeakSwiftly" && pwd)"
+
+  case "$runtime_path" in
+    "$metadata_source_root"/*)
+      suffix=${runtime_path#"$metadata_source_root"/}
+      rebased_path="$actual_source_root/$suffix"
+      if [ -f "$rebased_path" ]; then
+        printf '%s\n' "$rebased_path"
+        return 0
+      fi
+      ;;
+  esac
+
+  printf '%s\n' "$runtime_path"
 }
 
 run_dispatch_dir() {
