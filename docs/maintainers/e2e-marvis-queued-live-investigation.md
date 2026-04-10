@@ -5,6 +5,7 @@
 - Date observed: `2026-04-08`
 - Test suite command: `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests`
 - Active failing lane: `httpMarvisQueuedLivePlaybackDrainsInOrder`
+- Resolution status: fixed on `2026-04-09` after the `SpeakSwiftly 2.2.1` adoption, playback-control snapshot realignment, and the varied-text operator-control cleanup pass.
 
 ## Confirmed Runtime State
 
@@ -12,7 +13,7 @@
 - The process environment confirmed:
   - `APP_MCP_ENABLED=false`
   - `SPEAKSWIFTLY_SPEECH_BACKEND=marvis`
-- Those settings narrow the stuck run to the HTTP queued-Marvis lane in `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2ETests.swift`.
+- Those settings narrow the stuck run to the HTTP queued-Marvis lane now housed in `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2EQueuedMarvisLane.swift`.
 
 ## Confirmed Failure Signals
 
@@ -219,6 +220,6 @@ That focused rerun shifts the problem statement:
 
 ### Current read
 
-- The live stall still looks like a real runtime or integration issue rather than a host snapshot artifact.
-- The new cleanup pass did remove extra host-side read churn and eager MCP event consumption.
-- The operator-control E2E also still needed stale-route cleanup and better test input, so not every remaining failure signal was trustworthy until that cleanup landed.
+- The historical stall was real enough to deserve investigation, but the release-repair pass closed it without adding new server-side inference or compatibility shims.
+- The final fix set combined the `SpeakSwiftly 2.2.1` resource-bundling update, playback-control snapshot settling in `ServerHost`, renamed HTTP/MCP surface cleanup in the live tests, and less misleading long-form operator-control text.
+- The full serialized live suite now passes again, so this document should be treated as historical forensics rather than an active blocker log.

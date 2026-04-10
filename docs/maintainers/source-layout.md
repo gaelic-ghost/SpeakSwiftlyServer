@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the maintainer map for the post-`SpeakSwiftly 2.2.0` source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, `ServerModels.swift`, or one mixed test file grow back into monoliths.
+This document is the maintainer map for the post-`SpeakSwiftly 2.2.1` source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
 ## Host Sources
 
@@ -10,12 +10,20 @@ This document is the maintainer map for the post-`SpeakSwiftly 2.2.0` source spl
   Holds the actor declaration, stored state, construction, lifecycle, transport watch hooks, and shared snapshot basics.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+Queries.swift`
   Holds the public query surface, runtime/text-profile reads and writes, generated-artifact reads, and immediate control entrypoints.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+Jobs.swift`
-  Holds request submission, SSE replay, request-event consumption, profile-cache reconciliation, worker status handling, and in-memory job retention.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+JobSubmission.swift`
+  Holds request submission, accepted-request shaping, and the handoff into retained host tracking.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+JobTracking.swift`
+  Holds SSE replay, request-event consumption, profile-cache reconciliation, worker status handling, and in-memory job retention.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+State.swift`
   Holds publish flow, runtime refresh, derived host snapshots, and live configuration reload helpers.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+Support.swift`
-  Holds transport-status helpers, recent-error emission, event mapping, SSE encoding, and shared immediate-success helpers.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+EventSupport.swift`
+  Holds transport-status helpers, recent-error emission, event mapping, SSE encoding, and shared host-event helpers.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+ControlSupport.swift`
+  Holds playback-control settling, optimistic playback snapshots, and immediate runtime-success helpers.
+- `Sources/SpeakSwiftlyServer/Host/ServerRuntimeProtocol.swift`
+  Holds the narrow runtime seam and the request-handle wrapper type used by the host.
+- `Sources/SpeakSwiftlyServer/Host/ServerRuntimeAdapter.swift`
+  Holds the concrete adapter from the public `SpeakSwiftly.Runtime` actor into that host-owned seam.
 
 ## Model Sources
 
@@ -32,14 +40,18 @@ This document is the maintainer map for the post-`SpeakSwiftly 2.2.0` source spl
 
 ## Test Sources
 
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerTests.swift`
-  Lifecycle-heavy HTTP route tests.
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerMCPRouteTests.swift`
-  MCP route, catalog, and subscription tests kept separate from the HTTP-focused route suite.
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerCoreTests.swift`
-  Configuration, host-state, and lower-level unit coverage.
-- `Tests/SpeakSwiftlyServerTests/MockRuntime.swift`
-  The main typed-runtime test double. If it grows again, split it by control surface instead of adding more behavior to one file.
+- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerHTTPWorkflowTests.swift`, `SpeakSwiftlyServerHTTPControlTests.swift`, and `SpeakSwiftlyServerHTTPFailureTests.swift`
+  Keep lifecycle-heavy HTTP route coverage split by mainline flows, immediate control paths, and error handling.
+- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerMCPCatalogListingTests.swift`, `SpeakSwiftlyServerMCPCatalogRuntimeTests.swift`, `SpeakSwiftlyServerMCPCatalogResourceTests.swift`, and `SpeakSwiftlyServerMCPCatalogSupport.swift`
+  Keep MCP catalog, runtime-tool, and resource/prompt coverage separate so the tool surface can grow without another single giant catalog test.
+- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerMCPSessionTests.swift` and `SpeakSwiftlyServerMCPSubscriptionTests.swift`
+  Keep MCP session behavior and live-subscription behavior independent from catalog assertions.
+- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerConfigurationTests.swift`, `SpeakSwiftlyServerHostLifecycleTests.swift`, and `SpeakSwiftlyServerHostStateTests.swift`
+  Keep configuration, lifecycle, and shared-state coverage independent instead of mixing them into one broad host suite.
+- `Tests/SpeakSwiftlyServerTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
+  Keep the typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks.
+- `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2ESuite.swift` plus the `SpeakSwiftlyServerE2E*Lane.swift`, `SpeakSwiftlyServerE2E*Helpers.swift`, and `SpeakSwiftlyServerE2E*ControlSurfaceTests.swift` files
+  Keep live workflow lanes, operator-control lanes, and helper/support code separate so the opt-in suite stays readable even as it grows.
 
 ## Current Cleanup Follow-Through
 

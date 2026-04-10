@@ -38,12 +38,12 @@ That means this package intentionally stays narrow: Hummingbird for transport ho
 
 ### Current SpeakSwiftly Alignment
 
-This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `2.2.0` package dependency rather than an older private worker boundary.
+This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `2.2.1` package dependency rather than an older private worker boundary.
 
 Today the server relies on the current typed runtime capabilities that matter for transport hosting:
 
 - `SpeakSwiftly.liftoff(configuration:)`
-- `SpeakSwiftly.Runtime.statusEvents()`
+- `runtime.statusEvents()`
 - `runtime.generate.speech(text:with:textProfileName:textContext:sourceFormat:)`
 - `runtime.generate.audio(text:with:textProfileName:textContext:sourceFormat:)`
 - `runtime.generate.batch(_:with:)`
@@ -52,35 +52,43 @@ Today the server relies on the current typed runtime capabilities that matter fo
 - `runtime.voices.list()`
 - `runtime.voices.delete(named:)`
 - `runtime.jobs.generationQueue()`
+- `runtime.jobs.list()`
+- `runtime.jobs.job(id:)`
+- `runtime.jobs.expire(id:)`
+- `runtime.artifacts.files()`
+- `runtime.artifacts.file(id:)`
+- `runtime.artifacts.batches()`
+- `runtime.artifacts.batch(id:)`
 - `runtime.player.list()`
 - `runtime.player.state()`
 - `runtime.player.pause()`
 - `runtime.player.resume()`
 - `runtime.player.clearQueue()`
 - `runtime.player.cancelRequest(_:)`
-- `runtime.runtimeOverview()`
-- `runtime.runtimeStatus()`
+- `runtime.overview()`
+- `runtime.status()`
 - `runtime.switchSpeechBackend(to:)`
 - `runtime.reloadModels()`
 - `runtime.unloadModels()`
+- `runtime.request(id:)`
+- `runtime.updates(for:)`
 
 For text normalization, the server stays on the public `TextForSpeech` model surface through the runtime normalizer rather than inventing a parallel server-only schema:
 
-- `SpeakSwiftly.Runtime.normalizer.activeProfile()`
-- `SpeakSwiftly.Runtime.normalizer.baseProfile()`
-- `SpeakSwiftly.Runtime.normalizer.profile(id:)`
-- `SpeakSwiftly.Runtime.normalizer.profiles()`
-- `SpeakSwiftly.Runtime.normalizer.effectiveProfile(id:)`
-- `SpeakSwiftly.Runtime.normalizer.loadProfiles()`
-- `SpeakSwiftly.Runtime.normalizer.saveProfiles()`
-- `SpeakSwiftly.Runtime.normalizer.createProfile(id:named:replacements:)`
-- `SpeakSwiftly.Runtime.normalizer.storeProfile(_:)`
-- `SpeakSwiftly.Runtime.normalizer.useProfile(_:)`
-- `SpeakSwiftly.Runtime.normalizer.removeProfile(id:)`
-- `SpeakSwiftly.Runtime.normalizer.reset()`
-- `SpeakSwiftly.Runtime.normalizer.addReplacement(...)`
-- `SpeakSwiftly.Runtime.normalizer.replaceReplacement(...)`
-- `SpeakSwiftly.Runtime.normalizer.removeReplacement(...)`
+- `runtime.normalizer.profiles.active()`
+- `runtime.normalizer.profiles.stored(id:)`
+- `runtime.normalizer.profiles.list()`
+- `runtime.normalizer.profiles.effective(id:)`
+- `runtime.normalizer.persistence.load()`
+- `runtime.normalizer.persistence.save()`
+- `runtime.normalizer.profiles.create(id:name:replacements:)`
+- `runtime.normalizer.profiles.store(_:)`
+- `runtime.normalizer.profiles.use(_:)`
+- `runtime.normalizer.profiles.delete(id:)`
+- `runtime.normalizer.profiles.reset()`
+- `runtime.normalizer.profiles.add(...)`
+- `runtime.normalizer.profiles.replace(...)`
+- `runtime.normalizer.profiles.removeReplacement(...)`
 
 The server also consumes the public summary and event types that those calls vend, including `SpeakSwiftly.RequestHandle`, `SpeakSwiftly.RequestEvent`, `SpeakSwiftly.StatusEvent`, `SpeakSwiftly.ProfileSummary`, `SpeakSwiftly.ActiveRequest`, `SpeakSwiftly.QueuedRequest`, `SpeakSwiftly.PlaybackStateSnapshot`, `SpeakSwiftly.RuntimeOverview`, `SpeakSwiftly.Vibe`, and `SpeakSwiftly.Configuration`.
 
@@ -146,7 +154,7 @@ swift run SpeakSwiftlyServerTool launch-agent uninstall
 
 ### App-Managed Install Contract
 
-The `v1.0.0` app-managed install contract is now explicit and centered on one per-user layout instead of ad hoc paths:
+The `v2.0.0` app-managed install contract is now explicit and centered on one per-user layout instead of ad hoc paths:
 
 - server support root: `~/Library/Application Support/SpeakSwiftlyServer`
 - server config file: `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`
@@ -466,13 +474,16 @@ The shared runtime entrypoint now lives in [`Sources/SpeakSwiftlyServer/SpeakSwi
 - [`MCPModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/MCP/MCPModels.swift) defines the thin MCP-specific catalog and result wrappers that stay at the transport edge.
 - [`ServerHost.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost.swift) owns the actor definition, stored state, construction, lifecycle, and shared snapshot basics.
 - [`ServerHost+Queries.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BQueries.swift) holds the public host query surface and immediate control entrypoints.
-- [`ServerHost+Jobs.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BJobs.swift) owns request submission, SSE replay, request-event consumption, profile-cache reconciliation, and retention.
+- [`ServerHost+JobSubmission.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BJobSubmission.swift) owns request submission, accepted-request shaping, and entry into retained host tracking.
+- [`ServerHost+JobTracking.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BJobTracking.swift) owns request-event consumption, SSE replay, profile-cache reconciliation, and retention.
 - [`ServerHost+State.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BState.swift) owns publish flow, runtime refresh, and derived host snapshot helpers.
-- [`ServerHost+Support.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BSupport.swift) keeps transport-state, event-mapping, SSE encoding, and immediate helper logic at the edge.
+- [`ServerHost+EventSupport.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BEventSupport.swift) keeps transport-state, event-mapping, SSE encoding, and shared host-event helpers at the edge.
+- [`ServerHost+ControlSupport.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerHost%2BControlSupport.swift) keeps immediate playback and runtime control settling logic out of the query surface.
 - [`ServerState.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerState.swift) is the `@Observable` SwiftUI-facing projection of host state.
 - [`HostStateModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/HostStateModels.swift) defines the shared host-native snapshots used by app UI, HTTP, and MCP consumers.
 - [`HostEvents.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/HostEvents.swift) defines the typed host event surface used by non-UI consumers that need live change notifications without depending on SwiftUI observation.
-- [`ServerRuntimeBridge.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerRuntimeBridge.swift) keeps the runtime boundary thin around the public `SpeakSwiftly.Runtime` actor.
+- [`ServerRuntimeProtocol.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerRuntimeProtocol.swift) defines the narrow runtime seam and request-handle wrapper that the host owns.
+- [`ServerRuntimeAdapter.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerRuntimeAdapter.swift) keeps the runtime boundary thin around the public `SpeakSwiftly.Runtime` actor.
 - [`ServerModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ServerModels.swift), [`ProfileModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/ProfileModels.swift), [`QueueStatusModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/QueueStatusModels.swift), and [`JobEventModels.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/Host/JobEventModels.swift) split the transport and host-facing value models by concern instead of keeping one oversized payload file.
 
 The design is deliberately direct. Adding extra wrappers, managers, or intermediate layers here would be easy, but it would also be the kind of unnecessary complexity that makes a small localhost service harder to reason about, so the server is kept close to the typed runtime API on purpose. That means the service talks to the public `SpeakSwiftly.Runtime` surface, its public text normalizer, and its public event and summary types instead of reaching through the library boundary to construct raw worker requests itself.
@@ -533,7 +544,7 @@ That serialized live suite now mirrors the main `SpeakSwiftly` live workflows ac
 
 If you want the underlying playback trace logs too, add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` to that same command.
 
-That live path currently expects a sibling published [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) runtime as the source of truth for `default.metallib`, so `../SpeakSwiftly/.local/xcode/SpeakSwiftly.debug.json` and the published `current-debug` alias must exist before the server suite runs. That runtime-artifact requirement is separate from SwiftPM dependency resolution, which still comes from `Package.swift` and `Package.resolved`.
+That live path now relies on the bundled resources shipped by the resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) dependency instead of expecting a sibling published runtime checkout to provide `default.metallib`. SwiftPM dependency resolution and live runtime resources now come from the same tagged package state declared in `Package.swift` and `Package.resolved`.
 
 After the live suite passes, use `scripts/repo-maintenance/release.sh` for the tagged release flow so local validation, release artifact staging, tag creation, push, and GitHub release creation stay on the same documented path.
 

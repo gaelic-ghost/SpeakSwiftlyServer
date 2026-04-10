@@ -18,8 +18,8 @@ Phase 1 intentionally does not add the MCP route or `swift-configuration` depend
 - Replace `Sources/SpeakSwiftlyServer/Host/ServerState.swift`
   Repurpose it into an observable UI-facing state class.
 
-- Keep `Sources/SpeakSwiftlyServer/Host/ServerRuntimeBridge.swift`
-  It remains the narrow runtime seam for now.
+- Keep `Sources/SpeakSwiftlyServer/Host/ServerRuntimeProtocol.swift` and `Sources/SpeakSwiftlyServer/Host/ServerRuntimeAdapter.swift`
+  They remain the narrow runtime seam now that the protocol and concrete adapter are split by concern.
 
 ### Config
 

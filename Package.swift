@@ -3,11 +3,14 @@
 
 import PackageDescription
 
+// MARK: - Package Definition
+
 let package = Package(
     name: "SpeakSwiftlyServer",
     platforms: [
         .macOS("15.0"),
     ],
+    // MARK: Products
     products: [
         .library(
             name: "SpeakSwiftlyServer",
@@ -18,6 +21,7 @@ let package = Package(
             targets: ["SpeakSwiftlyServerTool"]
         ),
     ],
+    // MARK: Dependencies
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
         .package(
@@ -34,6 +38,7 @@ let package = Package(
             traits: [.defaults, "YAML", "Reloading"]
         ),
     ],
+    // MARK: Targets
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.

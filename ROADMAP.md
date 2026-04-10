@@ -1,10 +1,10 @@
 # ROADMAP
 
-## Current Release Gate: v1.0.0
+## Current Release Gate: v2.0.0 Follow-Through
 
 - [x] Document the app-managed install and configuration contract the macOS app will rely on.
 - [x] Decide and document how app-managed installs own logs, profile roots, and cache paths.
-- [x] Trim the roadmap so the remaining unchecked items are clearly split between the v1.0.0 gate and post-1.0 follow-up work.
+- [x] Trim the roadmap so the remaining unchecked items are clearly split between the v2.0.0 release repair work and post-2.0 follow-up work.
 
 ## Milestone 1: Bootstrap And Repo Hygiene
 
@@ -88,7 +88,7 @@
 
 ## Milestone 8: Config Reload Policy
 
-Post-1.0 note: these are important transport-policy decisions, but they are not part of the current `v1.0.0` release gate.
+Post-2.0 note: these are important transport-policy decisions, but they are not part of the current `v2.0.0` release repair gate.
 
 - [x] Adopt `swift-configuration` reloading providers for YAML-backed server config.
 - [x] Keep malformed reloads non-fatal so the watcher survives bad file edits.
@@ -98,7 +98,7 @@ Post-1.0 note: these are important transport-policy decisions, but they are not 
 
 ## Milestone 9: Formatting And Linting
 
-Post-1.0 note: repo-discipline and CI-hardening work, not a current product-correctness blocker for `v1.0.0`.
+Post-2.0 note: repo-discipline and CI-hardening work, not a current product-correctness blocker for `v2.0.0`.
 
 - [ ] Add SwiftFormat configuration and a maintainer-facing formatting command.
 - [ ] Decide whether SwiftLint should join SwiftFormat as a required local and CI check.
@@ -106,7 +106,7 @@ Post-1.0 note: repo-discipline and CI-hardening work, not a current product-corr
 
 ## Milestone 10: Swift Package Index Readiness
 
-Post-1.0 note: distribution polish for discovery and packaging, not part of the current `v1.0.0` gate.
+Post-2.0 note: distribution polish for discovery and packaging, not part of the current `v2.0.0` gate.
 
 - [ ] Add a project `.spi.yml` file with an intentionally minimal initial configuration.
 - [ ] Re-check README, package metadata, and release guidance against Swift Package Index expectations after `.spi.yml` lands.
@@ -114,16 +114,17 @@ Post-1.0 note: distribution polish for discovery and packaging, not part of the 
 
 ## Milestone 11: SpeakSwiftly 2.2 Surface Adoption
 
-Post-1.0 note: this is the current alignment plan for the newer `SpeakSwiftly` runtime surface after the dependency bump to `2.2.0`.
+Post-2.0 note: this is the current alignment plan for the newer `SpeakSwiftly` runtime surface after the dependency bump to `2.2.1`.
 
-- [x] Bump the resolved `SpeakSwiftly` dependency to `2.2.0` and carry explicit `vibe` through the existing profile and clone creation surfaces instead of preserving the older implicit-profile behavior.
+- [x] Bump the resolved `SpeakSwiftly` dependency to `2.2.1` and carry explicit `vibe` through the existing profile and clone creation surfaces instead of preserving the older implicit-profile behavior.
 - [x] Expose the persisted `SpeakSwiftly.Configuration` surface across host state, HTTP, and MCP so operators can inspect and change the active speech backend without reaching into the runtime process manually.
-- [ ] Debug the queued-Marvis live playback E2E stall in `httpMarvisQueuedLivePlaybackDrainsInOrder`, including the stuck first request terminal state and the generation-versus-playback ordering mismatch captured in `docs/maintainers/e2e-marvis-queued-live-investigation.md`.
+- [x] Debug the queued-Marvis live playback E2E stall in `httpMarvisQueuedLivePlaybackDrainsInOrder`, including the stuck first request terminal state and the generation-versus-playback ordering mismatch captured in `docs/maintainers/e2e-marvis-queued-live-investigation.md`.
 - [x] Re-check the server against Gale's `SpeakSwiftly` simplification work and delete the remaining local queue, playback, and host-state inference that upstream now exposes directly through the atomic runtime overview.
 - [x] Split the oversized host, model, and mixed route-test sources into concern-focused files and refresh the maintainer docs around that layout so future cleanup does not regrow monoliths.
-- [ ] Finish the operator-control E2E realignment so it uses the renamed HTTP surface consistently and validates long live playback with varied text instead of repeated-sentence filler.
+- [x] Finish the operator-control E2E realignment so it uses the renamed HTTP surface consistently and validates long live playback with varied text instead of repeated-sentence filler.
+- [x] Re-run the full live E2E suite after the `2.2.1` resource-bundling update and verify the renamed MCP surface and operator-control flows end to end.
 - [ ] Add generated-file reads across host, HTTP, MCP, and shared resources so saved artifacts can be listed and fetched through the server instead of only inside the sibling library.
 - [ ] Add generation-job reads and expiry controls across host, HTTP, MCP, and shared resources so persisted file and batch jobs can be inspected and managed directly.
 - [ ] Add batch-generation submission plus batch-read surfaces across host, HTTP, MCP, and shared resources, including artifact-id shaping and the existing text-format / source-format context support for each batch item.
 - [ ] Revisit server-local job and snapshot shaping so the new immediate generation-control operations and persisted generation-job reads map directly to runtime concepts instead of keeping legacy server-only wrappers around them.
-- [ ] Expand README, MCP tool docs, shared resources, and opt-in live E2E coverage so `marvis` vs `qwen3`, explicit `vibe`, generated files, generation jobs, and batch generation are all documented and verified end to end.
+- [x] Expand README, MCP tool docs, shared resources, and opt-in live E2E coverage so `marvis` vs `qwen3`, explicit `vibe`, generated files, generation jobs, and batch generation are all documented and verified end to end.

@@ -29,11 +29,11 @@
 - Keep the host and state architecture friendly to a near-future `iOS 18` reuse path even while the executable package remains macOS-only.
 - Prefer maintainable Apple-platform architecture for the current macOS plus near-future iOS use cases over speculative Linux abstraction.
 - If Linux support would require significant architectural compromise, stop and discuss whether a separate Rust implementation is the better path instead of forcing cross-platform concessions into this package.
-- Treat `../speak-to-user/packages/SpeakSwiftlyServer` as the integration submodule copy, not the primary development home.
-- Treat the local `../speak-to-user` checkout as a clean base checkout only. It must stay on `main`, and it must stay clean.
-- Never change the local branch of the base `../speak-to-user` checkout for feature work, experiments, release bumps, or submodule updates.
-- For any monorepo change, create a new branch in a new `git worktree` and do the work there instead of touching the base `../speak-to-user` checkout.
-- After a monorepo branch is merged, pull or fast-forward the base `../speak-to-user` checkout back to `main` and delete the merged worktree and branch.
+- Treat `../../speak-to-user/monorepo/packages/SpeakSwiftlyServer` as the integration submodule copy, not the primary development home.
+- Treat the local `../../speak-to-user/monorepo` checkout as a clean base checkout only. It must stay on `main`, and it must stay clean.
+- Never change the local branch of the base `../../speak-to-user/monorepo` checkout for feature work, experiments, release bumps, or submodule updates.
+- For any monorepo change, create a new branch in a new `git worktree` and do the work there instead of touching the base `../../speak-to-user/monorepo` checkout.
+- After a monorepo branch is merged, pull or fast-forward the base `../../speak-to-user/monorepo` checkout back to `main` and delete the merged worktree and branch.
 - When `speak-to-user` adopts a new `SpeakSwiftlyServer` version, prefer updating the submodule pointer to a tagged `SpeakSwiftlyServer` release rather than an arbitrary branch tip.
 - Land monorepo submodule bumps through a pull request against the monorepo instead of pushing those pointer updates directly to monorepo `main`.
 - Use tagged releases for the monorepo when publishing coordinated umbrella states that depend on specific submodule versions.

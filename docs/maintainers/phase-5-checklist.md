@@ -95,7 +95,7 @@ These events should complement the existing `HostStateSnapshot`, not replace it.
 
 ## Status
 
-Phase 5 is now landed for the initial host-events and selective live-update slice. The shared host reports transport `listening` only after the Hummingbird process is actually serving traffic, `ServerHost` now exposes a typed host event surface alongside stable host snapshots, and the embedded MCP surface supports selective live resource notifications for `speak://status`, `speak://profiles`, `speak://profiles/{profile_name}/detail`, `speak://jobs`, `speak://jobs/{job_id}`, and `speak://runtime`. The shared host now also exposes the host-native profile-detail and job-detail resources that earned migration cleanly, along with the small prompt subset that still fits the embedded MCP surface directly.
+Phase 5 is now landed for the initial host-events and selective live-update slice. The shared host reports transport `listening` only after the Hummingbird process is actually serving traffic, `ServerHost` now exposes a typed host event surface alongside stable host snapshots, and the embedded MCP surface supports selective live resource notifications for `speak://runtime/overview`, `speak://runtime/status`, `speak://runtime/configuration`, `speak://voices`, `speak://voices/{profile_name}`, `speak://requests`, and `speak://requests/{request_id}`. The shared host now also exposes the host-native profile-detail and request-detail resources that earned migration cleanly, along with the small prompt subset that still fits the embedded MCP surface directly.
 
 The following items remain deliberately deferred rather than accidentally unfinished:
 
