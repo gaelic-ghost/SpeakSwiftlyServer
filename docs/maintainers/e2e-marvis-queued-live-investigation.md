@@ -223,3 +223,11 @@ That focused rerun shifts the problem statement:
 - The historical stall was real enough to deserve investigation, but the release-repair pass closed it without adding new server-side inference or compatibility shims.
 - The final fix set combined the `SpeakSwiftly 2.2.1` resource-bundling update, playback-control snapshot settling in `ServerHost`, renamed HTTP/MCP surface cleanup in the live tests, and less misleading long-form operator-control text.
 - The full serialized live suite now passes again, so this document should be treated as historical forensics rather than an active blocker log.
+
+## Watch Item: 2026-04-10 Live Runtime Warning
+
+- The `v2.0.2` live-service refresh exposed a separate LaunchAgent reinstall race that has since been fixed in `SpeakSwiftlyServer` commit `fa6e5ce`.
+- That reinstall race was a launchd lifecycle issue, not evidence of a bad plist or broken staged artifact.
+- Keep watching the live runtime separately for the recurring allocator warning seen in `~/Library/Logs/SpeakSwiftlyServer/stderr.log`:
+  - `freed pointer was not the last allocation`
+- That warning did not fail the full live E2E suite, but earlier launchd history also showed pre-fix `SIGABRT` churn, so it should stay on the maintainer watch list until a later release cycle either explains it upstream or proves it benign under repeated live use.
