@@ -6,6 +6,7 @@ import Foundation
 struct ServerConfiguration: Sendable {
     let name: String
     let environment: String
+    let defaultVoiceProfileName: String?
     let host: String
     let port: Int
     let sseHeartbeatSeconds: Double
@@ -18,6 +19,7 @@ struct ServerConfiguration: Sendable {
     init(
         name: String,
         environment: String,
+        defaultVoiceProfileName: String?,
         host: String,
         port: Int,
         sseHeartbeatSeconds: Double,
@@ -27,6 +29,7 @@ struct ServerConfiguration: Sendable {
     ) {
         self.name = name
         self.environment = environment
+        self.defaultVoiceProfileName = Self.normalizedOptionalString(defaultVoiceProfileName)
         self.host = host
         self.port = port
         self.sseHeartbeatSeconds = sseHeartbeatSeconds
@@ -39,6 +42,10 @@ struct ServerConfiguration: Sendable {
         do {
             self.name = try config.requiredString(forKey: "name")
             self.environment = try config.requiredString(forKey: "environment")
+            self.defaultVoiceProfileName = try Self.optionalString(
+                config,
+                key: "defaultVoiceProfileName"
+            )
             self.host = try config.requiredString(forKey: "host")
             self.port = try Self.requirePositive(
                 try config.requiredInt(forKey: "port"),
@@ -66,6 +73,27 @@ struct ServerConfiguration: Sendable {
     }
 
     // MARK: - Validation
+
+    private static func optionalString(
+        _ config: ConfigReader,
+        key: ConfigKey
+    ) throws -> String? {
+        do {
+            return normalizedOptionalString(try config.requiredString(forKey: key))
+        } catch {
+            guard String(describing: error).contains("Missing required config value for key:") else {
+                throw error
+            }
+            return nil
+        }
+    }
+
+    private static func normalizedOptionalString(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return trimmed
+    }
 
     private static func requirePositive(_ value: Int, key: String) throws -> Int {
         guard value > 0 else {

@@ -338,6 +338,7 @@ actor ServerHost {
         let overview = HostOverviewSnapshot(
             service: configuration.name,
             environment: configuration.environment,
+            defaultVoiceProfileName: configuration.defaultVoiceProfileName,
             serverMode: serverMode,
             workerMode: workerMode,
             workerStage: workerStage,

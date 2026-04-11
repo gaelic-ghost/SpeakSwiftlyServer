@@ -13,7 +13,7 @@ extension SpeakSwiftlyServerTests {
     @available(macOS 14, *)
     @Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
         let runtime = MockRuntime()
-        let configuration = testConfiguration()
+        let configuration = testConfiguration(defaultVoiceProfileName: "default")
         let state = await MainActor.run { ServerState() }
         let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -42,6 +42,7 @@ extension SpeakSwiftlyServerTests {
 
             let runtimeHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
             let runtimeHostJSON = try jsonObject(from: runtimeHostResponse.body)
+            #expect(runtimeHostJSON["default_voice_profile_name"] as? String == "default")
             let runtimeRefresh = try #require(runtimeHostJSON["runtime_refresh"] as? [String: Any])
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
             #expect(runtimeRefresh["source"] as? String == "runtime_overview")
@@ -210,7 +211,7 @@ extension SpeakSwiftlyServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","profile_name":"default","text_profile_name":"swift-docs","cwd":"./Sources","repo_root":"../SpeakSwiftlyServer","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source"}"#)
+                body: byteBuffer(#"{"text":"Route test","text_profile_name":"swift-docs","cwd":"./Sources","repo_root":"../SpeakSwiftlyServer","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source"}"#)
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -230,6 +231,7 @@ extension SpeakSwiftlyServerTests {
             )
             #expect(queuedSpeechInvocation.textProfileName == "swift-docs")
             #expect(queuedSpeechInvocation.sourceFormat == .python)
+            #expect(queuedSpeechInvocation.profileName == "default")
 
             _ = try await waitForJobSnapshot(speakJobID, on: host)
 
@@ -285,6 +287,38 @@ extension SpeakSwiftlyServerTests {
             #expect(message.contains("text_format"))
             #expect(message.contains("totally_invalid"))
             #expect(message.contains("plain"))
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
+    @Test func speakRouteRejectsMissingProfileWhenNoServerDefaultIsConfigured() async throws {
+        let runtime = MockRuntime()
+        let configuration = testConfiguration()
+        let state = await MainActor.run { ServerState() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            state: state
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let response = try await client.execute(
+                uri: "/speech/live",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Route test without a profile"}"#)
+            )
+            let body = string(from: response.body)
+            #expect(response.status == .badRequest)
+            #expect(body.contains("did not include 'profile_name'"))
+            #expect(body.contains("app.defaultVoiceProfileName"))
         }
 
         await host.shutdown()

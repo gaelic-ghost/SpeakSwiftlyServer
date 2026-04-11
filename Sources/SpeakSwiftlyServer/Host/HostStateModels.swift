@@ -7,6 +7,7 @@ import SpeakSwiftlyCore
 public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
     public let service: String
     public let environment: String
+    public let defaultVoiceProfileName: String?
     public let serverMode: String
     public let workerMode: String
     public let workerStage: String
@@ -20,6 +21,7 @@ public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
         case service
         case environment
+        case defaultVoiceProfileName = "default_voice_profile_name"
         case serverMode = "server_mode"
         case workerMode = "worker_mode"
         case workerStage = "worker_stage"

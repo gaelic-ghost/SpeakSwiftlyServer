@@ -181,6 +181,7 @@ struct ReadinessSnapshot: ResponseEncodable, Sendable {
 struct StatusSnapshot: ResponseEncodable, Sendable {
     let service: String
     let environment: String
+    let defaultVoiceProfileName: String?
     let serverMode: String
     let workerMode: String
     let workerStage: String
@@ -203,6 +204,7 @@ struct StatusSnapshot: ResponseEncodable, Sendable {
     enum CodingKeys: String, CodingKey {
         case service
         case environment
+        case defaultVoiceProfileName = "default_voice_profile_name"
         case serverMode = "server_mode"
         case workerMode = "worker_mode"
         case workerStage = "worker_stage"

@@ -56,6 +56,7 @@ public final class ServerState {
     public internal(set) var overview = HostOverviewSnapshot(
         service: "speak-swiftly-server",
         environment: "development",
+        defaultVoiceProfileName: nil,
         serverMode: "degraded",
         workerMode: "starting",
         workerStage: "starting",

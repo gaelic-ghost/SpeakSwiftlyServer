@@ -25,6 +25,7 @@ actor EmbeddedSessionLifecycleProbe {
 }
 
 func testConfiguration(
+    defaultVoiceProfileName: String? = nil,
     sseHeartbeatSeconds: Double = 0.05,
     completedJobTTLSeconds: Double = 30,
     completedJobMaxCount: Int = 20,
@@ -33,6 +34,7 @@ func testConfiguration(
     .init(
         name: "speak-swiftly-server-tests",
         environment: "test",
+        defaultVoiceProfileName: defaultVoiceProfileName,
         host: "127.0.0.1",
         port: 7337,
         sseHeartbeatSeconds: sseHeartbeatSeconds,

@@ -247,6 +247,7 @@ extension ServerHost {
 
         if configuration.name != appConfig.server.name ||
             configuration.environment != appConfig.server.environment ||
+            configuration.defaultVoiceProfileName != appConfig.server.defaultVoiceProfileName ||
             configuration.sseHeartbeatSeconds != appConfig.server.sseHeartbeatSeconds ||
             configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
             configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount ||
@@ -259,6 +260,7 @@ extension ServerHost {
             configuration = ServerConfiguration(
                 name: appConfig.server.name,
                 environment: appConfig.server.environment,
+                defaultVoiceProfileName: appConfig.server.defaultVoiceProfileName,
                 host: configuration.host,
                 port: configuration.port,
                 sseHeartbeatSeconds: appConfig.server.sseHeartbeatSeconds,

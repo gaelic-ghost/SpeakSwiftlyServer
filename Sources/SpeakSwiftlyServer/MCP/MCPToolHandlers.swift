@@ -20,9 +20,14 @@ extension MCPSurface {
 
             switch params.name {
             case "generate_speech":
+                guard let profileName = await host.resolvedRequestedVoiceProfileName(optionalString("profile_name", in: arguments)) else {
+                    throw MCPError.invalidParams(
+                        await host.missingVoiceProfileNameMessage(for: "the live speech request")
+                    )
+                }
                 let requestID = try await host.queueSpeechLive(
                     text: requiredString("text", in: arguments),
-                    profileName: requiredString("profile_name", in: arguments),
+                    profileName: profileName,
                     textProfileName: optionalString("text_profile_name", in: arguments),
                     normalizationContext: try normalizationContext(in: arguments),
                     sourceFormat: try sourceFormat(in: arguments)
@@ -35,9 +40,14 @@ extension MCPSurface {
                 )
 
             case "generate_audio_file":
+                guard let profileName = await host.resolvedRequestedVoiceProfileName(optionalString("profile_name", in: arguments)) else {
+                    throw MCPError.invalidParams(
+                        await host.missingVoiceProfileNameMessage(for: "the retained audio-file request")
+                    )
+                }
                 let requestID = try await host.queueSpeechFile(
                     text: requiredString("text", in: arguments),
-                    profileName: requiredString("profile_name", in: arguments),
+                    profileName: profileName,
                     textProfileName: optionalString("text_profile_name", in: arguments),
                     normalizationContext: try normalizationContext(in: arguments),
                     sourceFormat: try sourceFormat(in: arguments)
@@ -51,9 +61,14 @@ extension MCPSurface {
 
             case "generate_batch":
                 let items: [BatchItemRequestPayload] = try decodeArgument("items", in: arguments)
+                guard let profileName = await host.resolvedRequestedVoiceProfileName(optionalString("profile_name", in: arguments)) else {
+                    throw MCPError.invalidParams(
+                        await host.missingVoiceProfileNameMessage(for: "the retained audio-batch request")
+                    )
+                }
                 let requestID = try await host.queueSpeechBatch(
                     items: try items.map { try $0.model() },
-                    profileName: requiredString("profile_name", in: arguments)
+                    profileName: profileName
                 )
                 return try toolResult(
                     acceptedRequestResult(

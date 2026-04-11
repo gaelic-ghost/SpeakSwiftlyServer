@@ -13,6 +13,7 @@ import Testing
             state.overview = HostOverviewSnapshot(
                 service: "speak-swiftly-server-tests",
                 environment: "test",
+                defaultVoiceProfileName: "default-femme",
                 serverMode: "ready",
                 workerMode: "resident",
                 workerStage: "resident_model_ready",
@@ -79,6 +80,7 @@ import Testing
 
     #expect(overview.workerReady == true)
     #expect(overview.profileCount == 1)
+    #expect(overview.defaultVoiceProfileName == "default-femme")
     #expect(currentGenerationJobs.contains { $0.jobID == "job-1" })
     #expect(playback.state == "playing")
     #expect(voiceProfiles.contains { $0.profileName == "default-femme" })
@@ -247,6 +249,7 @@ import Testing
             server: .init(
                 name: "reloaded-service",
                 environment: "qa",
+                defaultVoiceProfileName: "default-femme",
                 host: configuration.host,
                 port: configuration.port,
                 sseHeartbeatSeconds: 0.01,
@@ -272,6 +275,7 @@ import Testing
     let hostState = await host.hostStateSnapshot()
     #expect(hostState.overview.service == "reloaded-service")
     #expect(hostState.overview.environment == "qa")
+    #expect(hostState.overview.defaultVoiceProfileName == "default-femme")
     #expect(hostState.recentErrors.contains {
         $0.source == "config" &&
             $0.code == "reload_requires_restart" &&

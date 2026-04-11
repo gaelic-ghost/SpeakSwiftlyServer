@@ -94,6 +94,8 @@ The server also consumes the public summary and event types that those calls ven
 
 That alignment means the remaining translation layer is intentionally transport-local: snake_case HTTP and MCP payload shaping, retained job snapshots, and SSE framing. Queue, playback, and runtime-refresh state now come from the atomic runtime overview instead of server-local fallback reconstruction. The server is not reaching through the library boundary to construct raw worker protocol messages or private runtime state directly.
 
+For generation requests, the server also supports one server-owned default voice profile. HTTP and MCP callers may omit `profile_name` for live speech, retained audio, and retained batch requests when the server has `app.defaultVoiceProfileName` or `APP_DEFAULT_VOICE_PROFILE_NAME` configured. When neither the request nor the server configuration provides a voice profile, the server rejects the request with a descriptive validation error instead of silently guessing.
+
 That narrowness also informs platform policy. The package should prefer maintainable Apple-platform architecture for the current macOS and near-future iOS use cases over speculative cross-platform compromises.
 
 ## Setup
@@ -255,6 +257,7 @@ The shared server supports these environment variables:
 - `APP_CONFIG_FILE`
 - `APP_NAME`
 - `APP_ENVIRONMENT`
+- `APP_DEFAULT_VOICE_PROFILE_NAME`
 - `APP_HOST`
 - `APP_PORT`
 - `APP_SSE_HEARTBEAT_SECONDS`

@@ -7,10 +7,10 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "generate_speech",
-            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide text_profile_name plus explicit normalization-format arguments when the input should not rely on automatic format detection.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide profile_name to override the server's configured default voice profile plus text_profile_name and explicit normalization-format arguments when the input should not rely on automatic format detection.",
             inputSchema: [
                 "type": "object",
-                "required": ["text", "profile_name"],
+                "required": ["text"],
                 "properties": [
                     "text": ["type": "string"],
                     "profile_name": ["type": "string"],
@@ -25,10 +25,10 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_audio_file",
-            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later.",
+            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later, and optionally provide profile_name to override the server's configured default voice profile.",
             inputSchema: [
                 "type": "object",
-                "required": ["text", "profile_name"],
+                "required": ["text"],
                 "properties": [
                     "text": ["type": "string"],
                     "profile_name": ["type": "string"],
@@ -43,10 +43,10 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_batch",
-            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together.",
+            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together, and optionally provide profile_name to override the server's configured default voice profile.",
             inputSchema: [
                 "type": "object",
-                "required": ["profile_name", "items"],
+                "required": ["items"],
                 "properties": [
                     "profile_name": ["type": "string"],
                     "items": ["type": "array"],

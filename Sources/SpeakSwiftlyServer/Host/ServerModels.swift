@@ -7,7 +7,7 @@ import TextForSpeech
 
 struct SpeakRequestPayload: Decodable {
     let text: String
-    let profileName: String
+    let profileName: String?
     let textProfileName: String?
     let cwd: String?
     let repoRoot: String?
@@ -96,7 +96,7 @@ struct CreateCloneRequestPayload: Decodable {
 }
 
 struct GenerateBatchRequestPayload: Decodable {
-    let profileName: String
+    let profileName: String?
     let items: [BatchItemRequestPayload]
 
     enum CodingKeys: String, CodingKey {
