@@ -23,6 +23,8 @@ extension SpeakSwiftlyServerTests {
             #expect(toolNames == Set(MCPToolCatalog.definitions.map(\.name)))
             #expect(tools.contains { $0["name"] as? String == "generate_speech" })
             #expect(tools.contains { $0["name"] as? String == "create_voice_profile_from_audio" })
+            #expect(tools.contains { $0["name"] as? String == "update_voice_profile_name" })
+            #expect(tools.contains { $0["name"] as? String == "reroll_voice_profile" })
             #expect(tools.contains { $0["name"] as? String == "get_staged_runtime_config" })
             #expect(tools.contains { $0["name"] as? String == "set_staged_config" })
             #expect(tools.contains { $0["name"] as? String == "get_runtime_overview" })

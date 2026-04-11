@@ -38,6 +38,15 @@ actor MockRuntime: ServerRuntimeProtocol {
         let cwd: String?
     }
 
+    struct RenameProfileInvocation: Sendable, Equatable {
+        let profileName: String
+        let newProfileName: String
+    }
+
+    struct RerollProfileInvocation: Sendable, Equatable {
+        let profileName: String
+    }
+
     struct QueuedRequestState: Sendable {
         let request: MockRequest
         let continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
@@ -63,6 +72,8 @@ actor MockRuntime: ServerRuntimeProtocol {
     var queuedSpeechInvocations = [QueuedSpeechInvocation]()
     var createCloneInvocations = [CreateCloneInvocation]()
     var createProfileInvocations = [CreateProfileInvocation]()
+    var renameProfileInvocations = [RenameProfileInvocation]()
+    var rerollProfileInvocations = [RerollProfileInvocation]()
     var playbackState: SpeakSwiftly.PlaybackState = .idle
     var textRuntime: TextForSpeech.Runtime
     let textRuntimePersistenceURL: URL
@@ -89,7 +100,7 @@ actor MockRuntime: ServerRuntimeProtocol {
             .appendingPathComponent("SpeakSwiftlyServerTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("json")
-        self.textRuntime = try! TextForSpeech.Runtime(persistenceURL: textRuntimePersistenceURL)
+        self.textRuntime = try! TextForSpeech.Runtime(persistence: .file(textRuntimePersistenceURL))
     }
 
     func start() {}

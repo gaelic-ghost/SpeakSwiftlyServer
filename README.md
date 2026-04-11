@@ -36,7 +36,7 @@ It's intentionally narrow, using Hummingbird for HTTP and MCP, `SpeakSwiftly` fo
 
 ### Current SpeakSwiftly Alignment
 
-This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `2.2.8` package dependency.
+This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `2.3.1` package dependency.
 
 Today the server relies on the current typed runtime capabilities that matter for transport hosting:
 
@@ -48,6 +48,8 @@ Today the server relies on the current typed runtime capabilities that matter fo
 - `runtime.voices.create(design:from:vibe:voice:outputPath:)`
 - `runtime.voices.create(clone:from:vibe:transcript:)`
 - `runtime.voices.list()`
+- `runtime.voices.rename(_:to:)`
+- `runtime.voices.reroll(_:)`
 - `runtime.voices.delete(named:)`
 - `runtime.jobs.generationQueue()`
 - `runtime.jobs.list()`
@@ -340,6 +342,7 @@ The current HTTP surface is:
 - `GET /requests/{request_id}/events`
 - `POST /voices/from-description`
 - `POST /voices/from-audio`
+- `POST /voices/{profile_name}/reroll`
 - `POST /speech/live`
 - `POST /speech/files`
 - `POST /speech/batches`
@@ -354,6 +357,7 @@ The current HTTP surface is:
 - `POST /runtime/backend`
 - `POST /runtime/models/reload`
 - `POST /runtime/models/unload`
+- `PUT /voices/{profile_name}/name`
 - `PUT /text-profiles/stored/{profile_id}`
 - `PUT /text-profiles/style`
 - `PUT /text-profiles/active`
@@ -367,7 +371,7 @@ The current HTTP surface is:
 - `DELETE /text-profiles/active/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
 
-`POST /speech/live`, `POST /voices/from-description`, `POST /voices/from-audio`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately. Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first. `POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_name`, `text_format`, `nested_source_format`, and `source_format` fields so callers can pass path-aware and normalization-aware context explicitly.
+`POST /speech/live`, `POST /voices/from-description`, `POST /voices/from-audio`, `PUT /voices/{profile_name}/name`, `POST /voices/{profile_name}/reroll`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately. Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first. `POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_name`, `text_format`, `nested_source_format`, and `source_format` fields so callers can pass path-aware and normalization-aware context explicitly.
 
 The `/text-profiles` route family is synchronous and state-oriented rather than request-oriented. It exposes the current built-in style plus base, active, stored, and effective `TextForSpeech.Profile` state, along with replacement editing and profile persistence paths for downstream apps or agents that need to shape normalization deliberately. `GET /text-profiles/style` and `PUT /text-profiles/style` mirror the built-in normalization-style control that now participates in effective normalization alongside custom profiles. `POST /text-profiles/load` and `POST /text-profiles/save` map directly to the public text-profile persistence calls so operators can refresh or flush stored normalization state without reaching into the runtime process manually.
 
@@ -382,6 +386,8 @@ The current MCP surface is optional and mounts on the same shared Hummingbird pr
 - `generate_batch`
 - `create_voice_profile_from_description`
 - `create_voice_profile_from_audio`
+- `update_voice_profile_name`
+- `reroll_voice_profile`
 - `get_runtime_overview`
 - `get_runtime_status`
 - `get_staged_runtime_config`

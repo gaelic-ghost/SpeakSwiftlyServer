@@ -96,6 +96,29 @@ extension MCPSurface {
             case "list_voice_profiles":
                 return try toolResult(await host.cachedProfiles())
 
+            case "update_voice_profile_name":
+                let requestID = try await host.submitRenameVoiceProfile(
+                    profileName: requiredString("profile_name", in: arguments),
+                    to: requiredString("new_profile_name", in: arguments)
+                )
+                return try toolResult(
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the voice-profile rename request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache."
+                    )
+                )
+
+            case "reroll_voice_profile":
+                let requestID = try await host.submitRerollVoiceProfile(
+                    profileName: requiredString("profile_name", in: arguments)
+                )
+                return try toolResult(
+                    acceptedRequestResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the voice-profile reroll request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache."
+                    )
+                )
+
             case "delete_voice_profile":
                 let requestID = try await host.submitDeleteVoiceProfile(
                     profileName: requiredString("profile_name", in: arguments)

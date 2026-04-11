@@ -55,6 +55,14 @@ extension MockRuntime {
         createCloneInvocations.last
     }
 
+    func latestRenameProfileInvocation() -> RenameProfileInvocation? {
+        renameProfileInvocations.last
+    }
+
+    func latestRerollProfileInvocation() -> RerollProfileInvocation? {
+        rerollProfileInvocations.last
+    }
+
     func textProfilePersistenceActionCounts() -> (load: Int, save: Int) {
         (loadTextProfilesCallCount, saveTextProfilesCallCount)
     }

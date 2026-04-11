@@ -88,6 +88,38 @@ extension MockRuntime {
         return RuntimeRequestHandle(id: requestID, operation: "list_voice_profiles", profileName: nil, events: events)
     }
 
+    func renameVoiceProfile(profileName: String, to newProfileName: String) async -> RuntimeRequestHandle {
+        let requestID = UUID().uuidString
+        renameProfileInvocations.append(.init(profileName: profileName, newProfileName: newProfileName))
+        if mutationRefreshBehavior == .applyMutations {
+            profiles = profiles.map { profile in
+                guard profile.profileName == profileName else { return profile }
+                return SpeakSwiftly.ProfileSummary(
+                    profileName: newProfileName,
+                    vibe: profile.vibe,
+                    createdAt: profile.createdAt,
+                    voiceDescription: profile.voiceDescription,
+                    sourceText: profile.sourceText
+                )
+            }
+        }
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, profileName: newProfileName, activeRequests: nil)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operation: "update_voice_profile_name", profileName: newProfileName, events: events)
+    }
+
+    func rerollVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
+        let requestID = UUID().uuidString
+        rerollProfileInvocations.append(.init(profileName: profileName))
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, profileName: profileName, activeRequests: nil)))
+            continuation.finish()
+        }
+        return RuntimeRequestHandle(id: requestID, operation: "reroll_voice_profile", profileName: profileName, events: events)
+    }
+
     func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         if mutationRefreshBehavior == .applyMutations {

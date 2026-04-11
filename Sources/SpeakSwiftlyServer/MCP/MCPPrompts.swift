@@ -221,7 +221,7 @@ extension MCPSurface {
                 Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                 \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
                 Available action families:
-                - voice profile work: create_voice_profile_from_description, create_voice_profile_from_audio, list_voice_profiles, delete_voice_profile, speak://voices, speak://voices/guide
+                - voice profile work: create_voice_profile_from_description, create_voice_profile_from_audio, list_voice_profiles, update_voice_profile_name, reroll_voice_profile, delete_voice_profile, speak://voices, speak://voices/guide
                 - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
                 - text profile work: get_text_normalizer_snapshot, load_text_profiles, save_text_profiles, create_text_profile, store_text_profile, use_text_profile, reset_active_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://text-profiles, speak://text-profiles/guide
                 - playback and queue control: list_generation_queue, list_playback_queue, get_playback_state, pause_playback, resume_playback, clear_playback_queue, cancel_request, speak://playback/guide

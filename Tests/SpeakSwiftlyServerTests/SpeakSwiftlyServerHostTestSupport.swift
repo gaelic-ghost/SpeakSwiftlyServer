@@ -119,6 +119,14 @@ extension ServerHost {
     func submitRemoveProfile(profileName: String) async throws -> String {
         try await submitDeleteVoiceProfile(profileName: profileName)
     }
+
+    func submitRenameProfile(profileName: String, newProfileName: String) async throws -> String {
+        try await submitRenameVoiceProfile(profileName: profileName, to: newProfileName)
+    }
+
+    func submitRerollProfile(profileName: String) async throws -> String {
+        try await submitRerollVoiceProfile(profileName: profileName)
+    }
 }
 
 extension JobSnapshot {

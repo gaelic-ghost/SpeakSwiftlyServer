@@ -36,6 +36,22 @@ func registerHTTPVoiceRoutes(
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
+    router.put("voices/:profile_name/name") { request, context -> Response in
+        let profileName = try context.parameters.require("profile_name")
+        let payload = try await request.decode(as: RenameVoiceProfileRequestPayload.self, context: context)
+        let requestID = try await host.submitRenameVoiceProfile(
+            profileName: profileName,
+            to: payload.newProfileName
+        )
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
+    router.post("voices/:profile_name/reroll") { request, context -> Response in
+        let profileName = try context.parameters.require("profile_name")
+        let requestID = try await host.submitRerollVoiceProfile(profileName: profileName)
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+
     router.delete("voices/:profile_name") { request, context -> Response in
         let profileName = try context.parameters.require("profile_name")
         let requestID = try await host.submitDeleteVoiceProfile(profileName: profileName)

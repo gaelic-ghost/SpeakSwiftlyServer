@@ -91,6 +91,29 @@ enum MCPToolCatalog {
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
         ),
         Tool(
+            name: "update_voice_profile_name",
+            description: "Rename one stored SpeakSwiftly voice profile and refresh the cached profile list.",
+            inputSchema: [
+                "type": "object",
+                "required": ["profile_name", "new_profile_name"],
+                "properties": [
+                    "profile_name": ["type": "string"],
+                    "new_profile_name": ["type": "string"],
+                ],
+            ]
+        ),
+        Tool(
+            name: "reroll_voice_profile",
+            description: "Rebuild one stored SpeakSwiftly voice profile from its persisted source inputs without changing its profile name.",
+            inputSchema: [
+                "type": "object",
+                "required": ["profile_name"],
+                "properties": [
+                    "profile_name": ["type": "string"],
+                ],
+            ]
+        ),
+        Tool(
             name: "delete_voice_profile",
             description: "Remove one stored SpeakSwiftly voice profile by profile_name.",
             inputSchema: [

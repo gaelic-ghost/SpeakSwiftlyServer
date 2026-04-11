@@ -89,6 +89,21 @@ extension ServerHost {
         return await enqueuePublicJob(handle)
     }
 
+    func submitRenameVoiceProfile(
+        profileName: String,
+        to newProfileName: String
+    ) async throws -> String {
+        try ensureWorkerReady()
+        let handle = await runtime.renameVoiceProfile(profileName: profileName, to: newProfileName)
+        return await enqueuePublicJob(handle)
+    }
+
+    func submitRerollVoiceProfile(profileName: String) async throws -> String {
+        try ensureWorkerReady()
+        let handle = await runtime.rerollVoiceProfile(profileName: profileName)
+        return await enqueuePublicJob(handle)
+    }
+
     func submitDeleteVoiceProfile(profileName: String) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.deleteVoiceProfile(profileName: profileName)

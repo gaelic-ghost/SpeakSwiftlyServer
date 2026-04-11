@@ -106,6 +106,7 @@ extension ServerHost {
                 case .completed(let success):
                     if handle.operation == "create_voice_profile_from_description"
                         || handle.operation == "create_voice_profile_from_audio"
+                        || handle.operation == "update_voice_profile_name"
                         || handle.operation == "delete_voice_profile"
                     {
                         await finalizeMutationSuccess(
@@ -269,6 +270,10 @@ extension ServerHost {
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
         case "create_voice_profile_from_audio":
             return refreshedNames.contains(profileName) && refreshedNames != previousNames
+        case "update_voice_profile_name":
+            return refreshedNames.contains(profileName)
+                && !previousNames.contains(profileName)
+                && refreshedNames.count == previousNames.count
         case "delete_voice_profile":
             return !refreshedNames.contains(profileName) && refreshedNames != previousNames
         default:

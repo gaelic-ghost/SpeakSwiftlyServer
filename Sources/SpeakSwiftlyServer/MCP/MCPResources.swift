@@ -28,7 +28,7 @@ enum MCPResourceCatalog {
         .init(name: "Runtime Status", uri: "speak://runtime/status", description: "Underlying SpeakSwiftly runtime status event, including stage, resident-model state, and speech backend.", mimeType: "application/json"),
         .init(name: "Runtime Configuration", uri: "speak://runtime/configuration", description: "Persisted runtime configuration snapshot for the next runtime start.", mimeType: "application/json"),
         .init(name: "Voice Profiles", uri: "speak://voices", description: "Current cached SpeakSwiftly voice profiles.", mimeType: "application/json"),
-        .init(name: "Voice Profile Guide", uri: "speak://voices/guide", description: "Operator guidance for creating, cloning, listing, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
+        .init(name: "Voice Profile Guide", uri: "speak://voices/guide", description: "Operator guidance for creating, cloning, renaming, rerolling, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
         .init(name: "Text Profiles", uri: "speak://text-profiles", description: "Current SpeakSwiftly text-profile snapshot, including built-in style plus base, active, stored, and effective profiles.", mimeType: "application/json"),
         .init(name: "Text Profile Style", uri: "speak://text-profiles/style", description: "Current built-in SpeakSwiftly text-profile style.", mimeType: "application/json"),
         .init(name: "Text Profile Guide", uri: "speak://text-profiles/guide", description: "Operator guidance for working with SpeakSwiftly text profiles and replacements.", mimeType: "text/markdown"),
@@ -275,17 +275,19 @@ private func voiceProfilesGuideMarkdown() -> String {
     """
     # SpeakSwiftly Voice Profile Guide
 
-    Use voice-profile tools when the user wants to create, import, inspect, choose, or remove reusable speaking voices.
+    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable speaking voices.
 
     Recommended workflow:
 
     1. Read `speak://voices` or call `list_voice_profiles` to inspect the currently cached voice profiles.
     2. Use `create_voice_profile_from_description` when the user wants a new synthetic profile from source text plus a voice description.
     3. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
-    4. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    5. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech` when the input needs explicit format-aware normalization instead of automatic detection.
-    6. Use `generate_speech` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
-    7. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
+    4. Use `update_voice_profile_name` when the user wants to keep the stored voice but correct or improve its visible profile name.
+    5. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one stored profile from its original source inputs while keeping the same profile name.
+    6. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    7. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech` when the input needs explicit format-aware normalization instead of automatic detection.
+    8. Use `generate_speech` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
+    9. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
 
     Drafting guidance:
 

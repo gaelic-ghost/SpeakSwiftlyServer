@@ -73,6 +73,46 @@ extension SpeakSwiftlyServerTests {
             #expect(createCloneInvocation.transcript == "Imported from MCP")
             #expect(createCloneInvocation.cwd == "/tmp/mcp-clone-cwd")
 
+            let renameVoiceToolEnvelope = try await mcpEnvelope(
+                from: await mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "update_voice_profile_name",
+                            arguments: [
+                                "profile_name": "clone-from-mcp",
+                                "new_profile_name": "clone-from-mcp-renamed",
+                            ]
+                        ),
+                        sessionID: sessionID
+                    )
+                )
+            )
+            let renameVoiceToolPayload = try mcpToolPayload(from: renameVoiceToolEnvelope)
+            let renameVoiceRequestID = try #require(renameVoiceToolPayload["request_id"] as? String)
+            #expect(renameVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(renameVoiceRequestID)")
+            let renameVoiceInvocation = try #require(await runtime.latestRenameProfileInvocation())
+            #expect(renameVoiceInvocation.profileName == "clone-from-mcp")
+            #expect(renameVoiceInvocation.newProfileName == "clone-from-mcp-renamed")
+
+            let rerollVoiceToolEnvelope = try await mcpEnvelope(
+                from: await mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "reroll_voice_profile",
+                            arguments: [
+                                "profile_name": "clone-from-mcp-renamed",
+                            ]
+                        ),
+                        sessionID: sessionID
+                    )
+                )
+            )
+            let rerollVoiceToolPayload = try mcpToolPayload(from: rerollVoiceToolEnvelope)
+            let rerollVoiceRequestID = try #require(rerollVoiceToolPayload["request_id"] as? String)
+            #expect(rerollVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(rerollVoiceRequestID)")
+            let rerollVoiceInvocation = try #require(await runtime.latestRerollProfileInvocation())
+            #expect(rerollVoiceInvocation.profileName == "clone-from-mcp-renamed")
+
             let createTextProfileEnvelope = try await mcpEnvelope(
                 from: await mcpSurface.handle(
                     mcpPOSTRequest(

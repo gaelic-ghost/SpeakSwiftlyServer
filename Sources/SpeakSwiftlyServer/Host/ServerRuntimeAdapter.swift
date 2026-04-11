@@ -115,6 +115,16 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "list_voice_profiles", profileName: nil, events: handle.events)
     }
 
+    func renameVoiceProfile(profileName: String, to newProfileName: String) async -> RuntimeRequestHandle {
+        let handle = await runtime.voices.rename(profileName, to: newProfileName)
+        return .init(id: handle.id, operation: "update_voice_profile_name", profileName: newProfileName, events: handle.events)
+    }
+
+    func rerollVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
+        let handle = await runtime.voices.reroll(profileName)
+        return .init(id: handle.id, operation: "reroll_voice_profile", profileName: profileName, events: handle.events)
+    }
+
     func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle {
         let handle = await runtime.voices.delete(named: profileName)
         return .init(id: handle.id, operation: "delete_voice_profile", profileName: profileName, events: handle.events)

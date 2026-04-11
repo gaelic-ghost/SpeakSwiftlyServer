@@ -173,6 +173,39 @@ extension SpeakSwiftlyServerTests {
             #expect(cloneInvocation.transcript == "Cloned route test transcript.")
             #expect(cloneInvocation.cwd == "/tmp/http-clone-cwd")
 
+            let renameResponse = try await client.execute(
+                uri: "/voices/clone-default/name",
+                method: .put,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"new_profile_name":"clone-renamed"}"#)
+            )
+            let renameJSON = try jsonObject(from: renameResponse.body)
+            let renameJobID = try #require(renameJSON["request_id"] as? String)
+            #expect(renameResponse.status == .accepted)
+            _ = try await waitForJobSnapshot(renameJobID, on: host)
+
+            let renameInvocation = try #require(await runtime.latestRenameProfileInvocation())
+            #expect(renameInvocation.profileName == "clone-default")
+            #expect(renameInvocation.newProfileName == "clone-renamed")
+
+            let rerollResponse = try await client.execute(
+                uri: "/voices/clone-renamed/reroll",
+                method: .post
+            )
+            let rerollJSON = try jsonObject(from: rerollResponse.body)
+            let rerollJobID = try #require(rerollJSON["request_id"] as? String)
+            #expect(rerollResponse.status == .accepted)
+            _ = try await waitForJobSnapshot(rerollJobID, on: host)
+
+            let rerollInvocation = try #require(await runtime.latestRerollProfileInvocation())
+            #expect(rerollInvocation.profileName == "clone-renamed")
+
+            let refreshedProfilesResponse = try await client.execute(uri: "/voices", method: .get)
+            let refreshedProfilesJSON = try jsonObject(from: refreshedProfilesResponse.body)
+            let refreshedProfiles = try #require(refreshedProfilesJSON["profiles"] as? [[String: Any]])
+            #expect(refreshedProfiles.contains { $0["profile_name"] as? String == "clone-renamed" })
+            #expect(refreshedProfiles.contains { $0["profile_name"] as? String == "clone-default" } == false)
+
             let speakResponse = try await client.execute(
                 uri: "/speech/live",
                 method: .post,

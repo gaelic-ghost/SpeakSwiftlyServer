@@ -97,6 +97,8 @@ protocol ServerRuntimeProtocol: Actor {
         cwd: String?
     ) async -> RuntimeRequestHandle
     func listVoiceProfiles() async -> RuntimeRequestHandle
+    func renameVoiceProfile(profileName: String, to newProfileName: String) async -> RuntimeRequestHandle
+    func rerollVoiceProfile(profileName: String) async -> RuntimeRequestHandle
     func deleteVoiceProfile(profileName: String) async -> RuntimeRequestHandle
     func generationJob(id jobID: String) async -> RuntimeRequestHandle
     func listGenerationJobs() async -> RuntimeRequestHandle

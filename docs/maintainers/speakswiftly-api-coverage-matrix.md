@@ -10,7 +10,7 @@ It answers three concrete questions:
 2. Which public capabilities are intentionally adapted instead of mirrored exactly?
 3. Which transport is the right client contract for each capability: HTTP, MCP, both, or neither?
 
-Current baseline checked against the `SpeakSwiftly 2.2.8` dependency resolved by this repository on `2026-04-11`.
+Current baseline checked against the `SpeakSwiftly 2.3.1` dependency resolved by this repository on `2026-04-11`.
 
 ## Summary
 
@@ -48,6 +48,8 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.voices.create(design:from:vibe:voice:outputPath:)` | Full | `POST /voices/from-description` | `create_voice_profile_from_description` | Accepted-request flow with retained request inspection. |
 | `runtime.voices.create(clone:from:vibe:transcript:)` | Full | `POST /voices/from-audio` | `create_voice_profile_from_audio` | Accepted-request flow with explicit `vibe` and transcript handling. |
 | `runtime.voices.list()` | Full | `GET /voices` | `list_voice_profiles`, `speak://voices` | Exposed through cached host profile snapshots. |
+| `runtime.voices.rename(_:to:)` | Full | `PUT /voices/{profile_name}/name` | `update_voice_profile_name` | Accepted-request flow that updates cached profile identity after the runtime mutation completes. |
+| `runtime.voices.reroll(_)` | Full | `POST /voices/{profile_name}/reroll` | `reroll_voice_profile` | Accepted-request flow that rebuilds one stored profile in place from its persisted source inputs. |
 | `runtime.voices.delete(named:)` | Full | `DELETE /voices/{profile_name}` | `delete_voice_profile` | Accepted-request removal flow. |
 | `runtime.normalizer.profiles.builtInStyle()` / `setBuiltInStyle(_:)` | Full | `GET /text-profiles/style`, `PUT /text-profiles/style`, plus `built_in_style` inside `GET /text-profiles` | `get_text_profile_style`, `set_text_profile_style`, `get_text_normalizer_snapshot`, `speak://text-profiles`, `speak://text-profiles/style` | Built-in style is now first-class operator state rather than hidden base-profile configuration. |
 | `runtime.normalizer.profiles.active()` / `stored(id:)` / `list()` / `effective(id:)` | Full | `GET /text-profiles`, `GET /text-profiles/base`, `GET /text-profiles/active`, `GET /text-profiles/effective`, `GET /text-profiles/effective/{profile_id}`, `GET /text-profiles/stored/{profile_id}` | `get_text_normalizer_snapshot`, `speak://text-profiles`, `speak://text-profiles/base`, `speak://text-profiles/active`, `speak://text-profiles/effective`, `speak://text-profiles/effective/{profile_id}`, `speak://text-profiles/stored/{profile_id}` | Exposed as synchronous state, not as retained generation jobs. |

@@ -33,6 +33,14 @@ struct ProfileListResponse: ResponseEncodable, Sendable {
     let profiles: [ProfileSnapshot]
 }
 
+struct RenameVoiceProfileRequestPayload: Decodable {
+    let newProfileName: String
+
+    enum CodingKeys: String, CodingKey {
+        case newProfileName = "new_profile_name"
+    }
+}
+
 // MARK: - Text Profile Models
 
 public struct TextReplacementSnapshot: Codable, Sendable, Equatable {

@@ -208,6 +208,8 @@ extension SpeakSwiftlyServerTests {
             let voiceProfilesGuideContents = try #require(voiceProfilesGuideResult["contents"] as? [[String: Any]])
             let voiceProfilesGuideText = try #require(voiceProfilesGuideContents.first?["text"] as? String)
             #expect(voiceProfilesGuideText.contains("create_voice_profile_from_audio"))
+            #expect(voiceProfilesGuideText.contains("update_voice_profile_name"))
+            #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
