@@ -8,6 +8,8 @@ import Observation
 public final class ServerState {
     struct Actions {
         let refreshVoiceProfiles: @MainActor @Sendable () async throws -> [ProfileSnapshot]
+        let setDefaultVoiceProfileName: @MainActor @Sendable (String) async throws -> String
+        let clearDefaultVoiceProfileName: @MainActor @Sendable () async -> Void
         let pausePlayback: @MainActor @Sendable () async throws -> PlaybackStatusSnapshot
         let resumePlayback: @MainActor @Sendable () async throws -> PlaybackStatusSnapshot
         let clearPlaybackQueue: @MainActor @Sendable () async throws -> Int
@@ -19,6 +21,12 @@ public final class ServerState {
                     "ServerState could not refresh voice profiles because no embedded host action performer is configured yet."
                 )
             },
+            setDefaultVoiceProfileName: { profileName in
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not set default voice profile '\(profileName)' because no embedded host action performer is configured yet."
+                )
+            },
+            clearDefaultVoiceProfileName: {},
             pausePlayback: {
                 throw ServerStateActionError.unavailable(
                     "ServerState could not pause playback because no embedded host action performer is configured yet."
@@ -127,6 +135,18 @@ public final class ServerState {
         let profiles = try await actions.refreshVoiceProfiles()
         voiceProfiles = profiles
         return profiles
+    }
+
+    @discardableResult
+    public func setDefaultVoiceProfileName(_ profileName: String) async throws -> String {
+        let resolvedProfileName = try await actions.setDefaultVoiceProfileName(profileName)
+        overview = overview.replacing(defaultVoiceProfileName: resolvedProfileName)
+        return resolvedProfileName
+    }
+
+    public func clearDefaultVoiceProfileName() async {
+        await actions.clearDefaultVoiceProfileName()
+        overview = overview.replacing(defaultVoiceProfileName: nil)
     }
 
     @discardableResult

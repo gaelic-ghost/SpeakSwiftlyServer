@@ -309,3 +309,46 @@ import Testing
             $0.message.contains("APP_PORT")
     })
 }
+
+@available(macOS 14, *)
+@Test func appManagedDefaultVoiceProfileOverrideSurvivesConfigurationReload() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration(defaultVoiceProfileName: "configured-default")
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        runtime: runtime,
+        state: state
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(host)
+
+    _ = try await host.setDefaultVoiceProfileName("app-selected-default")
+    #expect(await host.defaultVoiceProfileName() == "app-selected-default")
+
+    await host.applyConfigurationUpdate(
+        .init(
+            server: .init(
+                name: configuration.name,
+                environment: configuration.environment,
+                defaultVoiceProfileName: "reloaded-config-default",
+                host: configuration.host,
+                port: configuration.port,
+                sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
+                completedJobTTLSeconds: configuration.completedJobTTLSeconds,
+                completedJobMaxCount: configuration.completedJobMaxCount,
+                jobPruneIntervalSeconds: configuration.jobPruneIntervalSeconds
+            ),
+            http: testHTTPConfig(configuration),
+            mcp: .init(enabled: false, path: "/mcp", serverName: "speak-swiftly-mcp", title: "SpeakSwiftly")
+        )
+    )
+
+    #expect(await host.defaultVoiceProfileName() == "app-selected-default")
+    let hostState = await host.hostStateSnapshot()
+    #expect(hostState.overview.defaultVoiceProfileName == "app-selected-default")
+
+    await host.shutdown()
+}

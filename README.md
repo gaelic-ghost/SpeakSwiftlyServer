@@ -209,6 +209,14 @@ That API is intentionally file-backed. The app can call one package function and
 
 That public surface is intentionally small. `ServerHost` remains internal so app code does not couple itself to transport orchestration, async stream plumbing, or other backend ownership details.
 
+From app code, `ServerState` now also exposes app-facing control points for the cached voice-profile list, the effective default voice profile, and playback actions:
+
+- `listVoiceProfiles()` and `refreshVoiceProfiles()`
+- `setDefaultVoiceProfileName(_:)` and `clearDefaultVoiceProfileName()`
+- `pausePlayback()`, `resumePlayback()`, `clearPlaybackQueue()`, and `cancelPlaybackRequest(_:)`
+
+Those default-profile actions mutate the host-owned in-process default that HTTP and MCP speech-generation requests use when `profile_name` is omitted. That app-managed default starts from configuration, can be changed live by the embedded app, and currently does not persist across a full process restart unless the app also updates the server configuration file or environment.
+
 Start an embedded session from app code like this:
 
 ```swift

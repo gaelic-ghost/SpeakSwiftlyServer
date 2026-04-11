@@ -67,6 +67,7 @@ actor ServerHost {
     var workerMode = "starting"
     var workerStage = "starting"
     var startupError: String?
+    var activeDefaultVoiceProfileName: String?
     var profileCache = [ProfileSnapshot]()
     var profileCacheState = "uninitialized"
     var profileCacheWarning: String?
@@ -167,6 +168,7 @@ actor ServerHost {
         self.runtimeConfigurationStore = runtimeConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeConfigurationStore.initialActiveRuntimeSpeechBackend()
+        self.activeDefaultVoiceProfileName = configuration.defaultVoiceProfileName
         self.state = state
         self.transportStatuses = Self.initialTransportStatuses(httpConfig: self.httpConfig, mcpConfig: self.mcpConfig)
         self.immediatePublishRequests = immediatePublishRequests
@@ -338,7 +340,7 @@ actor ServerHost {
         let overview = HostOverviewSnapshot(
             service: configuration.name,
             environment: configuration.environment,
-            defaultVoiceProfileName: configuration.defaultVoiceProfileName,
+            defaultVoiceProfileName: activeDefaultVoiceProfileName,
             serverMode: serverMode,
             workerMode: workerMode,
             workerStage: workerStage,

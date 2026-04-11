@@ -66,11 +66,32 @@ extension ServerHost {
         if let explicitProfileName, !explicitProfileName.isEmpty {
             return explicitProfileName
         }
-        return configuration.defaultVoiceProfileName
+        return activeDefaultVoiceProfileName
     }
 
     func missingVoiceProfileNameMessage(for operation: String) -> String {
         "SpeakSwiftlyServer could not queue \(operation) because the request did not include 'profile_name' and the server does not have 'app.defaultVoiceProfileName' configured."
+    }
+
+    func defaultVoiceProfileName() -> String? {
+        activeDefaultVoiceProfileName
+    }
+
+    func setDefaultVoiceProfileName(_ profileName: String) async throws -> String {
+        let normalizedProfileName = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedProfileName.isEmpty else {
+            throw ServerConfigurationError(
+                "SpeakSwiftlyServer could not set the default voice profile because the requested profile name was empty."
+            )
+        }
+        activeDefaultVoiceProfileName = normalizedProfileName
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        return normalizedProfileName
+    }
+
+    func clearDefaultVoiceProfileName() async {
+        activeDefaultVoiceProfileName = nil
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 
     func refreshVoiceProfiles() async throws -> [ProfileSnapshot] {

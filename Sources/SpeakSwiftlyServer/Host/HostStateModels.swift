@@ -32,6 +32,23 @@ public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
         case profileCount = "profile_count"
         case lastProfileRefreshAt = "last_profile_refresh_at"
     }
+
+    func replacing(defaultVoiceProfileName: String?) -> Self {
+        .init(
+            service: service,
+            environment: environment,
+            defaultVoiceProfileName: defaultVoiceProfileName,
+            serverMode: serverMode,
+            workerMode: workerMode,
+            workerStage: workerStage,
+            workerReady: workerReady,
+            startupError: startupError,
+            profileCacheState: profileCacheState,
+            profileCacheWarning: profileCacheWarning,
+            profileCount: profileCount,
+            lastProfileRefreshAt: lastProfileRefreshAt
+        )
+    }
 }
 
 public struct QueueStatusSnapshot: Codable, Sendable, Equatable {

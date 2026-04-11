@@ -244,10 +244,11 @@ extension ServerHost {
     func applyLiveConfigurationChanges(from appConfig: AppConfig) -> Bool {
         var didChange = false
         var shouldPruneCompletedJobs = false
+        let previousConfiguredDefaultVoiceProfileName = configuration.defaultVoiceProfileName
 
         if configuration.name != appConfig.server.name ||
             configuration.environment != appConfig.server.environment ||
-            configuration.defaultVoiceProfileName != appConfig.server.defaultVoiceProfileName ||
+            previousConfiguredDefaultVoiceProfileName != appConfig.server.defaultVoiceProfileName ||
             configuration.sseHeartbeatSeconds != appConfig.server.sseHeartbeatSeconds ||
             configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
             configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount ||
@@ -269,6 +270,10 @@ extension ServerHost {
                 jobPruneIntervalSeconds: appConfig.server.jobPruneIntervalSeconds
             )
             didChange = true
+        }
+
+        if activeDefaultVoiceProfileName == previousConfiguredDefaultVoiceProfileName {
+            activeDefaultVoiceProfileName = appConfig.server.defaultVoiceProfileName
         }
 
         if shouldPruneCompletedJobs {

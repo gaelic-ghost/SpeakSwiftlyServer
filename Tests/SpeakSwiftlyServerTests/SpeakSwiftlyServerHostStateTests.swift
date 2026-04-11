@@ -309,6 +309,12 @@ import Testing
                 refreshVoiceProfiles: {
                     try await host.refreshVoiceProfiles()
                 },
+                setDefaultVoiceProfileName: { profileName in
+                    try await host.setDefaultVoiceProfileName(profileName)
+                },
+                clearDefaultVoiceProfileName: {
+                    await host.clearDefaultVoiceProfileName()
+                },
                 pausePlayback: {
                     let response = try await host.pausePlayback()
                     return .init(
@@ -355,6 +361,19 @@ import Testing
     let refreshCountAfterManualRefresh = await runtime.voiceProfileRefreshCount()
     #expect(refreshedProfiles.contains { $0.profileName == "default" })
     #expect(refreshCountAfterManualRefresh == refreshCountBeforeManualRefresh + 1)
+
+    let defaultVoiceProfileName = try await state.setDefaultVoiceProfileName("default")
+    #expect(defaultVoiceProfileName == "default")
+    let overviewAfterSet = await MainActor.run { state.overview }
+    #expect(overviewAfterSet.defaultVoiceProfileName == "default")
+    #expect(await host.defaultVoiceProfileName() == "default")
+    #expect(await host.resolvedRequestedVoiceProfileName(nil) == "default")
+
+    await state.clearDefaultVoiceProfileName()
+    let overviewAfterClear = await MainActor.run { state.overview }
+    #expect(overviewAfterClear.defaultVoiceProfileName == nil)
+    #expect(await host.defaultVoiceProfileName() == nil)
+    #expect(await host.resolvedRequestedVoiceProfileName(nil) == nil)
 
     let firstJobID = try await host.submitSpeak(text: "Hold this line", profileName: "default")
     let secondJobID = try await host.submitSpeak(text: "Cancel me next", profileName: "default")
