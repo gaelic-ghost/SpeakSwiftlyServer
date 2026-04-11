@@ -108,7 +108,10 @@ extension ServerHost {
                 .init(
                     activeRuntimeSpeechBackend: snapshot.activeRuntimeSpeechBackend,
                     nextRuntimeSpeechBackend: snapshot.nextRuntimeSpeechBackend,
+                    activeDefaultVoiceProfileName: snapshot.activeDefaultVoiceProfileName,
+                    nextDefaultVoiceProfileName: snapshot.nextDefaultVoiceProfileName,
                     persistedSpeechBackend: snapshot.persistedSpeechBackend,
+                    persistedDefaultVoiceProfileName: snapshot.persistedDefaultVoiceProfileName,
                     environmentSpeechBackendOverride: snapshot.environmentSpeechBackendOverride,
                     persistedConfigurationPath: snapshot.persistedConfigurationPath,
                     persistedConfigurationState: snapshot.persistedConfigurationState

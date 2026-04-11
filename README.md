@@ -215,7 +215,7 @@ From app code, `ServerState` now also exposes app-facing control points for the 
 - `setDefaultVoiceProfileName(_:)` and `clearDefaultVoiceProfileName()`
 - `pausePlayback()`, `resumePlayback()`, `clearPlaybackQueue()`, and `cancelPlaybackRequest(_:)`
 
-Those default-profile actions mutate the host-owned in-process default that HTTP and MCP speech-generation requests use when `profile_name` is omitted. That app-managed default starts from configuration, can be changed live by the embedded app, and currently does not persist across a full process restart unless the app also updates the server configuration file or environment.
+Those default-profile actions mutate the host-owned effective default that HTTP and MCP speech-generation requests use when `profile_name` is omitted. That app-managed default starts from configuration, can be changed live by the embedded app, and is persisted in the server runtime configuration so it survives process restart. Clearing the app-managed default removes the persisted override and falls back to the configured `app.defaultVoiceProfileName` when one exists.
 
 Start an embedded session from app code like this:
 

@@ -168,7 +168,9 @@ actor ServerHost {
         self.runtimeConfigurationStore = runtimeConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeConfigurationStore.initialActiveRuntimeSpeechBackend()
-        self.activeDefaultVoiceProfileName = configuration.defaultVoiceProfileName
+        self.activeDefaultVoiceProfileName = runtimeConfigurationStore.initialActiveDefaultVoiceProfileName(
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+        )
         self.state = state
         self.transportStatuses = Self.initialTransportStatuses(httpConfig: self.httpConfig, mcpConfig: self.mcpConfig)
         self.immediatePublishRequests = immediatePublishRequests

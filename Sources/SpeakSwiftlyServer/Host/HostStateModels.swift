@@ -189,8 +189,11 @@ public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
 public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable, Equatable {
     public let activeRuntimeSpeechBackend: String
     public let nextRuntimeSpeechBackend: String
+    public let activeDefaultVoiceProfileName: String?
+    public let nextDefaultVoiceProfileName: String?
     public let environmentSpeechBackendOverride: String?
     public let persistedSpeechBackend: String?
+    public let persistedDefaultVoiceProfileName: String?
     public let profileRootPath: String
     public let persistedConfigurationPath: String
     public let persistedConfigurationExists: Bool
@@ -203,8 +206,11 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
     enum CodingKeys: String, CodingKey {
         case activeRuntimeSpeechBackend = "active_runtime_speech_backend"
         case nextRuntimeSpeechBackend = "next_runtime_speech_backend"
+        case activeDefaultVoiceProfileName = "active_default_voice_profile_name"
+        case nextDefaultVoiceProfileName = "next_default_voice_profile_name"
         case environmentSpeechBackendOverride = "environment_speech_backend_override"
         case persistedSpeechBackend = "persisted_speech_backend"
+        case persistedDefaultVoiceProfileName = "persisted_default_voice_profile_name"
         case profileRootPath = "profile_root_path"
         case persistedConfigurationPath = "persisted_configuration_path"
         case persistedConfigurationExists = "persisted_configuration_exists"

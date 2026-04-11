@@ -163,6 +163,8 @@ import Testing
     let initialSnapshot = await host.runtimeConfigurationSnapshot()
     #expect(initialSnapshot.activeRuntimeSpeechBackend == "qwen3")
     #expect(initialSnapshot.nextRuntimeSpeechBackend == "qwen3")
+    #expect(initialSnapshot.activeDefaultVoiceProfileName == nil)
+    #expect(initialSnapshot.nextDefaultVoiceProfileName == nil)
     #expect(initialSnapshot.persistedConfigurationExists == false)
     #expect(initialSnapshot.persistedConfigurationState == "missing")
     #expect(initialSnapshot.persistedConfigurationWillAffectNextRuntimeStart == true)
@@ -170,7 +172,10 @@ import Testing
     let updatedSnapshot = try await host.saveRuntimeConfiguration(speechBackend: .marvis)
     #expect(updatedSnapshot.activeRuntimeSpeechBackend == "qwen3")
     #expect(updatedSnapshot.nextRuntimeSpeechBackend == "marvis")
+    #expect(updatedSnapshot.activeDefaultVoiceProfileName == nil)
+    #expect(updatedSnapshot.nextDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedSpeechBackend == "marvis")
+    #expect(updatedSnapshot.persistedDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedConfigurationExists == true)
     #expect(updatedSnapshot.persistedConfigurationState == "loaded")
     #expect(updatedSnapshot.activeRuntimeMatchesNextRuntime == false)
@@ -205,9 +210,58 @@ import Testing
     let runtimeConfiguration = await host.runtimeConfigurationSnapshot()
     #expect(runtimeConfiguration.activeRuntimeSpeechBackend == "marvis")
     #expect(runtimeConfiguration.nextRuntimeSpeechBackend == "qwen3")
+    #expect(runtimeConfiguration.activeDefaultVoiceProfileName == nil)
+    #expect(runtimeConfiguration.nextDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.persistedSpeechBackend == nil)
+    #expect(runtimeConfiguration.persistedDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.activeRuntimeMatchesNextRuntime == false)
 
     let statusSnapshot = await host.statusSnapshot()
     #expect(statusSnapshot.runtimeConfiguration == runtimeConfiguration)
+}
+
+@Test func hostPersistsDefaultVoiceProfileSelectionAcrossRestart() async throws {
+    let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        .appendingPathComponent("profiles", isDirectory: true)
+    let configurationStore = RuntimeConfigurationStore(
+        environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
+        activeRuntimeSpeechBackend: .qwen3
+    )
+
+    do {
+        let runtime = MockRuntime()
+        let state = await MainActor.run { ServerState() }
+        let host = ServerHost(
+            configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
+            runtime: runtime,
+            runtimeConfigurationStore: configurationStore,
+            state: state
+        )
+
+        let selectedProfileName = try await host.setDefaultVoiceProfileName("persisted-default")
+        #expect(selectedProfileName == "persisted-default")
+
+        let runtimeConfiguration = await host.runtimeConfigurationSnapshot()
+        #expect(runtimeConfiguration.activeDefaultVoiceProfileName == "persisted-default")
+        #expect(runtimeConfiguration.nextDefaultVoiceProfileName == "persisted-default")
+        #expect(runtimeConfiguration.persistedDefaultVoiceProfileName == "persisted-default")
+    }
+
+    do {
+        let runtime = MockRuntime()
+        let state = await MainActor.run { ServerState() }
+        let restartedHost = ServerHost(
+            configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
+            runtime: runtime,
+            runtimeConfigurationStore: configurationStore,
+            state: state
+        )
+
+        #expect(await restartedHost.defaultVoiceProfileName() == "persisted-default")
+        let runtimeConfiguration = await restartedHost.runtimeConfigurationSnapshot()
+        #expect(runtimeConfiguration.activeDefaultVoiceProfileName == "persisted-default")
+        #expect(runtimeConfiguration.nextDefaultVoiceProfileName == "persisted-default")
+        #expect(runtimeConfiguration.persistedDefaultVoiceProfileName == "persisted-default")
+    }
 }

@@ -66,7 +66,7 @@ public final class EmbeddedServerSession {
                         try await host.setDefaultVoiceProfileName(profileName)
                     },
                     clearDefaultVoiceProfileName: {
-                        await host.clearDefaultVoiceProfileName()
+                        try await host.clearDefaultVoiceProfileName()
                     },
                     pausePlayback: {
                         let response = try await host.pausePlayback()

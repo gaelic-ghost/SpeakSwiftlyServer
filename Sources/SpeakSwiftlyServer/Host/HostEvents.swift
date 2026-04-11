@@ -29,7 +29,10 @@ struct TextProfilesStatusSnapshot: Codable, Sendable, Equatable {
 struct RuntimeConfigurationStatusSnapshot: Codable, Sendable, Equatable {
     let activeRuntimeSpeechBackend: String
     let nextRuntimeSpeechBackend: String
+    let activeDefaultVoiceProfileName: String?
+    let nextDefaultVoiceProfileName: String?
     let persistedSpeechBackend: String?
+    let persistedDefaultVoiceProfileName: String?
     let environmentSpeechBackendOverride: String?
     let persistedConfigurationPath: String
     let persistedConfigurationState: String
@@ -37,7 +40,10 @@ struct RuntimeConfigurationStatusSnapshot: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
         case activeRuntimeSpeechBackend = "active_runtime_speech_backend"
         case nextRuntimeSpeechBackend = "next_runtime_speech_backend"
+        case activeDefaultVoiceProfileName = "active_default_voice_profile_name"
+        case nextDefaultVoiceProfileName = "next_default_voice_profile_name"
         case persistedSpeechBackend = "persisted_speech_backend"
+        case persistedDefaultVoiceProfileName = "persisted_default_voice_profile_name"
         case environmentSpeechBackendOverride = "environment_speech_backend_override"
         case persistedConfigurationPath = "persisted_configuration_path"
         case persistedConfigurationState = "persisted_configuration_state"

@@ -313,7 +313,7 @@ import Testing
                     try await host.setDefaultVoiceProfileName(profileName)
                 },
                 clearDefaultVoiceProfileName: {
-                    await host.clearDefaultVoiceProfileName()
+                    try await host.clearDefaultVoiceProfileName()
                 },
                 pausePlayback: {
                     let response = try await host.pausePlayback()
@@ -369,7 +369,7 @@ import Testing
     #expect(await host.defaultVoiceProfileName() == "default")
     #expect(await host.resolvedRequestedVoiceProfileName(nil) == "default")
 
-    await state.clearDefaultVoiceProfileName()
+    try await state.clearDefaultVoiceProfileName()
     let overviewAfterClear = await MainActor.run { state.overview }
     #expect(overviewAfterClear.defaultVoiceProfileName == nil)
     #expect(await host.defaultVoiceProfileName() == nil)
@@ -399,5 +399,78 @@ import Testing
     #expect(clearedCount == 0)
 
     await runtime.finishHeldSpeak(id: firstJobID)
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
+@Test func clearingAppManagedDefaultVoiceProfileFallsBackToConfiguredDefault() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration(defaultVoiceProfileName: "configured-default")
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        runtime: runtime,
+        state: state
+    )
+
+    await MainActor.run {
+        state.configureActions(
+            .init(
+                refreshVoiceProfiles: {
+                    try await host.refreshVoiceProfiles()
+                },
+                setDefaultVoiceProfileName: { profileName in
+                    try await host.setDefaultVoiceProfileName(profileName)
+                },
+                clearDefaultVoiceProfileName: {
+                    try await host.clearDefaultVoiceProfileName()
+                },
+                pausePlayback: {
+                    let response = try await host.pausePlayback()
+                    return .init(
+                        state: response.playback.state,
+                        activeRequest: response.playback.activeRequest,
+                        isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
+                        isRebuffering: response.playback.isRebuffering,
+                        stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                    )
+                },
+                resumePlayback: {
+                    let response = try await host.resumePlayback()
+                    return .init(
+                        state: response.playback.state,
+                        activeRequest: response.playback.activeRequest,
+                        isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
+                        isRebuffering: response.playback.isRebuffering,
+                        stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                    )
+                },
+                clearPlaybackQueue: {
+                    let response = try await host.clearQueue()
+                    return response.clearedCount
+                },
+                cancelPlaybackRequest: { requestID in
+                    let response = try await host.cancelQueuedOrActiveRequest(requestID: requestID)
+                    return response.cancelledRequestID
+                }
+            )
+        )
+    }
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(host)
+
+    _ = try await state.setDefaultVoiceProfileName("app-selected-default")
+    #expect(await host.defaultVoiceProfileName() == "app-selected-default")
+
+    try await state.clearDefaultVoiceProfileName()
+    let overviewAfterClear = await MainActor.run { state.overview }
+    #expect(overviewAfterClear.defaultVoiceProfileName == "configured-default")
+    #expect(await host.defaultVoiceProfileName() == "configured-default")
+    #expect(await host.resolvedRequestedVoiceProfileName(nil) == "configured-default")
+
     await host.shutdown()
 }

@@ -37,7 +37,11 @@ extension ServerHost {
     }
 
     func runtimeConfigurationSnapshot() -> RuntimeConfigurationSnapshot {
-        runtimeConfigurationStore.snapshot(activeRuntimeSpeechBackend: activeRuntimeSpeechBackend)
+        runtimeConfigurationStore.snapshot(
+            activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+        )
     }
 
     func saveRuntimeConfiguration(
@@ -45,7 +49,9 @@ extension ServerHost {
     ) async throws -> RuntimeConfigurationSnapshot {
         let snapshot = try runtimeConfigurationStore.save(
             speechBackend: speechBackend,
-            activeRuntimeSpeechBackend: activeRuntimeSpeechBackend
+            activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
         )
         emitRuntimeConfigurationChanged(snapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -73,11 +79,11 @@ extension ServerHost {
         "SpeakSwiftlyServer could not queue \(operation) because the request did not include 'profile_name' and the server does not have 'app.defaultVoiceProfileName' configured."
     }
 
-    func defaultVoiceProfileName() -> String? {
+    func defaultVoiceProfileName() -> SpeakSwiftly.Name? {
         activeDefaultVoiceProfileName
     }
 
-    func setDefaultVoiceProfileName(_ profileName: String) async throws -> String {
+    func setDefaultVoiceProfileName(_ profileName: SpeakSwiftly.Name) async throws -> SpeakSwiftly.Name {
         let normalizedProfileName = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedProfileName.isEmpty else {
             throw ServerConfigurationError(
@@ -85,13 +91,27 @@ extension ServerHost {
             )
         }
         activeDefaultVoiceProfileName = normalizedProfileName
+        let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
+            normalizedProfileName,
+            activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+        )
+        emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
         return normalizedProfileName
     }
 
-    func clearDefaultVoiceProfileName() async {
-        activeDefaultVoiceProfileName = nil
+    func clearDefaultVoiceProfileName() async throws -> SpeakSwiftly.Name? {
+        let fallbackProfileName = configuration.defaultVoiceProfileName
+        activeDefaultVoiceProfileName = fallbackProfileName
+        let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
+            nil,
+            activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+        )
+        emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        return fallbackProfileName
     }
 
     func refreshVoiceProfiles() async throws -> [ProfileSnapshot] {

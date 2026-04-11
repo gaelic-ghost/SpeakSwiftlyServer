@@ -9,7 +9,7 @@ public final class ServerState {
     struct Actions {
         let refreshVoiceProfiles: @MainActor @Sendable () async throws -> [ProfileSnapshot]
         let setDefaultVoiceProfileName: @MainActor @Sendable (String) async throws -> String
-        let clearDefaultVoiceProfileName: @MainActor @Sendable () async -> Void
+        let clearDefaultVoiceProfileName: @MainActor @Sendable () async throws -> String?
         let pausePlayback: @MainActor @Sendable () async throws -> PlaybackStatusSnapshot
         let resumePlayback: @MainActor @Sendable () async throws -> PlaybackStatusSnapshot
         let clearPlaybackQueue: @MainActor @Sendable () async throws -> Int
@@ -26,7 +26,11 @@ public final class ServerState {
                     "ServerState could not set default voice profile '\(profileName)' because no embedded host action performer is configured yet."
                 )
             },
-            clearDefaultVoiceProfileName: {},
+            clearDefaultVoiceProfileName: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not clear the default voice profile because no embedded host action performer is configured yet."
+                )
+            },
             pausePlayback: {
                 throw ServerStateActionError.unavailable(
                     "ServerState could not pause playback because no embedded host action performer is configured yet."
@@ -108,8 +112,11 @@ public final class ServerState {
     public internal(set) var runtimeConfiguration = RuntimeConfigurationSnapshot(
         activeRuntimeSpeechBackend: "qwen3",
         nextRuntimeSpeechBackend: "qwen3",
+        activeDefaultVoiceProfileName: nil,
+        nextDefaultVoiceProfileName: nil,
         environmentSpeechBackendOverride: nil,
         persistedSpeechBackend: nil,
+        persistedDefaultVoiceProfileName: nil,
         profileRootPath: "",
         persistedConfigurationPath: "",
         persistedConfigurationExists: false,
@@ -144,9 +151,9 @@ public final class ServerState {
         return resolvedProfileName
     }
 
-    public func clearDefaultVoiceProfileName() async {
-        await actions.clearDefaultVoiceProfileName()
-        overview = overview.replacing(defaultVoiceProfileName: nil)
+    public func clearDefaultVoiceProfileName() async throws {
+        let resolvedProfileName = try await actions.clearDefaultVoiceProfileName()
+        overview = overview.replacing(defaultVoiceProfileName: resolvedProfileName)
     }
 
     @discardableResult
