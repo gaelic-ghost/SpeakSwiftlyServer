@@ -3,7 +3,7 @@ import Testing
 
 // MARK: - End-to-End Operator Control Surface Tests
 
-extension SpeakSwiftlyServerE2ETests {
+extension SpeakSwiftlyServerE2EControlSurfaceTests {
     @Test func httpOperatorControlSurfaceCoversReadQueuePlaybackAndRemovalFlows() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }

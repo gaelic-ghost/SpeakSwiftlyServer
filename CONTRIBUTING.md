@@ -47,21 +47,24 @@ swift run SpeakSwiftlyServerTool launch-agent print-plist
 
 ## Live End-To-End Verification
 
-The opt-in live suite exercises a real `SpeakSwiftly` runtime:
+The opt-in live E2E coverage now runs as three serialized suites so maintainers can isolate transport and runtime failures without burning time on one giant rerun:
 
 ```bash
-SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests
+SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EHTTPWorkflowEntryTests
+SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EMCPWorkflowEntryTests
+SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EControlSurfaceTests
 ```
 
-Add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` when you want the underlying playback trace logs too.
+Run those commands one at a time. Add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` when you want the underlying playback trace logs too.
 
-That serialized live suite currently covers:
+The suite split is:
 
-- voice-design profile creation, then silent playback, then audible playback
-- clone creation with a provided transcript, then silent playback, then audible playback
-- clone creation with inferred transcript loading, then silent playback, then audible playback
-- Marvis all-vibes audible playback across three stored voice profiles
-- queued Marvis audible live playback that pre-queues three jobs and verifies ordered drain behavior on one worker
+- `HTTP Workflow Entry`
+  Covers HTTP voice-design entry, HTTP clone entry with provided or inferred transcripts, HTTP Marvis audible live playback, and HTTP relative-path resolution.
+- `MCP Workflow Entry`
+  Covers the same entry and audible-runtime lanes through the MCP transport.
+- `Control Surfaces`
+  Covers HTTP and MCP text-profile control, playback control, queue mutation, catalog resources, prompts, and subscription behavior.
 
 The live audible harness pins macOS built-in speakers immediately before audible startup and again immediately before audible request submission so Bluetooth route changes do not create false negatives.
 

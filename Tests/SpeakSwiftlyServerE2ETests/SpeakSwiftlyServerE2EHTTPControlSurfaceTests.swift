@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - HTTP Control Surface End-to-End Tests
 
-extension SpeakSwiftlyServerE2ETests {
+extension SpeakSwiftlyServerE2EControlSurfaceTests {
     @Test func httpTextProfileLifecycleCoversStoredActiveEffectiveAndPersistenceFlows() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }

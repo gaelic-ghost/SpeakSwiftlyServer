@@ -50,8 +50,8 @@ This document is the maintainer map for the post-`SpeakSwiftly 2.2.1` source spl
   Keep configuration, lifecycle, and shared-state coverage independent instead of mixing them into one broad host suite.
 - `Tests/SpeakSwiftlyServerTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
   Keep the typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks.
-- `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2ESuite.swift` plus the `SpeakSwiftlyServerE2E*Lane.swift`, `SpeakSwiftlyServerE2E*Helpers.swift`, and `SpeakSwiftlyServerE2E*ControlSurfaceTests.swift` files
-  Keep live workflow lanes, operator-control lanes, and helper/support code separate so the opt-in suite stays readable even as it grows.
+- `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2ESuite.swift` plus the `SpeakSwiftlyServerE2E*Lane.swift`, `SpeakSwiftlyServerE2E*Helpers.swift`, `SpeakSwiftlyServerE2EWorkflowEntryTests.swift`, and `SpeakSwiftlyServerE2E*ControlSurfaceTests.swift` files
+  Keep the live `HTTP Workflow Entry`, `MCP Workflow Entry`, and `Control Surfaces` suites separate so maintainers can rerun the smallest failing surface instead of one giant serialized pass.
 - `Tests/SpeakSwiftlyServerE2ETests/E2EHTTPClient.swift`, `E2EMCPClient.swift`, and `E2EMCPEventStream.swift`
   Keep the live HTTP transport, MCP request transport, and MCP SSE stream handling separate so transport bugs do not regrow one giant helper file.
 - `Tests/SpeakSwiftlyServerE2ETests/E2EPayloadHelpers.swift` and `E2ETransportWaiters.swift`

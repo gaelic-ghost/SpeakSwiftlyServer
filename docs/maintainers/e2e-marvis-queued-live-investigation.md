@@ -3,7 +3,11 @@
 ## Context
 
 - Date observed: `2026-04-08`
-- Test suite command: `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests`
+- Historical full-suite command: `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests`
+- Current equivalent focused reruns:
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EHTTPWorkflowEntryTests`
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EMCPWorkflowEntryTests`
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EControlSurfaceTests`
 - Active failing lane: `httpMarvisQueuedLivePlaybackDrainsInOrder`
 - Resolution status: fixed on `2026-04-09` after the `SpeakSwiftly 2.2.1` adoption, playback-control snapshot realignment, and the varied-text operator-control cleanup pass.
 
