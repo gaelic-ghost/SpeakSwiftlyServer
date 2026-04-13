@@ -136,9 +136,9 @@ npx -y @modelcontextprotocol/inspector --transport http --server-url http://127.
 
 But Inspector should stay in the "operator investigation" lane, not become the only regression tool. Automated coverage should continue to live in Swift tests and repo-owned smoke helpers so releases do not depend on browser-driven tooling.
 
-### 3. Add a small release-verification checklist for transport health
+### 3. Extend the release-owned live-service refresh into transport health verification
 
-The release script currently validates the repo, builds the release artifact, stages `.release-artifacts/current`, tags, pushes, and creates the GitHub release object. It does not yet verify that the live service can actually boot from the staged artifact with both transports healthy.
+The release script now validates the repo, fails fast if the requested tag does not already match `HEAD`, builds the release artifact, stages `.release-artifacts/current`, tags, pushes, creates the GitHub release object, and refreshes the live LaunchAgent-backed service from that staged artifact by default. It still does not verify that the refreshed live service can actually boot from the staged artifact with both transports healthy.
 
 Add a maintainer-facing release checklist or release helper step that covers:
 
@@ -170,4 +170,3 @@ If these follow-ups are tackled incrementally, the highest-value order is:
 3. Better startup and config-open logging.
 4. Reusable repo-owned MCP smoke helper.
 5. Config reload architecture decision for LaunchAgent-owned startup files.
-

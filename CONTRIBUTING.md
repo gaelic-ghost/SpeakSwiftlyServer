@@ -84,6 +84,8 @@ scripts/repo-maintenance/release.sh
 
 That path builds `SpeakSwiftlyServerTool` in `release` mode, stages the binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, copies the adjacent `Resources/default.metallib` into that staged artifact directory, and refreshes `.release-artifacts/current` to the tagged build. The live LaunchAgent install path is expected to consume that staged release artifact by default.
 
+The same release flow now also refreshes the live per-user LaunchAgent-backed service by default with `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` after the tagged artifact is staged and the release push succeeds. Use `--skip-live-service-refresh` when you need a tag-only or artifact-only release pass, or `--live-service-config-file /absolute/path/to/server.yaml` when the live service should be refreshed against a different config file.
+
 ## Monorepo And Submodule Handoff
 
 - Treat `../../speak-to-user/monorepo/packages/SpeakSwiftlyServer` as the integration submodule copy, not the primary development home.

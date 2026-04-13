@@ -152,7 +152,7 @@ swift run SpeakSwiftlyServerTool launch-agent install \
   --config-file ./server.yaml
 ```
 
-That command writes a user-owned property list into `~/Library/LaunchAgents`, points `ProgramArguments` at the staged release artifact under `.release-artifacts/current/SpeakSwiftlyServerTool serve`, and uses `launchctl bootstrap` / `bootout` against the current `gui/<uid>` domain. That default keeps the live service on the repo's staged release build instead of whichever debug or transient executable happened to invoke the command. If your tool binary lives somewhere other than the staged release path, pass `--tool-executable-path /absolute/path/to/SpeakSwiftlyServerTool` explicitly.
+That command writes a user-owned property list into `~/Library/LaunchAgents`, points `ProgramArguments` at the staged release artifact under `.release-artifacts/current/SpeakSwiftlyServerTool serve`, and uses `launchctl bootstrap` / `bootout` against the current `gui/<uid>` domain. That default keeps the live service on the repo's staged release build instead of whichever debug or transient executable happened to invoke the command. The repo-maintenance release flow now uses that same install path by default after it stages a tagged artifact, so the live service automatically moves to the newly staged version unless you opt out with `--skip-live-service-refresh`. If your tool binary lives somewhere other than the staged release path, pass `--tool-executable-path /absolute/path/to/SpeakSwiftlyServerTool` explicitly.
 
 To inspect or remove the installed LaunchAgent:
 
