@@ -1,5 +1,5 @@
 import Foundation
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import Testing
 
 // MARK: - Shared End-to-End Assertions

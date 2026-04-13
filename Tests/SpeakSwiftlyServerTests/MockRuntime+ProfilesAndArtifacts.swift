@@ -1,5 +1,5 @@
 import Foundation
-import SpeakSwiftlyCore
+import SpeakSwiftly
 @testable import SpeakSwiftlyServer
 
 // MARK: - Mock Profiles And Artifacts

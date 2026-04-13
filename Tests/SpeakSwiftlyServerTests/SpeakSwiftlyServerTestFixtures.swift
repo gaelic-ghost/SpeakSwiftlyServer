@@ -1,5 +1,5 @@
 import Foundation
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import Testing
 import TextForSpeech
 @testable import SpeakSwiftlyServer

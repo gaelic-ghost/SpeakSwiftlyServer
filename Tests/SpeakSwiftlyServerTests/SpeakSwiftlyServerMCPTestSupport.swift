@@ -4,7 +4,7 @@ import HummingbirdTesting
 import HTTPTypes
 import MCP
 import NIOCore
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import Testing
 import TextForSpeech
 @testable import SpeakSwiftlyServer

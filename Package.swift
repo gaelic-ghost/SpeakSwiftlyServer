@@ -26,7 +26,7 @@ let package = Package(
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
         .package(
             url: "https://github.com/gaelic-ghost/SpeakSwiftly.git",
-            from: "2.3.3"
+            from: "3.0.0"
         ),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "2.30.6"),
         .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.15.0"),
@@ -49,7 +49,7 @@ let package = Package(
                 .product(name: "Configuration", package: "swift-configuration"),
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "MCP", package: "swift-sdk"),
-                .product(name: "SpeakSwiftlyCore", package: "SpeakSwiftly"),
+                .product(name: "SpeakSwiftly", package: "SpeakSwiftly"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
             ],
             path: "Sources/SpeakSwiftlyServer"

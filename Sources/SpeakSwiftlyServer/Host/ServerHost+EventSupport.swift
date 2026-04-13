@@ -1,6 +1,6 @@
 import Foundation
 import Hummingbird
-import SpeakSwiftlyCore
+import SpeakSwiftly
 
 // MARK: - Host Event Support
 

@@ -1,6 +1,6 @@
 import Foundation
 import MCP
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import TextForSpeech
 
 // MARK: - Tool Encoding

@@ -1,6 +1,6 @@
 import Foundation
 import Hummingbird
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import TextForSpeech
 
 // MARK: - Job Tracking

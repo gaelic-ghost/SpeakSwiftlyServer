@@ -2,7 +2,7 @@ import Foundation
 import Hummingbird
 import HummingbirdTesting
 import HTTPTypes
-import SpeakSwiftlyCore
+import SpeakSwiftly
 import Testing
 @testable import SpeakSwiftlyServer
 
