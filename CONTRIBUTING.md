@@ -91,7 +91,7 @@ That path builds `SpeakSwiftlyServerTool` in `release` mode, stages the binary u
 
 The same release flow now also refreshes the live per-user LaunchAgent-backed service by default with `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` after the tagged artifact is staged and the release push succeeds. Use `--skip-live-service-refresh` when you need a tag-only or artifact-only release pass, or `--live-service-config-file /absolute/path/to/server.yaml` when the live service should be refreshed against a different config file.
 
-For the current next-minor release target and the first Swift Package Index submission pass, use [docs/maintainers/v3.1.0-release-and-spi-checklist.md](docs/maintainers/v3.1.0-release-and-spi-checklist.md) instead of reconstructing that flow from memory.
+For the current patch release target and the first Swift Package Index submission pass, use [docs/maintainers/v3.1.1-release-and-spi-checklist.md](docs/maintainers/v3.1.1-release-and-spi-checklist.md) instead of reconstructing that flow from memory.
 
 ## Monorepo And Submodule Handoff
 

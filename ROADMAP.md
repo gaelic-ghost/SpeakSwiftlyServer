@@ -115,7 +115,7 @@ Current note: distribution polish for discovery and packaging, not a current rel
 - [x] Add a deliberately small executable-oriented companion article set for `SpeakSwiftlyServerTool` without duplicating the full repository operator docs.
 - [x] Add the short tutorial-style walkthrough described in `docs/maintainers/docc-spi-hosting-plan.md` so the hosted docs have a concrete embedded-session first-use path.
 - [x] Add a DocC build check both locally through `scripts/repo-maintenance/validate-all.sh` and in GitHub Actions before the package is submitted to Swift Package Index.
-- [ ] Submit the package to Swift Package Index once the next minor release candidate (`v3.1.0`) is tagged, pushed, and checked against the maintainer SPI submission checklist.
+- [ ] Submit the package to Swift Package Index once the current patch release candidate (`v3.1.1`) is tagged, pushed, and checked against the maintainer SPI submission checklist.
 
 ## Milestone 11: SpeakSwiftly 3.x Surface Adoption
 
