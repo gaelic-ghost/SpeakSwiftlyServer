@@ -11,6 +11,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -39,6 +40,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 60, completedJobMaxCount: 2),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -70,6 +72,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(sseHeartbeatSeconds: 0.02),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -126,6 +129,7 @@ import Testing
             title: "SpeakSwiftly"
         ),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -181,6 +185,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -237,6 +242,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -300,6 +306,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -410,6 +417,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 

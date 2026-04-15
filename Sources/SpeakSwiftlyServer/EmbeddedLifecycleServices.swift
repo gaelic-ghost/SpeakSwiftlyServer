@@ -1,3 +1,4 @@
+import AsyncAlgorithms
 import Foundation
 import ServiceLifecycle
 
@@ -119,9 +120,36 @@ struct HostLifecycleService: Service {
     }
 }
 
+struct HostPruneService: Service {
+    let host: ServerHost
+    let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
+
+    func run() async throws {
+        while !Task.isCancelled {
+            let interval = await host.jobPruneInterval()
+            var didReceiveTick = false
+            for await _ in AsyncTimerSequence(interval: interval, clock: .continuous)
+                .prefix(1)
+                .cancelOnGracefulShutdown()
+            {
+                didReceiveTick = true
+            }
+
+            guard didReceiveTick, !Task.isCancelled else {
+                break
+            }
+
+            await host.runPruneMaintenanceTick()
+        }
+
+        await shutdownBarrier.markCompleted()
+    }
+}
+
 struct ConfigWatchService: Service {
     let configStore: ConfigStore
     let host: ServerHost
+    let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
 
     func run() async throws {
         do {
@@ -133,12 +161,15 @@ struct ConfigWatchService: Service {
                     await host.markConfigurationReloadRejected(message)
                 }
             }
+            await shutdownBarrier.markCompleted()
         } catch is CancellationError {
             // Graceful shutdown or sibling failure cancelled the watch loop.
+            await shutdownBarrier.markCompleted()
         } catch {
             await host.markConfigurationWatchFailed(error)
             // Preserve the pre-service-lifecycle behavior: a config-watch failure should be
             // reported clearly, but it should not tear down the embedded host.
+            await shutdownBarrier.markCompleted()
             return
         }
     }

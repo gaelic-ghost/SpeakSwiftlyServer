@@ -162,9 +162,12 @@ public final class EmbeddedServerSession: @unchecked Sendable {
         let mcpSurface = await MCPSurface.build(configuration: config.mcp, host: host)
         let hostReadinessGate = EmbeddedLifecycleReadinessGate()
         let mcpReadinessGate = mcpSurface.map { _ in EmbeddedLifecycleReadinessGate() }
-        let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(
-            targetCount: 1 + (mcpSurface == nil ? 0 : 1)
-        )
+        let hostDependentSiblingServiceCount =
+            1 + // EmbeddedApplicationService
+            (mcpSurface == nil ? 0 : 1) + // MCPLifecycleService
+            (configStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
+            1 // HostPruneService
+        let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: hostDependentSiblingServiceCount)
         let app = assembleHBApp(
             configuration: config.http,
             host: host,
@@ -205,7 +208,8 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                 .init(
                     service: ConfigWatchService(
                         configStore: configStore,
-                        host: host
+                        host: host,
+                        shutdownBarrier: shutdownBarrier
                     ),
                     successTerminationBehavior: .ignore,
                     failureTerminationBehavior: .ignore,
@@ -213,6 +217,14 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                 )
             )
         }
+        services.append(
+            .init(
+                service: HostPruneService(
+                    host: host,
+                    shutdownBarrier: shutdownBarrier
+                )
+            )
+        )
         if let mcpSurface, let mcpReadinessGate {
             services.append(
                 .init(

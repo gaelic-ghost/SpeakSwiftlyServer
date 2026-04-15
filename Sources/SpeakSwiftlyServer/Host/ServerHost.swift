@@ -62,7 +62,6 @@ actor ServerHost {
     var activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend
 
     var statusTask: Task<Void, Never>?
-    var pruneTask: Task<Void, Never>?
     var publishTask: Task<Void, Never>?
     var workerMode = "starting"
     var workerStage = "starting"
@@ -239,21 +238,12 @@ actor ServerHost {
             }
         }
 
-        self.pruneTask = Task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(self.configuration.jobPruneIntervalSeconds))
-                self.pruneCompletedJobs()
-                await self.requestPublish(mode: .coalesced, refreshRuntimeState: false)
-            }
-        }
-
         await runtime.start()
         await requestPublish(mode: .immediate, refreshRuntimeState: true)
     }
 
     func shutdown() async {
         self.statusTask?.cancel()
-        self.pruneTask?.cancel()
         await runtime.shutdown()
         self.workerMode = "stopped"
         self.workerStage = "stopped"
@@ -271,6 +261,15 @@ actor ServerHost {
         coalescedPublishContinuation.finish()
         publishedStateContinuation.finish()
         hostEventContinuation.finish()
+    }
+
+    func jobPruneInterval() -> Duration {
+        .seconds(configuration.jobPruneIntervalSeconds)
+    }
+
+    func runPruneMaintenanceTick() async {
+        pruneCompletedJobs()
+        await requestPublish(mode: .coalesced, refreshRuntimeState: false)
     }
 
     // MARK: - Live Updates

@@ -53,6 +53,17 @@ func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
     )
 }
 
+func testRuntimeConfigurationStore() -> RuntimeConfigurationStore {
+    let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        .appendingPathComponent("profiles", isDirectory: true)
+    return RuntimeConfigurationStore(
+        environment: [
+            "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.standardizedFileURL.path,
+        ]
+    )
+}
+
 func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     .init(
         profileName: "default",

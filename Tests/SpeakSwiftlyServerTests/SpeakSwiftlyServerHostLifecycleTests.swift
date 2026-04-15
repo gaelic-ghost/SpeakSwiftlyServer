@@ -137,6 +137,7 @@ import Testing
             title: "SpeakSwiftly"
         ),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
     let readinessGate = EmbeddedLifecycleReadinessGate()
@@ -173,6 +174,39 @@ import Testing
 
     let finalCounts = await runtime.lifecycleCounts()
     #expect(finalCounts.shutdown == 1)
+}
+
+@available(macOS 14, *)
+@Test func hostPruneServiceCancelsOnGracefulShutdownAndMarksShutdownBarrier() async throws {
+    let runtime = MockRuntime()
+    let configuration = testConfiguration(jobPruneIntervalSeconds: 60)
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: configuration,
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: state
+    )
+    let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
+    let service = HostPruneService(
+        host: host,
+        shutdownBarrier: shutdownBarrier
+    )
+    let serviceGroup = ServiceGroup(
+        services: [service],
+        gracefulShutdownSignals: [],
+        cancellationSignals: [],
+        logger: Logger(label: "SpeakSwiftlyServerTests.HostPrune")
+    )
+
+    let runTask = Task {
+        try await serviceGroup.run()
+    }
+
+    try? await Task.sleep(for: .milliseconds(10))
+    await serviceGroup.triggerGracefulShutdown()
+    try await runTask.value
+    await shutdownBarrier.waitUntilCompleted()
 }
 
 @available(macOS 14, *)
@@ -213,6 +247,7 @@ import Testing
             title: "SpeakSwiftly"
         ),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -289,6 +324,7 @@ import Testing
             title: "SpeakSwiftly"
         ),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -319,6 +355,7 @@ import Testing
             title: "SpeakSwiftly"
         ),
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -384,6 +421,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
@@ -405,6 +443,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
         state: state
     )
 
