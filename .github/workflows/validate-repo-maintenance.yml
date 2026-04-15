@@ -17,5 +17,7 @@ jobs:
           xcode-version: latest-stable
       - name: Show Swift version
         run: xcrun swift --version
+      - name: Install formatting and linting tools
+        run: brew install swiftformat swiftlint
       - name: Run repo-maintenance validation
         run: bash scripts/repo-maintenance/validate-all.sh

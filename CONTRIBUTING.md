@@ -41,6 +41,23 @@ The maintainer wrapper around that baseline is:
 scripts/repo-maintenance/validate-all.sh
 ```
 
+## Formatting
+
+SpeakSwiftlyServer uses the checked-in [.swiftformat](.swiftformat) file as the repository source of truth for Swift formatting and the checked-in [.swiftlint.yml](.swiftlint.yml) file for a deliberately small set of non-formatting policy checks.
+
+Use these commands from the package root:
+
+```bash
+sh scripts/repo-maintenance/validate-all.sh
+swiftformat --lint --config .swiftformat .
+swiftformat --config .swiftformat .
+swiftlint lint --config .swiftlint.yml
+```
+
+Use `validate-all.sh` when you want the shared repo-maintenance gate that backs the sample pre-commit hook and the repo-maintenance GitHub Actions workflow. Use the first `swiftformat` command when you want to inspect formatting drift without rewriting files. Use the second `swiftformat` command when you intentionally want to apply formatting changes. Use the SwiftLint command for the smaller safety and maintainability checks that intentionally stay outside SwiftFormat.
+
+Treat SwiftFormat as the primary style tool in this repository. Keep SwiftLint focused on non-formatting policy checks instead of duplicating formatter behavior.
+
 Use the unified tool smoke path when you want to verify the operator surface directly:
 
 ```bash
@@ -49,6 +66,8 @@ xcrun swift run SpeakSwiftlyServerTool launch-agent print-plist
 ```
 
 The `help` path now also has CI coverage so obvious executable-surface regressions are less likely to escape into release or Swift Package Index builds. The `help` path is expected to exit with the tool's usage-error status while still printing the supported command surface.
+
+If your local clone wants automatic hook enforcement, copy `scripts/repo-maintenance/hooks/pre-commit.sample` into `.git/hooks/pre-commit` and make it executable. That hook intentionally stays optional, but it runs the same validation entry point as the repo-maintenance workflow.
 
 ## Live End-To-End Verification
 

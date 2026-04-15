@@ -1,0 +1,20 @@
+# Keep SwiftLint focused on non-formatting checks.
+# SwiftFormat owns visual shape in this repository.
+
+excluded:
+  - .build
+  - .local
+
+only_rules:
+  - duplicate_imports
+  - empty_count
+  - fatal_error_message
+  - force_try
+  - force_unwrapping
+  - unused_import
+
+force_try:
+  severity: warning
+
+force_unwrapping:
+  severity: warning

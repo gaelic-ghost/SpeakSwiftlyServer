@@ -1,0 +1,97 @@
+# Exported from Gale's SwiftFormat for Xcode settings and curated for repo use.
+# This file is the repository source of truth for formatting. If the host app
+# configuration changes later, re-export from the shared SwiftFormat settings
+# and review the diff before importing it back into the app.
+
+--rules andOperator,anyObjectProtocol,applicationMain,assertionFailures,blankLineAfterImports,blankLinesAfterGuardStatements,blankLinesAroundMark,blankLinesAtEndOfScope,blankLinesAtStartOfScope,blankLinesBetweenChainedFunctions,blankLinesBetweenImports,blankLinesBetweenScopes,braces,conditionalAssignment,consecutiveBlankLines,consecutiveSpaces,consistentSwitchCaseSpacing,docComments,docCommentsBeforeModifiers,duplicateImports,elseOnSameLine,emptyBraces,emptyExtensions,enumNamespaces,environmentEntry,extensionAccessControl,fileMacro,genericExtensions,headerFileName,hoistAwait,hoistPatternLet,hoistTry,indent,initCoderUnavailable,isEmpty,leadingDelimiters,linebreakAtEndOfFile,linebreaks,markTypes,modifierOrder,noForceTryInTests,noForceUnwrapInTests,noGuardInTests,numberFormatting,opaqueGenericParameters,organizeDeclarations,preferFinalClasses,privateStateVariables,redundantAsync,redundantBackticks,redundantBreak,redundantClosure,redundantEquatable,redundantExtensionACL,redundantFileprivate,redundantGet,redundantInit,redundantInternal,redundantLet,redundantLetError,redundantMemberwiseInit,redundantNilInit,redundantObjc,redundantOptionalBinding,redundantParens,redundantPattern,redundantPublic,redundantRawValues,redundantReturn,redundantSelf,redundantSendable,redundantStaticSelf,redundantSwiftTestingSuite,redundantThrows,redundantType,redundantTypedThrows,redundantVariable,redundantViewBuilder,semicolons,simplifyGenericConstraints,sortDeclarations,sortImports,sortTypealiases,spaceAroundBraces,spaceAroundBrackets,spaceAroundComments,spaceAroundGenerics,spaceAroundOperators,spaceAroundParens,spaceInsideBrackets,spaceInsideComments,spaceInsideGenerics,spaceInsideParens,strongOutlets,strongifiedSelf,swiftTestingTestCaseNames,todos,trailingClosures,trailingCommas,trailingSpace,typeSugar,validateTestCases,void,wrap,wrapArguments,wrapAttributes,wrapLoopBodies,wrapMultilineFunctionChains,wrapSingleLineComments,yodaConditions
+
+--acronyms ID,URL,UUID
+--allow-partial-wrapping true
+--anonymous-for-each convert
+--asset-literals visual-width
+--binary-grouping 4,8
+--line-between-guards false
+--category-mark "MARK: %c"
+--class-threshold 0
+--closing-paren balanced
+--closure-void remove
+--complex-attributes preserve
+--computed-var-attributes preserve
+--conditional-assignment after-property
+--date-format system
+--decimal-grouping 3,6
+--doc-comments before-declarations
+--else-position same-line
+--empty-braces no-space
+--enum-namespaces always
+--equatable-macro none
+--exponent-case lowercase
+--extension-acl on-extension
+--extension-mark "MARK: - %t + %c"
+--file-macro "#file"
+--func-attributes preserve
+--group-blank-lines true
+--grouped-extension "MARK: %c"
+--guard-else auto
+--header ignore
+--hex-grouping 4,8
+--hex-literal-case uppercase
+--ifdef outdent
+--import-grouping alpha,access-control
+--indent 4
+--indent-case true
+--indent-strings false
+--inferred-types always
+--init-coder-nil false
+--line-after-marks true
+--linebreaks lf
+--mark-categories false
+--mark-class-threshold 40
+--mark-enum-threshold 40
+--mark-extension-threshold 40
+--mark-extensions if-not-empty
+--mark-struct-threshold 40
+--mark-types if-not-empty
+--max-width none
+--operator-func spaced
+--organization-mode type
+--organize-types actor,class,enum,struct
+--pattern-let hoist
+--prefer-synthesized-init-for-internal-structs never
+--property-types infer-locals-only
+--ranges no-space
+--redundant-async tests-only
+--redundant-throws tests-only
+--self remove
+--semicolons inline-only
+--short-optionals preserve-struct-inits
+--smart-tabs enabled
+--some-any true
+--sort-swiftui-properties alphabetize
+--stored-var-attributes preserve
+--struct-threshold 40
+--strip-unused-args always
+--suite-name-format standard-identifiers
+--test-case-name-format raw-identifiers
+--timezone system
+--trailing-commas always
+--trim-whitespace always
+--type-attributes preserve
+--type-blank-lines remove
+--type-body-marks preserve
+--type-delimiter space-after
+--type-mark "MARK: - %t"
+--class-threshold 40
+--enum-threshold 40
+--extension-threshold 40
+--void-type Void
+--wrap-arguments preserve
+--wrap-collections preserve
+--wrap-conditions preserve
+--wrap-effects preserve
+--wrap-return-type preserve
+--wrap-string-interpolation default
+--wrap-ternary default
+--wrap-type-aliases preserve
+--xcode-indentation disabled
+--yoda-swap always

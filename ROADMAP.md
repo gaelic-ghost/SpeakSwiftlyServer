@@ -101,9 +101,9 @@ Current note: these are important transport-policy decisions, but they are not b
 
 Current note: repo-discipline and CI-hardening work, not a current product-correctness blocker.
 
-- [ ] Add SwiftFormat configuration and a maintainer-facing formatting command.
-- [ ] Decide whether SwiftLint should join SwiftFormat as a required local and CI check.
-- [ ] Wire the chosen formatting and linting checks into repo-maintenance validation and GitHub Actions.
+- [x] Add SwiftFormat configuration and a maintainer-facing formatting command.
+- [x] Decide whether SwiftLint should join SwiftFormat as a required local and CI check.
+- [x] Wire the chosen formatting and linting checks into repo-maintenance validation and GitHub Actions.
 
 ## Milestone 10: Swift Package Index Readiness
 
