@@ -4,9 +4,40 @@ import Testing
 import Darwin
 #endif
 
-// MARK: - Live Server Process
+// MARK: - ServerProcess
 
 final class ServerProcess: @unchecked Sendable {
+    private final class SynchronizedLogBuffer: @unchecked Sendable {
+        private let lock = NSLock()
+        private var lines = [String]()
+
+        func append(_ line: String) {
+            lock.withLock {
+                lines.append(line)
+            }
+        }
+
+        var contents: String {
+            lock.withLock {
+                lines.joined(separator: "\n")
+            }
+        }
+
+        var snapshot: [String] {
+            lock.withLock {
+                lines
+            }
+        }
+
+        var isEmpty: Bool {
+            lock.withLock {
+                lines.isEmpty
+            }
+        }
+    }
+
+    let baseURL: URL
+
     private let executionLaneLease: E2ELiveServerExecutionLaneLease
     private let process = Process()
     private let stdoutPipe = Pipe()
@@ -14,7 +45,16 @@ final class ServerProcess: @unchecked Sendable {
     private var stdoutTask: Task<Void, Never>?
     private var stderrTask: Task<Void, Never>?
 
-    let baseURL: URL
+    private let stdoutRecorder = SynchronizedLogBuffer()
+    private let stderrRecorder = SynchronizedLogBuffer()
+
+    var isStillRunning: Bool {
+        process.isRunning
+    }
+
+    var combinedOutput: String {
+        stdoutRecorder.contents + (stdoutRecorder.isEmpty || stderrRecorder.isEmpty ? "" : "\n") + stderrRecorder.contents
+    }
 
     init(
         executionLaneLease: E2ELiveServerExecutionLaneLease,
@@ -24,11 +64,12 @@ final class ServerProcess: @unchecked Sendable {
         silentPlayback: Bool,
         playbackTrace: Bool = false,
         mcpEnabled: Bool,
-        speechBackend: String? = nil
+        speechBackend: String? = nil,
     ) throws {
         guard let baseURL = URL(string: "http://127.0.0.1:\(port)") else {
             throw E2ETransportError("The live end-to-end suite could not construct a localhost base URL for port '\(port)'.")
         }
+
         self.executionLaneLease = executionLaneLease
         self.baseURL = baseURL
 
@@ -61,6 +102,10 @@ final class ServerProcess: @unchecked Sendable {
         process.environment = environment
     }
 
+    deinit {
+        stop()
+    }
+
     func start() throws {
         stdoutTask = captureLines(from: stdoutPipe.fileHandleForReading, recordingInto: stdoutRecorder)
         stderrTask = captureLines(from: stderrPipe.fileHandleForReading, recordingInto: stderrRecorder)
@@ -74,46 +119,41 @@ final class ServerProcess: @unchecked Sendable {
         executionLaneLease.release()
     }
 
-    var isStillRunning: Bool {
-        process.isRunning
-    }
-
-    var combinedOutput: String {
-        stdoutRecorder.contents + (stdoutRecorder.isEmpty || stderrRecorder.isEmpty ? "" : "\n") + stderrRecorder.contents
-    }
-
     func stderrObjects() -> [[String: Any]] {
         stderrRecorder.snapshot.compactMap { line in
             guard let data = line.data(using: .utf8) else { return nil }
             guard let json = try? JSONSerialization.jsonObject(with: data) else { return nil }
+
             return json as? [String: Any]
         }
     }
 
     func waitForStderrJSONObject(
         timeout: Duration,
-        matching predicate: @escaping @Sendable ([String: Any]) -> Bool
+        matching predicate: @escaping @Sendable ([String: Any]) -> Bool,
     ) async throws -> [String: Any] {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(100)) {
             for line in self.stderrRecorder.snapshot {
                 guard let data = line.data(using: .utf8) else { continue }
                 guard let json = try? JSONSerialization.jsonObject(with: data) else { continue }
                 guard let object = json as? [String: Any], predicate(object) else { continue }
+
                 return object
             }
 
             guard self.isStillRunning else {
                 throw E2ETransportError(
-                    "The live SpeakSwiftlyServer process exited before the expected stderr JSON log was observed.\n\(self.combinedOutput)"
+                    "The live SpeakSwiftlyServer process exited before the expected stderr JSON log was observed.\n\(self.combinedOutput)",
                 )
             }
+
             return nil
         }
     }
 
     private func captureLines(
         from handle: FileHandle,
-        recordingInto recorder: SynchronizedLogBuffer
+        recordingInto recorder: SynchronizedLogBuffer,
     ) -> Task<Void, Never> {
         Task {
             do {
@@ -124,17 +164,10 @@ final class ServerProcess: @unchecked Sendable {
                 return
             } catch {
                 recorder.append(
-                    "Server process log capture stopped after an unexpected stream error: \(error.localizedDescription)"
+                    "Server process log capture stopped after an unexpected stream error: \(error.localizedDescription)",
                 )
             }
         }
-    }
-
-    private let stdoutRecorder = SynchronizedLogBuffer()
-    private let stderrRecorder = SynchronizedLogBuffer()
-
-    deinit {
-        stop()
     }
 
     private func terminateProcessIfNeeded() {
@@ -147,15 +180,15 @@ final class ServerProcess: @unchecked Sendable {
             return
         }
 
-        #if canImport(Darwin)
+#if canImport(Darwin)
         kill(process.processIdentifier, SIGKILL)
         _ = waitForExit(timeout: .seconds(2))
-        #endif
+#endif
     }
 
     private func waitForExit(
         after action: () -> Void,
-        timeout: Duration
+        timeout: Duration,
     ) -> Bool {
         action()
         return waitForExit(timeout: timeout)
@@ -175,43 +208,15 @@ final class ServerProcess: @unchecked Sendable {
         }
 
         guard process.isRunning else { return true }
+
         let timeoutInterval =
             Double(timeout.components.seconds)
-            + Double(timeout.components.attoseconds) / 1_000_000_000_000_000_000
+                + Double(timeout.components.attoseconds) / 1_000_000_000_000_000_000
         return semaphore.wait(timeout: .now() + timeoutInterval) == .success
-    }
-
-    private final class SynchronizedLogBuffer: @unchecked Sendable {
-        private let lock = NSLock()
-        private var lines = [String]()
-
-        func append(_ line: String) {
-            lock.withLock {
-                lines.append(line)
-            }
-        }
-
-        var contents: String {
-            lock.withLock {
-                lines.joined(separator: "\n")
-            }
-        }
-
-        var snapshot: [String] {
-            lock.withLock {
-                lines
-            }
-        }
-
-        var isEmpty: Bool {
-            lock.withLock {
-                lines.isEmpty
-            }
-        }
     }
 }
 
-// MARK: - Live Server Lane Lease
+// MARK: - E2ELiveServerExecutionLaneLease
 
 final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
     private static let lockURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -219,6 +224,10 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
 
     private var fileDescriptor: Int32?
     private let lockPath: String
+
+    deinit {
+        release()
+    }
 
     private init(fileDescriptor: Int32, lockPath: String) {
         self.fileDescriptor = fileDescriptor
@@ -230,7 +239,7 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
         let descriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard descriptor >= 0 else {
             throw E2ETransportError(
-                "The live end-to-end suite could not open the exclusive server-lane lock file at '\(lockPath)'."
+                "The live end-to-end suite could not open the exclusive server-lane lock file at '\(lockPath)'.",
             )
         }
 
@@ -247,30 +256,27 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
             guard currentErrno == EWOULDBLOCK else {
                 close(descriptor)
                 throw E2ETransportError(
-                    "The live end-to-end suite could not acquire the exclusive server-lane lock at '\(lockPath)' because `flock` failed with errno \(currentErrno)."
+                    "The live end-to-end suite could not acquire the exclusive server-lane lock at '\(lockPath)' because `flock` failed with errno \(currentErrno).",
                 )
             }
 
             if DispatchTime.now().uptimeNanoseconds >= deadline {
                 close(descriptor)
                 throw E2ETransportError(
-                    "The live end-to-end suite waited more than \(durationDescription(timeout)) for the exclusive server-lane lock at '\(lockPath)'. Another live server test or an orphaned helper is still holding the lane."
+                    "The live end-to-end suite waited more than \(durationDescription(timeout)) for the exclusive server-lane lock at '\(lockPath)'. Another live server test or an orphaned helper is still holding the lane.",
                 )
             }
 
-            usleep(UInt32(pollIntervalNanoseconds / 1_000))
+            usleep(UInt32(pollIntervalNanoseconds / 1000))
         }
     }
 
     func release() {
         guard let fileDescriptor else { return }
+
         flock(fileDescriptor, LOCK_UN)
         close(fileDescriptor)
         self.fileDescriptor = nil
-    }
-
-    deinit {
-        release()
     }
 }
 

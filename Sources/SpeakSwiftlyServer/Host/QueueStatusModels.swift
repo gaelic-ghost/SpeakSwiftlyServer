@@ -2,7 +2,7 @@ import Foundation
 import Hummingbird
 import SpeakSwiftly
 
-// MARK: - Queue Models
+// MARK: - ActiveRequestSnapshot
 
 /// The active request currently running in a host queue.
 public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
@@ -17,9 +17,9 @@ public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
     }
 
     init(summary: SpeakSwiftly.ActiveRequest) {
-        self.id = summary.id
-        self.op = canonicalOperationName(summary.op)
-        self.profileName = summary.profileName
+        id = summary.id
+        op = canonicalOperationName(summary.op)
+        profileName = summary.profileName
     }
 
     init(id: String, op: String, profileName: String?) {
@@ -28,6 +28,8 @@ public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
         self.profileName = profileName
     }
 }
+
+// MARK: - QueuedRequestSnapshot
 
 /// A queued request waiting for work in a host queue.
 public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
@@ -44,10 +46,10 @@ public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
     }
 
     init(summary: SpeakSwiftly.QueuedRequest) {
-        self.id = summary.id
-        self.op = canonicalOperationName(summary.op)
-        self.profileName = summary.profileName
-        self.queuePosition = summary.queuePosition
+        id = summary.id
+        op = canonicalOperationName(summary.op)
+        profileName = summary.profileName
+        queuePosition = summary.queuePosition
     }
 
     init(id: String, op: String, profileName: String?, queuePosition: Int) {
@@ -58,7 +60,9 @@ public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct QueueSnapshotResponse: ResponseEncodable, Sendable {
+// MARK: - QueueSnapshotResponse
+
+struct QueueSnapshotResponse: ResponseEncodable {
     let queueType: String
     let activeRequest: ActiveRequestSnapshot?
     let activeRequests: [ActiveRequestSnapshot]
@@ -71,6 +75,8 @@ struct QueueSnapshotResponse: ResponseEncodable, Sendable {
         case queue
     }
 }
+
+// MARK: - PlaybackStateSnapshot
 
 /// Transport-facing playback state snapshot used by HTTP and MCP control surfaces.
 public struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
@@ -91,31 +97,35 @@ public struct PlaybackStateSnapshot: Codable, Sendable, Equatable {
     }
 
     init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
-        self.state = summary.state.rawValue
-        self.activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
-        self.isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
-        self.isRebuffering = summary.isRebuffering
-        self.stableBufferedAudioMS = summary.stableBufferedAudioMS
-        self.stableBufferTargetMS = summary.stableBufferTargetMS
+        state = summary.state.rawValue
+        activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
+        isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
+        isRebuffering = summary.isRebuffering
+        stableBufferedAudioMS = summary.stableBufferedAudioMS
+        stableBufferTargetMS = summary.stableBufferTargetMS
     }
 }
 
-struct PlaybackStateResponse: ResponseEncodable, Sendable {
+// MARK: - PlaybackStateResponse
+
+struct PlaybackStateResponse: ResponseEncodable {
     let playback: PlaybackStateSnapshot
 }
 
 extension PlaybackStateSnapshot {
     init(status: PlaybackStatusSnapshot) {
-        self.state = status.state
-        self.activeRequest = status.activeRequest
-        self.isStableForConcurrentGeneration = status.isStableForConcurrentGeneration
-        self.isRebuffering = status.isRebuffering
-        self.stableBufferedAudioMS = status.stableBufferedAudioMS
-        self.stableBufferTargetMS = status.stableBufferTargetMS
+        state = status.state
+        activeRequest = status.activeRequest
+        isStableForConcurrentGeneration = status.isStableForConcurrentGeneration
+        isRebuffering = status.isRebuffering
+        stableBufferedAudioMS = status.stableBufferedAudioMS
+        stableBufferTargetMS = status.stableBufferTargetMS
     }
 }
 
-struct QueueClearedResponse: ResponseEncodable, Sendable {
+// MARK: - QueueClearedResponse
+
+struct QueueClearedResponse: ResponseEncodable {
     let clearedCount: Int
 
     enum CodingKeys: String, CodingKey {
@@ -123,7 +133,9 @@ struct QueueClearedResponse: ResponseEncodable, Sendable {
     }
 }
 
-struct QueueCancellationResponse: ResponseEncodable, Sendable {
+// MARK: - QueueCancellationResponse
+
+struct QueueCancellationResponse: ResponseEncodable {
     let cancelledRequestID: String
 
     enum CodingKeys: String, CodingKey {
@@ -131,9 +143,9 @@ struct QueueCancellationResponse: ResponseEncodable, Sendable {
     }
 }
 
-// MARK: - Status Models
+// MARK: - HealthSnapshot
 
-struct HealthSnapshot: ResponseEncodable, Sendable {
+struct HealthSnapshot: ResponseEncodable {
     let status: String
     let service: String
     let environment: String
@@ -155,7 +167,9 @@ struct HealthSnapshot: ResponseEncodable, Sendable {
     }
 }
 
-struct ReadinessSnapshot: ResponseEncodable, Sendable {
+// MARK: - ReadinessSnapshot
+
+struct ReadinessSnapshot: ResponseEncodable {
     let status: String
     let serverMode: String
     let workerMode: String
@@ -181,29 +195,9 @@ struct ReadinessSnapshot: ResponseEncodable, Sendable {
     }
 }
 
-struct StatusSnapshot: ResponseEncodable, Sendable {
-    let service: String
-    let environment: String
-    let defaultVoiceProfileName: String?
-    let serverMode: String
-    let workerMode: String
-    let workerStage: String
-    let profileCacheState: String
-    let profileCacheWarning: String?
-    let workerFailureSummary: String?
-    let cachedProfiles: [ProfileSnapshot]
-    let lastProfileRefreshAt: String?
-    let host: String
-    let port: Int
-    let runtimeRefresh: RuntimeRefreshSnapshot?
-    let generationQueue: QueueStatusSnapshot
-    let playbackQueue: QueueStatusSnapshot
-    let playback: PlaybackStatusSnapshot
-    let currentGenerationJobs: [CurrentGenerationJobSnapshot]
-    let runtimeConfiguration: RuntimeConfigurationSnapshot
-    let transports: [TransportStatusSnapshot]
-    let recentErrors: [RecentErrorSnapshot]
+// MARK: - StatusSnapshot
 
+struct StatusSnapshot: ResponseEncodable {
     enum CodingKeys: String, CodingKey {
         case service
         case environment
@@ -227,4 +221,26 @@ struct StatusSnapshot: ResponseEncodable, Sendable {
         case transports
         case recentErrors = "recent_errors"
     }
+
+    let service: String
+    let environment: String
+    let defaultVoiceProfileName: String?
+    let serverMode: String
+    let workerMode: String
+    let workerStage: String
+    let profileCacheState: String
+    let profileCacheWarning: String?
+    let workerFailureSummary: String?
+    let cachedProfiles: [ProfileSnapshot]
+    let lastProfileRefreshAt: String?
+    let host: String
+    let port: Int
+    let runtimeRefresh: RuntimeRefreshSnapshot?
+    let generationQueue: QueueStatusSnapshot
+    let playbackQueue: QueueStatusSnapshot
+    let playback: PlaybackStatusSnapshot
+    let currentGenerationJobs: [CurrentGenerationJobSnapshot]
+    let runtimeConfiguration: RuntimeConfigurationSnapshot
+    let transports: [TransportStatusSnapshot]
+    let recentErrors: [RecentErrorSnapshot]
 }

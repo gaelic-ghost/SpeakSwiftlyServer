@@ -1,20 +1,20 @@
 import Foundation
 import SpeakSwiftly
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - HTTP Failure Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func runtimeDegradationWhileSpeechJobsAreInFlightMarksJobsDegradedAndRejectsNewWork() async throws {
+    @Test func `runtime degradation while speech jobs are in flight marks jobs degraded and rejects new work`() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)
         let state = await MainActor.run { ServerState() }
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -28,6 +28,7 @@ extension ServerTests {
             let snapshot = try await host.jobSnapshot(id: queuedJobID)
             return snapshot.history.contains {
                 guard case .queued = $0 else { return false }
+
                 return true
             } ? snapshot : nil
         }
@@ -51,7 +52,8 @@ extension ServerTests {
         let activeSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
             let snapshot = try await host.jobSnapshot(id: activeJobID)
             return snapshot.history.contains {
-                guard case .workerStatus(let event) = $0 else { return false }
+                guard case let .workerStatus(event) = $0 else { return false }
+
                 return event.workerMode == "failed" && event.stage == "resident_model_failed"
             } ? snapshot : nil
         }
@@ -60,7 +62,8 @@ extension ServerTests {
         let queuedSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
             let snapshot = try await host.jobSnapshot(id: queuedJobID)
             return snapshot.history.contains {
-                guard case .workerStatus(let event) = $0 else { return false }
+                guard case let .workerStatus(event) = $0 else { return false }
+
                 return event.workerMode == "failed" && event.stage == "resident_model_failed"
             } ? snapshot : nil
         }
@@ -79,14 +82,14 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func profileMutationFailureMarksCacheStaleAndFailsJob() async throws {
+    @Test func `profile mutation failure marks cache stale and fails job`() async throws {
         let runtime = MockRuntime(mutationRefreshBehavior: .leaveProfilesUnchanged)
         let state = await MainActor.run { ServerState() }
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -99,16 +102,16 @@ extension ServerTests {
             text: "Hello there",
             voiceDescription: "Warm and bright",
             outputPath: nil,
-            cwd: nil
+            cwd: nil,
         )
         let snapshot = try await waitForJobSnapshot(jobID, on: host)
 
         switch snapshot.terminalEvent {
-        case .failed(let failure):
-            #expect(failure.code == "profile_refresh_mismatch")
-            #expect(failure.message.contains("could not confirm the profile list"))
-        default:
-            Issue.record("Expected create_voice_profile_from_description reconciliation failure to produce a failed terminal event.")
+            case let .failed(failure):
+                #expect(failure.code == "profile_refresh_mismatch")
+                #expect(failure.message.contains("could not confirm the profile list"))
+            default:
+                Issue.record("Expected create_voice_profile_from_description reconciliation failure to produce a failed terminal event.")
         }
 
         let status = await host.statusSnapshot()

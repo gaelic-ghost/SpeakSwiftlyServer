@@ -3,7 +3,7 @@ import Foundation
 
 // MARK: - HTTP Config
 
-struct HTTPConfig: Sendable {
+struct HTTPConfig {
     let enabled: Bool
     let host: String
     let port: Int
@@ -15,7 +15,7 @@ struct HTTPConfig: Sendable {
         enabled: Bool,
         host: String,
         port: Int,
-        sseHeartbeatSeconds: Double
+        sseHeartbeatSeconds: Double,
     ) {
         self.enabled = enabled
         self.host = host
@@ -27,30 +27,30 @@ struct HTTPConfig: Sendable {
         config: ConfigReader,
         fallbackHost: String,
         fallbackPort: Int,
-        fallbackSSEHeartbeatSeconds: Double
+        fallbackSSEHeartbeatSeconds: Double,
     ) throws {
         do {
-            self.enabled = try config.requiredBool(forKey: "enabled")
-            self.host = try Self.requiredString(
+            enabled = try config.requiredBool(forKey: "enabled")
+            host = try Self.requiredString(
                 config,
                 key: "host",
-                fallback: fallbackHost
+                fallback: fallbackHost,
             )
-            self.port = try Self.requirePositive(
-                try Self.requiredInt(
+            port = try Self.requirePositive(
+                Self.requiredInt(
                     config,
                     key: "port",
-                    fallback: fallbackPort
+                    fallback: fallbackPort,
                 ),
-                key: "APP_HTTP_PORT"
+                key: "APP_HTTP_PORT",
             )
-            self.sseHeartbeatSeconds = try Self.requirePositive(
-                try Self.requiredDouble(
+            sseHeartbeatSeconds = try Self.requirePositive(
+                Self.requiredDouble(
                     config,
                     key: "sseHeartbeatSeconds",
-                    fallback: fallbackSSEHeartbeatSeconds
+                    fallback: fallbackSSEHeartbeatSeconds,
                 ),
-                key: "APP_HTTP_SSE_HEARTBEAT_SECONDS"
+                key: "APP_HTTP_SSE_HEARTBEAT_SECONDS",
             )
         } catch {
             throw ServerConfigurationError(key: "APP_HTTP_*", underlyingError: error)
@@ -62,12 +62,13 @@ struct HTTPConfig: Sendable {
     private static func requiredString(
         _ config: ConfigReader,
         key: ConfigKey,
-        fallback: String
+        fallback: String,
     ) throws -> String {
         do {
             return try config.requiredString(forKey: key)
         } catch {
             guard isMissingRequiredConfigValue(error) else { throw error }
+
             return fallback
         }
     }
@@ -75,12 +76,13 @@ struct HTTPConfig: Sendable {
     private static func requiredInt(
         _ config: ConfigReader,
         key: ConfigKey,
-        fallback: Int
+        fallback: Int,
     ) throws -> Int {
         do {
             return try config.requiredInt(forKey: key)
         } catch {
             guard isMissingRequiredConfigValue(error) else { throw error }
+
             return fallback
         }
     }
@@ -88,12 +90,13 @@ struct HTTPConfig: Sendable {
     private static func requiredDouble(
         _ config: ConfigReader,
         key: ConfigKey,
-        fallback: Double
+        fallback: Double,
     ) throws -> Double {
         do {
             return try config.requiredDouble(forKey: key)
         } catch {
             guard isMissingRequiredConfigValue(error) else { throw error }
+
             return fallback
         }
     }
@@ -105,18 +108,20 @@ struct HTTPConfig: Sendable {
     private static func requirePositive(_ value: Int, key: String) throws -> Int {
         guard value > 0 else {
             throw ServerConfigurationError(
-                "Configuration value '\(key)' must be a positive integer, but received '\(value)'."
+                "Configuration value '\(key)' must be a positive integer, but received '\(value)'.",
             )
         }
+
         return value
     }
 
     private static func requirePositive(_ value: Double, key: String) throws -> Double {
         guard value > 0 else {
             throw ServerConfigurationError(
-                "Configuration value '\(key)' must be a positive number, but received '\(value)'."
+                "Configuration value '\(key)' must be a positive number, but received '\(value)'.",
             )
         }
+
         return value
     }
 }

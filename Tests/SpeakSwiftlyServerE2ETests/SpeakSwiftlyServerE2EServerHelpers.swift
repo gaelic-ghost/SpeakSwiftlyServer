@@ -46,17 +46,17 @@ extension ServerE2E {
             .appendingPathComponent("SpeakSwiftly/.local/xcode/SpeakSwiftly.\(configuration.lowercased()).json", isDirectory: false)
         guard FileManager.default.fileExists(atPath: metadataURL.path) else {
             throw SpeakSwiftlyBuildError(
-                "The live SpeakSwiftlyServer end-to-end suite requires the sibling SpeakSwiftly published runtime metadata at '\(metadataURL.path)'. Publish and verify the sibling \(configuration) runtime first."
+                "The live SpeakSwiftlyServer end-to-end suite requires the sibling SpeakSwiftly published runtime metadata at '\(metadataURL.path)'. Publish and verify the sibling \(configuration) runtime first.",
             )
         }
 
         let metadata = try decode(
             SpeakSwiftlyPublishedRuntimeMetadata.self,
-            from: Data(contentsOf: metadataURL)
+            from: Data(contentsOf: metadataURL),
         )
         guard metadata.buildConfiguration == configuration else {
             throw SpeakSwiftlyBuildError(
-                "The sibling SpeakSwiftly published runtime metadata at '\(metadataURL.path)' reported build configuration '\(metadata.buildConfiguration)' instead of the expected '\(configuration)'."
+                "The sibling SpeakSwiftly published runtime metadata at '\(metadataURL.path)' reported build configuration '\(metadata.buildConfiguration)' instead of the expected '\(configuration)'.",
             )
         }
 
@@ -71,21 +71,21 @@ extension ServerE2E {
             recordedSourceRoot: metadata.sourceRoot,
             actualSourceRootURL: siblingSourceRootURL,
             fallbackURL: localXcodeRootURL.appendingPathComponent(configuration, isDirectory: true),
-            isDirectory: true
+            isDirectory: true,
         )
         let executableURL = resolvedPublishedRuntimeURL(
             recordedPath: metadata.executablePath,
             recordedSourceRoot: metadata.sourceRoot,
             actualSourceRootURL: siblingSourceRootURL,
             fallbackURL: productsURL.appendingPathComponent("SpeakSwiftly", isDirectory: false),
-            isDirectory: false
+            isDirectory: false,
         )
         let launcherURL = resolvedPublishedRuntimeURL(
             recordedPath: metadata.launcherPath,
             recordedSourceRoot: metadata.sourceRoot,
             actualSourceRootURL: siblingSourceRootURL,
             fallbackURL: productsURL.appendingPathComponent("run-speakswiftly", isDirectory: false),
-            isDirectory: false
+            isDirectory: false,
         )
         let metallibURL = resolvedPublishedRuntimeURL(
             recordedPath: metadata.metallibPath,
@@ -93,23 +93,23 @@ extension ServerE2E {
             actualSourceRootURL: siblingSourceRootURL,
             fallbackURL: productsURL.appendingPathComponent(
                 "mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib",
-                isDirectory: false
+                isDirectory: false,
             ),
-            isDirectory: false
+            isDirectory: false,
         )
         guard FileManager.default.fileExists(atPath: metallibURL.path) else {
             throw SpeakSwiftlyBuildError(
-                "The sibling SpeakSwiftly published runtime metadata pointed at a missing metallib path '\(metallibURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite."
+                "The sibling SpeakSwiftly published runtime metadata pointed at a missing metallib path '\(metallibURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite.",
             )
         }
         guard FileManager.default.isExecutableFile(atPath: launcherURL.path) else {
             throw SpeakSwiftlyBuildError(
-                "The sibling SpeakSwiftly published runtime metadata pointed at a missing runtime launcher '\(launcherURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite."
+                "The sibling SpeakSwiftly published runtime metadata pointed at a missing runtime launcher '\(launcherURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite.",
             )
         }
         guard FileManager.default.isExecutableFile(atPath: executableURL.path) else {
             throw SpeakSwiftlyBuildError(
-                "The sibling SpeakSwiftly published runtime metadata pointed at a missing executable '\(executableURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite."
+                "The sibling SpeakSwiftly published runtime metadata pointed at a missing executable '\(executableURL.path)'. Re-publish and verify the sibling \(configuration) runtime before running the live server suite.",
             )
         }
 
@@ -119,7 +119,7 @@ extension ServerE2E {
             productsURL: productsURL,
             executableURL: executableURL,
             launcherURL: launcherURL,
-            metallibURL: metallibURL
+            metallibURL: metallibURL,
         )
     }
 
@@ -128,7 +128,7 @@ extension ServerE2E {
         recordedSourceRoot: String?,
         actualSourceRootURL: URL,
         fallbackURL: URL,
-        isDirectory: Bool
+        isDirectory: Bool,
     ) -> URL {
         let recordedURL = URL(fileURLWithPath: recordedPath, isDirectory: isDirectory)
         if FileManager.default.fileExists(atPath: recordedURL.path) {
@@ -167,15 +167,16 @@ extension ServerE2E {
 
         guard FileManager.default.isExecutableFile(atPath: executableURL.path) else {
             throw SpeakSwiftlyBuildError(
-                "The SpeakSwiftlyServerTool executable was expected at '\(executableURL.path)', but it was not present. Run `swift build` before the live end-to-end suite."
+                "The SpeakSwiftlyServerTool executable was expected at '\(executableURL.path)', but it was not present. Run `swift build` before the live end-to-end suite.",
             )
         }
+
         return executableURL
     }
 
     private static func stageMetallibForServerBinary(
         sourceURL: URL,
-        serverExecutableURL: URL
+        serverExecutableURL: URL,
     ) throws {
         let targetDirectoryURL = serverExecutableURL
             .deletingLastPathComponent()
@@ -195,7 +196,7 @@ extension ServerE2E {
         silentPlayback: Bool,
         playbackTrace: Bool = false,
         mcpEnabled: Bool,
-        speechBackend: String? = nil
+        speechBackend: String? = nil,
     ) throws -> ServerProcess {
         if !silentPlayback {
             try stabilizeBuiltInAudioRouteForAudiblePlayback()
@@ -206,7 +207,7 @@ extension ServerE2E {
         let executableURL = try serverToolExecutableURL()
         try stageMetallibForServerBinary(
             sourceURL: publishedRuntimeArtifacts.metallibURL,
-            serverExecutableURL: executableURL
+            serverExecutableURL: executableURL,
         )
 
         return try ServerProcess(
@@ -217,7 +218,7 @@ extension ServerE2E {
             silentPlayback: silentPlayback,
             playbackTrace: playbackTrace,
             mcpEnabled: mcpEnabled,
-            speechBackend: speechBackend
+            speechBackend: speechBackend,
         )
     }
 
@@ -228,7 +229,7 @@ extension ServerE2E {
         }
 
         fatalError(
-            "The live end-to-end suite could not find a free localhost port inside '\(range.lowerBound)..<\(range.upperBound)'."
+            "The live end-to-end suite could not find a free localhost port inside '\(range.lowerBound)..<\(range.upperBound)'.",
         )
     }
 
@@ -237,15 +238,16 @@ extension ServerE2E {
     }
 
     static var e2eTimeout: Duration {
-        .seconds(1_200)
+        .seconds(1200)
     }
 
     // MARK: - Port Selection
 
     private static func isPortAvailable(_ port: Int) -> Bool {
-        #if canImport(Darwin)
+#if canImport(Darwin)
         let descriptor = socket(AF_INET, SOCK_STREAM, 0)
         guard descriptor >= 0 else { return false }
+
         defer { close(descriptor) }
 
         var reuseAddress: Int32 = 1
@@ -254,7 +256,7 @@ extension ServerE2E {
             SOL_SOCKET,
             SO_REUSEADDR,
             &reuseAddress,
-            socklen_t(MemoryLayout<Int32>.size)
+            socklen_t(MemoryLayout<Int32>.size),
         ) == 0 else {
             return false
         }
@@ -271,8 +273,8 @@ extension ServerE2E {
             }
         }
         return bindStatus == 0
-        #else
+#else
         return true
-        #endif
+#endif
     }
 }

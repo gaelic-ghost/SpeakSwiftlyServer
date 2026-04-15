@@ -16,25 +16,25 @@ actor SpeakSwiftlyRuntimeLauncher {
         "SPEAKSWIFTLY_PROFILE_ROOT",
     ]
 
-    func launch<T: Sendable>(
-        configuration: SpeakSwiftly.Configuration,
-        environment: [String: String],
-        makeRuntime: @escaping @Sendable (SpeakSwiftly.Configuration?) async -> T
-    ) async -> T {
-        await withTemporaryEnvironment(overrides: Self.environmentOverrides(from: environment)) {
-            await makeRuntime(configuration)
-        }
-    }
-
     private static func environmentOverrides(from environment: [String: String]) -> [String: String?] {
         bridgedEnvironmentKeys.reduce(into: [String: String?]()) { result, key in
             result[key] = environment[key]
         }
     }
 
+    func launch<T: Sendable>(
+        configuration: SpeakSwiftly.Configuration,
+        environment: [String: String],
+        makeRuntime: @escaping @Sendable (SpeakSwiftly.Configuration?) async -> T,
+    ) async -> T {
+        await withTemporaryEnvironment(overrides: Self.environmentOverrides(from: environment)) {
+            await makeRuntime(configuration)
+        }
+    }
+
     private func withTemporaryEnvironment<T: Sendable>(
         overrides: [String: String?],
-        body: @escaping @Sendable () async -> T
+        body: @escaping @Sendable () async -> T,
     ) async -> T {
         let originalValues = captureEnvironmentValues(for: Array(overrides.keys))
         applyEnvironmentValues(overrides)
@@ -52,10 +52,10 @@ actor SpeakSwiftlyRuntimeLauncher {
     private func applyEnvironmentValues(_ values: [String: String?]) {
         for (key, value) in values {
             switch value {
-            case .some(let value):
-                setenv(key, value, 1)
-            case .none:
-                unsetenv(key)
+                case let .some(value):
+                    setenv(key, value, 1)
+                case .none:
+                    unsetenv(key)
             }
         }
     }

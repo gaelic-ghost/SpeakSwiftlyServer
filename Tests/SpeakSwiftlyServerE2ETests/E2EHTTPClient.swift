@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - HTTP Client
+// MARK: - E2EHTTPClient
 
 struct E2EHTTPClient {
     let baseURL: URL
@@ -8,7 +8,7 @@ struct E2EHTTPClient {
     func request(
         path: String,
         method: String,
-        jsonBody: [String: Any]? = nil
+        jsonBody: [String: Any]? = nil,
     ) async throws -> E2EHTTPResponse {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
@@ -22,9 +22,12 @@ struct E2EHTTPClient {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw E2ETransportError("The live HTTP request to '\(path)' did not return an HTTPURLResponse.")
         }
+
         return E2EHTTPResponse(statusCode: httpResponse.statusCode, headers: httpResponse.allHeaderFields, data: data)
     }
 }
+
+// MARK: - E2EHTTPResponse
 
 struct E2EHTTPResponse {
     let statusCode: Int

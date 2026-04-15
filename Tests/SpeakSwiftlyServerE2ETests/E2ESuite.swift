@@ -4,9 +4,9 @@ import Testing
 import Darwin
 #endif
 
-// MARK: - End-to-End Support Namespace
+// MARK: - ServerE2E
 
-struct ServerE2E {
+enum ServerE2E {
     // MARK: - Test Fixtures
 
     static let testingProfileText = "Hello there from SpeakSwiftlyServer end-to-end coverage."
@@ -41,7 +41,7 @@ extension E2ESuiteSupport {
         silentPlayback: Bool,
         playbackTrace: Bool = false,
         mcpEnabled: Bool,
-        speechBackend: String? = nil
+        speechBackend: String? = nil,
     ) throws -> ServerProcess {
         try ServerE2E.makeServer(
             port: port,
@@ -49,7 +49,7 @@ extension E2ESuiteSupport {
             silentPlayback: silentPlayback,
             playbackTrace: playbackTrace,
             mcpEnabled: mcpEnabled,
-            speechBackend: speechBackend
+            speechBackend: speechBackend,
         )
     }
 
@@ -61,7 +61,7 @@ extension E2ESuiteSupport {
         phase: String = "before_built_ins",
         isCaseSensitive: Bool = false,
         formats: [String] = [],
-        priority: Int = 0
+        priority: Int = 0,
     ) -> [String: Any] {
         ServerE2E.replacementJSON(
             id: id,
@@ -71,7 +71,7 @@ extension E2ESuiteSupport {
             phase: phase,
             isCaseSensitive: isCaseSensitive,
             formats: formats,
-            priority: priority
+            priority: priority,
         )
     }
 
@@ -95,7 +95,7 @@ extension E2ESuiteSupport {
         text: String,
         voiceDescription: String,
         outputPath: String? = nil,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         try await ServerE2E.createVoiceDesignProfile(
             using: client,
@@ -105,7 +105,7 @@ extension E2ESuiteSupport {
             text: text,
             voiceDescription: voiceDescription,
             outputPath: outputPath,
-            cwd: cwd
+            cwd: cwd,
         )
     }
 
@@ -117,7 +117,7 @@ extension E2ESuiteSupport {
         text: String,
         voiceDescription: String,
         outputPath: String? = nil,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         try await ServerE2E.createVoiceDesignProfile(
             using: client,
@@ -127,7 +127,7 @@ extension E2ESuiteSupport {
             text: text,
             voiceDescription: voiceDescription,
             outputPath: outputPath,
-            cwd: cwd
+            cwd: cwd,
         )
     }
 
@@ -150,7 +150,7 @@ extension E2ESuiteSupport {
     static func waitForPlaybackState(
         using client: E2EHTTPClient,
         timeout: Duration,
-        matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool
+        matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool,
     ) async throws -> E2EPlaybackStateSnapshot {
         try await ServerE2E.waitForPlaybackState(using: client, timeout: timeout, matching: predicate)
     }
@@ -158,7 +158,7 @@ extension E2ESuiteSupport {
     static func waitForGenerationQueue(
         using client: E2EHTTPClient,
         timeout: Duration,
-        matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool
+        matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool,
     ) async throws -> E2EQueueSnapshotResponse {
         try await ServerE2E.waitForGenerationQueue(using: client, timeout: timeout, matching: predicate)
     }
@@ -166,7 +166,7 @@ extension E2ESuiteSupport {
     static func waitForMCPPlaybackState(
         using client: E2EMCPClient,
         timeout: Duration,
-        matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool
+        matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool,
     ) async throws -> E2EPlaybackStateSnapshot {
         try await ServerE2E.waitForMCPPlaybackState(using: client, timeout: timeout, matching: predicate)
     }
@@ -174,7 +174,7 @@ extension E2ESuiteSupport {
     static func waitForMCPGenerationQueue(
         using client: E2EMCPClient,
         timeout: Duration,
-        matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool
+        matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool,
     ) async throws -> E2EQueueSnapshotResponse {
         try await ServerE2E.waitForMCPGenerationQueue(using: client, timeout: timeout, matching: predicate)
     }
@@ -191,31 +191,28 @@ extension E2ESuiteSupport {
 // MARK: - End-to-End Suites
 
 @Suite(
-    "HTTP Workflow Entry",
     .serialized,
     .enabled(
         if: ProcessInfo.processInfo.environment["SPEAKSWIFTLYSERVER_E2E"] == "1",
-        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
-    )
+        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage.",
+    ),
 )
 struct HTTPWorkflowE2ETests: E2ESuiteSupport {}
 
 @Suite(
-    "MCP Workflow Entry",
     .serialized,
     .enabled(
         if: ProcessInfo.processInfo.environment["SPEAKSWIFTLYSERVER_E2E"] == "1",
-        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
-    )
+        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage.",
+    ),
 )
 struct MCPWorkflowE2ETests: E2ESuiteSupport {}
 
 @Suite(
-    "Control Surfaces",
     .serialized,
     .enabled(
         if: ProcessInfo.processInfo.environment["SPEAKSWIFTLYSERVER_E2E"] == "1",
-        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
-    )
+        "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage.",
+    ),
 )
 struct ControlE2ETests: E2ESuiteSupport {}

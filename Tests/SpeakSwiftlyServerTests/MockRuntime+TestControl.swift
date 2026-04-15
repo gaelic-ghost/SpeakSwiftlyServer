@@ -7,29 +7,30 @@ import SpeakSwiftly
 extension MockRuntime {
     func publishStatus(_ stage: SpeakSwiftly.StatusStage) {
         let residentState: SpeakSwiftly.ResidentModelState = switch stage {
-        case .warmingResidentModel:
-            .warming
-        case .residentModelReady:
-            .ready
-        case .residentModelsUnloaded:
-            .unloaded
-        case .residentModelFailed:
-            .failed
+            case .warmingResidentModel:
+                .warming
+            case .residentModelReady:
+                .ready
+            case .residentModelsUnloaded:
+                .unloaded
+            case .residentModelFailed:
+                .failed
         }
         statusContinuation?.yield(.init(stage: stage, residentState: residentState, speechBackend: .qwen3))
     }
 
     func finishHeldSpeak(id: String) {
         guard activeRequest?.id == id, let continuation = activeContinuation else { return }
+
         continuation.yield(
             SpeakSwiftly.RequestEvent.progress(
-                .init(id: id, stage: .playbackFinished)
-            )
+                .init(id: id, stage: .playbackFinished),
+            ),
         )
         continuation.yield(
             SpeakSwiftly.RequestEvent.completed(
-                .init(id: id)
-            )
+                .init(id: id),
+            ),
         )
         continuation.finish()
         playbackState = .idle
@@ -40,6 +41,7 @@ extension MockRuntime {
 
     func publishHeldSpeakProgress(id: String, stage: SpeakSwiftly.ProgressStage) {
         guard activeRequest?.id == id, let continuation = activeContinuation else { return }
+
         continuation.yield(.progress(.init(id: id, stage: stage)))
     }
 
@@ -71,7 +73,7 @@ extension MockRuntime {
         (
             generationQueueRequestCount,
             playbackQueueRequestCount,
-            playbackStateRequestCount
+            playbackStateRequestCount,
         )
     }
 }
@@ -82,7 +84,7 @@ extension MockRuntime {
 extension MockRuntime {
     func startActiveRequest(
         _ request: MockRequest,
-        continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
+        continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation,
     ) {
         activeRequest = request
         playbackState = .playing
@@ -103,6 +105,7 @@ extension MockRuntime {
 
     func startNextQueuedRequestIfNeeded() {
         guard activeRequest == nil, !queuedRequests.isEmpty else { return }
+
         let next = queuedRequests.removeFirst()
         startActiveRequest(next.request, continuation: next.continuation)
     }
@@ -117,7 +120,7 @@ extension MockRuntime {
                 id: queued.request.id,
                 op: queued.request.operation,
                 profileName: queued.request.profileName,
-                queuePosition: offset + 1
+                queuePosition: offset + 1,
             )
         }
     }
@@ -129,7 +132,7 @@ extension MockRuntime {
             isStableForConcurrentGeneration: playbackState == .playing,
             isRebuffering: false,
             stableBufferedAudioMS: playbackState == .playing ? 320 : nil,
-            stableBufferTargetMS: playbackState == .playing ? 400 : nil
+            stableBufferTargetMS: playbackState == .playing ? 400 : nil,
         )
     }
 
@@ -139,34 +142,35 @@ extension MockRuntime {
             queueType: "generation",
             activeRequest: generationActiveRequest,
             activeRequests: generationActiveRequest.map { [$0] },
-            queue: queuedSummaries()
+            queue: queuedSummaries(),
         )
         let playbackActiveRequest = playbackState == .idle ? nil : activeRequest.map(activeSummary(for:))
         let playbackQueue = SpeakSwiftly.QueueSnapshot(
             queueType: "playback",
             activeRequest: playbackActiveRequest,
             activeRequests: playbackActiveRequest.map { [$0] },
-            queue: []
+            queue: [],
         )
         let status = SpeakSwiftly.StatusEvent(
             stage: .residentModelReady,
             residentState: .ready,
-            speechBackend: .qwen3
+            speechBackend: .qwen3,
         )
         return .init(
             status: status,
             speechBackend: .qwen3,
             generationQueue: generationQueue,
             playbackQueue: playbackQueue,
-            playbackState: playbackStateSummary()
+            playbackState: playbackStateSummary(),
         )
     }
 
     func cancelQueuedRequest(_ requestID: String, reason: String) {
         guard let index = queuedRequests.firstIndex(where: { $0.request.id == requestID }) else { return }
+
         let queued = queuedRequests.remove(at: index)
         queued.continuation.finish(
-            throwing: SpeakSwiftly.Error(code: .requestCancelled, message: reason)
+            throwing: SpeakSwiftly.Error(code: .requestCancelled, message: reason),
         )
     }
 
@@ -175,8 +179,8 @@ extension MockRuntime {
             activeContinuation?.finish(
                 throwing: SpeakSwiftly.Error(
                     code: .requestCancelled,
-                    message: "The request was cancelled by the mock SpeakSwiftly runtime control surface."
-                )
+                    message: "The request was cancelled by the mock SpeakSwiftly runtime control surface.",
+                ),
             )
             playbackState = .idle
             activeContinuation = nil
@@ -188,14 +192,14 @@ extension MockRuntime {
         if queuedRequests.contains(where: { $0.request.id == requestID }) {
             cancelQueuedRequest(
                 requestID,
-                reason: "The queued request was cancelled by the mock SpeakSwiftly runtime control surface."
+                reason: "The queued request was cancelled by the mock SpeakSwiftly runtime control surface.",
             )
             return requestID
         }
 
         throw SpeakSwiftly.Error(
             code: .requestNotFound,
-            message: "The mock SpeakSwiftly runtime could not find request '\(requestID)' to cancel."
+            message: "The mock SpeakSwiftly runtime could not find request '\(requestID)' to cancel.",
         )
     }
 }

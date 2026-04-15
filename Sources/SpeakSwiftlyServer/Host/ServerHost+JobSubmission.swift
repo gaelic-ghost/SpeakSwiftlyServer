@@ -11,7 +11,7 @@ extension ServerHost {
         profileName: String,
         textProfileName: String? = nil,
         normalizationContext: SpeechNormalizationContext? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil
+        sourceFormat: TextForSpeech.SourceFormat? = nil,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.queueSpeechLive(
@@ -19,7 +19,7 @@ extension ServerHost {
             with: profileName,
             textProfileName: textProfileName,
             normalizationContext: normalizationContext,
-            sourceFormat: sourceFormat
+            sourceFormat: sourceFormat,
         )
         return await enqueuePublicJob(handle)
     }
@@ -29,7 +29,7 @@ extension ServerHost {
         profileName: String,
         textProfileName: String? = nil,
         normalizationContext: SpeechNormalizationContext? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil
+        sourceFormat: TextForSpeech.SourceFormat? = nil,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.queueSpeechFile(
@@ -37,14 +37,14 @@ extension ServerHost {
             with: profileName,
             textProfileName: textProfileName,
             normalizationContext: normalizationContext,
-            sourceFormat: sourceFormat
+            sourceFormat: sourceFormat,
         )
         return await enqueuePublicJob(handle)
     }
 
     func queueSpeechBatch(
         items: [SpeakSwiftly.BatchItem],
-        profileName: String
+        profileName: String,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.queueSpeechBatch(items, with: profileName)
@@ -57,7 +57,7 @@ extension ServerHost {
         text: String,
         voiceDescription: String,
         outputPath: String?,
-        cwd: String?
+        cwd: String?,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.createVoiceProfileFromDescription(
@@ -66,7 +66,7 @@ extension ServerHost {
             from: text,
             voice: voiceDescription,
             outputPath: outputPath,
-            cwd: cwd
+            cwd: cwd,
         )
         return await enqueuePublicJob(handle)
     }
@@ -76,7 +76,7 @@ extension ServerHost {
         vibe: SpeakSwiftly.Vibe,
         referenceAudioPath: String,
         transcript: String?,
-        cwd: String?
+        cwd: String?,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.createVoiceProfileFromAudio(
@@ -84,14 +84,14 @@ extension ServerHost {
             vibe: vibe,
             from: referenceAudioPath,
             transcript: transcript,
-            cwd: cwd
+            cwd: cwd,
         )
         return await enqueuePublicJob(handle)
     }
 
     func submitRenameVoiceProfile(
         profileName: String,
-        to newProfileName: String
+        to newProfileName: String,
     ) async throws -> String {
         try ensureWorkerReady()
         let handle = await runtime.renameVoiceProfile(profileName: profileName, to: newProfileName)
@@ -114,7 +114,7 @@ extension ServerHost {
         guard workerMode == "ready" else {
             throw HTTPError(
                 .serviceUnavailable,
-                message: startupError ?? "SpeakSwiftly is not ready yet, so the server cannot accept new work right now."
+                message: startupError ?? "SpeakSwiftly is not ready yet, so the server cannot accept new work right now.",
             )
         }
     }
@@ -124,7 +124,7 @@ extension ServerHost {
             jobID: handle.id,
             op: handle.operation,
             profileName: handle.profileName,
-            submittedAt: Date()
+            submittedAt: Date(),
         )
 
         requestMonitorTasks[handle.id] = Task {

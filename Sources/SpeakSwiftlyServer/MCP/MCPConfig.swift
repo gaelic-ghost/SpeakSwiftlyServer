@@ -3,7 +3,7 @@ import Foundation
 
 // MARK: - MCP Config
 
-struct MCPConfig: Sendable {
+struct MCPConfig {
     let enabled: Bool
     let path: String
     let serverName: String
@@ -15,7 +15,7 @@ struct MCPConfig: Sendable {
         enabled: Bool,
         path: String,
         serverName: String,
-        title: String
+        title: String,
     ) {
         self.enabled = enabled
         self.path = path
@@ -25,10 +25,10 @@ struct MCPConfig: Sendable {
 
     init(config: ConfigReader) throws {
         do {
-            self.enabled = try config.requiredBool(forKey: "enabled")
-            self.path = try config.requiredString(forKey: "path")
-            self.serverName = try config.requiredString(forKey: "serverName")
-            self.title = try config.requiredString(forKey: "title")
+            enabled = try config.requiredBool(forKey: "enabled")
+            path = try config.requiredString(forKey: "path")
+            serverName = try config.requiredString(forKey: "serverName")
+            title = try config.requiredString(forKey: "title")
         } catch {
             throw ServerConfigurationError(key: "APP_MCP_*", underlyingError: error)
         }

@@ -2,11 +2,13 @@ import AsyncAlgorithms
 import Foundation
 import ServiceLifecycle
 
-// MARK: - Embedded Lifecycle Coordination
+// MARK: - EmbeddedLifecycleReadinessError
 
-private struct EmbeddedLifecycleReadinessError: Error, Sendable {
+private struct EmbeddedLifecycleReadinessError: Error {
     let message: String
 }
+
+// MARK: - EmbeddedLifecycleReadinessGate
 
 actor EmbeddedLifecycleReadinessGate {
     private enum State {
@@ -19,29 +21,30 @@ actor EmbeddedLifecycleReadinessGate {
 
     func waitUntilReady() async throws {
         switch state {
-        case .ready:
-            return
-        case .failed(let error):
-            throw error
-        case .pending:
-            try await withCheckedThrowingContinuation { continuation in
-                switch state {
-                case .ready:
-                    continuation.resume()
-                case .failed(let error):
-                    continuation.resume(throwing: error)
-                case .pending(var continuations):
-                    continuations.append(continuation)
-                    state = .pending(continuations)
+            case .ready:
+                return
+            case let .failed(error):
+                throw error
+            case .pending:
+                try await withCheckedThrowingContinuation { continuation in
+                    switch state {
+                        case .ready:
+                            continuation.resume()
+                        case let .failed(error):
+                            continuation.resume(throwing: error)
+                        case var .pending(continuations):
+                            continuations.append(continuation)
+                            state = .pending(continuations)
+                    }
                 }
-            }
         }
     }
 
     func markReady() {
-        guard case .pending(let continuations) = state else {
+        guard case let .pending(continuations) = state else {
             return
         }
+
         state = .ready
         for continuation in continuations {
             continuation.resume()
@@ -49,9 +52,10 @@ actor EmbeddedLifecycleReadinessGate {
     }
 
     func markFailed(message: String) {
-        guard case .pending(let continuations) = state else {
+        guard case let .pending(continuations) = state else {
             return
         }
+
         let error = EmbeddedLifecycleReadinessError(message: message)
         state = .failed(error)
         for continuation in continuations {
@@ -59,6 +63,8 @@ actor EmbeddedLifecycleReadinessGate {
         }
     }
 }
+
+// MARK: - EmbeddedLifecycleShutdownBarrier
 
 actor EmbeddedLifecycleShutdownBarrier {
     private let targetCount: Int
@@ -73,10 +79,12 @@ actor EmbeddedLifecycleShutdownBarrier {
         guard completedCount < targetCount else {
             return
         }
+
         completedCount += 1
         guard completedCount == targetCount else {
             return
         }
+
         let pendingContinuations = continuations
         continuations.removeAll()
         for continuation in pendingContinuations {
@@ -88,6 +96,7 @@ actor EmbeddedLifecycleShutdownBarrier {
         guard completedCount < targetCount else {
             return
         }
+
         await withCheckedContinuation { continuation in
             if completedCount >= targetCount {
                 continuation.resume()
@@ -98,7 +107,7 @@ actor EmbeddedLifecycleShutdownBarrier {
     }
 }
 
-// MARK: - Embedded Lifecycle Services
+// MARK: - HostLifecycleService
 
 struct HostLifecycleService: Service {
     let host: ServerHost
@@ -120,6 +129,8 @@ struct HostLifecycleService: Service {
     }
 }
 
+// MARK: - HostPruneService
+
 struct HostPruneService: Service {
     let host: ServerHost
     let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
@@ -130,8 +141,7 @@ struct HostPruneService: Service {
             var didReceiveTick = false
             for await _ in AsyncTimerSequence(interval: interval, clock: .continuous)
                 .prefix(1)
-                .cancelOnGracefulShutdown()
-            {
+                .cancelOnGracefulShutdown() {
                 didReceiveTick = true
             }
 
@@ -146,6 +156,8 @@ struct HostPruneService: Service {
     }
 }
 
+// MARK: - ConfigWatchService
+
 struct ConfigWatchService: Service {
     let configStore: ConfigStore
     let host: ServerHost
@@ -155,10 +167,10 @@ struct ConfigWatchService: Service {
         do {
             for try await update in configStore.updates().cancelOnGracefulShutdown() {
                 switch update {
-                case .reloaded(let updatedConfig):
-                    await host.applyConfigurationUpdate(updatedConfig)
-                case .rejected(let message):
-                    await host.markConfigurationReloadRejected(message)
+                    case let .reloaded(updatedConfig):
+                        await host.applyConfigurationUpdate(updatedConfig)
+                    case let .rejected(message):
+                        await host.markConfigurationReloadRejected(message)
                 }
             }
             await shutdownBarrier.markCompleted()
@@ -174,6 +186,8 @@ struct ConfigWatchService: Service {
         }
     }
 }
+
+// MARK: - MCPLifecycleService
 
 struct MCPLifecycleService: Service {
     let surface: MCPSurface
@@ -195,13 +209,15 @@ struct MCPLifecycleService: Service {
             await shutdownBarrier.markCompleted()
         } catch {
             await readinessGate.markFailed(
-                message: "SpeakSwiftly MCP could not finish starting inside the embedded session lifecycle. Likely cause: \(error.localizedDescription)"
+                message: "SpeakSwiftly MCP could not finish starting inside the embedded session lifecycle. Likely cause: \(error.localizedDescription)",
             )
             await shutdownBarrier.markCompleted()
             throw error
         }
     }
 }
+
+// MARK: - EmbeddedApplicationService
 
 struct EmbeddedApplicationService: Service {
     let application: any Service

@@ -1,14 +1,14 @@
-import Hummingbird
 import HTTPTypes
+import Hummingbird
 
 // MARK: - Request Routes
 
 func registerHTTPRequestRoutes(
     on router: Router<BasicRequestContext>,
-    host: ServerHost
+    host: ServerHost,
 ) {
     router.get("requests") { _, _ -> RequestListResponse in
-        .init(requests: await host.jobSnapshots())
+        await .init(requests: host.jobSnapshots())
     }
 
     router.get("requests/:request_id") { _, context -> JobSnapshot in
@@ -18,8 +18,8 @@ func registerHTTPRequestRoutes(
 
     router.get("requests/:request_id/events") { _, context -> Response in
         let requestID = try context.parameters.require("request_id")
-        let body = ResponseBody(
-            asyncSequence: try await host.sseStream(for: requestID)
+        let body = try await ResponseBody(
+            asyncSequence: host.sseStream(for: requestID),
         )
         var headers = HTTPFields()
         headers[.contentType] = "text/event-stream"

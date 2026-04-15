@@ -11,6 +11,44 @@ import Observation
 @MainActor
 public final class ServerState {
     struct Actions {
+        static let unavailable = Actions(
+            refreshVoiceProfiles: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not refresh voice profiles because no embedded host action performer is configured yet.",
+                )
+            },
+            setDefaultVoiceProfileName: { profileName in
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not set default voice profile '\(profileName)' because no embedded host action performer is configured yet.",
+                )
+            },
+            clearDefaultVoiceProfileName: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not clear the default voice profile because no embedded host action performer is configured yet.",
+                )
+            },
+            pausePlayback: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not pause playback because no embedded host action performer is configured yet.",
+                )
+            },
+            resumePlayback: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not resume playback because no embedded host action performer is configured yet.",
+                )
+            },
+            clearPlaybackQueue: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not clear the playback queue because no embedded host action performer is configured yet.",
+                )
+            },
+            cancelPlaybackRequest: { requestID in
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not cancel playback request '\(requestID)' because no embedded host action performer is configured yet.",
+                )
+            },
+        )
+
         let refreshVoiceProfiles: @Sendable () async throws -> [ProfileSnapshot]
         let setDefaultVoiceProfileName: @Sendable (String) async throws -> String
         let clearDefaultVoiceProfileName: @Sendable () async throws -> String?
@@ -18,44 +56,6 @@ public final class ServerState {
         let resumePlayback: @Sendable () async throws -> PlaybackStatusSnapshot
         let clearPlaybackQueue: @Sendable () async throws -> Int
         let cancelPlaybackRequest: @Sendable (String) async throws -> String
-
-        static let unavailable = Actions(
-            refreshVoiceProfiles: {
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not refresh voice profiles because no embedded host action performer is configured yet."
-                )
-            },
-            setDefaultVoiceProfileName: { profileName in
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not set default voice profile '\(profileName)' because no embedded host action performer is configured yet."
-                )
-            },
-            clearDefaultVoiceProfileName: {
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not clear the default voice profile because no embedded host action performer is configured yet."
-                )
-            },
-            pausePlayback: {
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not pause playback because no embedded host action performer is configured yet."
-                )
-            },
-            resumePlayback: {
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not resume playback because no embedded host action performer is configured yet."
-                )
-            },
-            clearPlaybackQueue: {
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not clear the playback queue because no embedded host action performer is configured yet."
-                )
-            },
-            cancelPlaybackRequest: { requestID in
-                throw ServerStateActionError.unavailable(
-                    "ServerState could not cancel playback request '\(requestID)' because no embedded host action performer is configured yet."
-                )
-            }
-        )
     }
 
     enum ServerStateActionError: LocalizedError {
@@ -63,8 +63,8 @@ public final class ServerState {
 
         var errorDescription: String? {
             switch self {
-            case .unavailable(let message):
-                message
+                case let .unavailable(message):
+                    message
             }
         }
     }
@@ -82,7 +82,7 @@ public final class ServerState {
         profileCacheState: "uninitialized",
         profileCacheWarning: nil,
         profileCount: 0,
-        lastProfileRefreshAt: nil
+        lastProfileRefreshAt: nil,
     )
 
     /// Snapshot of the active and queued speech-generation work.
@@ -92,7 +92,7 @@ public final class ServerState {
         queuedCount: 0,
         activeRequest: nil,
         activeRequests: [],
-        queuedRequests: []
+        queuedRequests: [],
     )
 
     /// Snapshot of the active and queued playback work.
@@ -102,7 +102,7 @@ public final class ServerState {
         queuedCount: 0,
         activeRequest: nil,
         activeRequests: [],
-        queuedRequests: []
+        queuedRequests: [],
     )
 
     /// Current playback state reported by the shared runtime.
@@ -112,7 +112,7 @@ public final class ServerState {
         isStableForConcurrentGeneration: false,
         isRebuffering: false,
         stableBufferedAudioMS: nil,
-        stableBufferTargetMS: nil
+        stableBufferTargetMS: nil,
     )
 
     /// Timing details for the most recent host refresh cycle, when one has completed.
@@ -135,7 +135,7 @@ public final class ServerState {
         persistedConfigurationError: nil,
         persistedConfigurationAppliesOnRestart: true,
         activeRuntimeMatchesNextRuntime: true,
-        persistedConfigurationWillAffectNextRuntimeStart: true
+        persistedConfigurationWillAffectNextRuntimeStart: true,
     )
     /// Cached voice-profile summaries currently known to the host.
     public internal(set) var voiceProfiles = [ProfileSnapshot]()
@@ -144,6 +144,7 @@ public final class ServerState {
     /// Recent host and transport errors retained for operator inspection.
     public internal(set) var recentErrors = [RecentErrorSnapshot]()
     public internal(set) var jobsByID: [String: JobSnapshot] = [:]
+
     @ObservationIgnored private var actions = Actions.unavailable
 
     /// Creates an empty observable state model that an embedded session can hydrate.

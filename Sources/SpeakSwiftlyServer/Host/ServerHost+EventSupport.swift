@@ -11,6 +11,7 @@ extension ServerHost {
         guard let current = transportStatuses[name], current.enabled else {
             return
         }
+
         let updated = TransportStatusSnapshot(
             name: current.name,
             enabled: current.enabled,
@@ -18,18 +19,19 @@ extension ServerHost {
             host: current.host,
             port: current.port,
             path: current.path,
-            advertisedAddress: current.advertisedAddress
+            advertisedAddress: current.advertisedAddress,
         )
         guard updated != current else {
             return
         }
+
         transportStatuses[name] = updated
         hostEventContinuation.yield(.transportChanged(updated))
     }
 
     static func initialTransportStatuses(
         httpConfig: HTTPConfig,
-        mcpConfig: MCPConfig
+        mcpConfig: MCPConfig,
     ) -> [String: TransportStatusSnapshot] {
         let http = TransportStatusSnapshot(
             name: "http",
@@ -38,7 +40,7 @@ extension ServerHost {
             host: httpConfig.enabled ? httpConfig.host : nil,
             port: httpConfig.enabled ? httpConfig.port : nil,
             path: nil,
-            advertisedAddress: httpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)" : nil
+            advertisedAddress: httpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)" : nil,
         )
         let mcp = TransportStatusSnapshot(
             name: "mcp",
@@ -47,7 +49,7 @@ extension ServerHost {
             host: mcpConfig.enabled ? httpConfig.host : nil,
             port: mcpConfig.enabled ? httpConfig.port : nil,
             path: mcpConfig.enabled ? mcpConfig.path : nil,
-            advertisedAddress: mcpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)\(mcpConfig.path)" : nil
+            advertisedAddress: mcpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)\(mcpConfig.path)" : nil,
         )
         return [
             http.name: http,
@@ -59,15 +61,14 @@ extension ServerHost {
         if let last = recentErrors.last,
            last.source == source,
            last.code == code,
-           last.message == message
-        {
+           last.message == message {
             return
         }
         let snapshot = RecentErrorSnapshot(
             occurredAt: TimestampFormatter.string(from: Date()),
             source: source,
             code: code,
-            message: message
+            message: message,
         )
         recentErrors.append(snapshot)
         if recentErrors.count > Self.recentErrorLimit {
@@ -83,9 +84,9 @@ extension ServerHost {
                     state: profileCacheState,
                     warning: profileCacheWarning,
                     profileCount: profileCache.count,
-                    lastRefreshAt: lastProfileRefreshAt.map(TimestampFormatter.string(from:))
-                )
-            )
+                    lastRefreshAt: lastProfileRefreshAt.map(TimestampFormatter.string(from:)),
+                ),
+            ),
         )
     }
 
@@ -96,9 +97,9 @@ extension ServerHost {
             .textProfilesChanged(
                 .init(
                     activeProfileID: activeProfile.id,
-                    storedProfileCount: storedProfiles.count
-                )
-            )
+                    storedProfileCount: storedProfiles.count,
+                ),
+            ),
         )
     }
 
@@ -114,9 +115,9 @@ extension ServerHost {
                     persistedDefaultVoiceProfileName: snapshot.persistedDefaultVoiceProfileName,
                     environmentSpeechBackendOverride: snapshot.environmentSpeechBackendOverride,
                     persistedConfigurationPath: snapshot.persistedConfigurationPath,
-                    persistedConfigurationState: snapshot.persistedConfigurationState
-                )
-            )
+                    persistedConfigurationState: snapshot.persistedConfigurationState,
+                ),
+            ),
         )
     }
 
@@ -127,8 +128,8 @@ extension ServerHost {
             .init(
                 id: event.id,
                 reason: event.reason.rawValue,
-                queuePosition: event.queuePosition
-            )
+                queuePosition: event.queuePosition,
+            ),
         )
     }
 
@@ -150,7 +151,7 @@ extension ServerHost {
             queuedCount: summary.queue.count,
             activeRequest: activeRequests.first,
             activeRequests: activeRequests,
-            queuedRequests: summary.queue.map(QueuedRequestSnapshot.init(summary:))
+            queuedRequests: summary.queue.map(QueuedRequestSnapshot.init(summary:)),
         )
     }
 
@@ -159,7 +160,7 @@ extension ServerHost {
             queueType: snapshot.queueType,
             activeRequest: snapshot.activeRequest,
             activeRequests: snapshot.activeRequests,
-            queue: snapshot.queuedRequests
+            queue: snapshot.queuedRequests,
         )
     }
 
@@ -201,25 +202,25 @@ extension ServerHost {
             status: event.status,
             speechBackend: event.speechBackend?.rawValue,
             clearedCount: event.clearedCount,
-            cancelledRequestID: event.cancelledRequestID
+            cancelledRequestID: event.cancelledRequestID,
         )
         return acknowledged ? .acknowledged(success) : .completed(success)
     }
 
     func encodeSSEBuffer(for event: ServerJobEvent) -> ByteBuffer {
-        let eventName: String = switch event {
-        case .workerStatus:
-            "worker_status"
-        case .queued:
-            "queued"
-        case .acknowledged, .completed:
-            "message"
-        case .started:
-            "started"
-        case .progress:
-            "progress"
-        case .failed:
-            "message"
+        let eventName = switch event {
+            case .workerStatus:
+                "worker_status"
+            case .queued:
+                "queued"
+            case .acknowledged, .completed:
+                "message"
+            case .started:
+                "started"
+            case .progress:
+                "progress"
+            case .failed:
+                "message"
         }
 
         let data = (try? encoder.encode(event)) ?? Data(#"{"ok":false,"code":"encoding_error","message":"SpeakSwiftlyServer could not encode an SSE event payload."}"#.utf8)

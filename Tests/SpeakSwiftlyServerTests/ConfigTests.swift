@@ -1,11 +1,11 @@
 import Foundation
 import SpeakSwiftly
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Configuration Tests
 
-@Test func configurationLoadsDefaultsAndRejectsInvalidValues() async throws {
+@Test func `configuration loads defaults and rejects invalid values`() async throws {
     let defaults = try await AppConfig.load(environment: [:])
     #expect(defaults.server.host == "127.0.0.1")
     #expect(defaults.server.port == 7338)
@@ -17,14 +17,14 @@ import Testing
 
     let launchAgentDefaults = try await AppConfig.load(
         environment: [:],
-        defaultProfile: .launchAgent
+        defaultProfile: .launchAgent,
     )
     #expect(launchAgentDefaults.server.port == 7337)
     #expect(launchAgentDefaults.http.port == 7337)
 
     let embeddedDefaults = try await AppConfig.load(
         environment: [:],
-        defaultProfile: .embeddedSession
+        defaultProfile: .embeddedSession,
     )
     #expect(embeddedDefaults.server.port == 7339)
     #expect(embeddedDefaults.http.port == 7339)
@@ -119,7 +119,7 @@ import Testing
     }
 }
 
-@Test func configStoreLoadsYamlAndExposesReloadingServiceWhenConfigFileIsSet() async throws {
+@Test func `config store loads yaml and exposes reloading service when config file is set`() async throws {
     let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: configDirectory, withIntermediateDirectories: true)
@@ -157,7 +157,7 @@ import Testing
     #expect(initialConfig.server.completedJobMaxCount == 25)
 }
 
-@Test func hostReportsAndPersistsRuntimeConfigurationState() async throws {
+@Test func `host reports and persists runtime configuration state`() async throws {
     let runtime = MockRuntime()
     let state = await MainActor.run { ServerState() }
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -165,13 +165,13 @@ import Testing
         .appendingPathComponent("profiles", isDirectory: true)
     let configurationStore = RuntimeConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
-        activeRuntimeSpeechBackend: .qwen3
+        activeRuntimeSpeechBackend: .qwen3,
     )
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
         runtimeConfigurationStore: configurationStore,
-        state: state
+        state: state,
     )
 
     let initialSnapshot = await host.runtimeConfigurationSnapshot()
@@ -201,7 +201,7 @@ import Testing
     #expect(hostStateSnapshot.runtimeConfiguration == updatedSnapshot)
 }
 
-@Test func hostReportsLiveBackendSwitchWithoutMutatingNextStartupConfiguration() async throws {
+@Test func `host reports live backend switch without mutating next startup configuration`() async throws {
     let runtime = MockRuntime()
     let state = await MainActor.run { ServerState() }
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -209,13 +209,13 @@ import Testing
         .appendingPathComponent("profiles", isDirectory: true)
     let configurationStore = RuntimeConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
-        activeRuntimeSpeechBackend: .qwen3
+        activeRuntimeSpeechBackend: .qwen3,
     )
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
         runtimeConfigurationStore: configurationStore,
-        state: state
+        state: state,
     )
 
     let response = try await host.switchSpeechBackend(to: .marvis)
@@ -234,13 +234,13 @@ import Testing
     #expect(statusSnapshot.runtimeConfiguration == runtimeConfiguration)
 }
 
-@Test func hostPersistsDefaultVoiceProfileSelectionAcrossRestart() async throws {
+@Test func `host persists default voice profile selection across restart`() async throws {
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
     let configurationStore = RuntimeConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
-        activeRuntimeSpeechBackend: .qwen3
+        activeRuntimeSpeechBackend: .qwen3,
     )
 
     do {
@@ -250,7 +250,7 @@ import Testing
             configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
             runtime: runtime,
             runtimeConfigurationStore: configurationStore,
-            state: state
+            state: state,
         )
 
         let selectedProfileName = try await host.setDefaultVoiceProfileName("persisted-default")
@@ -269,7 +269,7 @@ import Testing
             configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
             runtime: runtime,
             runtimeConfigurationStore: configurationStore,
-            state: state
+            state: state,
         )
 
         #expect(await restartedHost.defaultVoiceProfileName() == "persisted-default")
@@ -280,7 +280,7 @@ import Testing
     }
 }
 
-@Test func runtimeConfigurationStoreReportsInvalidPersistedConfiguration() async throws {
+@Test func `runtime configuration store reports invalid persisted configuration`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
@@ -289,7 +289,7 @@ import Testing
         .appendingPathComponent("configuration.json", isDirectory: false)
     try FileManager.default.createDirectory(
         at: configurationURL.deletingLastPathComponent(),
-        withIntermediateDirectories: true
+        withIntermediateDirectories: true,
     )
     try """
     { this is not valid json }
@@ -297,7 +297,7 @@ import Testing
 
     let store = RuntimeConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-        activeRuntimeSpeechBackend: .qwen3
+        activeRuntimeSpeechBackend: .qwen3,
     )
 
     let snapshot = store.snapshot()
@@ -311,7 +311,7 @@ import Testing
     #expect(snapshot.persistedConfigurationError?.contains("Likely cause") == true)
 }
 
-@Test func runtimeConfigurationStoreEnvironmentOverrideBeatsPersistedBackend() async throws {
+@Test func `runtime configuration store environment override beats persisted backend`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
@@ -320,7 +320,7 @@ import Testing
             "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path,
             "SPEAKSWIFTLY_SPEECH_BACKEND": "marvis",
         ],
-        activeRuntimeSpeechBackend: .marvis
+        activeRuntimeSpeechBackend: .marvis,
     )
 
     _ = try store.saveDefaultVoiceProfileName("persisted-femme")
@@ -338,12 +338,12 @@ import Testing
     #expect(snapshot.activeRuntimeMatchesNextRuntime == true)
 }
 
-@Test func runtimeConfigurationStoreNormalizesBlankDefaultVoiceProfileName() throws {
+@Test func `runtime configuration store normalizes blank default voice profile name`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
     let store = RuntimeConfigurationStore(
-        environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path]
+        environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
     )
 
     let snapshot = try store.saveDefaultVoiceProfileName("   \n\t  ")

@@ -1,19 +1,19 @@
 import Foundation
 import Logging
 import ServiceLifecycle
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Host Lifecycle Tests
 
 @available(macOS 14, *)
-@Test func embeddedServerSessionPublishesObservableStateForAppConsumers() async throws {
+@Test func `embedded server session publishes observable state for app consumers`() async throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
     let session = try await EmbeddedServerSession.start(
         environment: ["APP_ENV": "test"],
-        options: .init(port: 7811, runtimeProfileRootURL: runtimeProfileRootURL)
+        options: .init(port: 7811, runtimeProfileRootURL: runtimeProfileRootURL),
     ) { environment, state in
         #expect(environment["APP_ENV"] == "test")
         #expect(environment["APP_PORT"] == "7811")
@@ -34,7 +34,7 @@ import Testing
                 profileCacheState: "fresh",
                 profileCacheWarning: nil,
                 profileCount: 1,
-                lastProfileRefreshAt: "2026-04-07T12:00:00Z"
+                lastProfileRefreshAt: "2026-04-07T12:00:00Z",
             )
             state.voiceProfiles = [
                 .init(
@@ -42,7 +42,7 @@ import Testing
                     vibe: "femme",
                     createdAt: "2026-04-07T12:00:00Z",
                     voiceDescription: "Warm and steady.",
-                    sourceText: "Reference text."
+                    sourceText: "Reference text.",
                 ),
             ]
             state.playback = PlaybackStatusSnapshot(
@@ -51,7 +51,7 @@ import Testing
                 isStableForConcurrentGeneration: true,
                 isRebuffering: false,
                 stableBufferedAudioMS: 320,
-                stableBufferTargetMS: 400
+                stableBufferTargetMS: 400,
             )
             state.currentGenerationJobs = [
                 CurrentGenerationJobSnapshot(
@@ -61,7 +61,7 @@ import Testing
                     submittedAt: "2026-04-07T12:00:00Z",
                     startedAt: "2026-04-07T12:00:01Z",
                     latestStage: "speaking",
-                    elapsedGenerationSeconds: 0.25
+                    elapsedGenerationSeconds: 0.25,
                 ),
             ]
             state.transports = [
@@ -72,14 +72,14 @@ import Testing
                     host: "127.0.0.1",
                     port: 7811,
                     path: nil,
-                    advertisedAddress: "http://127.0.0.1:7811"
+                    advertisedAddress: "http://127.0.0.1:7811",
                 ),
             ]
         }
 
         return .init(
             requestStop: {},
-            waitUntilStopped: {}
+            waitUntilStopped: {},
         )
     }
 
@@ -102,7 +102,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func embeddedServerSessionRequestsGracefulStopOnlyOnce() async throws {
+@Test func `embedded server session requests graceful stop only once`() async throws {
     let probe = EmbeddedSessionLifecycleProbe()
     let session = try await EmbeddedServerSession.start(environment: [:]) { _, _ in
         .init(
@@ -111,7 +111,7 @@ import Testing
             },
             waitUntilStopped: {
                 await probe.recordWaitUntilStopped()
-            }
+            },
         )
     }
 
@@ -124,7 +124,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostLifecycleServiceWaitsForSiblingShutdownBeforeStoppingRuntime() async throws {
+@Test func `host lifecycle service waits for sibling shutdown before stopping runtime`() async throws {
     let runtime = MockRuntime()
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
@@ -134,24 +134,24 @@ import Testing
             enabled: false,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         ),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
     let readinessGate = EmbeddedLifecycleReadinessGate()
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
     let service = HostLifecycleService(
         host: host,
         readinessGate: readinessGate,
-        shutdownBarrier: shutdownBarrier
+        shutdownBarrier: shutdownBarrier,
     )
     let serviceGroup = ServiceGroup(
         services: [service],
         gracefulShutdownSignals: [],
         cancellationSignals: [],
-        logger: Logger(label: "ServerTests.HostLifecycle")
+        logger: Logger(label: "ServerTests.HostLifecycle"),
     )
 
     let runTask = Task {
@@ -177,7 +177,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostStartWaitsForRuntimeStartToFinish() async throws {
+@Test func `host start waits for runtime start to finish`() async {
     actor StartCompletionProbe {
         private(set) var didFinish = false
 
@@ -192,7 +192,7 @@ import Testing
         configuration: testConfiguration(),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
     let probe = StartCompletionProbe()
 
@@ -215,14 +215,14 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostShutdownCancelsTrackedRequestMonitorTasks() async throws {
+@Test func `host shutdown cancels tracked request monitor tasks`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -240,7 +240,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostPruneServiceCancelsOnGracefulShutdownAndMarksShutdownBarrier() async throws {
+@Test func `host prune service cancels on graceful shutdown and marks shutdown barrier`() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration(jobPruneIntervalSeconds: 60)
     let state = await MainActor.run { ServerState() }
@@ -248,18 +248,18 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
     let service = HostPruneService(
         host: host,
-        shutdownBarrier: shutdownBarrier
+        shutdownBarrier: shutdownBarrier,
     )
     let serviceGroup = ServiceGroup(
         services: [service],
         gracefulShutdownSignals: [],
         cancellationSignals: [],
-        logger: Logger(label: "ServerTests.HostPrune")
+        logger: Logger(label: "ServerTests.HostPrune"),
     )
 
     let runTask = Task {
@@ -273,7 +273,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func embeddedApplicationServiceMarksShutdownBarrierWhenWrappedServiceFails() async throws {
+@Test func `embedded application service marks shutdown barrier when wrapped service fails`() async throws {
     struct FailingService: Service {
         struct ExpectedFailure: Error {}
 
@@ -285,7 +285,7 @@ import Testing
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
     let service = EmbeddedApplicationService(
         application: FailingService(),
-        shutdownBarrier: shutdownBarrier
+        shutdownBarrier: shutdownBarrier,
     )
 
     await #expect(throws: FailingService.ExpectedFailure.self) {
@@ -296,7 +296,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostPublishesTypedEventsForServerConsumers() async throws {
+@Test func `host publishes typed events for server consumers`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -307,11 +307,11 @@ import Testing
             enabled: true,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         ),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     let events = await host.eventUpdates()
@@ -332,29 +332,30 @@ import Testing
     let deadline = ContinuousClock.now + .seconds(1)
     while ContinuousClock.now < deadline {
         guard let event = await iterator.next() else { break }
+
         switch event {
-        case .transportChanged(let snapshot):
-            if snapshot.name == "http", snapshot.state == "starting" {
-                sawTransportChange = true
-            }
-        case .profileCacheChanged(let snapshot):
-            if snapshot.state == "fresh", snapshot.profileCount == 1 {
-                sawProfileCacheChange = true
-            }
-        case .jobChanged(let snapshot):
-            if snapshot.jobID == jobID {
-                sawJobChange = true
-            }
-        case .jobEvent(let update):
-            if update.jobID == jobID {
-                sawJobEvent = true
-            }
-        case .playbackChanged(let snapshot):
-            if snapshot.state == "playing" {
-                sawPlaybackChange = true
-            }
-        case .textProfilesChanged, .runtimeConfigurationChanged, .recentErrorRecorded:
-            break
+            case let .transportChanged(snapshot):
+                if snapshot.name == "http", snapshot.state == "starting" {
+                    sawTransportChange = true
+                }
+            case let .profileCacheChanged(snapshot):
+                if snapshot.state == "fresh", snapshot.profileCount == 1 {
+                    sawProfileCacheChange = true
+                }
+            case let .jobChanged(snapshot):
+                if snapshot.jobID == jobID {
+                    sawJobChange = true
+                }
+            case let .jobEvent(update):
+                if update.jobID == jobID {
+                    sawJobEvent = true
+                }
+            case let .playbackChanged(snapshot):
+                if snapshot.state == "playing" {
+                    sawPlaybackChange = true
+                }
+            case .textProfilesChanged, .runtimeConfigurationChanged, .recentErrorRecorded:
+                break
         }
 
         if sawTransportChange, sawProfileCacheChange, sawJobChange, sawJobEvent, sawPlaybackChange {
@@ -373,7 +374,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostTracksTransportLifecycleBeyondStaticConfiguration() async throws {
+@Test func `host tracks transport lifecycle beyond static configuration`() async {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -384,11 +385,11 @@ import Testing
             enabled: true,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         ),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     let initial = await host.hostStateSnapshot()
@@ -404,7 +405,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostAppliesSafeLiveConfigurationChangesAndReportsRestartRequiredOnes() async throws {
+@Test func `host applies safe live configuration changes and reports restart required ones`() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration(completedJobMaxCount: 2)
     let state = await MainActor.run { ServerState() }
@@ -415,11 +416,11 @@ import Testing
             enabled: true,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         ),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -442,21 +443,21 @@ import Testing
                 sseHeartbeatSeconds: 0.01,
                 completedJobTTLSeconds: configuration.completedJobTTLSeconds,
                 completedJobMaxCount: 1,
-                jobPruneIntervalSeconds: 0.01
+                jobPruneIntervalSeconds: 0.01,
             ),
             http: .init(
                 enabled: true,
                 host: "0.0.0.0",
                 port: 7999,
-                sseHeartbeatSeconds: 5
+                sseHeartbeatSeconds: 5,
             ),
             mcp: .init(
                 enabled: true,
                 path: "/assistant/mcp",
                 serverName: "new-mcp-name",
-                title: "New MCP Title"
-            )
-        )
+                title: "New MCP Title",
+            ),
+        ),
     )
 
     let hostState = await host.hostStateSnapshot()
@@ -477,7 +478,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostRecordsRejectedConfigurationReloadsClearly() async throws {
+@Test func `host records rejected configuration reloads clearly`() async {
     let runtime = MockRuntime()
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -485,7 +486,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.markConfigurationReloadRejected("Configuration value 'APP_PORT' could not be loaded: invalid integer.")
@@ -499,7 +500,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func appManagedDefaultVoiceProfileOverrideSurvivesConfigurationReload() async throws {
+@Test func `app managed default voice profile override survives configuration reload`() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration(defaultVoiceProfileName: "configured-default")
     let state = await MainActor.run { ServerState() }
@@ -507,7 +508,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -528,11 +529,11 @@ import Testing
                 sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
                 completedJobTTLSeconds: configuration.completedJobTTLSeconds,
                 completedJobMaxCount: configuration.completedJobMaxCount,
-                jobPruneIntervalSeconds: configuration.jobPruneIntervalSeconds
+                jobPruneIntervalSeconds: configuration.jobPruneIntervalSeconds,
             ),
             http: testHTTPConfig(configuration),
-            mcp: .init(enabled: false, path: "/mcp", serverName: "speak-swiftly-mcp", title: "SpeakSwiftly")
-        )
+            mcp: .init(enabled: false, path: "/mcp", serverName: "speak-swiftly-mcp", title: "SpeakSwiftly"),
+        ),
     )
 
     #expect(await host.defaultVoiceProfileName() == "app-selected-default")

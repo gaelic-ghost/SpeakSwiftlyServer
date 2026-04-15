@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - MCP Models
 
-struct MCPAcceptedRequestResult: Codable, Sendable {
+struct MCPAcceptedRequestResult: Codable {
     let requestID: String
     let requestResourceURI: String
     let statusResourceURI: String

@@ -1,20 +1,20 @@
 import Foundation
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Tool Tests
 
-@Test func toolParsesLaunchAgentInstallAndDefaultsToStagedReleaseArtifact() throws {
+@Test func `tool parses launch agent install and defaults to staged release artifact`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let currentDirectory = tempDirectory.path
     try FileManager.default.createDirectory(
         at: tempDirectory.appendingPathComponent("Sources/SpeakSwiftlyServerTool", isDirectory: true),
-        withIntermediateDirectories: true
+        withIntermediateDirectories: true,
     )
     try "// test package\n".write(
         to: tempDirectory.appendingPathComponent("Package.swift"),
         atomically: true,
-        encoding: .utf8
+        encoding: .utf8,
     )
 
     let stagedToolURL = tempDirectory
@@ -37,11 +37,11 @@ import Testing
             "--reload-interval-seconds", "2",
         ],
         currentDirectoryPath: currentDirectory,
-        currentExecutablePath: currentToolURL.path
+        currentExecutablePath: currentToolURL.path,
     )
 
-    guard case .launchAgent(let launchAgentCommand) = command,
-          case .install(let options) = launchAgentCommand.action else {
+    guard case let .launchAgent(launchAgentCommand) = command,
+          case let .install(options) = launchAgentCommand.action else {
         Issue.record("Expected the tool parser to produce a launch-agent install command.")
         return
     }
@@ -51,54 +51,54 @@ import Testing
     #expect(options.reloadIntervalSeconds == "2")
 }
 
-@Test func toolParsesServeProfileRootOption() throws {
+@Test func `tool parses serve profile root option`() throws {
     let tempDirectory = try makeTemporaryDirectory()
 
     let command = try SpeakSwiftlyServerToolCommand.parse(
         arguments: ["serve", "--profile-root", "./runtime/profiles"],
-        currentDirectoryPath: tempDirectory.path
+        currentDirectoryPath: tempDirectory.path,
     )
 
-    guard case .serve(let options) = command else {
+    guard case let .serve(options) = command else {
         Issue.record("Expected the tool parser to produce a serve command.")
         return
     }
 
     #expect(
         options.runtimeProfileRootPath
-            == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path
+            == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path,
     )
 }
 
-@Test func toolTreatsBareServeOptionsAsServeCommand() throws {
+@Test func `tool treats bare serve options as serve command`() throws {
     let tempDirectory = try makeTemporaryDirectory()
 
     let command = try SpeakSwiftlyServerToolCommand.parse(
         arguments: ["--profile-root", "./runtime/profiles"],
-        currentDirectoryPath: tempDirectory.path
+        currentDirectoryPath: tempDirectory.path,
     )
 
-    guard case .serve(let options) = command else {
+    guard case let .serve(options) = command else {
         Issue.record("Expected bare serve options to parse as the serve command.")
         return
     }
 
     #expect(
         options.runtimeProfileRootPath
-            == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path
+            == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path,
     )
 }
 
-@Test func toolRejectsInstallWhenStagedReleaseArtifactIsMissing() throws {
+@Test func `tool rejects install when staged release artifact is missing`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     try FileManager.default.createDirectory(
         at: tempDirectory.appendingPathComponent("Sources/SpeakSwiftlyServerTool", isDirectory: true),
-        withIntermediateDirectories: true
+        withIntermediateDirectories: true,
     )
     try "// test package\n".write(
         to: tempDirectory.appendingPathComponent("Package.swift"),
         atomically: true,
-        encoding: .utf8
+        encoding: .utf8,
     )
 
     let currentToolURL = tempDirectory.appendingPathComponent("bin/SpeakSwiftlyServerTool")
@@ -110,12 +110,12 @@ import Testing
         try SpeakSwiftlyServerToolCommand.parse(
             arguments: ["launch-agent", "install"],
             currentDirectoryPath: tempDirectory.path,
-            currentExecutablePath: currentToolURL.path
+            currentExecutablePath: currentToolURL.path,
         )
     }
 }
 
-@Test func launchAgentPropertyListIncludesServeCommandAndEnvironmentOverrides() throws {
+@Test func `launch agent property list includes serve command and environment overrides`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let executableURL = tempDirectory.appendingPathComponent("SpeakSwiftlyServerTool")
     try "#!/bin/sh\nexit 0\n".write(to: executableURL, atomically: true, encoding: .utf8)
@@ -129,7 +129,7 @@ import Testing
         workingDirectory: tempDirectory.path,
         profileRootPath: tempDirectory.appendingPathComponent("runtime/profiles").path,
         standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
-        standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path
+        standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path,
     )
 
     let propertyList = options.propertyList()
@@ -145,7 +145,7 @@ import Testing
     #expect(environment[AppRuntimeDefaultProfile.environmentKey] == AppRuntimeDefaultProfile.launchAgent.rawValue)
 }
 
-@Test func launchAgentInstallWritesPlistAndBootstrapsService() throws {
+@Test func `launch agent install writes plist and bootstraps service`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let executableURL = tempDirectory.appendingPathComponent("SpeakSwiftlyServerTool")
     let plistURL = tempDirectory.appendingPathComponent("LaunchAgents/com.example.test.plist")
@@ -193,7 +193,7 @@ import Testing
         standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
         standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path,
         launchctlPath: fakeLaunchctlURL.path,
-        userDomain: "gui/501"
+        userDomain: "gui/501",
     )
 
     try options.install()
@@ -204,7 +204,7 @@ import Testing
     #expect(launchctlLog.contains("bootstrap gui/501 \(plistURL.path)"))
 }
 
-@Test func launchAgentInstallWaitsForBootoutAndRetriesBootstrapRace() throws {
+@Test func `launch agent install waits for bootout and retries bootstrap race`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let executableURL = tempDirectory.appendingPathComponent("SpeakSwiftlyServerTool")
     let plistURL = tempDirectory.appendingPathComponent("LaunchAgents/com.example.test.plist")
@@ -268,7 +268,7 @@ import Testing
         standardOutPath: tempDirectory.appendingPathComponent("logs/stdout.log").path,
         standardErrorPath: tempDirectory.appendingPathComponent("logs/stderr.log").path,
         launchctlPath: fakeLaunchctlURL.path,
-        userDomain: "gui/501"
+        userDomain: "gui/501",
     )
 
     try options.install()
@@ -281,7 +281,7 @@ import Testing
     #expect(bootstrapAttempts == "2")
 }
 
-@Test func launchAgentUninstallBootsOutLoadedServiceAndRemovesPlist() throws {
+@Test func `launch agent uninstall boots out loaded service and removes plist`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let plistURL = tempDirectory.appendingPathComponent("LaunchAgents/com.example.test.plist")
     let logURL = tempDirectory.appendingPathComponent("launchctl.log")
@@ -320,7 +320,7 @@ import Testing
         label: "com.example.test",
         plistPath: plistURL.path,
         launchctlPath: fakeLaunchctlURL.path,
-        userDomain: "gui/501"
+        userDomain: "gui/501",
     )
 
     try options.uninstall()

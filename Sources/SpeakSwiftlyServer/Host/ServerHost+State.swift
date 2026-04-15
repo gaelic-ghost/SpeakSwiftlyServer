@@ -9,10 +9,10 @@ extension ServerHost {
     func requestPublish(mode: PublishMode, refreshRuntimeState: Bool) async {
         pendingRuntimeRefresh = pendingRuntimeRefresh || refreshRuntimeState
         switch mode {
-        case .immediate:
-            immediatePublishContinuation.yield(())
-        case .coalesced:
-            coalescedPublishContinuation.yield(())
+            case .immediate:
+                immediatePublishContinuation.yield(())
+            case .coalesced:
+                coalescedPublishContinuation.yield(())
         }
     }
 
@@ -45,17 +45,17 @@ extension ServerHost {
 
     func shouldRefreshRuntimeDerivedState(
         after event: ServerJobEvent,
-        terminal: Bool
+        terminal: Bool,
     ) -> Bool {
         if terminal {
             return true
         }
 
         switch event {
-        case .queued, .started, .progress:
-            return true
-        case .workerStatus, .acknowledged, .completed, .failed:
-            return false
+            case .queued, .started, .progress:
+                return true
+            case .workerStatus, .acknowledged, .completed, .failed:
+                return false
         }
     }
 
@@ -71,7 +71,7 @@ extension ServerHost {
                 sequenceID: refreshSequenceID,
                 startedAt: startedAt,
                 previousPlaybackStatus: previousPlaybackStatus,
-                source: "cached_worker_not_ready"
+                source: "cached_worker_not_ready",
             )
             return
         }
@@ -87,19 +87,19 @@ extension ServerHost {
                 generationQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
                 playbackQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
                 playbackStateRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-                completedAt: TimestampFormatter.string(from: Date())
+                completedAt: TimestampFormatter.string(from: Date()),
             )
         } catch {
             recordRecentError(
                 source: "runtime:overview",
                 code: "runtime_overview_failed",
-                message: "SpeakSwiftlyServer could not refresh the atomic runtime overview snapshot. Likely cause: \(error.localizedDescription)"
+                message: "SpeakSwiftlyServer could not refresh the atomic runtime overview snapshot. Likely cause: \(error.localizedDescription)",
             )
             applyCachedRuntimeDerivedState(
                 sequenceID: refreshSequenceID,
                 startedAt: startedAt,
                 previousPlaybackStatus: previousPlaybackStatus,
-                source: "cached_runtime_overview_failed"
+                source: "cached_runtime_overview_failed",
             )
             return
         }
@@ -113,6 +113,7 @@ extension ServerHost {
         guard pendingRuntimeRefresh else {
             return
         }
+
         pendingRuntimeRefresh = false
         await refreshRuntimeDerivedState()
     }
@@ -121,7 +122,7 @@ extension ServerHost {
         sequenceID: Int,
         startedAt: Date,
         previousPlaybackStatus: PlaybackStatusSnapshot,
-        source: String
+        source: String,
     ) {
         if source == "cached_worker_not_ready" {
             playbackQueueStatus = .init(
@@ -130,7 +131,7 @@ extension ServerHost {
                 queuedCount: 0,
                 activeRequest: nil,
                 activeRequests: [],
-                queuedRequests: []
+                queuedRequests: [],
             )
             playbackStatus = .init(
                 state: SpeakSwiftly.PlaybackState.idle.rawValue,
@@ -138,7 +139,7 @@ extension ServerHost {
                 isStableForConcurrentGeneration: false,
                 isRebuffering: false,
                 stableBufferedAudioMS: nil,
-                stableBufferTargetMS: nil
+                stableBufferTargetMS: nil,
             )
         }
         let refreshedAt = Date()
@@ -149,7 +150,7 @@ extension ServerHost {
             generationQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
             playbackQueueRefreshedAt: TimestampFormatter.string(from: refreshedAt),
             playbackStateRefreshedAt: TimestampFormatter.string(from: refreshedAt),
-            completedAt: TimestampFormatter.string(from: refreshedAt)
+            completedAt: TimestampFormatter.string(from: refreshedAt),
         )
         if playbackStatus != previousPlaybackStatus {
             hostEventContinuation.yield(.playbackChanged(playbackStatus))
@@ -163,14 +164,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the runtime overview request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing the atomic runtime overview snapshot."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing the atomic runtime overview snapshot.",
         )
         guard let overview = success.runtimeOverview else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the runtime overview request, but it did not return a runtime_overview payload."
+                message: "SpeakSwiftly accepted the runtime overview request, but it did not return a runtime_overview payload.",
             )
         }
+
         generationQueueStatus = queueStatusSnapshot(from: overview.generationQueue)
         playbackQueueStatus = queueStatusSnapshot(from: overview.playbackQueue)
         playbackStatus = PlaybackStatusSnapshot(summary: overview.playbackState)
@@ -187,44 +189,46 @@ extension ServerHost {
                 submittedAt: TimestampFormatter.string(from: job.submittedAt),
                 startedAt: job.startedAt.map(TimestampFormatter.string(from:)),
                 latestStage: latestStage(for: job.latestEvent),
-                elapsedGenerationSeconds: job.startedAt.map { max(0, Date().timeIntervalSince($0)) }
+                elapsedGenerationSeconds: job.startedAt.map { max(0, Date().timeIntervalSince($0)) },
             )
         }
     }
 
     func activeGenerationJobRecords() -> [JobRecord] {
-        generationQueueStatus.activeRequests.compactMap { activeRequest in
-            guard let job = jobs[activeRequest.id], isGenerationOperation(job.op), job.terminalEvent == nil else {
-                return nil
+        generationQueueStatus.activeRequests
+            .compactMap { activeRequest in
+                guard let job = jobs[activeRequest.id], isGenerationOperation(job.op), job.terminalEvent == nil else {
+                    return nil
+                }
+
+                return job
             }
-            return job
-        }
-        .sorted(by: generationJobOrdering)
+            .sorted(by: generationJobOrdering)
     }
 
     func generationPriority(for job: JobRecord) -> Int {
         switch latestOperationalEvent(for: job) {
-        case .progress, .started:
-            3
-        case .acknowledged:
-            2
-        case .queued:
-            1
-        default:
-            0
+            case .progress, .started:
+                3
+            case .acknowledged:
+                2
+            case .queued:
+                1
+            default:
+                0
         }
     }
 
     func latestStage(for event: ServerJobEvent?) -> String? {
         switch event {
-        case .progress(let event):
-            event.stage
-        case .started(let event):
-            event.op
-        case .queued(let event):
-            event.reason
-        default:
-            nil
+            case let .progress(event):
+                event.stage
+            case let .started(event):
+                event.op
+            case let .queued(event):
+                event.reason
+            default:
+                nil
         }
     }
 
@@ -252,8 +256,7 @@ extension ServerHost {
             configuration.sseHeartbeatSeconds != appConfig.server.sseHeartbeatSeconds ||
             configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
             configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount ||
-            configuration.jobPruneIntervalSeconds != appConfig.server.jobPruneIntervalSeconds
-        {
+            configuration.jobPruneIntervalSeconds != appConfig.server.jobPruneIntervalSeconds {
             shouldPruneCompletedJobs =
                 configuration.completedJobTTLSeconds != appConfig.server.completedJobTTLSeconds ||
                 configuration.completedJobMaxCount != appConfig.server.completedJobMaxCount
@@ -267,7 +270,7 @@ extension ServerHost {
                 sseHeartbeatSeconds: appConfig.server.sseHeartbeatSeconds,
                 completedJobTTLSeconds: appConfig.server.completedJobTTLSeconds,
                 completedJobMaxCount: appConfig.server.completedJobMaxCount,
-                jobPruneIntervalSeconds: appConfig.server.jobPruneIntervalSeconds
+                jobPruneIntervalSeconds: appConfig.server.jobPruneIntervalSeconds,
             )
             didChange = true
         }

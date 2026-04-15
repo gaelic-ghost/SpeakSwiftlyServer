@@ -32,7 +32,7 @@ extension ServerHost {
             currentGenerationJobs: hostState.currentGenerationJobs,
             runtimeConfiguration: hostState.runtimeConfiguration,
             transports: hostState.transports,
-            recentErrors: hostState.recentErrors
+            recentErrors: hostState.recentErrors,
         )
     }
 
@@ -40,18 +40,18 @@ extension ServerHost {
         runtimeConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
-            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
     }
 
     func saveRuntimeConfiguration(
-        speechBackend: SpeakSwiftly.SpeechBackend
+        speechBackend: SpeakSwiftly.SpeechBackend,
     ) async throws -> RuntimeConfigurationSnapshot {
         let snapshot = try runtimeConfigurationStore.save(
             speechBackend: speechBackend,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
-            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(snapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -87,14 +87,15 @@ extension ServerHost {
         let normalizedProfileName = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedProfileName.isEmpty else {
             throw ServerConfigurationError(
-                "SpeakSwiftlyServer could not set the default voice profile because the requested profile name was empty."
+                "SpeakSwiftlyServer could not set the default voice profile because the requested profile name was empty.",
             )
         }
+
         activeDefaultVoiceProfileName = normalizedProfileName
         let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
             normalizedProfileName,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -107,7 +108,7 @@ extension ServerHost {
         let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
             nil,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -120,17 +121,17 @@ extension ServerHost {
 
     func textProfilesSnapshot() async -> TextProfilesSnapshot {
         let builtInStyle = await runtime.builtInTextProfileStyle()
-        return .init(
+        return await .init(
             builtInStyle: builtInStyle.rawValue,
-            baseProfile: .init(profile: await runtime.baseTextProfile()),
-            activeProfile: .init(profile: await runtime.activeTextProfile()),
-            storedProfiles: (await runtime.textProfiles()).map(TextProfileSnapshot.init(profile:)),
-            effectiveProfile: .init(profile: await runtime.effectiveTextProfile(id: nil))
+            baseProfile: .init(profile: runtime.baseTextProfile()),
+            activeProfile: .init(profile: runtime.activeTextProfile()),
+            storedProfiles: (runtime.textProfiles()).map(TextProfileSnapshot.init(profile:)),
+            effectiveProfile: .init(profile: runtime.effectiveTextProfile(id: nil)),
         )
     }
 
     func textProfileStyleSnapshot() async -> TextProfileStyleSnapshot {
-        .init(style: await runtime.builtInTextProfileStyle())
+        await .init(style: runtime.builtInTextProfileStyle())
     }
 
     func storedTextProfile(_ profileID: String) async -> TextProfileSnapshot? {
@@ -138,13 +139,13 @@ extension ServerHost {
     }
 
     func effectiveTextProfile(_ profileID: String?) async -> TextProfileSnapshot {
-        .init(profile: await runtime.effectiveTextProfile(id: profileID))
+        await .init(profile: runtime.effectiveTextProfile(id: profileID))
     }
 
     func createTextProfile(
         id: String,
         name: String,
-        replacements: [TextForSpeech.Replacement]
+        replacements: [TextForSpeech.Replacement],
     ) async throws -> TextProfileSnapshot {
         let profile = try await runtime.createTextProfile(id: id, named: name, replacements: replacements)
         await emitTextProfilesChanged()
@@ -167,7 +168,7 @@ extension ServerHost {
     }
 
     func setTextProfileStyle(
-        _ style: TextForSpeech.BuiltInProfileStyle
+        _ style: TextForSpeech.BuiltInProfileStyle,
     ) async throws -> TextProfilesSnapshot {
         _ = try await runtime.setBuiltInTextProfileStyle(style)
         await emitTextProfilesChanged()
@@ -207,13 +208,12 @@ extension ServerHost {
 
     func addTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        toStoredTextProfileID profileID: String? = nil
+        toStoredTextProfileID profileID: String? = nil,
     ) async throws -> TextProfileSnapshot {
-        let profile: TextForSpeech.Profile
-        if let profileID {
-            profile = try await runtime.addTextReplacement(replacement, toStoredTextProfileID: profileID)
+        let profile: TextForSpeech.Profile = if let profileID {
+            try await runtime.addTextReplacement(replacement, toStoredTextProfileID: profileID)
         } else {
-            profile = try await runtime.addTextReplacement(replacement)
+            try await runtime.addTextReplacement(replacement)
         }
         await emitTextProfilesChanged()
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -222,13 +222,12 @@ extension ServerHost {
 
     func replaceTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        inStoredTextProfileID profileID: String? = nil
+        inStoredTextProfileID profileID: String? = nil,
     ) async throws -> TextProfileSnapshot {
-        let profile: TextForSpeech.Profile
-        if let profileID {
-            profile = try await runtime.replaceTextReplacement(replacement, inStoredTextProfileID: profileID)
+        let profile: TextForSpeech.Profile = if let profileID {
+            try await runtime.replaceTextReplacement(replacement, inStoredTextProfileID: profileID)
         } else {
-            profile = try await runtime.replaceTextReplacement(replacement)
+            try await runtime.replaceTextReplacement(replacement)
         }
         await emitTextProfilesChanged()
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -237,13 +236,12 @@ extension ServerHost {
 
     func removeTextReplacement(
         id replacementID: String,
-        fromStoredTextProfileID profileID: String? = nil
+        fromStoredTextProfileID profileID: String? = nil,
     ) async throws -> TextProfileSnapshot {
-        let profile: TextForSpeech.Profile
-        if let profileID {
-            profile = try await runtime.removeTextReplacement(id: replacementID, fromStoredTextProfileID: profileID)
+        let profile: TextForSpeech.Profile = if let profileID {
+            try await runtime.removeTextReplacement(id: replacementID, fromStoredTextProfileID: profileID)
         } else {
-            profile = try await runtime.removeTextReplacement(id: replacementID)
+            try await runtime.removeTextReplacement(id: replacementID)
         }
         await emitTextProfilesChanged()
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -267,7 +265,7 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-jobs request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation jobs."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation jobs.",
         )
         return success.generationJobs ?? []
     }
@@ -277,14 +275,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-job request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation job '\(jobID)'."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation job '\(jobID)'.",
         )
         guard let generationJob = success.generationJob else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generation-job request for '\(jobID)', but it did not return a generation_job payload."
+                message: "SpeakSwiftly accepted the generation-job request for '\(jobID)', but it did not return a generation_job payload.",
             )
         }
+
         return generationJob
     }
 
@@ -293,14 +292,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-job expiry request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while expiring retained generation job '\(jobID)'."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while expiring retained generation job '\(jobID)'.",
         )
         guard let generationJob = success.generationJob else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generation-job expiry request for '\(jobID)', but it did not return a generation_job payload."
+                message: "SpeakSwiftly accepted the generation-job expiry request for '\(jobID)', but it did not return a generation_job payload.",
             )
         }
+
         return generationJob
     }
 
@@ -309,7 +309,7 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-files request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio files."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio files.",
         )
         return success.generatedFiles ?? []
     }
@@ -319,14 +319,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-file request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio file '\(artifactID)'."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio file '\(artifactID)'.",
         )
         guard let generatedFile = success.generatedFile else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generated-file request for '\(artifactID)', but it did not return a generated_file payload."
+                message: "SpeakSwiftly accepted the generated-file request for '\(artifactID)', but it did not return a generated_file payload.",
             )
         }
+
         return generatedFile
     }
 
@@ -335,7 +336,7 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-batches request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio batches."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio batches.",
         )
         return success.generatedBatches ?? []
     }
@@ -345,14 +346,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generated-batch request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio batch '\(batchID)'."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio batch '\(batchID)'.",
         )
         guard let generatedBatch = success.generatedBatch else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generated-batch request for '\(batchID)', but it did not return a generated_batch payload."
+                message: "SpeakSwiftly accepted the generated-batch request for '\(batchID)', but it did not return a generated_batch payload.",
             )
         }
+
         return generatedBatch
     }
 
@@ -361,14 +363,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the runtime-status request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading runtime status."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading runtime status.",
         )
         guard let status = success.status else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the runtime-status request, but it did not return a status payload."
+                message: "SpeakSwiftly accepted the runtime-status request, but it did not return a status payload.",
             )
         }
+
         return .init(status: status)
     }
 
@@ -377,17 +380,18 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the speech-backend switch request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while switching the active speech backend."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while switching the active speech backend.",
         )
         guard let resolvedSpeechBackend = success.speechBackend else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a speech_backend payload."
+                message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a speech_backend payload.",
             )
         }
+
         activeRuntimeSpeechBackend = resolvedSpeechBackend
         let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
-            activeRuntimeSpeechBackend: resolvedSpeechBackend
+            activeRuntimeSpeechBackend: resolvedSpeechBackend,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -396,15 +400,15 @@ extension ServerHost {
 
     func reloadModels() async throws -> RuntimeStatusResponse {
         try await runtimeStatusResponse(
-            handle: await runtime.reloadModels(),
-            requestName: "reload-models"
+            handle: runtime.reloadModels(),
+            requestName: "reload-models",
         )
     }
 
     func unloadModels() async throws -> RuntimeStatusResponse {
         try await runtimeStatusResponse(
-            handle: await runtime.unloadModels(),
-            requestName: "unload-models"
+            handle: runtime.unloadModels(),
+            requestName: "unload-models",
         )
     }
 
@@ -422,17 +426,17 @@ extension ServerHost {
 
     func pausePlayback() async throws -> PlaybackStateResponse {
         try await playbackControlResponse(
-            handle: await runtime.pausePlayback(),
+            handle: runtime.pausePlayback(),
             requestName: "pause-playback",
-            expectedState: .paused
+            expectedState: .paused,
         )
     }
 
     func resumePlayback() async throws -> PlaybackStateResponse {
         try await playbackControlResponse(
-            handle: await runtime.resumePlayback(),
+            handle: runtime.resumePlayback(),
             requestName: "resume-playback",
-            expectedState: .playing
+            expectedState: .playing,
         )
     }
 
@@ -446,7 +450,7 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
         return .init(clearedCount: success.clearedCount ?? 0)
     }
@@ -456,14 +460,15 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
         guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the cancel-request control operation, but it did not report which request was cancelled."
+                message: "SpeakSwiftly accepted the cancel-request control operation, but it did not report which request was cancelled.",
             )
         }
+
         return .init(cancelledRequestID: cancelledRequestID)
     }
 }

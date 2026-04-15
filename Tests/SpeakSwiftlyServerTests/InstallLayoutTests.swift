@@ -1,10 +1,10 @@
 import Foundation
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Install Layout Tests
 
-@Test func installedLogsReadTextLinesAndJSONLinesFromOwnedPaths() throws {
+@Test func `installed logs read text lines and JSON lines from owned paths`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let layout = ServerInstallLayout(
         launchAgentLabel: "com.example.test",
@@ -20,7 +20,7 @@ import Testing
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
         runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
-        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false)
+        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
 
     try FileManager.default.createDirectory(at: layout.logsDirectoryURL, withIntermediateDirectories: true)
@@ -56,7 +56,7 @@ import Testing
     #expect(decoded == [.init(event: "playback_engine_ready", ok: true)])
 }
 
-@Test func installedLogsReturnMissingSnapshotWhenLogFileDoesNotExist() throws {
+@Test func `installed logs return missing snapshot when log file does not exist`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let layout = ServerInstallLayout(
         launchAgentLabel: "com.example.test",
@@ -72,7 +72,7 @@ import Testing
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
         runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
-        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false)
+        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
 
     let snapshot = try ServerInstalledLogs.read(layout: layout)
@@ -83,7 +83,7 @@ import Testing
     #expect(snapshot.stderr.lines.isEmpty)
 }
 
-@Test func launchAgentEnvironmentUsesCacheAliasWhenConfigPathContainsSpaces() throws {
+@Test func `launch agent environment uses cache alias when config path contains spaces`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let layout = ServerInstallLayout(
         launchAgentLabel: "com.example.test",
@@ -99,12 +99,12 @@ import Testing
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
         runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
-        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false)
+        standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
 
     let environmentVariables = layout.launchAgentEnvironmentVariables(
         configFilePath: layout.serverConfigFileURL.path,
-        reloadIntervalSeconds: nil
+        reloadIntervalSeconds: nil,
     )
 
     #expect(environmentVariables["APP_CONFIG_FILE"] == layout.launchAgentConfigAliasURL.path)

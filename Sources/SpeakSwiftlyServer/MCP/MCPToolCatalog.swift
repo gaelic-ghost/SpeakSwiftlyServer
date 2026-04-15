@@ -21,7 +21,7 @@ enum MCPToolCatalog {
                     "nested_source_format": ["type": "string"],
                     "source_format": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "generate_audio_file",
@@ -39,7 +39,7 @@ enum MCPToolCatalog {
                     "nested_source_format": ["type": "string"],
                     "source_format": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "generate_batch",
@@ -51,7 +51,7 @@ enum MCPToolCatalog {
                     "profile_name": ["type": "string"],
                     "items": ["type": "array"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "create_voice_profile_from_description",
@@ -67,7 +67,7 @@ enum MCPToolCatalog {
                     "output_path": ["type": "string"],
                     "cwd": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "create_voice_profile_from_audio",
@@ -82,13 +82,13 @@ enum MCPToolCatalog {
                     "transcript": ["type": "string"],
                     "cwd": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "list_voice_profiles",
             description: "Return the current in-memory snapshot of cached SpeakSwiftly voice profiles.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "update_voice_profile_name",
@@ -100,7 +100,7 @@ enum MCPToolCatalog {
                     "profile_name": ["type": "string"],
                     "new_profile_name": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "reroll_voice_profile",
@@ -111,7 +111,7 @@ enum MCPToolCatalog {
                 "properties": [
                     "profile_name": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "delete_voice_profile",
@@ -122,25 +122,25 @@ enum MCPToolCatalog {
                 "properties": [
                     "profile_name": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "get_runtime_overview",
             description: "Return the shared-host runtime overview with readiness, queues, playback state, transports, and recent errors. This is the best first read when an agent needs orientation.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_runtime_status",
             description: "Return the underlying SpeakSwiftly runtime status event, including stage, resident model state, and active speech backend.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_staged_runtime_config",
             description: "Return the staged persisted runtime-configuration snapshot that will apply on the next runtime start, including the active backend, the next-start backend, and any environment override.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "set_staged_config",
@@ -151,7 +151,7 @@ enum MCPToolCatalog {
                 "properties": [
                     "speech_backend": ["type": "string", "enum": ["qwen3", "marvis"]],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "switch_speech_backend",
@@ -162,29 +162,29 @@ enum MCPToolCatalog {
                 "properties": [
                     "speech_backend": ["type": "string", "enum": ["qwen3", "marvis"]],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "reload_models",
             description: "Ask the already-running SpeakSwiftly runtime to reload its resident models.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "unload_models",
             description: "Ask the already-running SpeakSwiftly runtime to unload its resident models.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "get_text_normalizer_snapshot",
             description: "Return the full SpeakSwiftly text-normalizer snapshot, including built-in style plus base, active, stored, and effective profiles.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_text_profile_style",
             description: "Return the current built-in SpeakSwiftly text-profile style that shapes normalization before custom profile merges.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "set_text_profile_style",
@@ -195,7 +195,7 @@ enum MCPToolCatalog {
                 "properties": [
                     "built_in_style": ["type": "string", "enum": ["balanced", "compact", "explicit"]],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "create_text_profile",
@@ -208,17 +208,17 @@ enum MCPToolCatalog {
                     "name": ["type": "string"],
                     "replacements": ["type": "array"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "load_text_profiles",
             description: "Reload persisted SpeakSwiftly text profiles from disk and return the refreshed text-profile state.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "save_text_profiles",
             description: "Persist the current SpeakSwiftly text-profile state to disk and return the refreshed text-profile state.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "store_text_profile",
@@ -229,7 +229,7 @@ enum MCPToolCatalog {
                 "properties": [
                     "profile": ["type": "object"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "use_text_profile",
@@ -240,7 +240,7 @@ enum MCPToolCatalog {
                 "properties": [
                     "profile": ["type": "object"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "delete_text_profile",
@@ -251,12 +251,12 @@ enum MCPToolCatalog {
                 "properties": [
                     "profile_id": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "reset_active_text_profile",
             description: "Reset the active custom SpeakSwiftly text profile back to the library default.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "add_text_replacement",
@@ -268,7 +268,7 @@ enum MCPToolCatalog {
                     "profile_id": ["type": "string"],
                     "replacement": ["type": "object"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "replace_text_replacement",
@@ -280,7 +280,7 @@ enum MCPToolCatalog {
                     "profile_id": ["type": "string"],
                     "replacement": ["type": "object"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "remove_text_replacement",
@@ -292,41 +292,41 @@ enum MCPToolCatalog {
                     "profile_id": ["type": "string"],
                     "replacement_id": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "list_generation_queue",
             description: "Return the current generation queue snapshot for the shared SpeakSwiftly runtime.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "list_playback_queue",
             description: "Return the current playback queue snapshot for the shared SpeakSwiftly runtime.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_playback_state",
             description: "Return the current SpeakSwiftly playback state snapshot.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "pause_playback",
             description: "Pause the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "resume_playback",
             description: "Resume the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
-            inputSchema: ["type": "object", "properties": [:]]
+            inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "clear_playback_queue",
             description: "Cancel all currently queued SpeakSwiftly playback work without interrupting the active request.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false)
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
         ),
         Tool(
             name: "cancel_request",
@@ -338,19 +338,19 @@ enum MCPToolCatalog {
                     "request_id": ["type": "string"],
                 ],
             ],
-            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false)
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
         ),
         Tool(
             name: "list_active_requests",
             description: "Return the shared-host retained request snapshots for active and recently tracked live server operations such as generation, voice creation, and playback control.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "list_generation_jobs",
             description: "Return the retained v2 generation jobs known to the SpeakSwiftly runtime.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generation_job",
@@ -362,7 +362,7 @@ enum MCPToolCatalog {
                     "job_id": ["type": "string"],
                 ],
             ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "expire_generation_job",
@@ -373,13 +373,13 @@ enum MCPToolCatalog {
                 "properties": [
                     "job_id": ["type": "string"],
                 ],
-            ]
+            ],
         ),
         Tool(
             name: "list_generated_files",
             description: "Return retained generated audio files known to the SpeakSwiftly runtime.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generated_file",
@@ -391,13 +391,13 @@ enum MCPToolCatalog {
                     "artifact_id": ["type": "string"],
                 ],
             ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "list_generated_batches",
             description: "Return retained generated audio batches known to the SpeakSwiftly runtime.",
             inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generated_batch",
@@ -409,7 +409,7 @@ enum MCPToolCatalog {
                     "batch_id": ["type": "string"],
                 ],
             ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false)
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
     ]
 }

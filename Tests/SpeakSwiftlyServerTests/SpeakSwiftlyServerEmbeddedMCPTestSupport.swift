@@ -1,10 +1,10 @@
 import Foundation
-import HummingbirdTesting
 import HTTPTypes
+import HummingbirdTesting
 import MCP
 import NIOCore
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Embedded MCP Header Helpers
 
@@ -12,6 +12,7 @@ func mcpSessionID(from response: TestResponse) -> String? {
     guard let headerName = HTTPField.Name("Mcp-Session-Id") else {
         return nil
     }
+
     return response.headers[headerName]
 }
 
@@ -33,40 +34,43 @@ func mcpEnvelope(from buffer: ByteBuffer) throws -> [String: Any] {
 
 func mcpEnvelope(from response: MCP.HTTPResponse) async throws -> [String: Any] {
     switch response {
-    case .stream(let stream, _):
-        var data = Data()
-        for try await chunk in stream {
-            data.append(chunk)
-        }
-        guard data.isEmpty == false else {
-            throw JSONError.emptyBody("The embedded MCP surface returned an empty streaming body for a JSON-RPC request.")
-        }
-        return try mcpEnvelope(from: data)
+        case let .stream(stream, _):
+            var data = Data()
+            for try await chunk in stream {
+                data.append(chunk)
+            }
+            guard data.isEmpty == false else {
+                throw JSONError.emptyBody("The embedded MCP surface returned an empty streaming body for a JSON-RPC request.")
+            }
 
-    case .data(let data, _):
-        guard data.isEmpty == false else {
-            throw JSONError.emptyBody("The embedded MCP surface returned an empty data body for a JSON-RPC request.")
-        }
-        return try mcpEnvelope(from: data)
+            return try mcpEnvelope(from: data)
 
-    case .error:
-        let data = response.bodyData ?? Data()
-        guard data.isEmpty == false else {
-            throw JSONError.emptyBody("The embedded MCP surface returned an empty error body for a JSON-RPC request.")
-        }
-        return try mcpEnvelope(from: data)
+        case let .data(data, _):
+            guard data.isEmpty == false else {
+                throw JSONError.emptyBody("The embedded MCP surface returned an empty data body for a JSON-RPC request.")
+            }
 
-    case .accepted, .ok:
-        throw JSONError.emptyBody("The embedded MCP surface returned status \(response.statusCode) without a JSON body.")
+            return try mcpEnvelope(from: data)
+
+        case .error:
+            let data = response.bodyData ?? Data()
+            guard data.isEmpty == false else {
+                throw JSONError.emptyBody("The embedded MCP surface returned an empty error body for a JSON-RPC request.")
+            }
+
+            return try mcpEnvelope(from: data)
+
+        case .accepted, .ok:
+            throw JSONError.emptyBody("The embedded MCP surface returned status \(response.statusCode) without a JSON body.")
     }
 }
 
 func drainMCPResponse(_ response: MCP.HTTPResponse) async throws {
     switch response {
-    case .stream(let stream, _):
-        for try await _ in stream {}
-    case .data, .accepted, .ok, .error:
-        return
+        case let .stream(stream, _):
+            for try await _ in stream {}
+        case .data, .accepted, .ok, .error:
+            return
     }
 }
 
@@ -78,12 +82,12 @@ func mcpEnvelope(from data: Data) throws -> [String: Any] {
         .first(where: {
             $0.hasPrefix("data: ")
                 && $0.dropFirst("data: ".count).isEmpty == false
-        })
-    {
+        }) {
         let payload = dataLine.dropFirst("data: ".count)
         guard payload.isEmpty == false else {
             throw JSONError.emptyBody("The embedded MCP response contained an empty data: payload. Raw body: \(body)")
         }
+
         return try jsonObject(from: Data(payload.utf8))
     }
     return try jsonObject(from: data)
@@ -124,7 +128,7 @@ func mcpPOSTRequest(body: String, sessionID: String? = nil) -> MCP.HTTPRequest {
         method: "POST",
         headers: headers,
         body: Data(body.utf8),
-        path: "/mcp"
+        path: "/mcp",
     )
 }
 
@@ -136,7 +140,7 @@ func mcpGETRequest(sessionID: String) -> MCP.HTTPRequest {
             "Mcp-Session-Id": sessionID,
         ],
         body: nil,
-        path: "/mcp"
+        path: "/mcp",
     )
 }
 
@@ -148,6 +152,6 @@ func mcpDELETERequest(sessionID: String) -> MCP.HTTPRequest {
             "Mcp-Session-Id": sessionID,
         ],
         body: nil,
-        path: "/mcp"
+        path: "/mcp",
     )
 }

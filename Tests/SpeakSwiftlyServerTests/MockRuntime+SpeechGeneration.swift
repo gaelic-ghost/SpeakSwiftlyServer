@@ -1,7 +1,7 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 @testable import SpeakSwiftlyServer
+import TextForSpeech
 
 // MARK: - Mock Speech Generation
 
@@ -12,7 +12,7 @@ extension MockRuntime {
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let request = MockRequest(id: requestID, operation: "generate_speech", profileName: profileName)
@@ -22,8 +22,8 @@ extension MockRuntime {
                 profileName: profileName,
                 textProfileName: textProfileName,
                 normalizationContext: normalizationContext,
-                sourceFormat: sourceFormat
-            )
+                sourceFormat: sourceFormat,
+            ),
         )
         var requestContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -35,18 +35,18 @@ extension MockRuntime {
 
         continuation.yield(.acknowledged(.init(id: requestID)))
 
-        if self.activeRequest == nil {
-            self.startActiveRequest(request, continuation: continuation)
+        if activeRequest == nil {
+            startActiveRequest(request, continuation: continuation)
         } else {
-            self.queuedRequests.append(.init(request: request, continuation: continuation))
+            queuedRequests.append(.init(request: request, continuation: continuation))
             continuation.yield(
                 .queued(
                     .init(
                         id: requestID,
                         reason: .waitingForActiveRequest,
-                        queuePosition: self.queuedRequests.count
-                    )
-                )
+                        queuePosition: queuedRequests.count,
+                    ),
+                ),
             )
         }
 
@@ -58,7 +58,7 @@ extension MockRuntime {
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let artifactID = "\(requestID)-artifact-1"
@@ -68,8 +68,8 @@ extension MockRuntime {
             createdAt: createdAt,
             profileName: profileName,
             textProfileName: textProfileName,
-            sampleRate: 24_000,
-            filePath: "/tmp/\(artifactID).wav"
+            sampleRate: 24000,
+            filePath: "/tmp/\(artifactID).wav",
         )
         generatedFiles.append(generatedFile)
         let items = [
@@ -78,8 +78,8 @@ extension MockRuntime {
                 text: text,
                 textProfileName: textProfileName,
                 textContext: normalizationContext,
-                sourceFormat: sourceFormat
-            )
+                sourceFormat: sourceFormat,
+            ),
         ]
         let artifacts = [
             GenerationArtifactFixture(
@@ -89,8 +89,8 @@ extension MockRuntime {
                 filePath: generatedFile.filePath,
                 sampleRate: generatedFile.sampleRate,
                 profileName: profileName,
-                textProfileName: textProfileName
-            )
+                textProfileName: textProfileName,
+            ),
         ]
         generationJobs.append(
             try! makeGenerationJob(
@@ -108,8 +108,8 @@ extension MockRuntime {
                 completedAt: createdAt,
                 failedAt: nil,
                 expiresAt: nil,
-                retentionPolicy: "manual"
-            )
+                retentionPolicy: "manual",
+            ),
         )
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedFile: generatedFile, activeRequests: nil)))
@@ -120,7 +120,7 @@ extension MockRuntime {
 
     func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
-        with profileName: String
+        with profileName: String,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let createdAt = Date()
@@ -130,8 +130,8 @@ extension MockRuntime {
                 createdAt: createdAt,
                 profileName: profileName,
                 textProfileName: item.textProfileName,
-                sampleRate: 24_000,
-                filePath: "/tmp/\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)").wav"
+                sampleRate: 24000,
+                filePath: "/tmp/\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)").wav",
             )
         }
         generatedFiles.append(contentsOf: artifacts)
@@ -141,7 +141,7 @@ extension MockRuntime {
                 text: item.text,
                 textProfileName: item.textProfileName,
                 textContext: item.textContext,
-                sourceFormat: item.sourceFormat
+                sourceFormat: item.sourceFormat,
             )
         }
         let generatedBatch = try! makeGeneratedBatch(
@@ -158,7 +158,7 @@ extension MockRuntime {
                     profileName: $0.profileName,
                     textProfileName: $0.textProfileName,
                     sampleRate: $0.sampleRate,
-                    filePath: $0.filePath
+                    filePath: $0.filePath,
                 )
             },
             createdAt: createdAt,
@@ -167,7 +167,7 @@ extension MockRuntime {
             completedAt: createdAt,
             failedAt: nil,
             expiresAt: nil,
-            retentionPolicy: "manual"
+            retentionPolicy: "manual",
         )
         generatedBatches.append(generatedBatch)
         generationJobs.append(
@@ -189,15 +189,15 @@ extension MockRuntime {
                         filePath: $0.filePath,
                         sampleRate: $0.sampleRate,
                         profileName: $0.profileName,
-                        textProfileName: $0.textProfileName
+                        textProfileName: $0.textProfileName,
                     )
                 },
                 startedAt: generatedBatch.startedAt,
                 completedAt: generatedBatch.completedAt,
                 failedAt: nil,
                 expiresAt: nil,
-                retentionPolicy: "manual"
-            )
+                retentionPolicy: "manual",
+            ),
         )
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedBatch: generatedBatch, activeRequests: nil)))

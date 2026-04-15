@@ -1,7 +1,7 @@
 import Foundation
 import MCP
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - MCP Catalog Support
 
@@ -12,8 +12,8 @@ extension ServerTests {
             MockRuntime,
             ServerHost,
             MCPSurface,
-            String
-        ) async throws -> Void
+            String,
+        ) async throws -> Void,
     ) async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)
         let configuration = testConfiguration()
@@ -28,14 +28,14 @@ extension ServerTests {
                 enabled: true,
                 path: "/mcp",
                 serverName: "speak-swiftly-test-mcp",
-                title: "SpeakSwiftly Test MCP"
+                title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
             runtimeConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-                activeRuntimeSpeechBackend: .qwen3
+                activeRuntimeSpeechBackend: .qwen3,
             ),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -50,10 +50,10 @@ extension ServerTests {
                     enabled: true,
                     path: "/mcp",
                     serverName: "speak-swiftly-test-mcp",
-                    title: "SpeakSwiftly Test MCP"
+                    title: "SpeakSwiftly Test MCP",
                 ),
-                host: host
-            )
+                host: host,
+            ),
         )
 
         try await mcpSurface.start()
@@ -65,8 +65,8 @@ extension ServerTests {
         let initializedNotificationResponse = await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpInitializedNotificationJSON(),
-                sessionID: initializeSessionID
-            )
+                sessionID: initializeSessionID,
+            ),
         )
         #expect(mcpStatusCode(from: initializedNotificationResponse) == 202)
 

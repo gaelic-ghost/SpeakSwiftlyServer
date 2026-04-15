@@ -1,9 +1,9 @@
 import Configuration
 import Foundation
 
-// MARK: - Server Configuration
+// MARK: - ServerConfiguration
 
-struct ServerConfiguration: Sendable {
+struct ServerConfiguration {
     let name: String
     let environment: String
     let defaultVoiceProfileName: String?
@@ -25,7 +25,7 @@ struct ServerConfiguration: Sendable {
         sseHeartbeatSeconds: Double,
         completedJobTTLSeconds: Double,
         completedJobMaxCount: Int,
-        jobPruneIntervalSeconds: Double
+        jobPruneIntervalSeconds: Double,
     ) {
         self.name = name
         self.environment = environment
@@ -40,32 +40,32 @@ struct ServerConfiguration: Sendable {
 
     init(config: ConfigReader) throws {
         do {
-            self.name = try config.requiredString(forKey: "name")
-            self.environment = try config.requiredString(forKey: "environment")
-            self.defaultVoiceProfileName = try Self.optionalString(
+            name = try config.requiredString(forKey: "name")
+            environment = try config.requiredString(forKey: "environment")
+            defaultVoiceProfileName = try Self.optionalString(
                 config,
-                key: "defaultVoiceProfileName"
+                key: "defaultVoiceProfileName",
             )
-            self.host = try config.requiredString(forKey: "host")
-            self.port = try Self.requirePositive(
-                try config.requiredInt(forKey: "port"),
-                key: "APP_PORT"
+            host = try config.requiredString(forKey: "host")
+            port = try Self.requirePositive(
+                config.requiredInt(forKey: "port"),
+                key: "APP_PORT",
             )
-            self.sseHeartbeatSeconds = try Self.requirePositive(
-                try config.requiredDouble(forKey: "sseHeartbeatSeconds"),
-                key: "APP_SSE_HEARTBEAT_SECONDS"
+            sseHeartbeatSeconds = try Self.requirePositive(
+                config.requiredDouble(forKey: "sseHeartbeatSeconds"),
+                key: "APP_SSE_HEARTBEAT_SECONDS",
             )
-            self.completedJobTTLSeconds = try Self.requirePositive(
-                try config.requiredDouble(forKey: "completedJobTTLSeconds"),
-                key: "APP_COMPLETED_JOB_TTL_SECONDS"
+            completedJobTTLSeconds = try Self.requirePositive(
+                config.requiredDouble(forKey: "completedJobTTLSeconds"),
+                key: "APP_COMPLETED_JOB_TTL_SECONDS",
             )
-            self.completedJobMaxCount = try Self.requirePositive(
-                try config.requiredInt(forKey: "completedJobMaxCount"),
-                key: "APP_COMPLETED_JOB_MAX_COUNT"
+            completedJobMaxCount = try Self.requirePositive(
+                config.requiredInt(forKey: "completedJobMaxCount"),
+                key: "APP_COMPLETED_JOB_MAX_COUNT",
             )
-            self.jobPruneIntervalSeconds = try Self.requirePositive(
-                try config.requiredDouble(forKey: "jobPruneIntervalSeconds"),
-                key: "APP_JOB_PRUNE_INTERVAL_SECONDS"
+            jobPruneIntervalSeconds = try Self.requirePositive(
+                config.requiredDouble(forKey: "jobPruneIntervalSeconds"),
+                key: "APP_JOB_PRUNE_INTERVAL_SECONDS",
             )
         } catch {
             throw ServerConfigurationError(key: "APP_*", underlyingError: error)
@@ -76,14 +76,15 @@ struct ServerConfiguration: Sendable {
 
     private static func optionalString(
         _ config: ConfigReader,
-        key: ConfigKey
+        key: ConfigKey,
     ) throws -> String? {
         do {
-            return normalizedOptionalString(try config.requiredString(forKey: key))
+            return try normalizedOptionalString(config.requiredString(forKey: key))
         } catch {
             guard String(describing: error).contains("Missing required config value for key:") else {
                 throw error
             }
+
             return nil
         }
     }
@@ -92,29 +93,34 @@ struct ServerConfiguration: Sendable {
         guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
             return nil
         }
+
         return trimmed
     }
 
     private static func requirePositive(_ value: Int, key: String) throws -> Int {
         guard value > 0 else {
             throw ServerConfigurationError(
-                "Configuration value '\(key)' must be a positive integer, but received '\(value)'."
+                "Configuration value '\(key)' must be a positive integer, but received '\(value)'.",
             )
         }
+
         return value
     }
 
     private static func requirePositive(_ value: Double, key: String) throws -> Double {
         guard value > 0 else {
             throw ServerConfigurationError(
-                "Configuration value '\(key)' must be a positive number, but received '\(value)'."
+                "Configuration value '\(key)' must be a positive number, but received '\(value)'.",
             )
         }
+
         return value
     }
 }
 
-struct ServerConfigurationError: Error, Sendable, CustomStringConvertible {
+// MARK: - ServerConfigurationError
+
+struct ServerConfigurationError: Error, CustomStringConvertible {
     let message: String
 
     // MARK: - Initialization
@@ -124,7 +130,7 @@ struct ServerConfigurationError: Error, Sendable, CustomStringConvertible {
     }
 
     init(key: String, underlyingError: any Error) {
-        self.message = "Configuration value '\(key)' could not be loaded: \(underlyingError)."
+        message = "Configuration value '\(key)' could not be loaded: \(underlyingError)."
     }
 
     // MARK: - CustomStringConvertible

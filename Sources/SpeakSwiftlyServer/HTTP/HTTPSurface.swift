@@ -9,7 +9,7 @@ func assembleHBApp(
     host: ServerHost,
     mcpSurface: MCPSurface? = nil,
     services: [any Service] = [],
-    beforeServerStarts startupProcesses: [@Sendable () async throws -> Void] = []
+    beforeServerStarts startupProcesses: [@Sendable () async throws -> Void] = [],
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
     if configuration.enabled {
@@ -28,7 +28,7 @@ func assembleHBApp(
             if mcpSurface != nil {
                 await host.markTransportListening(name: "mcp")
             }
-        }
+        },
     )
 
     for startupProcess in startupProcesses {
@@ -43,23 +43,23 @@ func assembleHBApp(
 private func registerHTTPRoutes(
     on router: Router<BasicRequestContext>,
     configuration: HTTPConfig,
-    host: ServerHost
+    host: ServerHost,
 ) {
     registerHTTPRuntimeRoutes(
         on: router,
         configuration: configuration,
-        host: host
+        host: host,
     )
     registerHTTPVoiceRoutes(
         on: router,
         configuration: configuration,
-        host: host
+        host: host,
     )
     registerHTTPTextProfileRoutes(on: router, host: host)
     registerHTTPSpeechRoutes(
         on: router,
         configuration: configuration,
-        host: host
+        host: host,
     )
     registerHTTPGenerationRoutes(on: router, host: host)
     registerHTTPPlaybackRoutes(on: router, host: host)

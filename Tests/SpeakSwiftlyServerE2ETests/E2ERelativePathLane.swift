@@ -20,74 +20,74 @@ extension ServerE2E {
         let cloneProfileName = "\(transport.profilePrefix)-relative-profile-clone"
 
         let server = try makeServer(
-            port: randomPort(in: 58_600..<58_800),
+            port: randomPort(in: 58600..<58800),
             profileRootURL: sandbox.profileRootURL,
             silentPlayback: true,
-            mcpEnabled: transport == .mcp
+            mcpEnabled: transport == .mcp,
         )
         try server.start()
         defer { server.stop() }
 
         switch transport {
-        case .http:
-            let client = E2EHTTPClient(baseURL: server.baseURL)
-            try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
-            try await createVoiceDesignProfile(
-                using: client,
-                server: server,
-                profileName: fixtureProfileName,
-                text: testingCloneSourceText,
-                voiceDescription: testingProfileVoiceDescription,
-                outputPath: relativeReferencePath,
-                cwd: callerWorkingDirectory.path
-            )
-            #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
+            case .http:
+                let client = E2EHTTPClient(baseURL: server.baseURL)
+                try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
+                try await createVoiceDesignProfile(
+                    using: client,
+                    server: server,
+                    profileName: fixtureProfileName,
+                    text: testingCloneSourceText,
+                    voiceDescription: testingProfileVoiceDescription,
+                    outputPath: relativeReferencePath,
+                    cwd: callerWorkingDirectory.path,
+                )
+                #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
 
-            try await createCloneProfile(
-                using: client,
-                server: server,
-                profileName: cloneProfileName,
-                referenceAudioPath: relativeReferencePath,
-                transcript: testingCloneSourceText,
-                expectTranscription: false,
-                cwd: callerWorkingDirectory.path
-            )
-            try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
+                try await createCloneProfile(
+                    using: client,
+                    server: server,
+                    profileName: cloneProfileName,
+                    referenceAudioPath: relativeReferencePath,
+                    transcript: testingCloneSourceText,
+                    expectTranscription: false,
+                    cwd: callerWorkingDirectory.path,
+                )
+                try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
 
-        case .mcp:
-            let client = try await E2EMCPClient.connect(
-                baseURL: server.baseURL,
-                path: "/mcp",
-                timeout: e2eTimeout,
-                server: server
-            )
-            try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
-            try await createVoiceDesignProfile(
-                using: client,
-                server: server,
-                profileName: fixtureProfileName,
-                text: testingCloneSourceText,
-                voiceDescription: testingProfileVoiceDescription,
-                outputPath: relativeReferencePath,
-                cwd: callerWorkingDirectory.path
-            )
-            #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
+            case .mcp:
+                let client = try await E2EMCPClient.connect(
+                    baseURL: server.baseURL,
+                    path: "/mcp",
+                    timeout: e2eTimeout,
+                    server: server,
+                )
+                try await waitUntilWorkerReady(using: client, timeout: e2eTimeout, server: server)
+                try await createVoiceDesignProfile(
+                    using: client,
+                    server: server,
+                    profileName: fixtureProfileName,
+                    text: testingCloneSourceText,
+                    voiceDescription: testingProfileVoiceDescription,
+                    outputPath: relativeReferencePath,
+                    cwd: callerWorkingDirectory.path,
+                )
+                #expect(FileManager.default.fileExists(atPath: exportedReferenceURL.path))
 
-            try await createCloneProfile(
-                using: client,
-                server: server,
-                profileName: cloneProfileName,
-                referenceAudioPath: relativeReferencePath,
-                transcript: testingCloneSourceText,
-                expectTranscription: false,
-                cwd: callerWorkingDirectory.path
-            )
-            try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
+                try await createCloneProfile(
+                    using: client,
+                    server: server,
+                    profileName: cloneProfileName,
+                    referenceAudioPath: relativeReferencePath,
+                    transcript: testingCloneSourceText,
+                    expectTranscription: false,
+                    cwd: callerWorkingDirectory.path,
+                )
+                try await assertProfileIsVisible(using: client, profileName: cloneProfileName)
         }
 
         let storedProfile = try loadStoredProfileManifest(
             named: cloneProfileName,
-            from: sandbox.profileRootURL
+            from: sandbox.profileRootURL,
         )
         #expect(storedProfile.sourceText == testingCloneSourceText)
     }

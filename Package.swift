@@ -10,24 +10,28 @@ let package = Package(
     platforms: [
         .macOS("15.0"),
     ],
+
     // MARK: Products
+
     products: [
         .library(
             name: "SpeakSwiftlyServer",
-            targets: ["SpeakSwiftlyServer"]
+            targets: ["SpeakSwiftlyServer"],
         ),
         .executable(
             name: "SpeakSwiftlyServerTool",
-            targets: ["SpeakSwiftlyServerTool"]
+            targets: ["SpeakSwiftlyServerTool"],
         ),
     ],
+
     // MARK: Dependencies
+
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
         .package(
             url: "https://github.com/gaelic-ghost/SpeakSwiftly.git",
-            from: "3.0.4"
+            from: "3.0.4",
         ),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "2.30.6"),
         .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.16.0"),
@@ -36,10 +40,12 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-configuration",
             from: "1.2.0",
-            traits: [.defaults, "YAML", "Reloading"]
+            traits: [.defaults, "YAML", "Reloading"],
         ),
     ],
+
     // MARK: Targets
+
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
@@ -53,14 +59,14 @@ let package = Package(
                 .product(name: "SpeakSwiftly", package: "SpeakSwiftly"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
             ],
-            path: "Sources/SpeakSwiftlyServer"
+            path: "Sources/SpeakSwiftlyServer",
         ),
         .executableTarget(
             name: "SpeakSwiftlyServerTool",
             dependencies: [
                 "SpeakSwiftlyServer",
             ],
-            path: "Sources/SpeakSwiftlyServerTool"
+            path: "Sources/SpeakSwiftlyServerTool",
         ),
         .testTarget(
             name: "SpeakSwiftlyServerTests",
@@ -70,7 +76,7 @@ let package = Package(
                 .product(name: "HummingbirdTesting", package: "hummingbird"),
                 .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
-            ]
+            ],
         ),
         .testTarget(
             name: "SpeakSwiftlyServerE2ETests",
@@ -82,14 +88,14 @@ let package = Package(
                 "SpeakSwiftlyServer",
                 .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
-            ]
+            ],
         ),
         .testTarget(
             name: "SpeakSwiftlyServerToolTests",
             dependencies: [
                 "SpeakSwiftlyServer",
-            ]
+            ],
         ),
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageModes: [.v6],
 )

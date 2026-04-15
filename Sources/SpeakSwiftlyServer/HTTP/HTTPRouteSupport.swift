@@ -1,6 +1,6 @@
 import Foundation
-import Hummingbird
 import HTTPTypes
+import Hummingbird
 import NIOCore
 
 // MARK: - Route Support
@@ -8,15 +8,15 @@ import NIOCore
 func buildAcceptedRequestResponse(
     request: Request,
     configuration: HTTPConfig,
-    requestID: String
+    requestID: String,
 ) throws -> Response {
     try encodeJSONResponse(
         RequestAcceptedResponse(
             requestID: requestID,
             requestURL: absoluteURL(for: request, configuration: configuration, path: "/requests/\(requestID)"),
-            eventsURL: absoluteURL(for: request, configuration: configuration, path: "/requests/\(requestID)/events")
+            eventsURL: absoluteURL(for: request, configuration: configuration, path: "/requests/\(requestID)/events"),
         ),
-        status: .accepted
+        status: .accepted,
     )
 }
 
@@ -26,7 +26,7 @@ func absoluteURL(for request: Request, configuration: HTTPConfig, path: String) 
     return "\(scheme)://\(authority)\(path)"
 }
 
-func encodeJSONResponse<T: Encodable>(_ value: T, status: HTTPResponse.Status) throws -> Response {
+func encodeJSONResponse(_ value: some Encodable, status: HTTPResponse.Status) throws -> Response {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys]
     let data = try encoder.encode(value)

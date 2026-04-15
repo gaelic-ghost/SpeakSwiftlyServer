@@ -3,21 +3,21 @@ import Foundation
 
 // MARK: - Runtime Default Profiles
 
-enum AppRuntimeDefaultProfile: String, Sendable {
-    static let environmentKey = "SPEAKSWIFTLY_SERVER_DEFAULT_PROFILE"
-
+enum AppRuntimeDefaultProfile: String {
     case standaloneExecutable = "standalone-executable"
     case launchAgent = "launch-agent"
     case embeddedSession = "embedded-session"
 
+    static let environmentKey = "SPEAKSWIFTLY_SERVER_DEFAULT_PROFILE"
+
     var port: Int {
         switch self {
-        case .standaloneExecutable:
-            7338
-        case .launchAgent:
-            7337
-        case .embeddedSession:
-            7339
+            case .standaloneExecutable:
+                7338
+            case .launchAgent:
+                7337
+            case .embeddedSession:
+                7339
         }
     }
 
@@ -41,7 +41,7 @@ enum AppRuntimeDefaultProfile: String, Sendable {
 
     static func resolve(
         explicitProfile: AppRuntimeDefaultProfile?,
-        environment: [String: String]
+        environment: [String: String],
     ) -> AppRuntimeDefaultProfile {
         if let explicitProfile {
             return explicitProfile

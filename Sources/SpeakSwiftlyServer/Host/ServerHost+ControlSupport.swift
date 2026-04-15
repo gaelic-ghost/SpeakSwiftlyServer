@@ -8,31 +8,32 @@ extension ServerHost {
 
     func playbackStateResponse(
         handle: RuntimeRequestHandle,
-        requestName: String
+        requestName: String,
     ) async throws -> PlaybackStateResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
         guard let playbackState = success.playbackState else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload."
+                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload.",
             )
         }
+
         return .init(playback: .init(summary: playbackState))
     }
 
     func playbackControlResponse(
         handle: RuntimeRequestHandle,
         requestName: String,
-        expectedState: SpeakSwiftly.PlaybackState
+        expectedState: SpeakSwiftly.PlaybackState,
     ) async throws -> PlaybackStateResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
         if let playbackState = success.playbackState, playbackState.state == expectedState {
             let response = PlaybackStateResponse(playback: .init(summary: playbackState))
@@ -41,7 +42,7 @@ extension ServerHost {
         }
         let response = try await settledPlaybackStateResponse(
             for: requestName,
-            expectedState: expectedState
+            expectedState: expectedState,
         )
         await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
         return response
@@ -49,7 +50,7 @@ extension ServerHost {
 
     func settledPlaybackStateResponse(
         for requestName: String,
-        expectedState: SpeakSwiftly.PlaybackState
+        expectedState: SpeakSwiftly.PlaybackState,
     ) async throws -> PlaybackStateResponse {
         let clock = ContinuousClock()
         let deadline = clock.now + .seconds(10)
@@ -57,8 +58,8 @@ extension ServerHost {
 
         while true {
             let response = try await playbackStateResponse(
-                handle: await runtime.playbackState(),
-                requestName: requestName
+                handle: runtime.playbackState(),
+                requestName: requestName,
             )
             lastResponse = response
             if response.playback.state == expectedState.rawValue {
@@ -67,7 +68,7 @@ extension ServerHost {
             if clock.now >= deadline {
                 return optimisticPlaybackStateResponse(
                     from: lastResponse ?? response,
-                    expectedState: expectedState
+                    expectedState: expectedState,
                 )
             }
             try await Task.sleep(for: .milliseconds(50))
@@ -76,7 +77,7 @@ extension ServerHost {
 
     func optimisticPlaybackStateResponse(
         from response: PlaybackStateResponse,
-        expectedState: SpeakSwiftly.PlaybackState
+        expectedState: SpeakSwiftly.PlaybackState,
     ) -> PlaybackStateResponse {
         let status = PlaybackStatusSnapshot(
             state: expectedState.rawValue,
@@ -92,14 +93,14 @@ extension ServerHost {
                 : nil,
             stableBufferTargetMS: expectedState == .playing
                 ? response.playback.stableBufferTargetMS
-                : nil
+                : nil,
         )
         return .init(playback: .init(status: status))
     }
 
     func applyPlaybackControlSnapshot(
         _ snapshot: PlaybackStateSnapshot,
-        expectedState: SpeakSwiftly.PlaybackState
+        expectedState: SpeakSwiftly.PlaybackState,
     ) async {
         let previousPlaybackStatus = playbackStatus
         playbackStatus = .init(
@@ -108,7 +109,7 @@ extension ServerHost {
             isStableForConcurrentGeneration: snapshot.isStableForConcurrentGeneration,
             isRebuffering: snapshot.isRebuffering,
             stableBufferedAudioMS: snapshot.stableBufferedAudioMS,
-            stableBufferTargetMS: snapshot.stableBufferTargetMS
+            stableBufferTargetMS: snapshot.stableBufferTargetMS,
         )
         if playbackStatus != previousPlaybackStatus {
             hostEventContinuation.yield(.playbackChanged(playbackStatus))
@@ -121,7 +122,7 @@ extension ServerHost {
                 queuedCount: playbackQueueStatus.queuedCount,
                 activeRequest: playbackStatus.activeRequest,
                 activeRequests: playbackStatus.activeRequest.map { [$0] } ?? [],
-                queuedRequests: playbackQueueStatus.queuedRequests
+                queuedRequests: playbackQueueStatus.queuedRequests,
             )
         } else if expectedState == .playing, playbackStatus.activeRequest != nil {
             playbackQueueStatus = .init(
@@ -130,7 +131,7 @@ extension ServerHost {
                 queuedCount: playbackQueueStatus.queuedCount,
                 activeRequest: playbackStatus.activeRequest,
                 activeRequests: [playbackStatus.activeRequest!],
-                queuedRequests: playbackQueueStatus.queuedRequests
+                queuedRequests: playbackQueueStatus.queuedRequests,
             )
         }
     }
@@ -139,43 +140,44 @@ extension ServerHost {
 
     func runtimeStatusResponse(
         handle: RuntimeRequestHandle,
-        requestName: String
+        requestName: String,
     ) async throws -> RuntimeStatusResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the \(requestName) request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request.",
         )
         guard let status = success.status else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload."
+                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload.",
             )
         }
+
         return .init(status: status)
     }
 
     func awaitImmediateSuccess(
         handle: RuntimeRequestHandle,
         missingTerminalMessage: String,
-        unexpectedFailureMessagePrefix: String
+        unexpectedFailureMessagePrefix: String,
     ) async throws -> SpeakSwiftly.Success {
         do {
             for try await event in handle.events {
-                if case .completed(let success) = event {
+                if case let .completed(success) = event {
                     return success
                 }
             }
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: missingTerminalMessage
+                message: missingTerminalMessage,
             )
         } catch let error as SpeakSwiftly.Error {
             throw error
         } catch {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "\(unexpectedFailureMessagePrefix) \(error.localizedDescription)"
+                message: "\(unexpectedFailureMessagePrefix) \(error.localizedDescription)",
             )
         }
     }

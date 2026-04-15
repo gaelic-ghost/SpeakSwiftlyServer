@@ -42,14 +42,14 @@ actor MCPSubscriptionBroker {
 
     func notifyResourceChanges(
         for change: ResourceChange,
-        using server: Server
+        using server: Server,
     ) async {
         await notifySubscribedURIs(candidateURIs(for: change), using: server)
     }
 
     private func notifySubscribedURIs(
         _ uris: [String],
-        using server: Server
+        using server: Server,
     ) async {
         for uri in uris {
             do {
@@ -76,47 +76,47 @@ actor MCPSubscriptionBroker {
                 guard updatedURIs.isEmpty == false else {
                     continue
                 }
+
                 await self.notifySubscribedURIs(updatedURIs, using: server)
             }
         }
     }
 
     private func resourceURIsToNotify(for event: HostEvent) -> [String] {
-        let candidateURIs: Set<String>
-        switch event {
-        case .transportChanged, .playbackChanged, .recentErrorRecorded:
-            candidateURIs = ["speak://runtime/overview"]
-        case .jobEvent:
-            candidateURIs = []
-        case .jobChanged(let snapshot):
-            candidateURIs = [
-                "speak://runtime/overview",
-                "speak://requests",
-                "speak://requests/\(snapshot.requestID)",
-            ]
-        case .profileCacheChanged:
-            candidateURIs = Set(
+        let candidateURIs: Set<String> = switch event {
+            case .transportChanged, .playbackChanged, .recentErrorRecorded:
+                ["speak://runtime/overview"]
+            case .jobEvent:
+                []
+            case let .jobChanged(snapshot):
                 [
                     "speak://runtime/overview",
-                    "speak://voices",
-                ] + subscribedResourceURIs.filter(isVoiceProfileURI)
-            )
-        case .textProfilesChanged:
-            candidateURIs = Set(
+                    "speak://requests",
+                    "speak://requests/\(snapshot.requestID)",
+                ]
+            case .profileCacheChanged:
+                Set(
+                    [
+                        "speak://runtime/overview",
+                        "speak://voices",
+                    ] + subscribedResourceURIs.filter(isVoiceProfileURI),
+                )
+            case .textProfilesChanged:
+                Set(
+                    [
+                        "speak://text-profiles",
+                        "speak://text-profiles/style",
+                        "speak://text-profiles/base",
+                        "speak://text-profiles/active",
+                        "speak://text-profiles/effective",
+                    ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
+                        + subscribedResourceURIs.filter(isEffectiveTextProfileURI),
+                )
+            case .runtimeConfigurationChanged:
                 [
-                    "speak://text-profiles",
-                    "speak://text-profiles/style",
-                    "speak://text-profiles/base",
-                    "speak://text-profiles/active",
-                    "speak://text-profiles/effective",
-                ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
-                    + subscribedResourceURIs.filter(isEffectiveTextProfileURI)
-            )
-        case .runtimeConfigurationChanged:
-            candidateURIs = [
-                "speak://runtime/overview",
-                "speak://runtime/configuration",
-            ]
+                    "speak://runtime/overview",
+                    "speak://runtime/configuration",
+                ]
         }
         return candidateURIs
             .intersection(subscribedResourceURIs)
@@ -124,28 +124,27 @@ actor MCPSubscriptionBroker {
     }
 
     private func candidateURIs(for change: ResourceChange) -> [String] {
-        let candidateURIs: Set<String>
-        switch change {
-        case .textProfiles:
-            candidateURIs = Set(
-                [
-                    "speak://text-profiles",
-                    "speak://text-profiles/style",
-                    "speak://text-profiles/base",
-                    "speak://text-profiles/active",
-                    "speak://text-profiles/effective",
-                ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
-                    + subscribedResourceURIs.filter(isEffectiveTextProfileURI)
-            )
-        case .voices:
-            candidateURIs = Set(
-                [
-                    "speak://voices",
-                    "speak://runtime/overview",
-                ] + subscribedResourceURIs.filter(isVoiceProfileURI)
-            )
-        case .runtimeOverview:
-            candidateURIs = ["speak://runtime/overview"]
+        let candidateURIs: Set<String> = switch change {
+            case .textProfiles:
+                Set(
+                    [
+                        "speak://text-profiles",
+                        "speak://text-profiles/style",
+                        "speak://text-profiles/base",
+                        "speak://text-profiles/active",
+                        "speak://text-profiles/effective",
+                    ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
+                        + subscribedResourceURIs.filter(isEffectiveTextProfileURI),
+                )
+            case .voices:
+                Set(
+                    [
+                        "speak://voices",
+                        "speak://runtime/overview",
+                    ] + subscribedResourceURIs.filter(isVoiceProfileURI),
+                )
+            case .runtimeOverview:
+                ["speak://runtime/overview"]
         }
         return candidateURIs.intersection(subscribedResourceURIs).sorted()
     }

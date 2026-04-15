@@ -6,6 +6,8 @@ import Foundation
 let launchAgentGraceIntervalMicroseconds: useconds_t = 100_000
 let launchAgentBootstrapRetryCount = 10
 
+// MARK: - LaunchAgentStatusOptions
+
 struct LaunchAgentStatusOptions {
     let label: String
     let plistPath: String
@@ -21,19 +23,19 @@ struct LaunchAgentStatusOptions {
 
         while index < arguments.count {
             switch arguments[index] {
-            case "--label":
-                label = try LaunchAgentOptions.requireValue(after: arguments, index: index, option: "--label")
-                plistPath = LaunchAgentDefaults.plistPath(for: label)
-                index += 2
+                case "--label":
+                    label = try LaunchAgentOptions.requireValue(after: arguments, index: index, option: "--label")
+                    plistPath = LaunchAgentDefaults.plistPath(for: label)
+                    index += 2
 
-            case "--plist-path":
-                plistPath = try LaunchAgentOptions.requireValue(after: arguments, index: index, option: "--plist-path")
-                index += 2
+                case "--plist-path":
+                    plistPath = try LaunchAgentOptions.requireValue(after: arguments, index: index, option: "--plist-path")
+                    index += 2
 
-            default:
-                throw LaunchAgentCommandError(
-                    "\(speakSwiftlyServerToolName) did not recognize launch-agent option '\(arguments[index])'. The `status` and `uninstall` commands support `--label` and `--plist-path`."
-                )
+                default:
+                    throw LaunchAgentCommandError(
+                        "\(speakSwiftlyServerToolName) did not recognize launch-agent option '\(arguments[index])'. The `status` and `uninstall` commands support `--label` and `--plist-path`.",
+                    )
             }
         }
 
@@ -41,7 +43,7 @@ struct LaunchAgentStatusOptions {
             label: label,
             plistPath: LaunchAgentOptions.resolvePath(plistPath, relativeTo: currentDirectoryPath),
             launchctlPath: LaunchAgentDefaults.launchctlPath,
-            userDomain: LaunchAgentDefaults.userDomain
+            userDomain: LaunchAgentDefaults.userDomain,
         )
     }
 
@@ -63,7 +65,7 @@ struct LaunchAgentStatusOptions {
         let result = try runLaunchctl(
             arguments: ["print", "\(userDomain)/\(label)"],
             allowNonZeroExit: true,
-            launchctlPath: launchctlPath
+            launchctlPath: launchctlPath,
         )
         return result.exitCode == 0
     }
@@ -78,7 +80,7 @@ struct LaunchAgentStatusOptions {
                 try FileManager.default.removeItem(atPath: plistPath)
             } catch {
                 throw LaunchAgentCommandError(
-                    "\(speakSwiftlyServerToolName) could not remove LaunchAgent plist '\(plistPath)'. Likely cause: \(error.localizedDescription)"
+                    "\(speakSwiftlyServerToolName) could not remove LaunchAgent plist '\(plistPath)'. Likely cause: \(error.localizedDescription)",
                 )
             }
             print("Removed LaunchAgent plist '\(plistPath)' for label '\(label)'.")
@@ -91,18 +93,18 @@ struct LaunchAgentStatusOptions {
         let result = try runLaunchctl(
             arguments: ["bootout", "\(userDomain)/\(label)"],
             allowNonZeroExit: true,
-            launchctlPath: launchctlPath
+            launchctlPath: launchctlPath,
         )
         guard result.exitCode == 0 else {
             throw LaunchAgentCommandError(
-                "\(speakSwiftlyServerToolName) asked launchctl to unload '\(userDomain)/\(label)', but launchctl exited with status \(result.exitCode). stderr: \(result.standardError)"
+                "\(speakSwiftlyServerToolName) asked launchctl to unload '\(userDomain)/\(label)', but launchctl exited with status \(result.exitCode). stderr: \(result.standardError)",
             )
         }
     }
 
     func waitUntilNotLoaded(
         timeout: TimeInterval = 5,
-        pollIntervalMicroseconds: useconds_t = launchAgentGraceIntervalMicroseconds
+        pollIntervalMicroseconds: useconds_t = launchAgentGraceIntervalMicroseconds,
     ) throws {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -116,12 +118,12 @@ struct LaunchAgentStatusOptions {
             """
             \(speakSwiftlyServerToolName) unloaded '\(userDomain)/\(label)', but launchctl still reported the service as loaded after \(timeout) seconds.
             Likely cause: launchd has not finished tearing the old job down yet.
-            """
+            """,
         )
     }
 }
 
-// MARK: - Launch Agent Defaults
+// MARK: - LaunchAgentDefaults
 
 enum LaunchAgentDefaults {
     static let label = "com.gaelic-ghost.speak-swiftly-server"
@@ -149,13 +151,15 @@ enum LaunchAgentDefaults {
     }
 }
 
-// MARK: - Launchctl
+// MARK: - LaunchctlResult
 
 struct LaunchctlResult {
     let exitCode: Int32
     let standardOutput: String
     let standardError: String
 }
+
+// MARK: - ProcessExecutionResult
 
 struct ProcessExecutionResult {
     let exitCode: Int32
@@ -169,7 +173,7 @@ func runProcess(
     arguments: [String],
     allowNonZeroExit: Bool = false,
     currentDirectoryPath: String? = nil,
-    failureSummary: String
+    failureSummary: String,
 ) throws -> ProcessExecutionResult {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: executablePath)
@@ -188,7 +192,7 @@ func runProcess(
         process.waitUntilExit()
     } catch {
         throw LaunchAgentCommandError(
-            "\(failureSummary) Likely cause: \(error.localizedDescription)"
+            "\(failureSummary) Likely cause: \(error.localizedDescription)",
         )
     }
 
@@ -197,12 +201,12 @@ func runProcess(
     let result = ProcessExecutionResult(
         exitCode: process.terminationStatus,
         standardOutput: output.trimmingCharacters(in: .whitespacesAndNewlines),
-        standardError: error.trimmingCharacters(in: .whitespacesAndNewlines)
+        standardError: error.trimmingCharacters(in: .whitespacesAndNewlines),
     )
 
     if !allowNonZeroExit, result.exitCode != 0 {
         throw LaunchAgentCommandError(
-            "\(failureSummary) The process exited with status \(result.exitCode). stderr: \(result.standardError)"
+            "\(failureSummary) The process exited with status \(result.exitCode). stderr: \(result.standardError)",
         )
     }
 
@@ -213,23 +217,23 @@ func runProcess(
 func runLaunchctl(
     arguments: [String],
     allowNonZeroExit: Bool = false,
-    launchctlPath: String = LaunchAgentDefaults.launchctlPath
+    launchctlPath: String = LaunchAgentDefaults.launchctlPath,
 ) throws -> LaunchctlResult {
     let processResult = try runProcess(
         executablePath: launchctlPath,
         arguments: arguments,
         allowNonZeroExit: allowNonZeroExit,
-        failureSummary: "\(speakSwiftlyServerToolName) could not run launchctl at '\(launchctlPath)'."
+        failureSummary: "\(speakSwiftlyServerToolName) could not run launchctl at '\(launchctlPath)'.",
     )
     let result = LaunchctlResult(
         exitCode: processResult.exitCode,
         standardOutput: processResult.standardOutput,
-        standardError: processResult.standardError
+        standardError: processResult.standardError,
     )
 
     if !allowNonZeroExit, result.exitCode != 0 {
         throw LaunchAgentCommandError(
-            "\(speakSwiftlyServerToolName) asked launchctl to run `\(arguments.joined(separator: " "))`, but launchctl exited with status \(result.exitCode). stderr: \(result.standardError)"
+            "\(speakSwiftlyServerToolName) asked launchctl to run `\(arguments.joined(separator: " "))`, but launchctl exited with status \(result.exitCode). stderr: \(result.standardError)",
         )
     }
 

@@ -9,7 +9,7 @@ func decode<Value: Decodable>(_ type: Value.Type, from data: Data) throws -> Val
         let body = String(decoding: data, as: UTF8.self)
         let preview = body.isEmpty ? "<empty body>" : body
         throw E2ETransportError(
-            "The live end-to-end helper could not decode \(Value.self) from the server response. Raw body preview: \(preview)"
+            "The live end-to-end helper could not decode \(Value.self) from the server response. Raw body preview: \(preview)",
         )
     }
 }
@@ -20,11 +20,13 @@ func jsonObject(from data: Data) throws -> [String: Any] {
         guard let dictionary = dictionaries.first else {
             throw E2ETransportError("Expected at least one JSON object in the live end-to-end helper array payload, but the array was empty.")
         }
+
         return dictionary
     }
     guard let dictionary = json as? [String: Any] else {
         throw E2ETransportError("Expected a top-level JSON object in the live end-to-end helper, but received '\(type(of: json))'.")
     }
+
     return dictionary
 }
 
@@ -36,12 +38,12 @@ func parseMCPEnvelope(from data: Data) throws -> [String: Any] {
         .first(where: {
             $0.hasPrefix("data: ")
                 && $0.dropFirst("data: ".count).isEmpty == false
-        })
-    {
+        }) {
         let payload = dataLine.dropFirst("data: ".count)
         guard payload.isEmpty == false else {
             throw E2ETransportError("The live MCP response contained an empty `data:` payload. Raw body: \(body)")
         }
+
         return try mcpEnvelope(from: Data(payload.utf8), rawBody: body)
     }
     return try mcpEnvelope(from: data, rawBody: body)
@@ -70,8 +72,7 @@ func requireMCPHeader(_ name: String, in headers: [AnyHashable: Any]) throws -> 
     for (key, value) in headers {
         if String(describing: key).caseInsensitiveCompare(name) == .orderedSame,
            let stringValue = value as? String,
-           stringValue.isEmpty == false
-        {
+           stringValue.isEmpty == false {
             return stringValue
         }
     }
@@ -82,6 +83,7 @@ func requireDictionary(_ key: String, in object: [String: Any]) throws -> [Strin
     guard let value = object[key] as? [String: Any] else {
         throw E2ETransportError("The live end-to-end helper expected '\(key)' to be a JSON object.")
     }
+
     return value
 }
 
@@ -89,6 +91,7 @@ func requireArray(_ key: String, in object: [String: Any]) throws -> [[String: A
     guard let value = object[key] as? [[String: Any]] else {
         throw E2ETransportError("The live end-to-end helper expected '\(key)' to be an array of JSON objects.")
     }
+
     return value
 }
 
@@ -96,6 +99,7 @@ func requireFirstDictionary(in array: [[String: Any]]) throws -> [String: Any] {
     guard let first = array.first else {
         throw E2ETransportError("The live end-to-end helper expected at least one object in the MCP content array.")
     }
+
     return first
 }
 
@@ -103,6 +107,7 @@ func requireString(_ key: String, in object: [String: Any]) throws -> String {
     guard let value = object[key] as? String, value.isEmpty == false else {
         throw E2ETransportError("The live end-to-end helper expected '\(key)' to be a non-empty string.")
     }
+
     return value
 }
 
@@ -119,7 +124,7 @@ func requireProfiles(from payload: Any) throws -> [E2EProfileSnapshot] {
 
     guard let payload = payload as? [String: Any] else {
         throw E2ETransportError(
-            "The live end-to-end helper expected the profile list payload to decode into a JSON object or array, but received '\(type(of: payload))'."
+            "The live end-to-end helper expected the profile list payload to decode into a JSON object or array, but received '\(type(of: payload))'.",
         )
     }
 
@@ -146,7 +151,7 @@ func requireProfiles(from payload: Any) throws -> [E2EProfileSnapshot] {
 
     let availableKeys = payload.keys.sorted().joined(separator: ", ")
     throw E2ETransportError(
-        "The live end-to-end helper could not find a decodable profile list in the MCP payload. Available top-level keys: [\(availableKeys)]."
+        "The live end-to-end helper could not find a decodable profile list in the MCP payload. Available top-level keys: [\(availableKeys)].",
     )
 }
 
@@ -162,6 +167,8 @@ extension NSLock {
 
 struct E2ETimeoutError: Error {}
 
+// MARK: - E2ETransportError
+
 struct E2ETransportError: Error, CustomStringConvertible {
     let description: String
 
@@ -169,6 +176,8 @@ struct E2ETransportError: Error, CustomStringConvertible {
         self.description = description
     }
 }
+
+// MARK: - SpeakSwiftlyBuildError
 
 struct SpeakSwiftlyBuildError: Error, CustomStringConvertible {
     let description: String
@@ -181,5 +190,6 @@ struct SpeakSwiftlyBuildError: Error, CustomStringConvertible {
 func isRetryableConnectionDuringStartup(_ error: Error) -> Bool {
     let nsError = error as NSError
     guard nsError.domain == NSURLErrorDomain else { return false }
+
     return nsError.code == NSURLErrorCannotConnectToHost || nsError.code == NSURLErrorNetworkConnectionLost
 }

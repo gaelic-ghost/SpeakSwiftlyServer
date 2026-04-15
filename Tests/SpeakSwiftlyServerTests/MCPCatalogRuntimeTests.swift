@@ -1,16 +1,16 @@
 import Foundation
 import MCP
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - MCP Catalog Runtime Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func embeddedMCPRoutesDriveSpeechRuntimeAndTextProfileTools() async throws {
+    @Test func `embedded MCP routes drive speech runtime and text profile tools`() async throws {
         try await Self.withEmbeddedMCPSurface { runtime, _, mcpSurface, sessionID in
             let queueSpeechToolEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
@@ -23,11 +23,11 @@ extension ServerTests {
                                 "text_format": "cli_output",
                                 "nested_source_format": "rust_source",
                                 "source_format": "source_code",
-                            ]
+                            ],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let queueSpeechToolPayload = try mcpToolPayload(from: queueSpeechToolEnvelope)
             let requestID = try #require(queueSpeechToolPayload["request_id"] as? String)
@@ -40,14 +40,14 @@ extension ServerTests {
                         cwd: "./Tests",
                         repoRoot: "../SpeakSwiftlyServer",
                         textFormat: .cli,
-                        nestedSourceFormat: .rust
-                    )
+                        nestedSourceFormat: .rust,
+                    ),
             )
             #expect(queuedSpeechInvocation.textProfileName == "mcp-text")
             #expect(queuedSpeechInvocation.sourceFormat == .generic)
 
             let createCloneToolEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "create_voice_profile_from_audio",
@@ -57,11 +57,11 @@ extension ServerTests {
                                 "reference_audio_path": "./Fixtures/mcp-reference.wav",
                                 "transcript": "Imported from MCP",
                                 "cwd": "/tmp/mcp-clone-cwd",
-                            ]
+                            ],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let createCloneToolPayload = try mcpToolPayload(from: createCloneToolEnvelope)
             let createCloneRequestID = try #require(createCloneToolPayload["request_id"] as? String)
@@ -74,18 +74,18 @@ extension ServerTests {
             #expect(createCloneInvocation.cwd == "/tmp/mcp-clone-cwd")
 
             let renameVoiceToolEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "update_voice_profile_name",
                             arguments: [
                                 "profile_name": "clone-from-mcp",
                                 "new_profile_name": "clone-from-mcp-renamed",
-                            ]
+                            ],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let renameVoiceToolPayload = try mcpToolPayload(from: renameVoiceToolEnvelope)
             let renameVoiceRequestID = try #require(renameVoiceToolPayload["request_id"] as? String)
@@ -95,17 +95,17 @@ extension ServerTests {
             #expect(renameVoiceInvocation.newProfileName == "clone-from-mcp-renamed")
 
             let rerollVoiceToolEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "reroll_voice_profile",
                             arguments: [
                                 "profile_name": "clone-from-mcp-renamed",
-                            ]
+                            ],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let rerollVoiceToolPayload = try mcpToolPayload(from: rerollVoiceToolEnvelope)
             let rerollVoiceRequestID = try #require(rerollVoiceToolPayload["request_id"] as? String)
@@ -114,26 +114,26 @@ extension ServerTests {
             #expect(rerollVoiceInvocation.profileName == "clone-from-mcp-renamed")
 
             let createTextProfileEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: #"{"jsonrpc":"2.0","id":"tool-text-profile-1","method":"tools/call","params":{"name":"create_text_profile","arguments":{"id":"mcp-text","name":"MCP Text","replacements":[{"id":"mcp-replacement","text":"CLI","replacement":"command line interface","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["cli_output"],"priority":1}]}}}"#,
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let createTextProfilePayload = try mcpToolPayload(from: createTextProfileEnvelope)
             #expect(createTextProfilePayload["id"] as? String == "mcp-text")
 
             let listTextProfilesEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "get_text_normalizer_snapshot",
-                            arguments: [:]
+                            arguments: [:],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let listTextProfilesPayload = try mcpToolPayload(from: listTextProfilesEnvelope)
             #expect(listTextProfilesPayload["built_in_style"] as? String == "balanced")
@@ -141,49 +141,49 @@ extension ServerTests {
             #expect(listTextStoredProfiles.contains { $0["id"] as? String == "mcp-text" })
 
             let getTextProfileStyleEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(name: "get_text_profile_style", arguments: [:]),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let getTextProfileStylePayload = try mcpToolPayload(from: getTextProfileStyleEnvelope)
             #expect(getTextProfileStylePayload["built_in_style"] as? String == "balanced")
 
             let setTextProfileStyleEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "set_text_profile_style",
-                            arguments: ["built_in_style": "compact"]
+                            arguments: ["built_in_style": "compact"],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let setTextProfileStylePayload = try mcpToolPayload(from: setTextProfileStyleEnvelope)
             #expect(setTextProfileStylePayload["built_in_style"] as? String == "compact")
 
             let loadTextProfilesEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(name: "load_text_profiles", arguments: [:]),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let loadTextProfilesPayload = try mcpToolPayload(from: loadTextProfilesEnvelope)
             let loadedStoredProfiles = try #require(loadTextProfilesPayload["stored_profiles"] as? [[String: Any]])
             #expect(loadedStoredProfiles.contains { $0["id"] as? String == "mcp-text" })
 
             let saveTextProfilesEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(name: "save_text_profiles", arguments: [:]),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let saveTextProfilesPayload = try mcpToolPayload(from: saveTextProfilesEnvelope)
             let savedStoredProfiles = try #require(saveTextProfilesPayload["stored_profiles"] as? [[String: Any]])
@@ -193,12 +193,12 @@ extension ServerTests {
             #expect(persistenceActionCounts.save == 1)
 
             let statusToolEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(name: "get_runtime_overview", arguments: [:]),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let statusToolPayload = try mcpToolPayload(from: statusToolEnvelope)
             #expect(statusToolPayload["worker_mode"] as? String == "ready")
@@ -208,27 +208,27 @@ extension ServerTests {
             #expect(transports.contains { $0["name"] as? String == "mcp" && $0["state"] as? String == "listening" })
 
             let getRuntimeConfigEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(name: "get_staged_runtime_config", arguments: [:]),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let getRuntimeConfigPayload = try mcpToolPayload(from: getRuntimeConfigEnvelope)
             #expect(getRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")
             #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3")
 
             let setRuntimeConfigEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "set_staged_config",
-                            arguments: ["speech_backend": "marvis"]
+                            arguments: ["speech_backend": "marvis"],
                         ),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let setRuntimeConfigPayload = try mcpToolPayload(from: setRuntimeConfigEnvelope)
             #expect(setRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")

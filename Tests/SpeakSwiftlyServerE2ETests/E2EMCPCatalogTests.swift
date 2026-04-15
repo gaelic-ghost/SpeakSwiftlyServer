@@ -7,15 +7,15 @@ import Darwin
 // MARK: - MCP Catalog Surface End-to-End Tests
 
 extension ControlE2ETests {
-    @Test func mcpCatalogControlResourcesPromptsAndSubscriptionsStayLiveAndAccurate() async throws {
+    @Test func `mcp catalog control resources prompts and subscriptions stay live and accurate`() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }
 
         let server = try Self.makeServer(
-            port: Self.randomPort(in: 59_800..<59_900),
+            port: Self.randomPort(in: 59800..<59900),
             profileRootURL: sandbox.profileRootURL,
             silentPlayback: true,
-            mcpEnabled: true
+            mcpEnabled: true,
         )
         try server.start()
         defer { server.stop() }
@@ -24,7 +24,7 @@ extension ControlE2ETests {
             baseURL: server.baseURL,
             path: "/mcp",
             timeout: Self.e2eTimeout,
-            server: server
+            server: server,
         )
         try await waitUntilWorkerReady(using: client, timeout: Self.e2eTimeout, server: server)
 
@@ -55,7 +55,7 @@ extension ControlE2ETests {
             arguments: [
                 "profile_goal": "gentle narration",
                 "voice_traits": "warm, steady, intimate",
-            ]
+            ],
         )
         let voicePromptText = try Self.requirePromptText(in: voicePrompt)
         #expect(voicePromptText.contains("gentle narration"))
@@ -65,18 +65,18 @@ extension ControlE2ETests {
             arguments: [
                 "user_goal": "Help the user decide whether to clone a voice or create a synthetic profile.",
                 "current_context": "The user has not provided reference audio yet.",
-            ]
+            ],
         )
         let chooseSurfaceText = try Self.requirePromptText(in: chooseSurfacePrompt)
         #expect(chooseSurfaceText.contains("action_type"))
         #expect(chooseSurfaceText.contains("create_voice_profile_from_description"))
 
-        let statusPayload = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "get_runtime_overview", arguments: [:])
+        let statusPayload = try await Self.requireObjectPayload(
+            from: client.callToolJSON(name: "get_runtime_overview", arguments: [:]),
         )
         #expect(statusPayload["worker_mode"] as? String == "ready")
 
-        let runtimePayload = try Self.requireObjectPayload(from: try await client.readResourceJSON(uri: "speak://runtime/overview"))
+        let runtimePayload = try await Self.requireObjectPayload(from: client.readResourceJSON(uri: "speak://runtime/overview"))
         let runtimeTransports = try requireArray("transports", in: runtimePayload)
         #expect(runtimeTransports.contains {
             $0["name"] as? String == "mcp" && ($0["advertised_address"] as? String)?.contains("/mcp") == true
@@ -107,10 +107,10 @@ extension ControlE2ETests {
                         id: "expand-json",
                         text: "json",
                         replacement: "JSON",
-                        match: "whole_token"
+                        match: "whole_token",
                     ),
                 ],
-            ]
+            ],
         )
 
         let textProfileNotification: [String: Any]
@@ -122,6 +122,7 @@ extension ControlE2ETests {
                 guard let params = $0["params"] as? [String: Any] else {
                     return false
                 }
+
                 return params["uri"] as? String == "speak://text-profiles"
             }
         } catch {
@@ -136,21 +137,21 @@ extension ControlE2ETests {
 
                 Server stdout/stderr:
                 \(server.combinedOutput)
-                """
+                """,
             )
         }
         let textProfileNotificationParams = try requireDictionary("params", in: textProfileNotification)
         #expect(textProfileNotificationParams["uri"] as? String == "speak://text-profiles")
 
-        let storedTextProfilesPayload = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles")
+        let storedTextProfilesPayload = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://text-profiles"),
         )
         #expect(storedTextProfilesPayload["built_in_style"] as? String == "balanced")
         let storedProfiles = try requireArray("stored_profiles", in: storedTextProfilesPayload)
         #expect(storedProfiles.contains { $0["id"] as? String == "mcp-text-profile" })
 
-        let initialTextProfileStylePayload = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles/style")
+        let initialTextProfileStylePayload = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://text-profiles/style"),
         )
         #expect(initialTextProfileStylePayload["built_in_style"] as? String == "balanced")
 
@@ -158,7 +159,7 @@ extension ControlE2ETests {
             name: "set_text_profile_style",
             arguments: [
                 "built_in_style": "compact",
-            ]
+            ],
         )
 
         _ = try await client.callTool(
@@ -172,11 +173,11 @@ extension ControlE2ETests {
                             id: "expand-json",
                             text: "json",
                             replacement: "JavaScript Object Notation",
-                            formats: ["markdown"]
+                            formats: ["markdown"],
                         ),
                     ],
                 ],
-            ]
+            ],
         )
 
         _ = try await client.callTool(
@@ -189,11 +190,11 @@ extension ControlE2ETests {
                         Self.replacementJSON(
                             id: "expand-cli",
                             text: "CLI",
-                            replacement: "command line interface"
+                            replacement: "command line interface",
                         ),
                     ],
                 ],
-            ]
+            ],
         )
 
         _ = try await client.callTool(
@@ -202,9 +203,9 @@ extension ControlE2ETests {
                 "replacement": Self.replacementJSON(
                     id: "expand-rpc",
                     text: "RPC",
-                    replacement: "remote procedure call"
+                    replacement: "remote procedure call",
                 ),
-            ]
+            ],
         )
         _ = try await client.callTool(
             name: "replace_text_replacement",
@@ -213,15 +214,15 @@ extension ControlE2ETests {
                     id: "expand-rpc",
                     text: "RPC",
                     replacement: "Remote Procedure Call",
-                    phase: "after_built_ins"
+                    phase: "after_built_ins",
                 ),
-            ]
+            ],
         )
         _ = try await client.callTool(
             name: "remove_text_replacement",
             arguments: [
                 "replacement_id": "expand-rpc",
-            ]
+            ],
         )
         _ = try await client.callTool(
             name: "add_text_replacement",
@@ -230,9 +231,9 @@ extension ControlE2ETests {
                 "replacement": Self.replacementJSON(
                     id: "expand-ui",
                     text: "UI",
-                    replacement: "user interface"
+                    replacement: "user interface",
                 ),
-            ]
+            ],
         )
         _ = try await client.callTool(
             name: "replace_text_replacement",
@@ -241,48 +242,48 @@ extension ControlE2ETests {
                 "replacement": Self.replacementJSON(
                     id: "expand-ui",
                     text: "UI",
-                    replacement: "User Interface"
+                    replacement: "User Interface",
                 ),
-            ]
+            ],
         )
         _ = try await client.callTool(
             name: "remove_text_replacement",
             arguments: [
                 "profile_id": "mcp-text-profile",
                 "replacement_id": "expand-ui",
-            ]
+            ],
         )
 
-        let savedTextProfiles = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "save_text_profiles", arguments: [:])
+        let savedTextProfiles = try await Self.requireObjectPayload(
+            from: client.callToolJSON(name: "save_text_profiles", arguments: [:]),
         )
         let savedStoredProfiles = try requireArray("stored_profiles", in: savedTextProfiles)
         #expect(savedStoredProfiles.contains { $0["id"] as? String == "mcp-text-profile" })
 
-        let loadedTextProfiles = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "load_text_profiles", arguments: [:])
+        let loadedTextProfiles = try await Self.requireObjectPayload(
+            from: client.callToolJSON(name: "load_text_profiles", arguments: [:]),
         )
         #expect(loadedTextProfiles["built_in_style"] as? String == "compact")
         let loadedStoredProfiles = try requireArray("stored_profiles", in: loadedTextProfiles)
         #expect(loadedStoredProfiles.contains { $0["id"] as? String == "mcp-text-profile" })
 
-        let effectiveStoredProfile = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles/effective/mcp-text-profile")
+        let effectiveStoredProfile = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://text-profiles/effective/mcp-text-profile"),
         )
         #expect(effectiveStoredProfile["id"] as? String == "mcp-text-profile")
 
-        let storedProfileDetail = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://text-profiles/stored/mcp-text-profile")
+        let storedProfileDetail = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://text-profiles/stored/mcp-text-profile"),
         )
         #expect(storedProfileDetail["id"] as? String == "mcp-text-profile")
 
         _ = try await client.callToolJSON(name: "reset_active_text_profile", arguments: [:])
         _ = try await client.callToolJSON(
             name: "delete_text_profile",
-            arguments: ["profile_id": "mcp-text-profile"]
+            arguments: ["profile_id": "mcp-text-profile"],
         )
-        let finalTextProfiles = try Self.requireObjectPayload(
-            from: try await client.callToolJSON(name: "get_text_normalizer_snapshot", arguments: [:])
+        let finalTextProfiles = try await Self.requireObjectPayload(
+            from: client.callToolJSON(name: "get_text_normalizer_snapshot", arguments: [:]),
         )
         let finalStoredProfiles = try requireArray("stored_profiles", in: finalTextProfiles)
         #expect(finalStoredProfiles.contains { $0["id"] as? String == "mcp-text-profile" } == false)

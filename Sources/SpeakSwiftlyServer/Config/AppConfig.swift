@@ -3,7 +3,7 @@ import Foundation
 
 // MARK: - App Config
 
-struct AppConfig: Sendable {
+struct AppConfig {
     let server: ServerConfiguration
     let http: HTTPConfig
     let mcp: MCPConfig
@@ -19,20 +19,20 @@ struct AppConfig: Sendable {
     init(config: ConfigReader) throws {
         let server = try ServerConfiguration(config: config)
         self.server = server
-        self.http = try HTTPConfig(
+        http = try HTTPConfig(
             config: config.scoped(to: "http"),
             fallbackHost: server.host,
             fallbackPort: server.port,
-            fallbackSSEHeartbeatSeconds: server.sseHeartbeatSeconds
+            fallbackSSEHeartbeatSeconds: server.sseHeartbeatSeconds,
         )
-        self.mcp = try MCPConfig(config: config.scoped(to: "mcp"))
+        mcp = try MCPConfig(config: config.scoped(to: "mcp"))
     }
 
     // MARK: - Loading
 
     static func load(
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        defaultProfile: AppRuntimeDefaultProfile? = nil
+        defaultProfile: AppRuntimeDefaultProfile? = nil,
     ) async throws -> AppConfig {
         let store = try await ConfigStore(environment: environment, defaultProfile: defaultProfile)
         return try store.loadAppConfig()

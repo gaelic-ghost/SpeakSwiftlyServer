@@ -4,9 +4,9 @@ import Testing
 import Darwin
 #endif
 
-// MARK: - Decodable Transport Models
+// MARK: - E2EReadinessSnapshot
 
-struct E2EReadinessSnapshot: Decodable, Sendable {
+struct E2EReadinessSnapshot: Decodable {
     let workerReady: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -14,7 +14,9 @@ struct E2EReadinessSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EJobCreatedResponse: Decodable, Sendable {
+// MARK: - E2EJobCreatedResponse
+
+struct E2EJobCreatedResponse: Decodable {
     let requestID: String
 
     enum CodingKeys: String, CodingKey {
@@ -24,11 +26,15 @@ struct E2EJobCreatedResponse: Decodable, Sendable {
     var jobID: String { requestID }
 }
 
-struct E2EProfileListResponse: Decodable, Sendable {
+// MARK: - E2EProfileListResponse
+
+struct E2EProfileListResponse: Decodable {
     let profiles: [E2EProfileSnapshot]
 }
 
-struct E2EProfileSnapshot: Decodable, Sendable {
+// MARK: - E2EProfileSnapshot
+
+struct E2EProfileSnapshot: Decodable {
     let profileName: String
     let vibe: String?
     let voiceDescription: String?
@@ -42,7 +48,9 @@ struct E2EProfileSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2ETransportStatus: Decodable, Sendable {
+// MARK: - E2ETransportStatus
+
+struct E2ETransportStatus: Decodable {
     let name: String
     let state: String
     let advertisedAddress: String?
@@ -54,7 +62,9 @@ struct E2ETransportStatus: Decodable, Sendable {
     }
 }
 
-struct E2EHealthSnapshot: Decodable, Sendable {
+// MARK: - E2EHealthSnapshot
+
+struct E2EHealthSnapshot: Decodable {
     let status: String
     let workerMode: String
     let workerReady: Bool
@@ -66,7 +76,9 @@ struct E2EHealthSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EStatusSnapshot: Decodable, Sendable {
+// MARK: - E2EStatusSnapshot
+
+struct E2EStatusSnapshot: Decodable {
     let workerMode: String
     let cachedProfiles: [E2EProfileSnapshot]
     let transports: [E2ETransportStatus]
@@ -84,7 +96,9 @@ struct E2EStatusSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EQueueStatusSnapshot: Decodable, Sendable {
+// MARK: - E2EQueueStatusSnapshot
+
+struct E2EQueueStatusSnapshot: Decodable {
     let activeRequest: E2EActiveRequestSnapshot?
     let activeRequests: [E2EActiveRequestSnapshot]
     let queuedRequests: [E2EQueuedRequestSnapshot]
@@ -96,7 +110,9 @@ struct E2EQueueStatusSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EPlaybackStatusSnapshot: Decodable, Sendable {
+// MARK: - E2EPlaybackStatusSnapshot
+
+struct E2EPlaybackStatusSnapshot: Decodable {
     let state: String
     let activeRequest: E2EActiveRequestSnapshot?
 
@@ -106,7 +122,9 @@ struct E2EPlaybackStatusSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EActiveRequestSnapshot: Decodable, Sendable, Equatable {
+// MARK: - E2EActiveRequestSnapshot
+
+struct E2EActiveRequestSnapshot: Decodable, Equatable {
     let id: String
     let op: String
     let profileName: String?
@@ -118,7 +136,9 @@ struct E2EActiveRequestSnapshot: Decodable, Sendable, Equatable {
     }
 }
 
-struct E2EQueuedRequestSnapshot: Decodable, Sendable, Equatable {
+// MARK: - E2EQueuedRequestSnapshot
+
+struct E2EQueuedRequestSnapshot: Decodable, Equatable {
     let id: String
     let op: String
     let profileName: String?
@@ -132,7 +152,9 @@ struct E2EQueuedRequestSnapshot: Decodable, Sendable, Equatable {
     }
 }
 
-struct E2EQueueSnapshotResponse: Decodable, Sendable {
+// MARK: - E2EQueueSnapshotResponse
+
+struct E2EQueueSnapshotResponse: Decodable {
     let queueType: String
     let activeRequest: E2EActiveRequestSnapshot?
     let activeRequests: [E2EActiveRequestSnapshot]
@@ -146,11 +168,15 @@ struct E2EQueueSnapshotResponse: Decodable, Sendable {
     }
 }
 
-struct E2EPlaybackStateResponse: Decodable, Sendable {
+// MARK: - E2EPlaybackStateResponse
+
+struct E2EPlaybackStateResponse: Decodable {
     let playback: E2EPlaybackStateSnapshot
 }
 
-struct E2EPlaybackStateSnapshot: Decodable, Sendable {
+// MARK: - E2EPlaybackStateSnapshot
+
+struct E2EPlaybackStateSnapshot: Decodable {
     let state: String
     let activeRequest: E2EActiveRequestSnapshot?
 
@@ -160,7 +186,9 @@ struct E2EPlaybackStateSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2EQueueClearedResponse: Decodable, Sendable {
+// MARK: - E2EQueueClearedResponse
+
+struct E2EQueueClearedResponse: Decodable {
     let clearedCount: Int
 
     enum CodingKeys: String, CodingKey {
@@ -168,7 +196,9 @@ struct E2EQueueClearedResponse: Decodable, Sendable {
     }
 }
 
-struct E2EQueueCancellationResponse: Decodable, Sendable {
+// MARK: - E2EQueueCancellationResponse
+
+struct E2EQueueCancellationResponse: Decodable {
     let cancelledRequestID: String
 
     enum CodingKeys: String, CodingKey {
@@ -176,11 +206,15 @@ struct E2EQueueCancellationResponse: Decodable, Sendable {
     }
 }
 
-struct E2ERequestListResponse: Decodable, Sendable {
+// MARK: - E2ERequestListResponse
+
+struct E2ERequestListResponse: Decodable {
     let requests: [E2EJobSnapshot]
 }
 
-struct E2ETextProfileListResponse: Decodable, Sendable {
+// MARK: - E2ETextProfileListResponse
+
+struct E2ETextProfileListResponse: Decodable {
     let textProfiles: E2ETextProfilesSnapshot
 
     enum CodingKeys: String, CodingKey {
@@ -188,11 +222,15 @@ struct E2ETextProfileListResponse: Decodable, Sendable {
     }
 }
 
-struct E2ETextProfileResponse: Decodable, Sendable {
+// MARK: - E2ETextProfileResponse
+
+struct E2ETextProfileResponse: Decodable {
     let profile: E2ETextProfileSnapshot
 }
 
-struct E2ETextProfilesSnapshot: Decodable, Sendable {
+// MARK: - E2ETextProfilesSnapshot
+
+struct E2ETextProfilesSnapshot: Decodable {
     let builtInStyle: String
     let baseProfile: E2ETextProfileSnapshot
     let activeProfile: E2ETextProfileSnapshot
@@ -208,7 +246,9 @@ struct E2ETextProfilesSnapshot: Decodable, Sendable {
     }
 }
 
-struct E2ETextProfileStyleResponse: Decodable, Sendable {
+// MARK: - E2ETextProfileStyleResponse
+
+struct E2ETextProfileStyleResponse: Decodable {
     let textProfileStyle: E2ETextProfileStyleSnapshot
 
     enum CodingKeys: String, CodingKey {
@@ -216,13 +256,17 @@ struct E2ETextProfileStyleResponse: Decodable, Sendable {
     }
 }
 
-struct E2ETextProfileSnapshot: Decodable, Sendable, Equatable {
+// MARK: - E2ETextProfileSnapshot
+
+struct E2ETextProfileSnapshot: Decodable, Equatable {
     let id: String
     let name: String
     let replacements: [E2ETextReplacementSnapshot]
 }
 
-struct E2ETextProfileStyleSnapshot: Decodable, Sendable, Equatable {
+// MARK: - E2ETextProfileStyleSnapshot
+
+struct E2ETextProfileStyleSnapshot: Decodable, Equatable {
     let builtInStyle: String
 
     enum CodingKeys: String, CodingKey {
@@ -230,7 +274,9 @@ struct E2ETextProfileStyleSnapshot: Decodable, Sendable, Equatable {
     }
 }
 
-struct E2ETextReplacementSnapshot: Decodable, Sendable, Equatable {
+// MARK: - E2ETextReplacementSnapshot
+
+struct E2ETextReplacementSnapshot: Decodable, Equatable {
     let id: String
     let text: String
     let replacement: String
@@ -252,7 +298,9 @@ struct E2ETextReplacementSnapshot: Decodable, Sendable, Equatable {
     }
 }
 
-struct E2EJobSnapshot: Decodable, Sendable {
+// MARK: - E2EJobSnapshot
+
+struct E2EJobSnapshot: Decodable {
     let requestID: String
     let status: String
     let history: [E2EJobEvent]
@@ -268,7 +316,9 @@ struct E2EJobSnapshot: Decodable, Sendable {
     var jobID: String { requestID }
 }
 
-struct E2EJobEvent: Decodable, Sendable {
+// MARK: - E2EJobEvent
+
+struct E2EJobEvent: Decodable {
     let id: String?
     let event: String?
     let op: String?

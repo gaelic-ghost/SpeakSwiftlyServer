@@ -1,16 +1,16 @@
 import Foundation
+import HTTPTypes
 import Hummingbird
 import HummingbirdTesting
-import HTTPTypes
 import SpeakSwiftly
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - HTTP Control Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func routesExposeQueueInspectionAndControlOperations() async throws {
+    @Test func `routes expose queue inspection and control operations`() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -18,7 +18,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -31,7 +31,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Hold the line","profile_name":"default"}"#)
+                body: byteBuffer(#"{"text":"Hold the line","profile_name":"default"}"#),
             )
             let activeJobID = try #require(try jsonObject(from: activeResponse.body)["request_id"] as? String)
 
@@ -39,7 +39,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Queue this request","profile_name":"default"}"#)
+                body: byteBuffer(#"{"text":"Queue this request","profile_name":"default"}"#),
             )
             let queuedJobID = try #require(try jsonObject(from: queuedResponse.body)["request_id"] as? String)
 
@@ -90,17 +90,17 @@ extension ServerTests {
 
             let cancelledSnapshot = try await waitForJobSnapshot(queuedJobID, on: host)
             switch cancelledSnapshot.terminalEvent {
-            case .failed(let failure):
-                #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
-            default:
-                Issue.record("Expected the cancelled queued request to terminate with a request_cancelled failure.")
+                case let .failed(failure):
+                    #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
+                default:
+                    Issue.record("Expected the cancelled queued request to terminate with a request_cancelled failure.")
             }
 
             let anotherQueuedResponse = try await client.execute(
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Queue another request","profile_name":"default"}"#)
+                body: byteBuffer(#"{"text":"Queue another request","profile_name":"default"}"#),
             )
             let anotherQueuedJobID = try #require(try jsonObject(from: anotherQueuedResponse.body)["request_id"] as? String)
 
@@ -111,10 +111,10 @@ extension ServerTests {
 
             let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: host)
             switch clearedSnapshot.terminalEvent {
-            case .failed(let failure):
-                #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
-            default:
-                Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
+                case let .failed(failure):
+                    #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
+                default:
+                    Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
             }
 
             let emptyQueueResponse = try await client.execute(uri: "/generation/queue", method: .get)
@@ -125,12 +125,12 @@ extension ServerTests {
             #expect((emptyQueueJSON["active_requests"] as? [[String: Any]])?.first?["id"] as? String == activeJobID)
         }
 
-        await runtime.finishHeldSpeak(id: try await waitForActiveRequestID(on: host))
+        try await runtime.finishHeldSpeak(id: waitForActiveRequestID(on: host))
         await host.shutdown()
     }
 
     @available(macOS 14, *)
-    @Test func routesReportNotReadyAndMissingJobsClearly() async throws {
+    @Test func `routes report not ready and missing jobs clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -138,7 +138,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -154,7 +154,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Too soon","profile_name":"default"}"#)
+                body: byteBuffer(#"{"text":"Too soon","profile_name":"default"}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             #expect(speakResponse.status == .serviceUnavailable)
@@ -178,7 +178,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func routesReportWorkerStartupFailureClearly() async throws {
+    @Test func `routes report worker startup failure clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -186,7 +186,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -212,7 +212,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Still broken","profile_name":"default"}"#)
+                body: byteBuffer(#"{"text":"Still broken","profile_name":"default"}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             #expect(speakResponse.status == .serviceUnavailable)

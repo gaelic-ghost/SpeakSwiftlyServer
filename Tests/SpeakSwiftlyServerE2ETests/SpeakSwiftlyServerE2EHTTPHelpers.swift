@@ -12,7 +12,7 @@ extension ServerE2E {
         text: String,
         voiceDescription: String,
         outputPath: String? = nil,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         var body: [String: Any] = [
             "profile_name": profileName,
@@ -35,7 +35,7 @@ extension ServerE2E {
             id: createJobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
         #expect(snapshot.status == "completed")
         #expect(snapshot.terminalEvent?.ok == true)
@@ -53,7 +53,7 @@ extension ServerE2E {
         referenceAudioPath: String,
         transcript: String?,
         expectTranscription: Bool,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         var body: [String: Any] = [
             "profile_name": profileName,
@@ -75,7 +75,7 @@ extension ServerE2E {
             id: cloneJobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
         #expect(snapshot.status == "completed")
         #expect(snapshot.terminalEvent?.ok == true)
@@ -83,13 +83,13 @@ extension ServerE2E {
 
         assertCloneTranscriptionStages(
             in: snapshot,
-            expectTranscription: expectTranscription
+            expectTranscription: expectTranscription,
         )
     }
 
     static func assertProfileIsVisible(
         using client: E2EHTTPClient,
-        profileName: String
+        profileName: String,
     ) async throws {
         let profilesResponse = try await client.request(path: "/voices", method: "GET")
         #expect(profilesResponse.statusCode == 200)
@@ -99,7 +99,7 @@ extension ServerE2E {
 
     static func assertProfileIsNotVisible(
         using client: E2EHTTPClient,
-        profileName: String
+        profileName: String,
     ) async throws {
         let profilesResponse = try await client.request(path: "/voices", method: "GET")
         #expect(profilesResponse.statusCode == 200)
@@ -111,7 +111,7 @@ extension ServerE2E {
         using client: E2EHTTPClient,
         server: ServerProcess,
         text: String,
-        profileName: String
+        profileName: String,
     ) async throws {
         let response = try await client.request(
             path: "/speech/live",
@@ -119,7 +119,7 @@ extension ServerE2E {
             jsonBody: [
                 "text": text,
                 "profile_name": profileName,
-            ]
+            ],
         )
         #expect(response.statusCode == 202)
 
@@ -128,7 +128,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
@@ -148,7 +148,7 @@ extension ServerE2E {
         using client: E2EHTTPClient,
         server: ServerProcess,
         text: String,
-        profileName: String
+        profileName: String,
     ) async throws -> String {
         try stabilizeBuiltInAudioRouteForAudiblePlayback()
 
@@ -171,7 +171,7 @@ extension ServerE2E {
             jsonBody: [
                 "text": text,
                 "profile_name": profileName,
-            ]
+            ],
         )
         #expect(response.statusCode == 202)
 
@@ -198,7 +198,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
@@ -229,7 +229,7 @@ extension ServerE2E {
     static func submitSpeechJob(
         using client: E2EHTTPClient,
         text: String,
-        profileName: String
+        profileName: String,
     ) async throws -> String {
         let response = try await client.request(
             path: "/speech/live",
@@ -237,7 +237,7 @@ extension ServerE2E {
             jsonBody: [
                 "text": text,
                 "profile_name": profileName,
-            ]
+            ],
         )
         #expect(response.statusCode == 202)
         return try decode(E2EJobCreatedResponse.self, from: response.data).jobID
@@ -246,11 +246,12 @@ extension ServerE2E {
     static func waitForPlaybackState(
         using client: E2EHTTPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool
+        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool,
     ) async throws -> E2EPlaybackStateSnapshot {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
             let response = try await client.request(path: "/playback/state", method: "GET")
             guard response.statusCode == 200 else { return nil }
+
             let snapshot = try decode(E2EPlaybackStateResponse.self, from: response.data).playback
             return predicate(snapshot) ? snapshot : nil
         }
@@ -259,11 +260,12 @@ extension ServerE2E {
     static func waitForGenerationQueue(
         using client: E2EHTTPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool
+        matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool,
     ) async throws -> E2EQueueSnapshotResponse {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
             let response = try await client.request(path: "/generation/queue", method: "GET")
             guard response.statusCode == 200 else { return nil }
+
             let snapshot = try decode(E2EQueueSnapshotResponse.self, from: response.data)
             return predicate(snapshot) ? snapshot : nil
         }

@@ -6,8 +6,8 @@ import CoreAudio
 // MARK: - Audio Route End-to-End Helpers
 
 extension ServerE2E {
-    #if canImport(CoreAudio)
-    private struct E2EAudioOutputDevice: Sendable {
+#if canImport(CoreAudio)
+    private struct E2EAudioOutputDevice {
         let id: AudioDeviceID
         let name: String
         let transportType: UInt32
@@ -18,22 +18,22 @@ extension ServerE2E {
         try setDefaultAudioDevice(
             selector: kAudioHardwarePropertyDefaultOutputDevice,
             deviceID: preferredDevice.id,
-            deviceName: preferredDevice.name
+            deviceName: preferredDevice.name,
         )
         try setDefaultAudioDevice(
             selector: kAudioHardwarePropertyDefaultSystemOutputDevice,
             deviceID: preferredDevice.id,
-            deviceName: preferredDevice.name
+            deviceName: preferredDevice.name,
         )
 
         let deadline = Date().addingTimeInterval(8)
         var consecutiveStableSamples = 0
         while Date() < deadline {
             let defaultOutput = try currentAudioOutputDevice(
-                selector: kAudioHardwarePropertyDefaultOutputDevice
+                selector: kAudioHardwarePropertyDefaultOutputDevice,
             )
             let systemOutput = try currentAudioOutputDevice(
-                selector: kAudioHardwarePropertyDefaultSystemOutputDevice
+                selector: kAudioHardwarePropertyDefaultSystemOutputDevice,
             )
 
             if defaultOutput?.id == preferredDevice.id, systemOutput?.id == preferredDevice.id {
@@ -49,19 +49,19 @@ extension ServerE2E {
         }
 
         let finalDefaultOutput = try currentAudioOutputDevice(
-            selector: kAudioHardwarePropertyDefaultOutputDevice
+            selector: kAudioHardwarePropertyDefaultOutputDevice,
         )?.name ?? "unknown output device"
         let finalSystemOutput = try currentAudioOutputDevice(
-            selector: kAudioHardwarePropertyDefaultSystemOutputDevice
+            selector: kAudioHardwarePropertyDefaultSystemOutputDevice,
         )?.name ?? "unknown system output device"
-        throw SpeakSwiftlyBuildError(
+        throw try SpeakSwiftlyBuildError(
             """
             The live audible end-to-end suite could not stabilize macOS playback on the built-in speakers.
             preferred_output: \(preferredDevice.name)
             default_output_after_retries: \(finalDefaultOutput)
             system_output_after_retries: \(finalSystemOutput)
-            available_output_devices: \(try availableAudioOutputDevices().map(\.name).joined(separator: ", "))
-            """
+            available_output_devices: \(availableAudioOutputDevices().map(\.name).joined(separator: ", "))
+            """,
         )
     }
 
@@ -90,7 +90,7 @@ extension ServerE2E {
             """
             The live audible end-to-end suite could not find a built-in macOS output device to pin before playback.
             available_output_devices: \(outputDevices.map(\.name).joined(separator: ", "))
-            """
+            """,
         )
     }
 
@@ -99,10 +99,11 @@ extension ServerE2E {
             guard try audioDeviceHasOutputStreams(deviceID) else {
                 return nil
             }
-            return E2EAudioOutputDevice(
+
+            return try E2EAudioOutputDevice(
                 id: deviceID,
-                name: try audioDeviceName(deviceID),
-                transportType: try audioDeviceTransportType(deviceID)
+                name: audioDeviceName(deviceID),
+                transportType: audioDeviceTransportType(deviceID),
             )
         }
     }
@@ -112,23 +113,24 @@ extension ServerE2E {
         guard deviceID != AudioDeviceID(kAudioObjectUnknown) else {
             return nil
         }
-        return E2EAudioOutputDevice(
+
+        return try E2EAudioOutputDevice(
             id: deviceID,
-            name: try audioDeviceName(deviceID),
-            transportType: try audioDeviceTransportType(deviceID)
+            name: audioDeviceName(deviceID),
+            transportType: audioDeviceTransportType(deviceID),
         )
     }
 
     private static func setDefaultAudioDevice(
         selector: AudioObjectPropertySelector,
         deviceID: AudioDeviceID,
-        deviceName: String
+        deviceName: String,
     ) throws {
         var mutableDeviceID = deviceID
         var address = AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         let dataSize = UInt32(MemoryLayout<AudioDeviceID>.size)
         let status = AudioObjectSetPropertyData(
@@ -137,11 +139,11 @@ extension ServerE2E {
             0,
             nil,
             dataSize,
-            &mutableDeviceID
+            &mutableDeviceID,
         )
         guard status == noErr else {
             throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not select '\(deviceName)' as the active macOS audio route. CoreAudio status: \(status)."
+                "The live audible end-to-end suite could not select '\(deviceName)' as the active macOS audio route. CoreAudio status: \(status).",
             )
         }
     }
@@ -150,7 +152,7 @@ extension ServerE2E {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDevices,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         var dataSize = UInt32.zero
         let sizeStatus = AudioObjectGetPropertyDataSize(
@@ -158,17 +160,17 @@ extension ServerE2E {
             &address,
             0,
             nil,
-            &dataSize
+            &dataSize,
         )
         guard sizeStatus == noErr else {
             throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not enumerate macOS audio devices. CoreAudio status: \(sizeStatus)."
+                "The live audible end-to-end suite could not enumerate macOS audio devices. CoreAudio status: \(sizeStatus).",
             )
         }
 
         var deviceIDs = Array(
             repeating: AudioDeviceID(kAudioObjectUnknown),
-            count: Int(dataSize) / MemoryLayout<AudioDeviceID>.size
+            count: Int(dataSize) / MemoryLayout<AudioDeviceID>.size,
         )
         let readStatus = AudioObjectGetPropertyData(
             AudioObjectID(kAudioObjectSystemObject),
@@ -176,13 +178,14 @@ extension ServerE2E {
             0,
             nil,
             &dataSize,
-            &deviceIDs
+            &deviceIDs,
         )
         guard readStatus == noErr else {
             throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not read macOS audio device identifiers. CoreAudio status: \(readStatus)."
+                "The live audible end-to-end suite could not read macOS audio device identifiers. CoreAudio status: \(readStatus).",
             )
         }
+
         return deviceIDs
     }
 
@@ -192,7 +195,7 @@ extension ServerE2E {
         var address = AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         let status = AudioObjectGetPropertyData(
             AudioObjectID(kAudioObjectSystemObject),
@@ -200,13 +203,14 @@ extension ServerE2E {
             0,
             nil,
             &dataSize,
-            &deviceID
+            &deviceID,
         )
         guard status == noErr else {
             throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not inspect the active macOS output route. CoreAudio status: \(status)."
+                "The live audible end-to-end suite could not inspect the active macOS output route. CoreAudio status: \(status).",
             )
         }
+
         return deviceID
     }
 
@@ -216,7 +220,7 @@ extension ServerE2E {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioObjectPropertyName,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         let status = withUnsafeMutablePointer(to: &name) { pointer in
             AudioObjectGetPropertyData(
@@ -225,14 +229,15 @@ extension ServerE2E {
                 0,
                 nil,
                 &dataSize,
-                UnsafeMutableRawPointer(pointer)
+                UnsafeMutableRawPointer(pointer),
             )
         }
         guard status == noErr else {
             throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not read the name for macOS audio device id '\(deviceID)'. CoreAudio status: \(status)."
+                "The live audible end-to-end suite could not read the name for macOS audio device id '\(deviceID)'. CoreAudio status: \(status).",
             )
         }
+
         return name as String
     }
 
@@ -242,7 +247,7 @@ extension ServerE2E {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyTransportType,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         let status = AudioObjectGetPropertyData(
             deviceID,
@@ -250,13 +255,14 @@ extension ServerE2E {
             0,
             nil,
             &dataSize,
-            &transportType
+            &transportType,
         )
         guard status == noErr else {
-            throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not read the transport type for macOS audio device '\(try audioDeviceName(deviceID))'. CoreAudio status: \(status)."
+            throw try SpeakSwiftlyBuildError(
+                "The live audible end-to-end suite could not read the transport type for macOS audio device '\(audioDeviceName(deviceID))'. CoreAudio status: \(status).",
             )
         }
+
         return transportType
     }
 
@@ -264,7 +270,7 @@ extension ServerE2E {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyStreams,
             mScope: kAudioObjectPropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
+            mElement: kAudioObjectPropertyElementMain,
         )
         var dataSize = UInt32.zero
         let status = AudioObjectGetPropertyDataSize(
@@ -272,20 +278,21 @@ extension ServerE2E {
             &address,
             0,
             nil,
-            &dataSize
+            &dataSize,
         )
         guard status == noErr else {
-            throw SpeakSwiftlyBuildError(
-                "The live audible end-to-end suite could not inspect output streams for macOS audio device '\(try audioDeviceName(deviceID))'. CoreAudio status: \(status)."
+            throw try SpeakSwiftlyBuildError(
+                "The live audible end-to-end suite could not inspect output streams for macOS audio device '\(audioDeviceName(deviceID))'. CoreAudio status: \(status).",
             )
         }
+
         return dataSize >= UInt32(MemoryLayout<AudioStreamID>.size)
     }
-    #else
+#else
     private static func stabilizeBuiltInAudioRouteForAudiblePlayback() throws {
         throw SpeakSwiftlyBuildError(
-            "The live audible end-to-end suite can only stabilize the audio route on macOS builds with CoreAudio available."
+            "The live audible end-to-end suite can only stabilize the audio route on macOS builds with CoreAudio available.",
         )
     }
-    #endif
+#endif
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - Launch Agent Promotion
+// MARK: - LaunchAgentPromoteOptions
 
 struct LaunchAgentPromoteOptions {
     let installOptions: LaunchAgentOptions
@@ -9,25 +9,25 @@ struct LaunchAgentPromoteOptions {
     static func parse(
         arguments: [String],
         currentDirectoryPath: String,
-        currentExecutablePath: String
+        currentExecutablePath: String,
     ) throws -> LaunchAgentPromoteOptions {
         let repositoryRootPath = try LaunchAgentOptions.resolveRepositoryRoot(startingAt: currentDirectoryPath)
         let installOptions = try LaunchAgentOptions.parse(
             arguments: arguments,
             currentDirectoryPath: currentDirectoryPath,
             currentExecutablePath: currentExecutablePath,
-            requireToolExecutableExists: false
+            requireToolExecutableExists: false,
         )
         return .init(
             installOptions: installOptions,
-            repositoryRootPath: repositoryRootPath
+            repositoryRootPath: repositoryRootPath,
         )
     }
 
     func promoteLive() throws {
         let stagingResult = try ReleaseArtifactPromoter.promoteLive(
             repositoryRootPath: repositoryRootPath,
-            stagedExecutablePath: installOptions.toolExecutablePath
+            stagedExecutablePath: installOptions.toolExecutablePath,
         )
 
         print(
@@ -35,7 +35,7 @@ struct LaunchAgentPromoteOptions {
             Promoted the live staged release artifact from '\(stagingResult.builtExecutablePath)' to '\(stagingResult.stagedExecutablePath)'.
             Refreshed staged metallib at '\(stagingResult.stagedMetallibPath)'.
             Refreshed staged code signature for '\(stagingResult.stagedExecutablePath)'.
-            """
+            """,
         )
 
         let refreshedInstallOptions = try LaunchAgentOptions(
@@ -49,17 +49,21 @@ struct LaunchAgentPromoteOptions {
             standardOutPath: installOptions.standardOutPath,
             standardErrorPath: installOptions.standardErrorPath,
             launchctlPath: installOptions.launchctlPath,
-            userDomain: installOptions.userDomain
+            userDomain: installOptions.userDomain,
         )
         try refreshedInstallOptions.install()
     }
 }
+
+// MARK: - ReleaseArtifactPromotionResult
 
 private struct ReleaseArtifactPromotionResult {
     let builtExecutablePath: String
     let stagedExecutablePath: String
     let stagedMetallibPath: String
 }
+
+// MARK: - ReleaseArtifactPromoter
 
 private enum ReleaseArtifactPromoter {
     private struct SpeakSwiftlyPublishedRuntimeMetadata: Decodable {
@@ -76,7 +80,7 @@ private enum ReleaseArtifactPromoter {
 
     static func promoteLive(
         repositoryRootPath: String,
-        stagedExecutablePath: String
+        stagedExecutablePath: String,
     ) throws -> ReleaseArtifactPromotionResult {
         let repositoryRootURL = URL(fileURLWithPath: repositoryRootPath, isDirectory: true)
         try buildReleaseTool(repositoryRootPath: repositoryRootPath)
@@ -93,22 +97,22 @@ private enum ReleaseArtifactPromoter {
         try replaceItem(
             at: stagedExecutableURL,
             with: URL(fileURLWithPath: builtExecutablePath, isDirectory: false),
-            permissions: 0o755
+            permissions: 0o755,
         )
         try FileManager.default.createDirectory(
             at: stagedMetallibURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
+            withIntermediateDirectories: true,
         )
         try replaceItem(
             at: stagedMetallibURL,
-            with: builtMetallibURL
+            with: builtMetallibURL,
         )
         try refreshAdHocSignature(for: stagedExecutableURL)
 
         return .init(
             builtExecutablePath: builtExecutablePath,
             stagedExecutablePath: stagedExecutableURL.path,
-            stagedMetallibPath: stagedMetallibURL.path
+            stagedMetallibPath: stagedMetallibURL.path,
         )
     }
 
@@ -117,7 +121,7 @@ private enum ReleaseArtifactPromoter {
             executablePath: "/usr/bin/xcrun",
             arguments: ["swift", "build", "-c", "release", "--product", speakSwiftlyServerToolName],
             currentDirectoryPath: repositoryRootPath,
-            failureSummary: "\(speakSwiftlyServerToolName) could not build the release executable from repository root '\(repositoryRootPath)'."
+            failureSummary: "\(speakSwiftlyServerToolName) could not build the release executable from repository root '\(repositoryRootPath)'.",
         )
     }
 
@@ -126,12 +130,12 @@ private enum ReleaseArtifactPromoter {
             executablePath: "/usr/bin/xcrun",
             arguments: ["swift", "build", "-c", "release", "--show-bin-path"],
             currentDirectoryPath: repositoryRootPath,
-            failureSummary: "\(speakSwiftlyServerToolName) could not determine the SwiftPM release bin path from repository root '\(repositoryRootPath)'."
+            failureSummary: "\(speakSwiftlyServerToolName) could not determine the SwiftPM release bin path from repository root '\(repositoryRootPath)'.",
         )
         let binPath = showBinPathResult.standardOutput
         guard binPath.isEmpty == false else {
             throw LaunchAgentCommandError(
-                "\(speakSwiftlyServerToolName) asked SwiftPM for the release bin path, but SwiftPM returned an empty path."
+                "\(speakSwiftlyServerToolName) asked SwiftPM for the release bin path, but SwiftPM returned an empty path.",
             )
         }
 
@@ -140,9 +144,10 @@ private enum ReleaseArtifactPromoter {
             .path
         guard FileManager.default.isExecutableFile(atPath: executablePath) else {
             throw LaunchAgentCommandError(
-                "\(speakSwiftlyServerToolName) completed a release build, but the expected executable '\(executablePath)' was missing or not executable."
+                "\(speakSwiftlyServerToolName) completed a release build, but the expected executable '\(executablePath)' was missing or not executable.",
             )
         }
+
         return executablePath
     }
 
@@ -152,17 +157,17 @@ private enum ReleaseArtifactPromoter {
             .appendingPathComponent("SpeakSwiftly/.local/xcode/SpeakSwiftly.release.json", isDirectory: false)
         guard FileManager.default.fileExists(atPath: metadataURL.path) else {
             throw LaunchAgentCommandError(
-                "The live-service promotion path requires sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)'. Publish and verify the sibling release runtime first."
+                "The live-service promotion path requires sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)'. Publish and verify the sibling release runtime first.",
             )
         }
 
         let metadata = try JSONDecoder().decode(
             SpeakSwiftlyPublishedRuntimeMetadata.self,
-            from: Data(contentsOf: metadataURL)
+            from: Data(contentsOf: metadataURL),
         )
         guard metadata.buildConfiguration == "Release" else {
             throw LaunchAgentCommandError(
-                "The sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)' reported build configuration '\(metadata.buildConfiguration)' instead of the expected 'Release'."
+                "The sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)' reported build configuration '\(metadata.buildConfiguration)' instead of the expected 'Release'.",
             )
         }
 
@@ -186,14 +191,14 @@ private enum ReleaseArtifactPromoter {
         }
 
         throw LaunchAgentCommandError(
-            "The sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)' pointed at a missing metallib path '\(metadata.metallibPath)'. Publish and verify the sibling release runtime first."
+            "The sibling SpeakSwiftly release runtime metadata at '\(metadataURL.path)' pointed at a missing metallib path '\(metadata.metallibPath)'. Publish and verify the sibling release runtime first.",
         )
     }
 
     private static func replaceItem(
         at destinationURL: URL,
         with sourceURL: URL,
-        permissions: NSNumber? = nil
+        permissions: NSNumber? = nil,
     ) throws {
         if FileManager.default.fileExists(atPath: destinationURL.path) {
             try FileManager.default.removeItem(at: destinationURL)
@@ -208,7 +213,7 @@ private enum ReleaseArtifactPromoter {
         _ = try runProcess(
             executablePath: "/usr/bin/codesign",
             arguments: ["--force", "--sign", "-", executableURL.path],
-            failureSummary: "\(speakSwiftlyServerToolName) could not refresh the staged ad-hoc code signature for '\(executableURL.path)'."
+            failureSummary: "\(speakSwiftlyServerToolName) could not refresh the staged ad-hoc code signature for '\(executableURL.path)'.",
         )
     }
 }

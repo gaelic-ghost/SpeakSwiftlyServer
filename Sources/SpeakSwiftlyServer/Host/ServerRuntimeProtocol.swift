@@ -4,9 +4,9 @@ import TextForSpeech
 
 typealias SpeechNormalizationContext = TextForSpeech.Context
 
-// MARK: - Runtime Request Handle
+// MARK: - RuntimeRequestHandle
 
-struct RuntimeRequestHandle: Sendable {
+struct RuntimeRequestHandle {
     let id: String
     let operation: String
     let profileName: String?
@@ -18,7 +18,7 @@ struct RuntimeRequestHandle: Sendable {
         id: String,
         operation: String,
         profileName: String?,
-        events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>
+        events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>,
     ) {
         self.id = id
         self.operation = operation
@@ -27,10 +27,10 @@ struct RuntimeRequestHandle: Sendable {
     }
 
     init(_ handle: SpeakSwiftly.RequestHandle) {
-        self.id = handle.id
-        self.operation = canonicalOperationName(handle.operation)
-        self.profileName = handle.profileName
-        self.events = handle.events
+        id = handle.id
+        operation = canonicalOperationName(handle.operation)
+        profileName = handle.profileName
+        events = handle.events
     }
 }
 
@@ -38,26 +38,26 @@ struct RuntimeRequestHandle: Sendable {
 
 func canonicalOperationName(_ operation: String) -> String {
     switch operation {
-    case "queue_speech_live":
-        "generate_speech"
-    case "queue_speech_file":
-        "generate_audio_file"
-    case "queue_speech_batch":
-        "generate_batch"
-    case "get_runtime_configuration":
-        "get_staged_runtime_config"
-    case "set_runtime_configuration":
-        "set_staged_config"
-    case "get_text_profiles_state":
-        "get_text_normalizer_snapshot"
-    case "list_requests":
-        "list_active_requests"
-    default:
-        operation
+        case "queue_speech_live":
+            "generate_speech"
+        case "queue_speech_file":
+            "generate_audio_file"
+        case "queue_speech_batch":
+            "generate_batch"
+        case "get_runtime_configuration":
+            "get_staged_runtime_config"
+        case "set_runtime_configuration":
+            "set_staged_config"
+        case "get_text_profiles_state":
+            "get_text_normalizer_snapshot"
+        case "list_requests":
+            "list_active_requests"
+        default:
+            operation
     }
 }
 
-// MARK: - Runtime Protocol
+// MARK: - ServerRuntimeProtocol
 
 protocol ServerRuntimeProtocol: Actor {
     func start() async
@@ -68,18 +68,18 @@ protocol ServerRuntimeProtocol: Actor {
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle
     func queueSpeechFile(
         text: String,
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle
     func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
-        with profileName: String
+        with profileName: String,
     ) async -> RuntimeRequestHandle
     func createVoiceProfileFromDescription(
         profileName: String,
@@ -87,14 +87,14 @@ protocol ServerRuntimeProtocol: Actor {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle
     func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle
     func listVoiceProfiles() async -> RuntimeRequestHandle
     func renameVoiceProfile(profileName: String, to newProfileName: String) async -> RuntimeRequestHandle

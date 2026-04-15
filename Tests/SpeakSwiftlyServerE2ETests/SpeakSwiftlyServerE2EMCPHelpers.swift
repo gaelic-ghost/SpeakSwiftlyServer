@@ -12,7 +12,7 @@ extension ServerE2E {
         text: String,
         voiceDescription: String,
         outputPath: String? = nil,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         var arguments = [
             "profile_name": profileName,
@@ -35,7 +35,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
         #expect(snapshot.status == "completed")
         #expect(snapshot.terminalEvent?.ok == true)
@@ -53,7 +53,7 @@ extension ServerE2E {
         referenceAudioPath: String,
         transcript: String?,
         expectTranscription: Bool,
-        cwd: String? = nil
+        cwd: String? = nil,
     ) async throws {
         var arguments = [
             "profile_name": profileName,
@@ -75,7 +75,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
         #expect(snapshot.status == "completed")
         #expect(snapshot.terminalEvent?.ok == true)
@@ -83,13 +83,13 @@ extension ServerE2E {
 
         assertCloneTranscriptionStages(
             in: snapshot,
-            expectTranscription: expectTranscription
+            expectTranscription: expectTranscription,
         )
     }
 
     static func assertProfileIsVisible(
         using client: E2EMCPClient,
-        profileName: String
+        profileName: String,
     ) async throws {
         let payload = try await client.callToolJSON(name: "list_voice_profiles", arguments: [:])
         let profiles = try requireProfiles(from: payload)
@@ -100,14 +100,14 @@ extension ServerE2E {
         using client: E2EMCPClient,
         server: ServerProcess,
         text: String,
-        profileName: String
+        profileName: String,
     ) async throws {
         let payload = try await client.callTool(
             name: "generate_speech",
             arguments: [
                 "text": text,
                 "profile_name": profileName,
-            ]
+            ],
         )
         let jobID = try requireString("request_id", in: payload)
         #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
@@ -116,7 +116,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
@@ -129,7 +129,7 @@ extension ServerE2E {
         using client: E2EMCPClient,
         server: ServerProcess,
         text: String,
-        profileName: String
+        profileName: String,
     ) async throws -> String {
         try stabilizeBuiltInAudioRouteForAudiblePlayback()
 
@@ -151,7 +151,7 @@ extension ServerE2E {
             arguments: [
                 "text": text,
                 "profile_name": profileName,
-            ]
+            ],
         )
         let jobID = try requireString("request_id", in: payload)
         #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
@@ -177,7 +177,7 @@ extension ServerE2E {
             id: jobID,
             using: client,
             timeout: e2eTimeout,
-            server: server
+            server: server,
         )
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
@@ -208,7 +208,7 @@ extension ServerE2E {
     static func expectMarvisVoiceSelection(
         on server: ServerProcess,
         requestID: String,
-        expectedVoice: String
+        expectedVoice: String,
     ) async throws {
         let log = try await server.waitForStderrJSONObject(timeout: e2eTimeout) {
             guard
@@ -227,18 +227,20 @@ extension ServerE2E {
 
     static func assertMarvisPlaybackStartedInOrder(
         on server: ServerProcess,
-        requestIDs: [String]
+        requestIDs: [String],
     ) async throws {
         let startedRequestIDs: [String] = try await e2eWaitUntil(
             timeout: e2eTimeout,
-            pollInterval: .milliseconds(200)
+            pollInterval: .milliseconds(200),
         ) {
             let matches = server.stderrObjects().compactMap { object -> String? in
                 guard object["event"] as? String == "playback_started" else { return nil }
+
                 return object["request_id"] as? String
             }
             let filtered = matches.filter { requestIDs.contains($0) }
             guard Set(filtered).isSuperset(of: Set(requestIDs)) else { return nil }
+
             return filtered
         }
 
@@ -248,6 +250,7 @@ extension ServerE2E {
                 Issue.record("The live Marvis playback trace never reported a playback_started event for request '\(requestID)'.")
                 return
             }
+
             #expect(index > previousIndex)
             previousIndex = index
         }
@@ -256,17 +259,16 @@ extension ServerE2E {
     static func waitForMCPPlaybackState(
         using client: E2EMCPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool
+        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool,
     ) async throws -> E2EPlaybackStateSnapshot {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let payload = try requireObjectPayload(
-                from: try await client.callToolJSON(name: "get_playback_state", arguments: [:])
+            let payload = try await requireObjectPayload(
+                from: client.callToolJSON(name: "get_playback_state", arguments: [:]),
             )
-            let snapshot: E2EPlaybackStateSnapshot
-            if let playback = payload["playback"] as? [String: Any] {
-                snapshot = try decodePayload(E2EPlaybackStateSnapshot.self, from: playback)
+            let snapshot: E2EPlaybackStateSnapshot = if let playback = payload["playback"] as? [String: Any] {
+                try decodePayload(E2EPlaybackStateSnapshot.self, from: playback)
             } else {
-                snapshot = try decodePayload(E2EPlaybackStateSnapshot.self, from: payload)
+                try decodePayload(E2EPlaybackStateSnapshot.self, from: payload)
             }
             return predicate(snapshot) ? snapshot : nil
         }
@@ -275,11 +277,11 @@ extension ServerE2E {
     static func waitForMCPGenerationQueue(
         using client: E2EMCPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool
+        matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool,
     ) async throws -> E2EQueueSnapshotResponse {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let payload = try requireObjectPayload(
-                from: try await client.callToolJSON(name: "list_generation_queue", arguments: [:])
+            let payload = try await requireObjectPayload(
+                from: client.callToolJSON(name: "list_generation_queue", arguments: [:]),
             )
             let snapshot = try decodePayload(E2EQueueSnapshotResponse.self, from: payload)
             return predicate(snapshot) ? snapshot : nil

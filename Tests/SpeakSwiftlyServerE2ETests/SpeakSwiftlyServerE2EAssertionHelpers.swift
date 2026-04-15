@@ -8,15 +8,15 @@ extension ServerE2E {
     static func recordQueuedMarvisHTTPDiagnostics(
         using client: E2EHTTPClient,
         requestIDs: [String],
-        expectedProfiles: [String]
+        expectedProfiles: [String],
     ) async {
         do {
-            let requestList = try decode(
+            let requestList = try await decode(
                 E2ERequestListResponse.self,
-                from: try await client.request(path: "/requests", method: "GET").data
+                from: client.request(path: "/requests", method: "GET").data,
             )
-            let hostState = try jsonObject(
-                from: try await client.request(path: "/runtime/host", method: "GET").data
+            let hostState = try await jsonObject(
+                from: client.request(path: "/runtime/host", method: "GET").data,
             )
 
             let retainedRequests = requestList.requests
@@ -42,11 +42,11 @@ extension ServerE2E {
                 current_generation_jobs: \(currentGenerationJobs)
                 retained_requests:
                 \(retainedRequests.isEmpty ? "none" : retainedRequests)
-                """
+                """,
             )
         } catch {
             Issue.record(
-                "Queued Marvis HTTP diagnostics could not be captured after a live-playback failure. Likely cause: \(error.localizedDescription)"
+                "Queued Marvis HTTP diagnostics could not be captured after a live-playback failure. Likely cause: \(error.localizedDescription)",
             )
         }
     }
@@ -73,6 +73,7 @@ extension ServerE2E {
 
     static func diagnosticJSONString(from value: Any?) throws -> String {
         guard let value else { return "null" }
+
         let data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
         return String(decoding: data, as: UTF8.self)
     }
@@ -89,7 +90,7 @@ extension ServerE2E {
                 terminal_code: \(terminalCode)
                 terminal_message: \(terminalMessage)
                 summary: \(requestDiagnosticSummary(snapshot))
-                """
+                """,
             )
         }
         #expect(snapshot.status == "completed")
@@ -107,7 +108,7 @@ extension ServerE2E {
 
     static func assertCloneTranscriptionStages(
         in snapshot: E2EJobSnapshot,
-        expectTranscription: Bool
+        expectTranscription: Bool,
     ) {
         let sawLoading = snapshot.history.contains {
             $0.event == "progress" && $0.stage == "loading_clone_transcription_model"
@@ -152,7 +153,7 @@ extension ServerE2E {
             normalized
                 .split(whereSeparator: \.isWhitespace)
                 .map(String.init)
-                .filter { !$0.isEmpty }
+                .filter { !$0.isEmpty },
         )
     }
 
@@ -164,7 +165,7 @@ extension ServerE2E {
         phase: String = "before_built_ins",
         isCaseSensitive: Bool = false,
         formats: [String] = [],
-        priority: Int = 0
+        priority: Int = 0,
     ) -> [String: Any] {
         [
             "id": id,
@@ -188,18 +189,20 @@ extension ServerE2E {
     static func requireObjectPayload(from payload: Any) throws -> [String: Any] {
         guard let object = payload as? [String: Any] else {
             throw E2ETransportError(
-                "The live end-to-end helper expected a JSON object payload, but received '\(type(of: payload))'."
+                "The live end-to-end helper expected a JSON object payload, but received '\(type(of: payload))'.",
             )
         }
+
         return object
     }
 
     static func requireArrayPayload(from payload: Any) throws -> [[String: Any]] {
         guard let array = payload as? [[String: Any]] else {
             throw E2ETransportError(
-                "The live end-to-end helper expected a JSON array payload, but received '\(type(of: payload))'."
+                "The live end-to-end helper expected a JSON array payload, but received '\(type(of: payload))'.",
             )
         }
+
         return array
     }
 

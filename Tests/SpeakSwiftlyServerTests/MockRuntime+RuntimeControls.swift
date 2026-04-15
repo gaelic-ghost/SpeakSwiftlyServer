@@ -57,9 +57,9 @@ extension MockRuntime {
                     SpeakSwiftly.Success(
                         id: requestID,
                         activeRequests: nil,
-                        runtimeOverview: overview
-                    )
-                )
+                        runtimeOverview: overview,
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -69,8 +69,8 @@ extension MockRuntime {
     func generationQueue() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         generationQueueRequestCount += 1
-        let activeRequest = self.activeRequest.map(self.activeSummary(for:))
-        let queue = self.queuedSummaries()
+        let activeRequest = activeRequest.map(activeSummary(for:))
+        let queue = queuedSummaries()
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
@@ -78,9 +78,9 @@ extension MockRuntime {
                         id: requestID,
                         activeRequest: activeRequest,
                         activeRequests: nil,
-                        queue: queue
-                    )
-                )
+                        queue: queue,
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -90,7 +90,7 @@ extension MockRuntime {
     func playbackQueue() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         playbackQueueRequestCount += 1
-        let activeRequest = playbackState == .idle ? nil : self.activeRequest.map(self.activeSummary(for:))
+        let activeRequest = playbackState == .idle ? nil : activeRequest.map(activeSummary(for:))
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
@@ -98,9 +98,9 @@ extension MockRuntime {
                         id: requestID,
                         activeRequest: activeRequest,
                         activeRequests: nil,
-                        queue: []
-                    )
-                )
+                        queue: [],
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -110,16 +110,16 @@ extension MockRuntime {
     func playbackState() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         playbackStateRequestCount += 1
-        let playbackState = self.playbackStateSummary()
+        let playbackState = playbackStateSummary()
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
                     SpeakSwiftly.Success(
                         id: requestID,
                         activeRequests: nil,
-                        playbackState: playbackState
-                    )
-                )
+                        playbackState: playbackState,
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -137,9 +137,9 @@ extension MockRuntime {
                     SpeakSwiftly.Success(
                         id: requestID,
                         activeRequests: nil,
-                        playbackState: self.playbackStateSummary()
-                    )
-                )
+                        playbackState: self.playbackStateSummary(),
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -157,9 +157,9 @@ extension MockRuntime {
                     SpeakSwiftly.Success(
                         id: requestID,
                         activeRequests: nil,
-                        playbackState: self.playbackStateSummary()
-                    )
-                )
+                        playbackState: self.playbackStateSummary(),
+                    ),
+                ),
             )
             continuation.finish()
         }
@@ -173,7 +173,7 @@ extension MockRuntime {
         for queuedRequestID in clearedRequestIDs {
             cancelQueuedRequest(
                 queuedRequestID,
-                reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime."
+                reason: "The request was cancelled because queued work was cleared from the mock SpeakSwiftly runtime.",
             )
         }
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -193,9 +193,9 @@ extension MockRuntime {
                         SpeakSwiftly.Success(
                             id: requestID,
                             activeRequests: nil,
-                            cancelledRequestID: cancelledRequestID
-                        )
-                    )
+                            cancelledRequestID: cancelledRequestID,
+                        ),
+                    ),
                 )
                 continuation.finish()
             }

@@ -13,8 +13,6 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         self.runtime = runtime
     }
 
-    // MARK: - Lifecycle
-
     func start() async {
         await runtime.start()
     }
@@ -34,14 +32,14 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.generate.speech(
             text: text,
             with: profileName,
             textProfileName: textProfileName,
             textContext: normalizationContext,
-            sourceFormat: sourceFormat
+            sourceFormat: sourceFormat,
         )
         return .init(id: handle.id, operation: "generate_speech", profileName: profileName, events: handle.events)
     }
@@ -51,21 +49,21 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         with profileName: String,
         textProfileName: String?,
         normalizationContext: SpeechNormalizationContext?,
-        sourceFormat: TextForSpeech.SourceFormat?
+        sourceFormat: TextForSpeech.SourceFormat?,
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.generate.audio(
             text: text,
             with: profileName,
             textProfileName: textProfileName,
             textContext: normalizationContext,
-            sourceFormat: sourceFormat
+            sourceFormat: sourceFormat,
         )
         return .init(id: handle.id, operation: "generate_audio_file", profileName: profileName, events: handle.events)
     }
 
     func queueSpeechBatch(
         _ items: [SpeakSwiftly.BatchItem],
-        with profileName: String
+        with profileName: String,
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.generate.batch(items, with: profileName)
         return .init(id: handle.id, operation: "generate_batch", profileName: profileName, events: handle.events)
@@ -79,14 +77,14 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.voices.create(
             design: profileName,
             from: text,
             vibe: vibe,
             voice: voiceDescription,
-            outputPath: resolvedAbsoluteFilesystemPath(outputPath, cwd: cwd)
+            outputPath: resolvedAbsoluteFilesystemPath(outputPath, cwd: cwd),
         )
         return .init(id: handle.id, operation: "create_voice_profile_from_description", profileName: profileName, events: handle.events)
     }
@@ -96,14 +94,14 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle {
         let resolvedReferenceAudioPath = resolvedAbsoluteFilesystemPath(referenceAudioPath, cwd: cwd) ?? referenceAudioPath
         let handle = await runtime.voices.create(
             clone: profileName,
             from: URL(fileURLWithPath: resolvedReferenceAudioPath),
             vibe: vibe,
-            transcript: transcript
+            transcript: transcript,
         )
         return .init(id: handle.id, operation: "create_voice_profile_from_audio", profileName: profileName, events: handle.events)
     }
@@ -188,27 +186,27 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     }
 
     func runtimeOverview() async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.overview())
+        await RuntimeRequestHandle(runtime.overview())
     }
 
     func playbackState() async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.player.state())
+        await RuntimeRequestHandle(runtime.player.state())
     }
 
     func pausePlayback() async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.player.pause())
+        await RuntimeRequestHandle(runtime.player.pause())
     }
 
     func resumePlayback() async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.player.resume())
+        await RuntimeRequestHandle(runtime.player.resume())
     }
 
     func clearQueue() async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.player.clearQueue())
+        await RuntimeRequestHandle(runtime.player.clearQueue())
     }
 
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle {
-        RuntimeRequestHandle(await runtime.player.cancelRequest(requestID))
+        await RuntimeRequestHandle(runtime.player.cancelRequest(requestID))
     }
 
     // MARK: - Text Profiles
@@ -218,7 +216,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     }
 
     func setBuiltInTextProfileStyle(
-        _ style: TextForSpeech.BuiltInProfileStyle
+        _ style: TextForSpeech.BuiltInProfileStyle,
     ) async throws -> TextForSpeech.BuiltInProfileStyle {
         try await runtime.normalizer.profiles.setBuiltInStyle(style)
         return await runtime.normalizer.profiles.builtInStyle()
@@ -229,7 +227,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     }
 
     func baseTextProfile() async -> TextForSpeech.Profile {
-        .builtInBase(style: await runtime.normalizer.profiles.builtInStyle())
+        await .builtInBase(style: runtime.normalizer.profiles.builtInStyle())
     }
 
     func textProfile(id profileID: String) async -> TextForSpeech.Profile? {
@@ -255,7 +253,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     func createTextProfile(
         id: String,
         named name: String,
-        replacements: [TextForSpeech.Replacement]
+        replacements: [TextForSpeech.Replacement],
     ) async throws -> TextForSpeech.Profile {
         try await runtime.normalizer.profiles.create(id: id, name: name, replacements: replacements)
     }
@@ -282,7 +280,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func addTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        toStoredTextProfileID profileID: String
+        toStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try await runtime.normalizer.profiles.add(replacement, toStoredProfileID: profileID)
     }
@@ -293,7 +291,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func replaceTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        inStoredTextProfileID profileID: String
+        inStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try await runtime.normalizer.profiles.replace(replacement, inStoredProfileID: profileID)
     }
@@ -304,11 +302,11 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func removeTextReplacement(
         id replacementID: String,
-        fromStoredTextProfileID profileID: String
+        fromStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try await runtime.normalizer.profiles.removeReplacement(
             id: replacementID,
-            fromStoredProfileID: profileID
+            fromStoredProfileID: profileID,
         )
     }
 
@@ -316,7 +314,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     private func resolvedAbsoluteFilesystemPath(
         _ path: String?,
-        cwd: String?
+        cwd: String?,
     ) -> String? {
         guard let path else {
             return nil
@@ -334,7 +332,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         let trimmedCWD = cwd?.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedBasePath =
             (trimmedCWD?.isEmpty == false ? trimmedCWD : nil)
-            ?? FileManager.default.currentDirectoryPath
+                ?? FileManager.default.currentDirectoryPath
         return URL(fileURLWithPath: trimmedPath, relativeTo: URL(fileURLWithPath: resolvedBasePath, isDirectory: true))
             .standardizedFileURL
             .path

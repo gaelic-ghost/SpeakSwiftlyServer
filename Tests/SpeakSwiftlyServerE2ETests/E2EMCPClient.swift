@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-// MARK: - MCP Client
+// MARK: - E2EMCPClient
 
 struct E2EMCPClient {
     let baseURL: URL
@@ -12,12 +12,12 @@ struct E2EMCPClient {
         baseURL: URL,
         path: String,
         timeout: Duration,
-        server: ServerProcess
+        server: ServerProcess,
     ) async throws -> E2EMCPClient {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
             guard server.isStillRunning else {
                 throw E2ETransportError(
-                    "The live SpeakSwiftlyServer process exited before the MCP transport became available.\n\(server.combinedOutput)"
+                    "The live SpeakSwiftlyServer process exited before the MCP transport became available.\n\(server.combinedOutput)",
                 )
             }
 
@@ -40,9 +40,10 @@ struct E2EMCPClient {
         let payload = try await callToolJSON(name: name, arguments: arguments)
         guard let object = payload as? [String: Any] else {
             throw E2ETransportError(
-                "The live end-to-end helper expected the '\(name)' MCP tool to return a top-level JSON object, but received '\(type(of: payload))'."
+                "The live end-to-end helper expected the '\(name)' MCP tool to return a top-level JSON object, but received '\(type(of: payload))'.",
             )
         }
+
         return object
     }
 
@@ -56,7 +57,7 @@ struct E2EMCPClient {
             params: [
                 "name": name,
                 "arguments": arguments,
-            ]
+            ],
         )
         if let error = envelope["error"] as? [String: Any] {
             throw E2ETransportError("The live MCP tools/call request for '\(name)' failed with payload: \(error)")
@@ -80,7 +81,7 @@ struct E2EMCPClient {
     }
 
     func readResourceJSON(uri: String) async throws -> Any {
-        try JSONSerialization.jsonObject(with: Data(try await readResourceText(uri: uri).utf8))
+        try await JSONSerialization.jsonObject(with: Data(readResourceText(uri: uri).utf8))
     }
 
     func listResources() async throws -> [[String: Any]] {
@@ -107,7 +108,7 @@ struct E2EMCPClient {
             params: [
                 "name": name,
                 "arguments": arguments,
-            ]
+            ],
         )
         return try requireDictionary("result", in: envelope)
     }
@@ -130,7 +131,7 @@ struct E2EMCPClient {
                 "method": method,
                 "params": params,
             ],
-            sessionID: sessionID
+            sessionID: sessionID,
         )
         return try parseMCPEnvelope(from: response.data)
     }
@@ -162,7 +163,7 @@ private extension E2EMCPClient {
             baseURL: baseURL,
             path: path,
             jsonBody: initializeBody,
-            sessionID: nil
+            sessionID: nil,
         )
         let sessionID = try requireMCPHeader("Mcp-Session-Id", in: initializeResponse.headers)
         _ = try parseMCPEnvelope(from: initializeResponse.data)
@@ -175,7 +176,7 @@ private extension E2EMCPClient {
             baseURL: baseURL,
             path: path,
             jsonBody: initializedBody,
-            sessionID: sessionID
+            sessionID: sessionID,
         )
         #expect((200...299).contains(initializedResponse.statusCode))
 
@@ -186,7 +187,7 @@ private extension E2EMCPClient {
         baseURL: URL,
         path: String,
         jsonBody: [String: Any],
-        sessionID: String?
+        sessionID: String?,
     ) async throws -> E2EHTTPResponse {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = "POST"
@@ -201,6 +202,7 @@ private extension E2EMCPClient {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw E2ETransportError("The live MCP transport did not return an HTTPURLResponse.")
         }
+
         return E2EHTTPResponse(statusCode: httpResponse.statusCode, headers: httpResponse.allHeaderFields, data: data)
     }
 }

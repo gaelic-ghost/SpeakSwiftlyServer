@@ -1,18 +1,18 @@
 import Foundation
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - Host State Tests
 
 @available(macOS 14, *)
-@Test func stateCompletesQueuedSpeechJobsAndPrunesExpiredEntries() async throws {
+@Test func `state completes queued speech jobs and prunes expired entries`() async throws {
     let runtime = MockRuntime()
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -34,14 +34,14 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func statePrunesOldestCompletedJobsWhenMaxCountIsExceeded() async throws {
+@Test func `state prunes oldest completed jobs when max count is exceeded`() async throws {
     let runtime = MockRuntime()
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 60, completedJobMaxCount: 2),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -66,14 +66,14 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func sseReplayIncludesWorkerStatusHistoryAndHeartbeat() async throws {
+@Test func `sse replay includes worker status history and heartbeat`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let state = await MainActor.run { ServerState() }
     let host = ServerHost(
         configuration: testConfiguration(sseHeartbeatSeconds: 0.02),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -83,7 +83,7 @@ import Testing
     let jobID = try await host.submitSpeak(text: "Keep speaking", profileName: "default")
     _ = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let snapshot = try await host.jobSnapshot(id: jobID)
         return snapshot.history.count >= 2 ? snapshot : nil
@@ -102,6 +102,7 @@ import Testing
     var heartbeat: String?
     for _ in 0..<20 {
         guard let chunk = await iterator.next() else { break }
+
         let text = string(from: chunk)
         if text == ": keep-alive\n\n" {
             heartbeat = text
@@ -115,7 +116,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostPublishesSharedStateForUiAndServerConsumers() async throws {
+@Test func `host publishes shared state for ui and server consumers`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -126,11 +127,11 @@ import Testing
             enabled: true,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         ),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -144,9 +145,9 @@ import Testing
     var publishedState: HostStateSnapshot?
     while ContinuousClock.now < deadline {
         guard let snapshot = await iterator.next() else { break }
+
         if snapshot.currentGenerationJobs.contains(where: { $0.jobID == jobID }),
-           snapshot.generationQueue.activeCount == 1
-        {
+           snapshot.generationQueue.activeCount == 1 {
             publishedState = snapshot
             break
         }
@@ -178,7 +179,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostUsesRuntimeSnapshotsForQueuedLiveSpeechJobs() async throws {
+@Test func `host uses runtime snapshots for queued live speech jobs`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -186,7 +187,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -201,7 +202,7 @@ import Testing
 
     let snapshot: HostStateSnapshot = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let snapshot = await host.hostStateSnapshot()
         guard
@@ -225,7 +226,8 @@ import Testing
 
     let secondJobSnapshot = try await host.jobSnapshot(id: secondJobID)
     #expect(secondJobSnapshot.history.contains {
-        guard case .queued(let event) = $0 else { return false }
+        guard case let .queued(event) = $0 else { return false }
+
         return event.reason == "waiting_for_active_request"
     })
 
@@ -235,7 +237,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func hostRefreshesRuntimeSnapshotsForHeldLiveProgressEvents() async throws {
+@Test func `host refreshes runtime snapshots for held live progress events`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -243,7 +245,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await host.start()
@@ -253,7 +255,7 @@ import Testing
     let jobID = try await host.submitSpeak(text: "Hold steady", profileName: "default")
     _ = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let snapshot = try await host.jobSnapshot(id: jobID)
         return snapshot.history.count >= 2 ? snapshot : nil
@@ -266,18 +268,19 @@ import Testing
 
     _ = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let snapshot = try await host.jobSnapshot(id: jobID)
         return snapshot.history.contains {
-            guard case .progress(let event) = $0 else { return false }
+            guard case let .progress(event) = $0 else { return false }
+
             return event.stage == "buffering_audio"
         } ? snapshot : nil
     }
 
     let _: Bool = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let counts = await runtime.runtimeRefreshActionCounts()
         guard
@@ -287,6 +290,7 @@ import Testing
         else {
             return nil
         }
+
         return true
     }
     let countsAfterProgress = await runtime.runtimeRefreshActionCounts()
@@ -299,7 +303,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func stateProjectsCachedVoiceProfilesAndForwardsPlaybackControls() async throws {
+@Test func `state projects cached voice profiles and forwards playback controls`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
     let state = await MainActor.run { ServerState() }
@@ -307,7 +311,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await MainActor.run {
@@ -330,7 +334,7 @@ import Testing
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                         isRebuffering: response.playback.isRebuffering,
                         stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
                     )
                 },
                 resumePlayback: {
@@ -341,7 +345,7 @@ import Testing
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                         isRebuffering: response.playback.isRebuffering,
                         stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
                     )
                 },
                 clearPlaybackQueue: {
@@ -351,8 +355,8 @@ import Testing
                 cancelPlaybackRequest: { requestID in
                     let response = try await host.cancelQueuedOrActiveRequest(requestID: requestID)
                     return response.cancelledRequestID
-                }
-            )
+                },
+            ),
         )
     }
 
@@ -387,7 +391,7 @@ import Testing
 
     _ = try await waitUntil(
         timeout: .seconds(1),
-        pollInterval: .milliseconds(10)
+        pollInterval: .milliseconds(10),
     ) {
         let playback = await MainActor.run { state.playback }
         return playback.state == "playing" ? playback : nil
@@ -410,7 +414,7 @@ import Testing
 }
 
 @available(macOS 14, *)
-@Test func clearingAppManagedDefaultVoiceProfileFallsBackToConfiguredDefault() async throws {
+@Test func `clearing app managed default voice profile falls back to configured default`() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration(defaultVoiceProfileName: "configured-default")
     let state = await MainActor.run { ServerState() }
@@ -418,7 +422,7 @@ import Testing
         configuration: configuration,
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: state
+        state: state,
     )
 
     await MainActor.run {
@@ -441,7 +445,7 @@ import Testing
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                         isRebuffering: response.playback.isRebuffering,
                         stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
                     )
                 },
                 resumePlayback: {
@@ -452,7 +456,7 @@ import Testing
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                         isRebuffering: response.playback.isRebuffering,
                         stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS
+                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
                     )
                 },
                 clearPlaybackQueue: {
@@ -462,8 +466,8 @@ import Testing
                 cancelPlaybackRequest: { requestID in
                     let response = try await host.cancelQueuedOrActiveRequest(requestID: requestID)
                     return response.cancelledRequestID
-                }
-            )
+                },
+            ),
         )
     }
 

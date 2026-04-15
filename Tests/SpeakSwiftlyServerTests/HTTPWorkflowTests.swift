@@ -1,17 +1,17 @@
 import Foundation
+import HTTPTypes
 import Hummingbird
 import HummingbirdTesting
-import HTTPTypes
 import SpeakSwiftly
+@testable import SpeakSwiftlyServer
 import Testing
 import TextForSpeech
-@testable import SpeakSwiftlyServer
 
 // MARK: - HTTP Workflow Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
+    @Test func `routes expose health profiles and queued speech job lifecycle`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration(defaultVoiceProfileName: "default")
         let state = await MainActor.run { ServerState() }
@@ -23,9 +23,9 @@ extension ServerTests {
             runtime: runtime,
             runtimeConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-                activeRuntimeSpeechBackend: .qwen3
+                activeRuntimeSpeechBackend: .qwen3,
             ),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -63,7 +63,7 @@ extension ServerTests {
                 uri: "/runtime/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"marvis"}"#)
+                body: byteBuffer(#"{"speech_backend":"marvis"}"#),
             )
             let updateRuntimeConfigJSON = try jsonObject(from: updateRuntimeConfigResponse.body)
             #expect(updateRuntimeConfigResponse.status == .ok)
@@ -83,8 +83,8 @@ extension ServerTests {
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"id":"swift-docs","name":"Swift Docs","replacements":[{"id":"replace-1","text":"SPM","replacement":"Swift Package Manager","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":3}]}"#
-                )
+                    #"{"id":"swift-docs","name":"Swift Docs","replacements":[{"id":"replace-1","text":"SPM","replacement":"Swift Package Manager","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":3}]}"#,
+                ),
             )
             let createTextProfileJSON = try jsonObject(from: createTextProfileResponse.body)
             let createdTextProfile = try #require(createTextProfileJSON["profile"] as? [String: Any])
@@ -119,7 +119,7 @@ extension ServerTests {
                 uri: "/text-profiles/style",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"built_in_style":"compact"}"#)
+                body: byteBuffer(#"{"built_in_style":"compact"}"#),
             )
             let compactTextProfileStyleJSON = try jsonObject(from: compactTextProfileStyleResponse.body)
             let compactTextProfiles = try #require(compactTextProfileStyleJSON["text_profiles"] as? [String: Any])
@@ -130,8 +130,8 @@ extension ServerTests {
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"profile":{"id":"operator","name":"Operator","replacements":[{"id":"replace-2","text":"MCP","replacement":"Model Context Protocol","match":"exact_phrase","phase":"after_built_ins","is_case_sensitive":false,"formats":[],"priority":2}]}}"#
-                )
+                    #"{"profile":{"id":"operator","name":"Operator","replacements":[{"id":"replace-2","text":"MCP","replacement":"Model Context Protocol","match":"exact_phrase","phase":"after_built_ins","is_case_sensitive":false,"formats":[],"priority":2}]}}"#,
+                ),
             )
             let useTextProfileJSON = try jsonObject(from: useTextProfileResponse.body)
             let activeTextProfile = try #require(useTextProfileJSON["profile"] as? [String: Any])
@@ -145,7 +145,7 @@ extension ServerTests {
 
             let removeTextReplacementResponse = try await client.execute(
                 uri: "/text-profiles/stored/swift-docs/replacements/replace-1",
-                method: .delete
+                method: .delete,
             )
             let removeTextReplacementJSON = try jsonObject(from: removeTextReplacementResponse.body)
             let trimmedTextProfile = try #require(removeTextReplacementJSON["profile"] as? [String: Any])
@@ -160,8 +160,8 @@ extension ServerTests {
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"profile_name":"clone-default","vibe":"femme","reference_audio_path":"./Fixtures/reference.wav","transcript":"Cloned route test transcript.","cwd":"/tmp/http-clone-cwd"}"#
-                )
+                    #"{"profile_name":"clone-default","vibe":"femme","reference_audio_path":"./Fixtures/reference.wav","transcript":"Cloned route test transcript.","cwd":"/tmp/http-clone-cwd"}"#,
+                ),
             )
             let cloneJSON = try jsonObject(from: cloneResponse.body)
             let cloneJobID = try #require(cloneJSON["request_id"] as? String)
@@ -178,7 +178,7 @@ extension ServerTests {
                 uri: "/voices/clone-default/name",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"new_profile_name":"clone-renamed"}"#)
+                body: byteBuffer(#"{"new_profile_name":"clone-renamed"}"#),
             )
             let renameJSON = try jsonObject(from: renameResponse.body)
             let renameJobID = try #require(renameJSON["request_id"] as? String)
@@ -191,7 +191,7 @@ extension ServerTests {
 
             let rerollResponse = try await client.execute(
                 uri: "/voices/clone-renamed/reroll",
-                method: .post
+                method: .post,
             )
             let rerollJSON = try jsonObject(from: rerollResponse.body)
             let rerollJobID = try #require(rerollJSON["request_id"] as? String)
@@ -211,7 +211,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","text_profile_name":"swift-docs","cwd":"./Sources","repo_root":"../SpeakSwiftlyServer","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source"}"#)
+                body: byteBuffer(#"{"text":"Route test","text_profile_name":"swift-docs","cwd":"./Sources","repo_root":"../SpeakSwiftlyServer","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source"}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -226,8 +226,8 @@ extension ServerTests {
                         cwd: "./Sources",
                         repoRoot: "../SpeakSwiftlyServer",
                         textFormat: .markdown,
-                        nestedSourceFormat: .swift
-                    )
+                        nestedSourceFormat: .swift,
+                    ),
             )
             #expect(queuedSpeechInvocation.textProfileName == "swift-docs")
             #expect(queuedSpeechInvocation.sourceFormat == .python)
@@ -255,7 +255,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func speakRouteRejectsUnsupportedFormatArgumentsClearly() async throws {
+    @Test func `speak route rejects unsupported format arguments clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -263,7 +263,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -277,8 +277,8 @@ extension ServerTests {
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"text":"Bad format","profile_name":"default","text_format":"totally_invalid","source_format":"not_a_real_source"}"#
-                )
+                    #"{"text":"Bad format","profile_name":"default","text_format":"totally_invalid","source_format":"not_a_real_source"}"#,
+                ),
             )
             let responseJSON = try jsonObject(from: response.body)
             let error = try #require(responseJSON["error"] as? [String: Any])
@@ -294,7 +294,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func speakRouteRejectsMissingProfileWhenNoServerDefaultIsConfigured() async throws {
+    @Test func `speak route rejects missing profile when no server default is configured`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -302,7 +302,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -315,7 +315,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test without a profile"}"#)
+                body: byteBuffer(#"{"text":"Route test without a profile"}"#),
             )
             let body = string(from: response.body)
             #expect(response.status == .badRequest)
@@ -327,7 +327,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func runtimeRoutesRejectUnsupportedSpeechBackendClearly() async throws {
+    @Test func `runtime routes reject unsupported speech backend clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -335,7 +335,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -348,7 +348,7 @@ extension ServerTests {
                 uri: "/runtime/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#)
+                body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
             )
             let persistJSON = try jsonObject(from: persistResponse.body)
             let persistError = try #require(persistJSON["error"] as? [String: Any])
@@ -363,7 +363,7 @@ extension ServerTests {
                 uri: "/runtime/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#)
+                body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
             )
             let switchJSON = try jsonObject(from: switchResponse.body)
             let switchError = try #require(switchJSON["error"] as? [String: Any])
@@ -379,7 +379,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func runtimeRoutesRejectMissingSpeechBackendFieldClearly() async throws {
+    @Test func `runtime routes reject missing speech backend field clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -387,7 +387,7 @@ extension ServerTests {
             configuration: configuration,
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -400,7 +400,7 @@ extension ServerTests {
                 uri: "/runtime/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{}"#)
+                body: byteBuffer(#"{}"#),
             )
             let persistBody = string(from: persistResponse.body)
             #expect(persistResponse.status == .badRequest)
@@ -410,7 +410,7 @@ extension ServerTests {
                 uri: "/runtime/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{}"#)
+                body: byteBuffer(#"{}"#),
             )
             let switchBody = string(from: switchResponse.body)
             #expect(switchResponse.status == .badRequest)

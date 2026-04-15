@@ -2,23 +2,10 @@ import Foundation
 import Hummingbird
 import SpeakSwiftly
 
-// MARK: - Host State Models
+// MARK: - HostOverviewSnapshot
 
 /// High-level readiness and profile-cache status for the shared host.
 public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
-    public let service: String
-    public let environment: String
-    public let defaultVoiceProfileName: String?
-    public let serverMode: String
-    public let workerMode: String
-    public let workerStage: String
-    public let workerReady: Bool
-    public let startupError: String?
-    public let profileCacheState: String
-    public let profileCacheWarning: String?
-    public let profileCount: Int
-    public let lastProfileRefreshAt: String?
-
     enum CodingKeys: String, CodingKey {
         case service
         case environment
@@ -34,6 +21,19 @@ public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
         case lastProfileRefreshAt = "last_profile_refresh_at"
     }
 
+    public let service: String
+    public let environment: String
+    public let defaultVoiceProfileName: String?
+    public let serverMode: String
+    public let workerMode: String
+    public let workerStage: String
+    public let workerReady: Bool
+    public let startupError: String?
+    public let profileCacheState: String
+    public let profileCacheWarning: String?
+    public let profileCount: Int
+    public let lastProfileRefreshAt: String?
+
     func replacing(defaultVoiceProfileName: String?) -> Self {
         .init(
             service: service,
@@ -47,10 +47,12 @@ public struct HostOverviewSnapshot: Codable, Sendable, Equatable {
             profileCacheState: profileCacheState,
             profileCacheWarning: profileCacheWarning,
             profileCount: profileCount,
-            lastProfileRefreshAt: lastProfileRefreshAt
+            lastProfileRefreshAt: lastProfileRefreshAt,
         )
     }
 }
+
+// MARK: - QueueStatusSnapshot
 
 /// Active and queued work for one host queue.
 public struct QueueStatusSnapshot: Codable, Sendable, Equatable {
@@ -71,15 +73,10 @@ public struct QueueStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+// MARK: - PlaybackStatusSnapshot
+
 /// App-facing playback state reported by the shared runtime.
 public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
-    public let state: String
-    public let activeRequest: ActiveRequestSnapshot?
-    public let isStableForConcurrentGeneration: Bool
-    public let isRebuffering: Bool
-    public let stableBufferedAudioMS: Int?
-    public let stableBufferTargetMS: Int?
-
     enum CodingKeys: String, CodingKey {
         case state
         case activeRequest = "active_request"
@@ -89,13 +86,20 @@ public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
         case stableBufferTargetMS = "stable_buffer_target_ms"
     }
 
+    public let state: String
+    public let activeRequest: ActiveRequestSnapshot?
+    public let isStableForConcurrentGeneration: Bool
+    public let isRebuffering: Bool
+    public let stableBufferedAudioMS: Int?
+    public let stableBufferTargetMS: Int?
+
     init(
         state: String,
         activeRequest: ActiveRequestSnapshot?,
         isStableForConcurrentGeneration: Bool,
         isRebuffering: Bool,
         stableBufferedAudioMS: Int?,
-        stableBufferTargetMS: Int?
+        stableBufferTargetMS: Int?,
     ) {
         self.state = state
         self.activeRequest = activeRequest
@@ -106,14 +110,16 @@ public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
     }
 
     init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
-        self.state = summary.state.rawValue
-        self.activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
-        self.isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
-        self.isRebuffering = summary.isRebuffering
-        self.stableBufferedAudioMS = summary.stableBufferedAudioMS
-        self.stableBufferTargetMS = summary.stableBufferTargetMS
+        state = summary.state.rawValue
+        activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
+        isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
+        isRebuffering = summary.isRebuffering
+        stableBufferedAudioMS = summary.stableBufferedAudioMS
+        stableBufferTargetMS = summary.stableBufferTargetMS
     }
 }
+
+// MARK: - RuntimeRefreshSnapshot
 
 /// Timing markers for one completed refresh cycle of the host state snapshots.
 public struct RuntimeRefreshSnapshot: Codable, Sendable, Equatable {
@@ -136,6 +142,8 @@ public struct RuntimeRefreshSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+// MARK: - CurrentGenerationJobSnapshot
+
 /// Summary of one generation job that is currently active in the runtime.
 public struct CurrentGenerationJobSnapshot: Codable, Sendable, Equatable {
     public let jobID: String
@@ -156,6 +164,8 @@ public struct CurrentGenerationJobSnapshot: Codable, Sendable, Equatable {
         case elapsedGenerationSeconds = "elapsed_generation_seconds"
     }
 }
+
+// MARK: - TransportStatusSnapshot
 
 /// Status for one published operator transport such as HTTP or MCP.
 public struct TransportStatusSnapshot: Codable, Sendable, Equatable {
@@ -178,6 +188,8 @@ public struct TransportStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+// MARK: - RecentErrorSnapshot
+
 /// One retained host or transport error suitable for operator display.
 public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
     public let occurredAt: String
@@ -192,6 +204,8 @@ public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
         case message
     }
 }
+
+// MARK: - RuntimeConfigurationSnapshot
 
 /// The active and next-start runtime configuration state exposed by the host.
 public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable, Equatable {
@@ -229,6 +243,8 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
         case persistedConfigurationWillAffectNextRuntimeStart = "persisted_configuration_will_affect_next_runtime_start"
     }
 }
+
+// MARK: - HostStateSnapshot
 
 /// Aggregate snapshot of the host state that bundles overview, queues, runtime, transport, and error data.
 public struct HostStateSnapshot: Codable, Sendable, Equatable {

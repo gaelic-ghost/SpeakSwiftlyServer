@@ -2,7 +2,7 @@ import Foundation
 import HTTPTypes
 import MCP
 
-// MARK: - Session Registry
+// MARK: - MCPSessionRegistry
 
 actor MCPSessionRegistry {
     let path: String
@@ -13,7 +13,7 @@ actor MCPSessionRegistry {
     private var started = false
 
     init(configuration: MCPConfig, host: ServerHost) {
-        self.path = configuration.path
+        path = configuration.path
         self.configuration = configuration
         self.host = host
     }
@@ -36,7 +36,7 @@ actor MCPSessionRegistry {
         guard started else {
             return .error(
                 statusCode: 503,
-                .internalError("SpeakSwiftly MCP is not ready yet. Likely cause: the shared MCP surface has not finished starting.")
+                .internalError("SpeakSwiftly MCP is not ready yet. Likely cause: the shared MCP surface has not finished starting."),
             )
         }
 
@@ -48,18 +48,17 @@ actor MCPSessionRegistry {
             return .error(
                 statusCode: 400,
                 .invalidRequest(
-                    "Bad Request: Session not initialized. Start a new MCP session with an initialize request before sending follow-up requests."
-                )
+                    "Bad Request: Session not initialized. Start a new MCP session with an initialize request before sending follow-up requests.",
+                ),
             )
         }
-
         guard let session = sessions[sessionID] else {
             return .error(
                 statusCode: 404,
                 .invalidRequest(
-                    "Not Found: No active MCP session matched '\(sessionID)'. Initialize a new session before retrying this request."
+                    "Not Found: No active MCP session matched '\(sessionID)'. Initialize a new session before retrying this request.",
                 ),
-                sessionID: sessionID
+                sessionID: sessionID,
             )
         }
 
@@ -74,7 +73,7 @@ actor MCPSessionRegistry {
     private func createSession(for request: MCP.HTTPRequest) async -> MCP.HTTPResponse {
         let session = await MCPSession.make(
             configuration: configuration,
-            host: host
+            host: host,
         )
 
         do {
@@ -83,8 +82,8 @@ actor MCPSessionRegistry {
             return .error(
                 statusCode: 500,
                 .internalError(
-                    "SpeakSwiftly MCP could not start a new session transport. Likely cause: \(error.localizedDescription)"
-                )
+                    "SpeakSwiftly MCP could not start a new session transport. Likely cause: \(error.localizedDescription)",
+                ),
             )
         }
 
@@ -94,14 +93,13 @@ actor MCPSessionRegistry {
             await session.stop()
             return response
         }
-
         guard let sessionID = mcpSessionID(from: response.headers) else {
             await session.stop()
             return .error(
                 statusCode: 500,
                 .internalError(
-                    "SpeakSwiftly MCP accepted an initialize request, but the session response was missing the required MCP-Session-Id header."
-                )
+                    "SpeakSwiftly MCP accepted an initialize request, but the session response was missing the required MCP-Session-Id header.",
+                ),
             )
         }
 
@@ -116,6 +114,7 @@ actor MCPSessionRegistry {
         guard let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else {
             return false
         }
+
         return json["method"] as? String == "initialize"
     }
 }
@@ -123,8 +122,7 @@ actor MCPSessionRegistry {
 private func mcpSessionID(from headers: [String: String]) -> String? {
     for (name, value) in headers {
         if name.caseInsensitiveCompare(HTTPHeaderName.sessionID) == .orderedSame,
-           value.isEmpty == false
-        {
+           value.isEmpty == false {
             return value
         }
     }

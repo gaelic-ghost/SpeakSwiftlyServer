@@ -1,8 +1,8 @@
 import Foundation
 
-// MARK: - Host Events
+// MARK: - ProfileCacheStatusSnapshot
 
-struct ProfileCacheStatusSnapshot: Codable, Sendable, Equatable {
+struct ProfileCacheStatusSnapshot: Codable, Equatable {
     let state: String
     let warning: String?
     let profileCount: Int
@@ -16,7 +16,9 @@ struct ProfileCacheStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct TextProfilesStatusSnapshot: Codable, Sendable, Equatable {
+// MARK: - TextProfilesStatusSnapshot
+
+struct TextProfilesStatusSnapshot: Codable, Equatable {
     let activeProfileID: String
     let storedProfileCount: Int
 
@@ -26,7 +28,9 @@ struct TextProfilesStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct RuntimeConfigurationStatusSnapshot: Codable, Sendable, Equatable {
+// MARK: - RuntimeConfigurationStatusSnapshot
+
+struct RuntimeConfigurationStatusSnapshot: Codable, Equatable {
     let activeRuntimeSpeechBackend: String
     let nextRuntimeSpeechBackend: String
     let activeDefaultVoiceProfileName: String?
@@ -50,14 +54,18 @@ struct RuntimeConfigurationStatusSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-struct JobEventUpdate: Sendable, Equatable {
+// MARK: - JobEventUpdate
+
+struct JobEventUpdate: Equatable {
     let jobID: String
     let event: ServerJobEvent
     let historyIndex: Int
     let terminal: Bool
 }
 
-enum HostEvent: Sendable {
+// MARK: - HostEvent
+
+enum HostEvent {
     case transportChanged(TransportStatusSnapshot)
     case jobChanged(JobSnapshot)
     case jobEvent(JobEventUpdate)

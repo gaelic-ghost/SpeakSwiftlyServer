@@ -1,7 +1,7 @@
 import Foundation
 import MCP
 
-// MARK: - Resource Catalog
+// MARK: - MCPResourceCatalog
 
 enum MCPResourceCatalog {
     static let resourceURIs = Set([
@@ -59,7 +59,7 @@ extension MCPSurface {
     static func registerResourceHandlers(
         on server: Server,
         host: ServerHost,
-        subscriptionBroker: MCPSubscriptionBroker
+        subscriptionBroker: MCPSubscriptionBroker,
     ) async {
         await server.withMethodHandler(ListResources.self) { _ in
             .init(resources: MCPResourceCatalog.resources)
@@ -83,126 +83,128 @@ extension MCPSurface {
 
         await server.withMethodHandler(ReadResource.self) { params in
             switch params.uri {
-            case "speak://runtime/overview":
-                return try resourceResult(uri: params.uri, payload: await host.statusSnapshot())
+                case "speak://runtime/overview":
+                    return try await resourceResult(uri: params.uri, payload: host.statusSnapshot())
 
-            case "speak://runtime/status":
-                return try resourceResult(uri: params.uri, payload: try await host.runtimeStatus())
+                case "speak://runtime/status":
+                    return try await resourceResult(uri: params.uri, payload: host.runtimeStatus())
 
-            case "speak://runtime/configuration":
-                return try resourceResult(uri: params.uri, payload: await host.runtimeConfigurationSnapshot())
+                case "speak://runtime/configuration":
+                    return try await resourceResult(uri: params.uri, payload: host.runtimeConfigurationSnapshot())
 
-            case "speak://voices":
-                return try resourceResult(uri: params.uri, payload: await host.cachedProfiles())
+                case "speak://voices":
+                    return try await resourceResult(uri: params.uri, payload: host.cachedProfiles())
 
-            case "speak://voices/guide":
-                return .init(
-                    contents: [
-                        .text(
-                            voiceProfilesGuideMarkdown(),
-                            uri: params.uri,
-                            mimeType: "text/markdown"
-                        ),
-                    ]
-                )
+                case "speak://voices/guide":
+                    return .init(
+                        contents: [
+                            .text(
+                                voiceProfilesGuideMarkdown(),
+                                uri: params.uri,
+                                mimeType: "text/markdown",
+                            ),
+                        ],
+                    )
 
-            case "speak://text-profiles":
-                return try resourceResult(uri: params.uri, payload: await host.textProfilesSnapshot())
+                case "speak://text-profiles":
+                    return try await resourceResult(uri: params.uri, payload: host.textProfilesSnapshot())
 
-            case "speak://text-profiles/style":
-                return try resourceResult(uri: params.uri, payload: await host.textProfileStyleSnapshot())
+                case "speak://text-profiles/style":
+                    return try await resourceResult(uri: params.uri, payload: host.textProfileStyleSnapshot())
 
-            case "speak://text-profiles/guide":
-                return .init(
-                    contents: [
-                        .text(
-                            textProfilesGuideMarkdown(),
-                            uri: params.uri,
-                            mimeType: "text/markdown"
-                        ),
-                    ]
-                )
+                case "speak://text-profiles/guide":
+                    return .init(
+                        contents: [
+                            .text(
+                                textProfilesGuideMarkdown(),
+                                uri: params.uri,
+                                mimeType: "text/markdown",
+                            ),
+                        ],
+                    )
 
-            case "speak://playback/guide":
-                return .init(
-                    contents: [
-                        .text(
-                            playbackGuideMarkdown(),
-                            uri: params.uri,
-                            mimeType: "text/markdown"
-                        ),
-                    ]
-                )
+                case "speak://playback/guide":
+                    return .init(
+                        contents: [
+                            .text(
+                                playbackGuideMarkdown(),
+                                uri: params.uri,
+                                mimeType: "text/markdown",
+                            ),
+                        ],
+                    )
 
-            case "speak://text-profiles/base":
-                return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).baseProfile)
+                case "speak://text-profiles/base":
+                    return try await resourceResult(uri: params.uri, payload: (host.textProfilesSnapshot()).baseProfile)
 
-            case "speak://text-profiles/active":
-                return try resourceResult(uri: params.uri, payload: (await host.textProfilesSnapshot()).activeProfile)
+                case "speak://text-profiles/active":
+                    return try await resourceResult(uri: params.uri, payload: (host.textProfilesSnapshot()).activeProfile)
 
-            case "speak://text-profiles/effective":
-                return try resourceResult(uri: params.uri, payload: await host.effectiveTextProfile(nil))
+                case "speak://text-profiles/effective":
+                    return try await resourceResult(uri: params.uri, payload: host.effectiveTextProfile(nil))
 
-            case "speak://requests":
-                return try resourceResult(uri: params.uri, payload: await host.jobSnapshots())
+                case "speak://requests":
+                    return try await resourceResult(uri: params.uri, payload: host.jobSnapshots())
 
-            case "speak://generation/jobs":
-                return try resourceResult(uri: params.uri, payload: try await host.listGenerationJobs())
+                case "speak://generation/jobs":
+                    return try await resourceResult(uri: params.uri, payload: host.listGenerationJobs())
 
-            case "speak://generation/files":
-                return try resourceResult(uri: params.uri, payload: try await host.listGeneratedFiles())
+                case "speak://generation/files":
+                    return try await resourceResult(uri: params.uri, payload: host.listGeneratedFiles())
 
-            case "speak://generation/batches":
-                return try resourceResult(uri: params.uri, payload: try await host.listGeneratedBatches())
+                case "speak://generation/batches":
+                    return try await resourceResult(uri: params.uri, payload: host.listGeneratedBatches())
 
-            default:
-                if let profileName = profileDetailName(from: params.uri) {
-                    guard let profile = await host.cachedProfile(profileName) else {
-                        throw MCPError.invalidRequest(
-                            "No cached SpeakSwiftly profile matched that profile name. Refresh or recreate the profile before requesting detail."
-                        )
+                default:
+                    if let profileName = profileDetailName(from: params.uri) {
+                        guard let profile = await host.cachedProfile(profileName) else {
+                            throw MCPError.invalidRequest(
+                                "No cached SpeakSwiftly profile matched that profile name. Refresh or recreate the profile before requesting detail.",
+                            )
+                        }
+
+                        return try resourceResult(uri: params.uri, payload: profile)
                     }
-                    return try resourceResult(uri: params.uri, payload: profile)
-                }
 
-                if let profileID = storedTextProfileID(from: params.uri) {
-                    guard let profile = await host.storedTextProfile(profileID) else {
-                        throw MCPError.invalidRequest(
-                            "No stored SpeakSwiftly text profile matched that profile id. Read speak://text-profiles first to inspect the current stored profile set."
-                        )
+                    if let profileID = storedTextProfileID(from: params.uri) {
+                        guard let profile = await host.storedTextProfile(profileID) else {
+                            throw MCPError.invalidRequest(
+                                "No stored SpeakSwiftly text profile matched that profile id. Read speak://text-profiles first to inspect the current stored profile set.",
+                            )
+                        }
+
+                        return try resourceResult(uri: params.uri, payload: profile)
                     }
-                    return try resourceResult(uri: params.uri, payload: profile)
-                }
 
-                if let profileID = effectiveTextProfileID(from: params.uri) {
-                    return try resourceResult(uri: params.uri, payload: await host.effectiveTextProfile(profileID))
-                }
-
-                if let requestID = requestID(from: params.uri) {
-                    do {
-                        return try resourceResult(uri: params.uri, payload: try await host.jobSnapshot(id: requestID))
-                    } catch {
-                        throw MCPError.invalidRequest(
-                            "No tracked SpeakSwiftly request matched that request id. Submit work first, or read speak://requests to inspect retained request state."
-                        )
+                    if let profileID = effectiveTextProfileID(from: params.uri) {
+                        return try await resourceResult(uri: params.uri, payload: host.effectiveTextProfile(profileID))
                     }
-                }
 
-                if let jobID = generationJobID(from: params.uri) {
-                    return try resourceResult(uri: params.uri, payload: try await host.generationJob(id: jobID))
-                }
+                    if let requestID = requestID(from: params.uri) {
+                        do {
+                            return try await resourceResult(uri: params.uri, payload: host.jobSnapshot(id: requestID))
+                        } catch {
+                            throw MCPError.invalidRequest(
+                                "No tracked SpeakSwiftly request matched that request id. Submit work first, or read speak://requests to inspect retained request state.",
+                            )
+                        }
+                    }
 
-                if let artifactID = generatedFileID(from: params.uri) {
-                    return try resourceResult(uri: params.uri, payload: try await host.generatedFile(id: artifactID))
-                }
+                    if let jobID = generationJobID(from: params.uri) {
+                        return try await resourceResult(uri: params.uri, payload: host.generationJob(id: jobID))
+                    }
 
-                if let batchID = generatedBatchID(from: params.uri) {
-                    return try resourceResult(uri: params.uri, payload: try await host.generatedBatch(id: batchID))
-                }
+                    if let artifactID = generatedFileID(from: params.uri) {
+                        return try await resourceResult(uri: params.uri, payload: host.generatedFile(id: artifactID))
+                    }
 
-                throw MCPError.invalidRequest(
-                    "Resource '\(params.uri)' is not available on this embedded SpeakSwiftly MCP surface."
-                )
+                    if let batchID = generatedBatchID(from: params.uri) {
+                        return try await resourceResult(uri: params.uri, payload: host.generatedBatch(id: batchID))
+                    }
+
+                    throw MCPError.invalidRequest(
+                        "Resource '\(params.uri)' is not available on this embedded SpeakSwiftly MCP surface.",
+                    )
             }
         }
     }
@@ -210,9 +212,9 @@ extension MCPSurface {
 
 // MARK: - Resource Encoding
 
-private func resourceResult<Output: Encodable>(
+private func resourceResult(
     uri: String,
-    payload: Output
+    payload: some Encodable,
 ) throws -> ReadResource.Result {
     let data = try JSONEncoder().encode(payload)
     let json = String(decoding: data, as: UTF8.self)
@@ -232,7 +234,7 @@ func ensureKnownResourceURI(_ uri: String) throws {
         || generatedBatchID(from: uri) != nil
     else {
         throw MCPError.invalidRequest(
-            "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface."
+            "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface.",
         )
     }
 }
@@ -326,6 +328,7 @@ private func playbackGuideMarkdown() -> String {
 private func profileDetailName(from uri: String) -> String? {
     let prefix = "speak://voices/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     let profileName = String(uri.dropFirst(prefix.count))
     return profileName.isEmpty ? nil : profileName
 }
@@ -337,6 +340,7 @@ func isVoiceProfileURI(_ uri: String) -> Bool {
 private func storedTextProfileID(from uri: String) -> String? {
     let prefix = "speak://text-profiles/stored/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }
 
@@ -347,6 +351,7 @@ func isStoredTextProfileURI(_ uri: String) -> Bool {
 private func effectiveTextProfileID(from uri: String) -> String? {
     let prefix = "speak://text-profiles/effective/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }
 
@@ -357,23 +362,27 @@ func isEffectiveTextProfileURI(_ uri: String) -> Bool {
 private func requestID(from uri: String) -> String? {
     let prefix = "speak://requests/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }
 
 private func generationJobID(from uri: String) -> String? {
     let prefix = "speak://generation/jobs/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }
 
 private func generatedFileID(from uri: String) -> String? {
     let prefix = "speak://generation/files/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }
 
 private func generatedBatchID(from uri: String) -> String? {
     let prefix = "speak://generation/batches/"
     guard uri.hasPrefix(prefix) else { return nil }
+
     return String(uri.dropFirst(prefix.count))
 }

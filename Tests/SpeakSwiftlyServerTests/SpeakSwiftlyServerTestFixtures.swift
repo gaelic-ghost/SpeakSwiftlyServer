@@ -1,10 +1,10 @@
 import Foundation
 import SpeakSwiftly
+@testable import SpeakSwiftlyServer
 import Testing
 import TextForSpeech
-@testable import SpeakSwiftlyServer
 
-// MARK: - Shared Test Fixtures
+// MARK: - EmbeddedSessionLifecycleProbe
 
 @available(macOS 14, *)
 actor EmbeddedSessionLifecycleProbe {
@@ -29,7 +29,7 @@ func testConfiguration(
     sseHeartbeatSeconds: Double = 0.05,
     completedJobTTLSeconds: Double = 30,
     completedJobMaxCount: Int = 20,
-    jobPruneIntervalSeconds: Double = 0.05
+    jobPruneIntervalSeconds: Double = 0.05,
 ) -> ServerConfiguration {
     .init(
         name: "speak-swiftly-server-tests",
@@ -40,7 +40,7 @@ func testConfiguration(
         sseHeartbeatSeconds: sseHeartbeatSeconds,
         completedJobTTLSeconds: completedJobTTLSeconds,
         completedJobMaxCount: completedJobMaxCount,
-        jobPruneIntervalSeconds: jobPruneIntervalSeconds
+        jobPruneIntervalSeconds: jobPruneIntervalSeconds,
     )
 }
 
@@ -49,7 +49,7 @@ func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
         enabled: true,
         host: configuration.host,
         port: configuration.port,
-        sseHeartbeatSeconds: configuration.sseHeartbeatSeconds
+        sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
     )
 }
 
@@ -60,7 +60,7 @@ func testRuntimeConfigurationStore() -> RuntimeConfigurationStore {
     return RuntimeConfigurationStore(
         environment: [
             "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.standardizedFileURL.path,
-        ]
+        ],
     )
 }
 
@@ -73,9 +73,11 @@ func sampleProfile() -> SpeakSwiftly.ProfileSummary {
         sourceText: "A reference voice sample.",
         transcriptSource: nil,
         transcriptResolvedAt: nil,
-        transcriptionModelRepo: nil
+        transcriptionModelRepo: nil,
     )
 }
+
+// MARK: - GeneratedFileFixture
 
 struct GeneratedFileFixture: Codable {
     let artifactID: String
@@ -94,6 +96,8 @@ struct GeneratedFileFixture: Codable {
         case filePath = "file_path"
     }
 }
+
+// MARK: - GenerationArtifactFixture
 
 struct GenerationArtifactFixture: Codable {
     let artifactID: String
@@ -115,6 +119,8 @@ struct GenerationArtifactFixture: Codable {
     }
 }
 
+// MARK: - GenerationJobItemFixture
+
 struct GenerationJobItemFixture: Codable {
     let artifactID: String
     let text: String
@@ -131,10 +137,14 @@ struct GenerationJobItemFixture: Codable {
     }
 }
 
+// MARK: - GenerationJobFailureFixture
+
 struct GenerationJobFailureFixture: Codable {
     let code: String
     let message: String
 }
+
+// MARK: - GenerationJobFixture
 
 struct GenerationJobFixture: Codable {
     let jobID: String
@@ -174,6 +184,8 @@ struct GenerationJobFixture: Codable {
     }
 }
 
+// MARK: - GeneratedBatchFixture
+
 struct GeneratedBatchFixture: Codable {
     let batchID: String
     let profileName: String
@@ -210,7 +222,7 @@ struct GeneratedBatchFixture: Codable {
     }
 }
 
-func fixtureDecode<T: Decodable, Payload: Encodable>(_ payload: Payload, as type: T.Type) throws -> T {
+func fixtureDecode<T: Decodable>(_ payload: some Encodable, as type: T.Type) throws -> T {
     let encoder = JSONEncoder()
     let decoder = JSONDecoder()
     return try decoder.decode(type, from: encoder.encode(payload))
@@ -222,7 +234,7 @@ func makeGeneratedFile(
     profileName: String,
     textProfileName: String?,
     sampleRate: Int,
-    filePath: String
+    filePath: String,
 ) throws -> SpeakSwiftly.GeneratedFile {
     try fixtureDecode(
         GeneratedFileFixture(
@@ -231,9 +243,9 @@ func makeGeneratedFile(
             profileName: profileName,
             textProfileName: textProfileName,
             sampleRate: sampleRate,
-            filePath: filePath
+            filePath: filePath,
         ),
-        as: SpeakSwiftly.GeneratedFile.self
+        as: SpeakSwiftly.GeneratedFile.self,
     )
 }
 
@@ -253,7 +265,7 @@ func makeGenerationJob(
     completedAt: Date?,
     failedAt: Date?,
     expiresAt: Date?,
-    retentionPolicy: String
+    retentionPolicy: String,
 ) throws -> SpeakSwiftly.GenerationJob {
     try fixtureDecode(
         GenerationJobFixture(
@@ -272,9 +284,9 @@ func makeGenerationJob(
             completedAt: completedAt,
             failedAt: failedAt,
             expiresAt: expiresAt,
-            retentionPolicy: retentionPolicy
+            retentionPolicy: retentionPolicy,
         ),
-        as: SpeakSwiftly.GenerationJob.self
+        as: SpeakSwiftly.GenerationJob.self,
     )
 }
 
@@ -293,7 +305,7 @@ func makeGeneratedBatch(
     completedAt: Date?,
     failedAt: Date?,
     expiresAt: Date?,
-    retentionPolicy: String
+    retentionPolicy: String,
 ) throws -> SpeakSwiftly.GeneratedBatch {
     try fixtureDecode(
         GeneratedBatchFixture(
@@ -311,8 +323,8 @@ func makeGeneratedBatch(
             completedAt: completedAt,
             failedAt: failedAt,
             expiresAt: expiresAt,
-            retentionPolicy: retentionPolicy
+            retentionPolicy: retentionPolicy,
         ),
-        as: SpeakSwiftly.GeneratedBatch.self
+        as: SpeakSwiftly.GeneratedBatch.self,
     )
 }

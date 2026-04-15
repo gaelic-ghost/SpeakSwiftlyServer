@@ -10,7 +10,7 @@ extension MockRuntime {
     }
 
     func setBuiltInTextProfileStyle(
-        _ style: TextForSpeech.BuiltInProfileStyle
+        _ style: TextForSpeech.BuiltInProfileStyle,
     ) async throws -> TextForSpeech.BuiltInProfileStyle {
         try textRuntime.profiles.setBuiltInStyle(style)
         return textRuntime.profiles.builtInStyle
@@ -50,7 +50,7 @@ extension MockRuntime {
     func createTextProfile(
         id: String,
         named name: String,
-        replacements: [TextForSpeech.Replacement]
+        replacements: [TextForSpeech.Replacement],
     ) async throws -> TextForSpeech.Profile {
         try textRuntime.profiles.create(id: id, name: name, replacements: replacements)
     }
@@ -78,7 +78,7 @@ extension MockRuntime {
 
     func addTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        toStoredTextProfileID profileID: String
+        toStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try textRuntime.profiles.add(replacement, toProfileID: profileID)
     }
@@ -89,7 +89,7 @@ extension MockRuntime {
 
     func replaceTextReplacement(
         _ replacement: TextForSpeech.Replacement,
-        inStoredTextProfileID profileID: String
+        inStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try textRuntime.profiles.replace(replacement, inProfileID: profileID)
     }
@@ -100,7 +100,7 @@ extension MockRuntime {
 
     func removeTextReplacement(
         id replacementID: String,
-        fromStoredTextProfileID profileID: String
+        fromStoredTextProfileID profileID: String,
     ) async throws -> TextForSpeech.Profile {
         try textRuntime.profiles.removeReplacement(id: replacementID, fromProfileID: profileID)
     }

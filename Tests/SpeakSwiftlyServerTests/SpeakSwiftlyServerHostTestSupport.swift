@@ -1,8 +1,8 @@
 import Foundation
-import SpeakSwiftly
 import NIOCore
-import TextForSpeech
+import SpeakSwiftly
 @testable import SpeakSwiftlyServer
+import TextForSpeech
 
 // MARK: - Host Wait Helpers
 
@@ -41,7 +41,7 @@ func waitUntilJobDisappears(_ jobID: String, on host: ServerHost) async throws {
 func waitUntil<T: Sendable>(
     timeout: Duration,
     pollInterval: Duration,
-    condition: @escaping @Sendable () async throws -> T?
+    condition: @escaping @Sendable () async throws -> T?,
 ) async throws -> T {
     let deadline = ContinuousClock.now + timeout
     while ContinuousClock.now < deadline {
@@ -71,14 +71,14 @@ extension ServerHost {
         profileName: String,
         textProfileName: String? = nil,
         normalizationContext: SpeechNormalizationContext? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil
+        sourceFormat: TextForSpeech.SourceFormat? = nil,
     ) async throws -> String {
         try await queueSpeechLive(
             text: text,
             profileName: profileName,
             textProfileName: textProfileName,
             normalizationContext: normalizationContext,
-            sourceFormat: sourceFormat
+            sourceFormat: sourceFormat,
         )
     }
 
@@ -88,7 +88,7 @@ extension ServerHost {
         text: String,
         voiceDescription: String,
         outputPath: String?,
-        cwd: String?
+        cwd: String?,
     ) async throws -> String {
         try await createVoiceProfileFromDescription(
             profileName: profileName,
@@ -96,7 +96,7 @@ extension ServerHost {
             text: text,
             voiceDescription: voiceDescription,
             outputPath: outputPath,
-            cwd: cwd
+            cwd: cwd,
         )
     }
 
@@ -105,14 +105,14 @@ extension ServerHost {
         vibe: SpeakSwiftly.Vibe,
         referenceAudioPath: String,
         transcript: String?,
-        cwd: String?
+        cwd: String?,
     ) async throws -> String {
         try await createVoiceProfileFromAudio(
             profileName: profileName,
             vibe: vibe,
             referenceAudioPath: referenceAudioPath,
             transcript: transcript,
-            cwd: cwd
+            cwd: cwd,
         )
     }
 
@@ -155,5 +155,6 @@ func jsonObject(from data: Data) throws -> [String: Any] {
     guard let dictionary = json as? [String: Any] else {
         throw JSONError.notDictionary
     }
+
     return dictionary
 }

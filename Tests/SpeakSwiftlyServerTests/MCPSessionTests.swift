@@ -1,13 +1,13 @@
 import Foundation
 import MCP
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - MCP Session Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func embeddedMCPSupportsMultipleIndependentSessions() async throws {
+    @Test func `embedded MCP supports multiple independent sessions`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -18,11 +18,11 @@ extension ServerTests {
                 enabled: true,
                 path: "/mcp",
                 serverName: "speak-swiftly-test-mcp",
-                title: "SpeakSwiftly Test MCP"
+                title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -35,22 +35,22 @@ extension ServerTests {
                     enabled: true,
                     path: "/mcp",
                     serverName: "speak-swiftly-test-mcp",
-                    title: "SpeakSwiftly Test MCP"
+                    title: "SpeakSwiftly Test MCP",
                 ),
-                host: host
-            )
+                host: host,
+            ),
         )
 
         try await mcpSurface.start()
 
         let firstInitializeResponse = await mcpSurface.handle(
-            mcpPOSTRequest(body: mcpInitializeRequestJSON(id: "initialize-first"))
+            mcpPOSTRequest(body: mcpInitializeRequestJSON(id: "initialize-first")),
         )
         let firstSessionID = try #require(mcpSessionID(from: firstInitializeResponse))
         try await drainMCPResponse(firstInitializeResponse)
 
         let secondInitializeResponse = await mcpSurface.handle(
-            mcpPOSTRequest(body: mcpInitializeRequestJSON(id: "initialize-second"))
+            mcpPOSTRequest(body: mcpInitializeRequestJSON(id: "initialize-second")),
         )
         let secondSessionID = try #require(mcpSessionID(from: secondInitializeResponse))
         try await drainMCPResponse(secondInitializeResponse)
@@ -60,62 +60,62 @@ extension ServerTests {
         let firstInitializedNotification = await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpInitializedNotificationJSON(),
-                sessionID: firstSessionID
-            )
+                sessionID: firstSessionID,
+            ),
         )
         #expect(mcpStatusCode(from: firstInitializedNotification) == 202)
 
         let secondInitializedNotification = await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpInitializedNotificationJSON(),
-                sessionID: secondSessionID
-            )
+                sessionID: secondSessionID,
+            ),
         )
         #expect(mcpStatusCode(from: secondInitializedNotification) == 202)
 
         let firstStatusEnvelope = try await mcpEnvelope(
-            from: await mcpSurface.handle(
+            from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpRuntimeOverviewToolRequestJSON(),
-                    sessionID: firstSessionID
-                )
-            )
+                    sessionID: firstSessionID,
+                ),
+            ),
         )
         let firstStatusPayload = try mcpToolPayload(from: firstStatusEnvelope)
         #expect(firstStatusPayload["worker_mode"] as? String == "ready")
 
         let secondToolsEnvelope = try await mcpEnvelope(
-            from: await mcpSurface.handle(
+            from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpListToolsRequestJSON(),
-                    sessionID: secondSessionID
-                )
-            )
+                    sessionID: secondSessionID,
+                ),
+            ),
         )
         let secondToolsResult = try #require(mcpResultPayload(from: secondToolsEnvelope))
         let secondTools = try #require(secondToolsResult["tools"] as? [[String: Any]])
         #expect(secondTools.contains { $0["name"] as? String == "get_runtime_overview" })
 
         let deleteFirstSessionResponse = await mcpSurface.handle(
-            mcpDELETERequest(sessionID: firstSessionID)
+            mcpDELETERequest(sessionID: firstSessionID),
         )
         #expect(mcpStatusCode(from: deleteFirstSessionResponse) == 200)
 
         let deletedSessionResponse = await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpRuntimeOverviewToolRequestJSON(),
-                sessionID: firstSessionID
-            )
+                sessionID: firstSessionID,
+            ),
         )
         #expect(mcpStatusCode(from: deletedSessionResponse) == 404)
 
         let survivingSessionEnvelope = try await mcpEnvelope(
-            from: await mcpSurface.handle(
+            from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpRuntimeOverviewToolRequestJSON(),
-                    sessionID: secondSessionID
-                )
-            )
+                    sessionID: secondSessionID,
+                ),
+            ),
         )
         let survivingSessionPayload = try mcpToolPayload(from: survivingSessionEnvelope)
         #expect(survivingSessionPayload["worker_mode"] as? String == "ready")

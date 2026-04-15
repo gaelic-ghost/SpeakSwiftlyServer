@@ -3,18 +3,9 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Request Models
+// MARK: - SpeakRequestPayload
 
 struct SpeakRequestPayload: Decodable {
-    let text: String
-    let profileName: String?
-    let textProfileName: String?
-    let cwd: String?
-    let repoRoot: String?
-    let textFormat: String?
-    let nestedSourceFormat: String?
-    let sourceFormat: String?
-
     enum CodingKeys: String, CodingKey {
         case text
         case profileName = "profile_name"
@@ -26,6 +17,15 @@ struct SpeakRequestPayload: Decodable {
         case sourceFormat = "source_format"
     }
 
+    let text: String
+    let profileName: String?
+    let textProfileName: String?
+    let cwd: String?
+    let repoRoot: String?
+    let textFormat: String?
+    let nestedSourceFormat: String?
+    let sourceFormat: String?
+
     func normalizationContext() throws -> SpeechNormalizationContext? {
         let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
         let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
@@ -35,16 +35,17 @@ struct SpeakRequestPayload: Decodable {
             cwd: cwd,
             repoRoot: repoRoot,
             textFormat: resolvedTextFormat,
-            nestedSourceFormat: resolvedNestedSourceFormat
+            nestedSourceFormat: resolvedNestedSourceFormat,
         )
         guard
             context.cwd != nil
-                || context.repoRoot != nil
-                || context.textFormat != nil
-                || context.nestedSourceFormat != nil
+            || context.repoRoot != nil
+            || context.textFormat != nil
+            || context.nestedSourceFormat != nil
         else {
             return nil
         }
+
         return context
     }
 
@@ -52,6 +53,8 @@ struct SpeakRequestPayload: Decodable {
         try sourceFormat.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
     }
 }
+
+// MARK: - CreateProfileRequestPayload
 
 struct CreateProfileRequestPayload: Decodable {
     let profileName: String
@@ -75,6 +78,8 @@ struct CreateProfileRequestPayload: Decodable {
     }
 }
 
+// MARK: - CreateCloneRequestPayload
+
 struct CreateCloneRequestPayload: Decodable {
     let profileName: String
     let vibe: String
@@ -95,6 +100,8 @@ struct CreateCloneRequestPayload: Decodable {
     }
 }
 
+// MARK: - GenerateBatchRequestPayload
+
 struct GenerateBatchRequestPayload: Decodable {
     let profileName: String?
     let items: [BatchItemRequestPayload]
@@ -105,16 +112,9 @@ struct GenerateBatchRequestPayload: Decodable {
     }
 }
 
-struct BatchItemRequestPayload: Decodable {
-    let artifactID: String?
-    let text: String
-    let textProfileName: String?
-    let cwd: String?
-    let repoRoot: String?
-    let textFormat: String?
-    let nestedSourceFormat: String?
-    let sourceFormat: String?
+// MARK: - BatchItemRequestPayload
 
+struct BatchItemRequestPayload: Decodable {
     enum CodingKeys: String, CodingKey {
         case artifactID = "artifact_id"
         case text
@@ -126,13 +126,22 @@ struct BatchItemRequestPayload: Decodable {
         case sourceFormat = "source_format"
     }
 
+    let artifactID: String?
+    let text: String
+    let textProfileName: String?
+    let cwd: String?
+    let repoRoot: String?
+    let textFormat: String?
+    let nestedSourceFormat: String?
+    let sourceFormat: String?
+
     func model() throws -> SpeakSwiftly.BatchItem {
-        .init(
+        try .init(
             artifactID: artifactID,
             text: text,
             textProfileName: textProfileName,
-            textContext: try normalizationContext(),
-            sourceFormat: try sourceFormatModel()
+            textContext: normalizationContext(),
+            sourceFormat: sourceFormatModel(),
         )
     }
 
@@ -145,16 +154,17 @@ struct BatchItemRequestPayload: Decodable {
             cwd: cwd,
             repoRoot: repoRoot,
             textFormat: resolvedTextFormat,
-            nestedSourceFormat: resolvedNestedSourceFormat
+            nestedSourceFormat: resolvedNestedSourceFormat,
         )
         guard
             context.cwd != nil
-                || context.repoRoot != nil
-                || context.textFormat != nil
-                || context.nestedSourceFormat != nil
+            || context.repoRoot != nil
+            || context.textFormat != nil
+            || context.nestedSourceFormat != nil
         else {
             return nil
         }
+
         return context
     }
 
@@ -162,6 +172,8 @@ struct BatchItemRequestPayload: Decodable {
         try sourceFormat.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
     }
 }
+
+// MARK: - RuntimeConfigurationUpdatePayload
 
 struct RuntimeConfigurationUpdatePayload: Decodable {
     let speechBackend: String
@@ -175,7 +187,9 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
     }
 }
 
-struct RequestAcceptedResponse: ResponseEncodable, Sendable {
+// MARK: - RequestAcceptedResponse
+
+struct RequestAcceptedResponse: ResponseEncodable {
     let requestID: String
     let requestURL: String
     let eventsURL: String
@@ -187,15 +201,21 @@ struct RequestAcceptedResponse: ResponseEncodable, Sendable {
     }
 }
 
-struct RequestListResponse: ResponseEncodable, Sendable {
+// MARK: - RequestListResponse
+
+struct RequestListResponse: ResponseEncodable {
     let requests: [JobSnapshot]
 }
 
-struct RuntimeStatusResponse: ResponseEncodable, Sendable {
+// MARK: - RuntimeStatusResponse
+
+struct RuntimeStatusResponse: ResponseEncodable {
     let status: SpeakSwiftly.StatusEvent
 }
 
-struct RuntimeBackendResponse: ResponseEncodable, Sendable {
+// MARK: - RuntimeBackendResponse
+
+struct RuntimeBackendResponse: ResponseEncodable {
     let speechBackend: String
 
     enum CodingKeys: String, CodingKey {
@@ -203,7 +223,7 @@ struct RuntimeBackendResponse: ResponseEncodable, Sendable {
     }
 }
 
-// MARK: - Helpers
+// MARK: - TimestampFormatter
 
 enum TimestampFormatter {
     static func string(from date: Date) -> String {
@@ -212,7 +232,9 @@ enum TimestampFormatter {
     }
 }
 
-enum NormalizationFormat: Sendable {
+// MARK: - NormalizationFormat
+
+enum NormalizationFormat {
     case text(TextForSpeech.TextFormat)
     case source(TextForSpeech.SourceFormat)
 }
@@ -227,11 +249,11 @@ func resolveNormalizationFormat(_ rawValue: String) throws -> NormalizationForma
 
     let supportedFormats = (
         TextForSpeech.TextFormat.allCases.map(\.rawValue)
-        + TextForSpeech.SourceFormat.allCases.map(\.rawValue)
+            + TextForSpeech.SourceFormat.allCases.map(\.rawValue),
     ).joined(separator: ", ")
     throw HTTPError(
         .badRequest,
-        message: "Text replacement format '\(rawValue)' is not supported. Expected one of: \(supportedFormats)."
+        message: "Text replacement format '\(rawValue)' is not supported. Expected one of: \(supportedFormats).",
     )
 }
 
@@ -240,50 +262,54 @@ private func resolveRequestTextFormat(_ rawValue: String) throws -> TextForSpeec
         let supportedFormats = TextForSpeech.TextFormat.allCases.map(\.rawValue)
         throw HTTPError(
             .badRequest,
-            message: "Speech request text_format '\(rawValue)' is not supported. Expected one of: \(supportedFormats.joined(separator: ", "))."
+            message: "Speech request text_format '\(rawValue)' is not supported. Expected one of: \(supportedFormats.joined(separator: ", ")).",
         )
     }
+
     return format
 }
 
 private func resolveSourceFormat(
     _ rawValue: String,
-    fieldName: String
+    fieldName: String,
 ) throws -> TextForSpeech.SourceFormat {
     guard let format = TextForSpeech.SourceFormat(rawValue: rawValue) else {
         let supportedFormats = TextForSpeech.SourceFormat.allCases.map(\.rawValue).joined(separator: ", ")
         throw HTTPError(
             .badRequest,
-            message: "Speech request \(fieldName) '\(rawValue)' is not supported. Expected one of: \(supportedFormats)."
+            message: "Speech request \(fieldName) '\(rawValue)' is not supported. Expected one of: \(supportedFormats).",
         )
     }
+
     return format
 }
 
 private func resolveVibe(
     _ rawValue: String,
-    fieldName: String
+    fieldName: String,
 ) throws -> SpeakSwiftly.Vibe {
     guard let vibe = SpeakSwiftly.Vibe(rawValue: rawValue) else {
         let supportedVibes = SpeakSwiftly.Vibe.allCases.map(\.rawValue).joined(separator: ", ")
         throw HTTPError(
             .badRequest,
-            message: "Voice profile field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedVibes)."
+            message: "Voice profile field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedVibes).",
         )
     }
+
     return vibe
 }
 
 private func resolveSpeechBackend(
     _ rawValue: String,
-    fieldName: String
+    fieldName: String,
 ) throws -> SpeakSwiftly.SpeechBackend {
     guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
         let supportedBackends = SpeakSwiftly.SpeechBackend.allCases.map(\.rawValue).joined(separator: ", ")
         throw HTTPError(
             .badRequest,
-            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedBackends)."
+            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedBackends).",
         )
     }
+
     return speechBackend
 }

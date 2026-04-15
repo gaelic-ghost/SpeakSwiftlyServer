@@ -5,7 +5,7 @@ import Hummingbird
 func registerHTTPRuntimeRoutes(
     on router: Router<BasicRequestContext>,
     configuration: HTTPConfig,
-    host: ServerHost
+    host: ServerHost,
 ) {
     router.get("healthz") { _, _ -> HealthSnapshot in
         await host.healthSnapshot()

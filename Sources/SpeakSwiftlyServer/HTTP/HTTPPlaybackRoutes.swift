@@ -4,7 +4,7 @@ import Hummingbird
 
 func registerHTTPPlaybackRoutes(
     on router: Router<BasicRequestContext>,
-    host: ServerHost
+    host: ServerHost,
 ) {
     router.get("playback/state") { _, _ -> PlaybackStateResponse in
         await host.playbackStateSnapshot()

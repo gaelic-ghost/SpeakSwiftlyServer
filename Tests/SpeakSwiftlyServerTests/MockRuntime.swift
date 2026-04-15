@@ -1,19 +1,19 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 @testable import SpeakSwiftlyServer
+import TextForSpeech
 
 // MARK: - Mock Runtime
 
 @available(macOS 14, *)
 actor MockRuntime: ServerRuntimeProtocol {
-    struct MockRequest: Sendable {
+    struct MockRequest {
         let id: String
         let operation: String
         let profileName: String?
     }
 
-    struct QueuedSpeechInvocation: Sendable, Equatable {
+    struct QueuedSpeechInvocation: Equatable {
         let text: String
         let profileName: String
         let textProfileName: String?
@@ -21,7 +21,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         let sourceFormat: TextForSpeech.SourceFormat?
     }
 
-    struct CreateCloneInvocation: Sendable, Equatable {
+    struct CreateCloneInvocation: Equatable {
         let profileName: String
         let vibe: SpeakSwiftly.Vibe
         let referenceAudioPath: String
@@ -29,7 +29,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         let cwd: String?
     }
 
-    struct CreateProfileInvocation: Sendable, Equatable {
+    struct CreateProfileInvocation: Equatable {
         let profileName: String
         let vibe: SpeakSwiftly.Vibe
         let text: String
@@ -38,31 +38,31 @@ actor MockRuntime: ServerRuntimeProtocol {
         let cwd: String?
     }
 
-    struct RenameProfileInvocation: Sendable, Equatable {
+    struct RenameProfileInvocation: Equatable {
         let profileName: String
         let newProfileName: String
     }
 
-    struct RerollProfileInvocation: Sendable, Equatable {
+    struct RerollProfileInvocation: Equatable {
         let profileName: String
     }
 
-    struct QueuedRequestState: Sendable {
+    struct QueuedRequestState {
         let request: MockRequest
         let continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation
     }
 
-    enum SpeakBehavior: Sendable {
+    enum SpeakBehavior {
         case completeImmediately
         case holdOpen
     }
 
-    enum MutationRefreshBehavior: Sendable {
+    enum MutationRefreshBehavior {
         case applyMutations
         case leaveProfilesUnchanged
     }
 
-    enum StartBehavior: Sendable {
+    enum StartBehavior {
         case immediate
         case waitForRelease
     }
@@ -98,23 +98,22 @@ actor MockRuntime: ServerRuntimeProtocol {
     var startHasReachedBarrier = false
     var startBarrierWaiters = [CheckedContinuation<Void, Never>]()
 
-    // MARK: - Lifecycle
-
     init(
         profiles: [SpeakSwiftly.ProfileSummary] = [sampleProfile()],
         speakBehavior: SpeakBehavior = .completeImmediately,
         mutationRefreshBehavior: MutationRefreshBehavior = .applyMutations,
-        startBehavior: StartBehavior = .immediate
+        startBehavior: StartBehavior = .immediate,
     ) {
         self.profiles = profiles
         self.speakBehavior = speakBehavior
         self.mutationRefreshBehavior = mutationRefreshBehavior
         self.startBehavior = startBehavior
-        self.textRuntimePersistenceURL = FileManager.default.temporaryDirectory
+        textRuntimePersistenceURL = FileManager.default
+            .temporaryDirectory
             .appendingPathComponent("ServerTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("json")
-        self.textRuntime = try! TextForSpeech.Runtime(persistence: .file(textRuntimePersistenceURL))
+        textRuntime = try! TextForSpeech.Runtime(persistence: .file(textRuntimePersistenceURL))
     }
 
     func start() async {
@@ -176,5 +175,4 @@ actor MockRuntime: ServerRuntimeProtocol {
         startReleaseContinuation = nil
         startBehavior = .immediate
     }
-
 }

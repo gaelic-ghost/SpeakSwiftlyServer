@@ -1,13 +1,13 @@
 import Foundation
 import MCP
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - MCP Subscription Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func embeddedMCPResourceSubscriptionsEmitUpdatedNotifications() async throws {
+    @Test func `embedded MCP resource subscriptions emit updated notifications`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { ServerState() }
@@ -18,11 +18,11 @@ extension ServerTests {
                 enabled: true,
                 path: "/mcp",
                 serverName: "speak-swiftly-test-mcp",
-                title: "SpeakSwiftly Test MCP"
+                title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
             runtimeConfigurationStore: testRuntimeConfigurationStore(),
-            state: state
+            state: state,
         )
 
         await host.start()
@@ -37,10 +37,10 @@ extension ServerTests {
                     enabled: true,
                     path: "/mcp",
                     serverName: "speak-swiftly-test-mcp",
-                    title: "SpeakSwiftly Test MCP"
+                    title: "SpeakSwiftly Test MCP",
                 ),
-                host: host
-            )
+                host: host,
+            ),
         )
 
         try await mcpSurface.start()
@@ -53,34 +53,35 @@ extension ServerTests {
         let initializedNotificationResponse = await mcpSurface.handle(
             mcpPOSTRequest(
                 body: mcpInitializedNotificationJSON(),
-                sessionID: sessionID
-            )
+                sessionID: sessionID,
+            ),
         )
         #expect(mcpStatusCode(from: initializedNotificationResponse) == 202)
 
         let streamResponse = await mcpSurface.handle(mcpGETRequest(sessionID: sessionID))
-        guard case .stream(let stream, _) = streamResponse else {
+        guard case let .stream(stream, _) = streamResponse else {
             Issue.record("Expected the embedded MCP GET transport to return a standalone streaming response.")
             await mcpSurface.stop()
             await host.shutdown()
             return
         }
+
         var streamIterator = stream.makeAsyncIterator()
         _ = try await nextMCPStreamEnvelope(from: &streamIterator)
 
         let subscribeEnvelope = try await mcpEnvelope(
-            from: await mcpSurface.handle(
+            from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpSubscribeResourceRequestJSON(uri: "speak://runtime/overview"),
-                    sessionID: sessionID
-                )
-            )
+                    sessionID: sessionID,
+                ),
+            ),
         )
         #expect(subscribeEnvelope["result"] != nil)
 
         await host.markTransportFailed(
             name: "http",
-            message: "SpeakSwiftlyServer test transport failure for MCP resource subscription coverage."
+            message: "SpeakSwiftlyServer test transport failure for MCP resource subscription coverage.",
         )
 
         let updatedNotification = try await nextMCPStreamEnvelope(from: &streamIterator)

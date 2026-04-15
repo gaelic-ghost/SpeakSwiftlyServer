@@ -1,9 +1,9 @@
 import Foundation
 import SpeakSwiftly
 
-// MARK: - Runtime Configuration Store
+// MARK: - RuntimeConfigurationStore
 
-struct RuntimeConfigurationStore: Sendable {
+struct RuntimeConfigurationStore {
     private final class FileSystem: @unchecked Sendable {
         private let fileManager: FileManager
 
@@ -18,18 +18,18 @@ struct RuntimeConfigurationStore: Sendable {
         func createDirectory(at url: URL, withIntermediateDirectories: Bool) throws {
             try fileManager.createDirectory(
                 at: url,
-                withIntermediateDirectories: withIntermediateDirectories
+                withIntermediateDirectories: withIntermediateDirectories,
             )
         }
     }
 
-    private struct PersistedRuntimeConfiguration: Codable, Sendable {
+    private struct PersistedRuntimeConfiguration: Codable {
         let speechBackend: SpeakSwiftly.SpeechBackend
         let defaultVoiceProfileName: SpeakSwiftly.Name?
 
         init(
             speechBackend: SpeakSwiftly.SpeechBackend,
-            defaultVoiceProfileName: SpeakSwiftly.Name?
+            defaultVoiceProfileName: SpeakSwiftly.Name?,
         ) {
             self.speechBackend = speechBackend
             self.defaultVoiceProfileName = Self.normalized(defaultVoiceProfileName)
@@ -39,6 +39,7 @@ struct RuntimeConfigurationStore: Sendable {
             guard let profileName else {
                 return nil
             }
+
             let trimmed = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
             return trimmed.isEmpty ? nil : trimmed
         }
@@ -53,24 +54,23 @@ struct RuntimeConfigurationStore: Sendable {
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         fileManager: FileManager = .default,
-        activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil
+        activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
     ) {
         let profileRootOverride = environment["SPEAKSWIFTLY_PROFILE_ROOT"]
         self.environment = environment
-        self.fileSystem = FileSystem(fileManager: fileManager)
+        fileSystem = FileSystem(fileManager: fileManager)
         if let profileRootOverride,
-           profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-        {
-            self.profileRootURL = URL(fileURLWithPath: profileRootOverride, isDirectory: true)
-            self.configurationURL = self.profileRootURL
+           profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            profileRootURL = URL(fileURLWithPath: profileRootOverride, isDirectory: true)
+            configurationURL = profileRootURL
                 .deletingLastPathComponent()
                 .appendingPathComponent("configuration.json", isDirectory: false)
         } else {
             let layout = ServerInstallLayout.defaultForCurrentUser(fileManager: fileManager)
-            self.profileRootURL = layout.runtimeProfileRootURL
-            self.configurationURL = layout.runtimeConfigurationFileURL
+            profileRootURL = layout.runtimeProfileRootURL
+            configurationURL = layout.runtimeConfigurationFileURL
         }
-        self.defaultActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend
+        defaultActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend
     }
 
     func startupConfiguration() -> SpeakSwiftly.Configuration {
@@ -82,7 +82,7 @@ struct RuntimeConfigurationStore: Sendable {
     }
 
     func initialActiveDefaultVoiceProfileName(
-        configuredDefaultVoiceProfileName: SpeakSwiftly.Name?
+        configuredDefaultVoiceProfileName: SpeakSwiftly.Name?,
     ) -> SpeakSwiftly.Name? {
         resolvedPersistedConfiguration().defaultVoiceProfileName ?? configuredDefaultVoiceProfileName
     }
@@ -90,7 +90,7 @@ struct RuntimeConfigurationStore: Sendable {
     func snapshot(
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
-        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil
+        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) -> RuntimeConfigurationSnapshot {
         let resolution = resolvedPersistedConfiguration()
         let resolvedActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend ?? initialActiveRuntimeSpeechBackend()
@@ -113,7 +113,7 @@ struct RuntimeConfigurationStore: Sendable {
             persistedConfigurationError: resolution.configurationError,
             persistedConfigurationAppliesOnRestart: true,
             activeRuntimeMatchesNextRuntime: resolvedActiveRuntimeSpeechBackend == resolution.speechBackend,
-            persistedConfigurationWillAffectNextRuntimeStart: environmentOverride == nil
+            persistedConfigurationWillAffectNextRuntimeStart: environmentOverride == nil,
         )
     }
 
@@ -121,51 +121,51 @@ struct RuntimeConfigurationStore: Sendable {
         speechBackend: SpeakSwiftly.SpeechBackend,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
-        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil
+        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
         let current = loadPersistedRuntimeConfiguration()
         do {
             try savePersistedConfiguration(
                 .init(
                     speechBackend: speechBackend,
-                    defaultVoiceProfileName: current?.defaultVoiceProfileName
-                )
+                    defaultVoiceProfileName: current?.defaultVoiceProfileName,
+                ),
             )
         } catch {
             throw RuntimeConfigurationStoreError(
-                "SpeakSwiftlyServer could not save the persisted runtime configuration to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)"
+                "SpeakSwiftlyServer could not save the persisted runtime configuration to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
-            configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,
         )
     }
 
     func saveDefaultVoiceProfileName(
         _ defaultVoiceProfileName: SpeakSwiftly.Name?,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil
+        configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
         let current = loadPersistedRuntimeConfiguration()
         do {
             try savePersistedConfiguration(
                 .init(
                     speechBackend: current?.speechBackend ?? resolvedPersistedConfiguration().speechBackend,
-                    defaultVoiceProfileName: defaultVoiceProfileName
-                )
+                    defaultVoiceProfileName: defaultVoiceProfileName,
+                ),
             )
         } catch {
             throw RuntimeConfigurationStoreError(
-                "SpeakSwiftlyServer could not save the persisted default voice profile to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)"
+                "SpeakSwiftlyServer could not save the persisted default voice profile to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeDefaultVoiceProfileName: PersistedRuntimeConfiguration.normalized(defaultVoiceProfileName)
                 ?? configuredDefaultVoiceProfileName,
-            configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName
+            configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,
         )
     }
 
@@ -173,7 +173,7 @@ struct RuntimeConfigurationStore: Sendable {
         Self.resolvePersistedConfiguration(
             environment: environment,
             configurationURL: configurationURL,
-            fileSystem: fileSystem
+            fileSystem: fileSystem,
         )
     }
 
@@ -181,8 +181,9 @@ struct RuntimeConfigurationStore: Sendable {
         let configurationExists = fileSystem.fileExists(atPath: configurationURL.path)
         return Self.loadPersistedConfiguration(
             from: configurationURL,
-            configurationExists: configurationExists
-        ).persistedConfiguration
+            configurationExists: configurationExists,
+        )
+        .persistedConfiguration
     }
 
     private func savePersistedConfiguration(_ configuration: PersistedRuntimeConfiguration) throws {
@@ -196,13 +197,13 @@ struct RuntimeConfigurationStore: Sendable {
 }
 
 private extension RuntimeConfigurationStore {
-    enum ConfigurationState: String, Sendable {
+    enum ConfigurationState: String {
         case missing
         case loaded
         case invalid
     }
 
-    struct Resolution: Sendable {
+    struct Resolution {
         let speechBackend: SpeakSwiftly.SpeechBackend
         let defaultVoiceProfileName: SpeakSwiftly.Name?
         let persistedSpeechBackend: SpeakSwiftly.SpeechBackend?
@@ -215,12 +216,12 @@ private extension RuntimeConfigurationStore {
     private static func resolvePersistedConfiguration(
         environment: [String: String],
         configurationURL: URL,
-        fileSystem: FileSystem
+        fileSystem: FileSystem,
     ) -> Resolution {
         let configurationExists = fileSystem.fileExists(atPath: configurationURL.path)
         let persistedState = loadPersistedConfiguration(
             from: configurationURL,
-            configurationExists: configurationExists
+            configurationExists: configurationExists,
         )
 
         if let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment) {
@@ -231,7 +232,7 @@ private extension RuntimeConfigurationStore {
                 persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
                 configurationExists: configurationExists,
                 configurationState: persistedState.configurationState,
-                configurationError: persistedState.configurationError
+                configurationError: persistedState.configurationError,
             )
         }
 
@@ -243,7 +244,7 @@ private extension RuntimeConfigurationStore {
                 persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
                 configurationExists: configurationExists,
                 configurationState: .loaded,
-                configurationError: nil
+                configurationError: nil,
             )
         }
 
@@ -254,19 +255,19 @@ private extension RuntimeConfigurationStore {
             persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
             configurationExists: configurationExists,
             configurationState: persistedState.configurationState,
-            configurationError: persistedState.configurationError
+            configurationError: persistedState.configurationError,
         )
     }
 
     private static func loadPersistedConfiguration(
         from configurationURL: URL,
-        configurationExists: Bool
+        configurationExists: Bool,
     ) -> (
         persistedConfiguration: PersistedRuntimeConfiguration?,
         persistedSpeechBackend: SpeakSwiftly.SpeechBackend?,
         persistedDefaultVoiceProfileName: SpeakSwiftly.Name?,
         configurationState: ConfigurationState,
-        configurationError: String?
+        configurationError: String?,
     ) {
         guard configurationExists else {
             return (nil, nil, nil, .missing, nil)
@@ -280,7 +281,7 @@ private extension RuntimeConfigurationStore {
                 configuration.speechBackend,
                 configuration.defaultVoiceProfileName,
                 .loaded,
-                nil
+                nil,
             )
         } catch {
             return (
@@ -288,13 +289,15 @@ private extension RuntimeConfigurationStore {
                 nil,
                 nil,
                 .invalid,
-                "SpeakSwiftlyServer could not decode the persisted runtime configuration at '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)"
+                "SpeakSwiftlyServer could not decode the persisted runtime configuration at '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
     }
 }
 
-struct RuntimeConfigurationStoreError: LocalizedError, Sendable {
+// MARK: - RuntimeConfigurationStoreError
+
+struct RuntimeConfigurationStoreError: LocalizedError {
     let message: String
 
     init(_ message: String) {

@@ -11,9 +11,10 @@ extension ServerHost {
         guard let job = jobs[id] else {
             throw HTTPError(
                 .notFound,
-                message: "Request '\(id)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention."
+                message: "Request '\(id)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention.",
             )
         }
+
         return job.snapshot
     }
 
@@ -23,7 +24,7 @@ extension ServerHost {
         guard let job = jobs[jobID] else {
             throw HTTPError(
                 .notFound,
-                message: "Request '\(jobID)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention."
+                message: "Request '\(jobID)' was not found in the shared server request cache. It may be unknown or may have expired from in-memory retention.",
             )
         }
 
@@ -55,7 +56,7 @@ extension ServerHost {
                 var lastDeliveredHistoryIndex = replayedHistoryCount
 
                 while !Task.isCancelled, let update = await iterator.next() {
-                    guard case .jobEvent(let jobUpdate) = update else {
+                    guard case let .jobEvent(jobUpdate) = update else {
                         continue
                     }
                     guard jobUpdate.jobID == jobID else {
@@ -86,8 +87,8 @@ extension ServerHost {
         .workerStatus(
             .init(
                 stage: workerStage,
-                workerMode: workerMode
-            )
+                workerMode: workerMode,
+            ),
         )
     }
 
@@ -95,31 +96,30 @@ extension ServerHost {
         do {
             for try await event in handle.events {
                 switch event {
-                case .queued(let queued):
-                    await record(mapQueuedEvent(queued), for: handle.id, terminal: false)
-                case .acknowledged(let success):
-                    await record(mapSuccessEvent(success, acknowledged: true), for: handle.id, terminal: false)
-                case .started(let started):
-                    await record(mapStartedEvent(started), for: handle.id, terminal: false)
-                case .progress(let progress):
-                    await record(mapProgressEvent(progress), for: handle.id, terminal: false)
-                case .completed(let success):
-                    if handle.operation == "create_voice_profile_from_description"
-                        || handle.operation == "create_voice_profile_from_audio"
-                        || handle.operation == "update_voice_profile_name"
-                        || handle.operation == "delete_voice_profile"
-                    {
-                        await finalizeMutationSuccess(
-                            success: success,
-                            requestID: handle.id,
-                            operationName: handle.operation
-                        )
-                    } else if handle.operation == "list_voice_profiles" {
-                        await applyProfileRefresh(from: success)
-                        await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
-                    } else {
-                        await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
-                    }
+                    case let .queued(queued):
+                        await record(mapQueuedEvent(queued), for: handle.id, terminal: false)
+                    case let .acknowledged(success):
+                        await record(mapSuccessEvent(success, acknowledged: true), for: handle.id, terminal: false)
+                    case let .started(started):
+                        await record(mapStartedEvent(started), for: handle.id, terminal: false)
+                    case let .progress(progress):
+                        await record(mapProgressEvent(progress), for: handle.id, terminal: false)
+                    case let .completed(success):
+                        if handle.operation == "create_voice_profile_from_description"
+                            || handle.operation == "create_voice_profile_from_audio"
+                            || handle.operation == "update_voice_profile_name"
+                            || handle.operation == "delete_voice_profile" {
+                            await finalizeMutationSuccess(
+                                success: success,
+                                requestID: handle.id,
+                                operationName: handle.operation,
+                            )
+                        } else if handle.operation == "list_voice_profiles" {
+                            await applyProfileRefresh(from: success)
+                            await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
+                        } else {
+                            await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
+                        }
                 }
             }
         } catch let error as SpeakSwiftly.Error {
@@ -129,7 +129,7 @@ extension ServerHost {
             let failure = ServerFailureEvent(
                 id: handle.id,
                 code: SpeakSwiftly.ErrorCode.internalError.rawValue,
-                message: "SpeakSwiftly request '\(handle.id)' failed unexpectedly while the server was monitoring its typed event stream. \(error.localizedDescription)"
+                message: "SpeakSwiftly request '\(handle.id)' failed unexpectedly while the server was monitoring its typed event stream. \(error.localizedDescription)",
             )
             await record(.failed(failure), for: handle.id, terminal: true)
         }
@@ -138,7 +138,7 @@ extension ServerHost {
     func finalizeMutationSuccess(
         success: SpeakSwiftly.Success,
         requestID: String,
-        operationName: String
+        operationName: String,
     ) async {
         do {
             let previousProfiles = profileCache
@@ -146,11 +146,11 @@ extension ServerHost {
                 op: operationName,
                 requestID: requestID,
                 success: success,
-                previousProfiles: previousProfiles
+                previousProfiles: previousProfiles,
             )
-            self.profileCache = profiles
-            self.profileCacheState = "fresh"
-            self.profileCacheWarning = nil
+            profileCache = profiles
+            profileCacheState = "fresh"
+            profileCacheWarning = nil
             let finalSuccess = ServerSuccessEvent(
                 id: success.id,
                 generatedFile: success.generatedFile,
@@ -172,22 +172,22 @@ extension ServerHost {
                 status: success.status,
                 speechBackend: success.speechBackend?.rawValue,
                 clearedCount: success.clearedCount,
-                cancelledRequestID: success.cancelledRequestID
+                cancelledRequestID: success.cancelledRequestID,
             )
             await record(.completed(finalSuccess), for: requestID, terminal: true)
         } catch {
-            self.profileCacheState = "stale"
-            self.profileCacheWarning = "SpeakSwiftly reported a successful profile mutation, but the server could not confirm the refreshed profile list afterward. The cached profile list may be stale. Likely cause: \(error.localizedDescription)"
+            profileCacheState = "stale"
+            profileCacheWarning = "SpeakSwiftly reported a successful profile mutation, but the server could not confirm the refreshed profile list afterward. The cached profile list may be stale. Likely cause: \(error.localizedDescription)"
             emitProfileCacheChanged()
             recordRecentError(
                 source: "profile_cache",
                 code: "profile_refresh_mismatch",
-                message: self.profileCacheWarning ?? "SpeakSwiftly could not reconcile the refreshed profile cache after a successful mutation."
+                message: profileCacheWarning ?? "SpeakSwiftly could not reconcile the refreshed profile cache after a successful mutation.",
             )
             let failure = ServerFailureEvent(
                 id: requestID,
                 code: "profile_refresh_mismatch",
-                message: "SpeakSwiftly reported success, but the server could not confirm the profile list changed as expected after the mutation."
+                message: "SpeakSwiftly reported success, but the server could not confirm the profile list changed as expected after the mutation.",
             )
             await record(.failed(failure), for: requestID, terminal: true)
         }
@@ -197,12 +197,12 @@ extension ServerHost {
         op: String,
         requestID: String,
         success: SpeakSwiftly.Success,
-        previousProfiles: [ProfileSnapshot]
+        previousProfiles: [ProfileSnapshot],
     ) async throws -> [ProfileSnapshot] {
         guard let profileName = success.profileName, !profileName.isEmpty else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly returned a successful \(op) payload for request '\(requestID)', but it did not include a usable profile name for cache reconciliation."
+                message: "SpeakSwiftly returned a successful \(op) payload for request '\(requestID)', but it did not include a usable profile name for cache reconciliation.",
             )
         }
 
@@ -213,7 +213,7 @@ extension ServerHost {
                 op: op,
                 profileName: profileName,
                 previousProfiles: previousProfiles,
-                refreshedProfiles: refreshedProfiles
+                refreshedProfiles: refreshedProfiles,
             ) {
                 return refreshedProfiles
             }
@@ -225,7 +225,7 @@ extension ServerHost {
 
         throw SpeakSwiftly.Error(
             code: .internalError,
-            message: "SpeakSwiftly refreshed the profile cache after \(op) for profile '\(profileName)', but the list still did not reflect the expected mutation."
+            message: "SpeakSwiftly refreshed the profile cache after \(op) for profile '\(profileName)', but the list still did not reflect the expected mutation.",
         )
     }
 
@@ -234,13 +234,13 @@ extension ServerHost {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the internal list_voice_profiles request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles."
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles.",
         )
         let profiles = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
-        self.profileCache = profiles
-        self.lastProfileRefreshAt = Date()
-        self.profileCacheState = "fresh"
-        self.profileCacheWarning = nil
+        profileCache = profiles
+        lastProfileRefreshAt = Date()
+        profileCacheState = "fresh"
+        profileCacheWarning = nil
         emitProfileCacheChanged()
         _ = reason
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -248,10 +248,10 @@ extension ServerHost {
     }
 
     func applyProfileRefresh(from success: SpeakSwiftly.Success) async {
-        self.profileCache = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
-        self.lastProfileRefreshAt = Date()
-        self.profileCacheState = "fresh"
-        self.profileCacheWarning = nil
+        profileCache = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
+        lastProfileRefreshAt = Date()
+        profileCacheState = "fresh"
+        profileCacheWarning = nil
         emitProfileCacheChanged()
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
@@ -260,60 +260,60 @@ extension ServerHost {
         op: String,
         profileName: String,
         previousProfiles: [ProfileSnapshot],
-        refreshedProfiles: [ProfileSnapshot]
+        refreshedProfiles: [ProfileSnapshot],
     ) -> Bool {
         let previousNames = Set(previousProfiles.map(\.profileName))
         let refreshedNames = Set(refreshedProfiles.map(\.profileName))
 
         switch op {
-        case "create_voice_profile_from_description":
-            return refreshedNames.contains(profileName) && refreshedNames != previousNames
-        case "create_voice_profile_from_audio":
-            return refreshedNames.contains(profileName) && refreshedNames != previousNames
-        case "update_voice_profile_name":
-            return refreshedNames.contains(profileName)
-                && !previousNames.contains(profileName)
-                && refreshedNames.count == previousNames.count
-        case "delete_voice_profile":
-            return !refreshedNames.contains(profileName) && refreshedNames != previousNames
-        default:
-            return false
+            case "create_voice_profile_from_description":
+                return refreshedNames.contains(profileName) && refreshedNames != previousNames
+            case "create_voice_profile_from_audio":
+                return refreshedNames.contains(profileName) && refreshedNames != previousNames
+            case "update_voice_profile_name":
+                return refreshedNames.contains(profileName)
+                    && !previousNames.contains(profileName)
+                    && refreshedNames.count == previousNames.count
+            case "delete_voice_profile":
+                return !refreshedNames.contains(profileName) && refreshedNames != previousNames
+            default:
+                return false
         }
     }
 
     func handle(status: SpeakSwiftly.StatusEvent) async {
         switch status.stage {
-        case .warmingResidentModel:
-            self.workerMode = "starting"
-            self.workerStage = status.stage.rawValue
-            self.startupError = nil
-        case .residentModelReady:
-            self.workerMode = "ready"
-            self.workerStage = status.stage.rawValue
-            self.startupError = nil
-            if !hasRequestedStartupProfileRefresh {
-                hasRequestedStartupProfileRefresh = true
-                do {
-                    _ = try await refreshProfiles(reason: "startup")
-                } catch {
-                    self.profileCacheState = "stale"
-                    self.profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache. Likely cause: \(error.localizedDescription)"
-                    emitProfileCacheChanged()
+            case .warmingResidentModel:
+                workerMode = "starting"
+                workerStage = status.stage.rawValue
+                startupError = nil
+            case .residentModelReady:
+                workerMode = "ready"
+                workerStage = status.stage.rawValue
+                startupError = nil
+                if !hasRequestedStartupProfileRefresh {
+                    hasRequestedStartupProfileRefresh = true
+                    do {
+                        _ = try await refreshProfiles(reason: "startup")
+                    } catch {
+                        profileCacheState = "stale"
+                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache. Likely cause: \(error.localizedDescription)"
+                        emitProfileCacheChanged()
+                    }
                 }
-            }
-        case .residentModelsUnloaded:
-            self.workerMode = "starting"
-            self.workerStage = status.stage.rawValue
-            self.startupError = nil
-        case .residentModelFailed:
-            self.workerMode = "failed"
-            self.workerStage = status.stage.rawValue
-            self.startupError = "SpeakSwiftly reported resident model startup failure."
-            recordRecentError(
-                source: "worker",
-                code: "resident_model_failed",
-                message: self.startupError ?? "SpeakSwiftly reported resident model startup failure."
-            )
+            case .residentModelsUnloaded:
+                workerMode = "starting"
+                workerStage = status.stage.rawValue
+                startupError = nil
+            case .residentModelFailed:
+                workerMode = "failed"
+                workerStage = status.stage.rawValue
+                startupError = "SpeakSwiftly reported resident model startup failure."
+                recordRecentError(
+                    source: "worker",
+                    code: "resident_model_failed",
+                    message: startupError ?? "SpeakSwiftly reported resident model startup failure.",
+                )
         }
 
         let event = currentWorkerStatusEvent
@@ -325,6 +325,7 @@ extension ServerHost {
 
     func record(_ event: ServerJobEvent, for jobID: String, terminal: Bool) async {
         guard var job = jobs[jobID] else { return }
+
         job.latestEvent = event
         if job.startedAt == nil, case .started = event {
             job.startedAt = Date()
@@ -343,24 +344,24 @@ extension ServerHost {
                     jobID: jobID,
                     event: event,
                     historyIndex: historyIndex,
-                    terminal: terminal
-                )
-            )
+                    terminal: terminal,
+                ),
+            ),
         )
 
         if terminal {
-            if case .failed(let failure) = event {
+            if case let .failed(failure) = event {
                 recordRecentError(
                     source: "job:\(job.op)",
                     code: failure.code,
-                    message: failure.message
+                    message: failure.message,
                 )
             }
             pruneCompletedJobs()
         }
         await requestPublish(
             mode: terminal ? .immediate : .coalesced,
-            refreshRuntimeState: shouldRefreshRuntimeDerivedState(after: event, terminal: terminal)
+            refreshRuntimeState: shouldRefreshRuntimeDerivedState(after: event, terminal: terminal),
         )
     }
 
@@ -368,6 +369,7 @@ extension ServerHost {
         let now = Date()
         let expiredIDs = jobs.compactMap { jobID, job -> String? in
             guard let terminalAt = job.terminalAt else { return nil }
+
             let age = now.timeIntervalSince(terminalAt)
             return age > configuration.completedJobTTLSeconds ? jobID : nil
         }
@@ -387,6 +389,7 @@ extension ServerHost {
             }
         let overflow = completed.count - configuration.completedJobMaxCount
         guard overflow > 0 else { return }
+
         for job in completed.prefix(overflow) {
             jobs.removeValue(forKey: job.jobID)
         }

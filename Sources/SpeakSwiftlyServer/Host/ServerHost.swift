@@ -7,18 +7,12 @@ import TextForSpeech
 // MARK: - Server Host
 
 actor ServerHost {
-    static let mutationRefreshRetryDelays: [Duration] = [
-        .milliseconds(50),
-        .milliseconds(100),
-    ]
-    static let recentErrorLimit = 8
-
-    enum PublishMode: Sendable {
+    enum PublishMode {
         case immediate
         case coalesced
     }
 
-    struct JobRecord: Sendable {
+    struct JobRecord {
         let jobID: String
         let op: String
         let profileName: String?
@@ -38,10 +32,16 @@ actor ServerHost {
                 status: terminalEvent == nil ? "running" : "completed",
                 latestEvent: latestEvent,
                 terminalEvent: terminalEvent,
-                history: history
+                history: history,
             )
         }
     }
+
+    static let mutationRefreshRetryDelays: [Duration] = [
+        .milliseconds(50),
+        .milliseconds(100),
+    ]
+    static let recentErrorLimit = 8
 
     var configuration: ServerConfiguration
     var httpConfig: HTTPConfig
@@ -78,7 +78,7 @@ actor ServerHost {
         queuedCount: 0,
         activeRequest: nil,
         activeRequests: [],
-        queuedRequests: []
+        queuedRequests: [],
     )
     var playbackQueueStatus = QueueStatusSnapshot(
         queueType: "playback",
@@ -86,7 +86,7 @@ actor ServerHost {
         queuedCount: 0,
         activeRequest: nil,
         activeRequests: [],
-        queuedRequests: []
+        queuedRequests: [],
     )
     var playbackStatus = PlaybackStatusSnapshot(
         state: SpeakSwiftly.PlaybackState.idle.rawValue,
@@ -94,7 +94,7 @@ actor ServerHost {
         isStableForConcurrentGeneration: false,
         isRebuffering: false,
         stableBufferedAudioMS: nil,
-        stableBufferTargetMS: nil
+        stableBufferTargetMS: nil,
     )
     var runtimeRefreshSnapshot: RuntimeRefreshSnapshot?
     var transportStatuses = [String: TransportStatusSnapshot]()
@@ -104,34 +104,12 @@ actor ServerHost {
     var jobs = [String: JobRecord]()
     var hasRequestedStartupProfileRefresh = false
 
-    // MARK: - Construction
-
-    static func makeLive(
-        appConfig: AppConfig,
-        state: ServerState,
-        environment: [String: String] = ProcessInfo.processInfo.environment
-    ) async -> ServerHost {
-        let runtimeConfigurationStore = RuntimeConfigurationStore(environment: environment)
-        let startupConfiguration = runtimeConfigurationStore.startupConfiguration()
-        let runtime = ServerRuntimeAdapter(
-            runtime: await SpeakSwiftlyRuntimeLauncher.shared.launch(
-                configuration: startupConfiguration,
-                environment: environment,
-                makeRuntime: { configuration in
-                    await SpeakSwiftly.liftoff(configuration: configuration)
-                }
-            )
-        )
-        let host = ServerHost(
-            configuration: appConfig.server,
-            httpConfig: appConfig.http,
-            mcpConfig: appConfig.mcp,
-            runtime: runtime,
-            runtimeConfigurationStore: runtimeConfigurationStore,
-            activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
-            state: state
-        )
-        return host
+    var serverMode: String {
+        if workerMode == "ready", profileCacheState != "stale" {
+            "ready"
+        } else {
+            "degraded"
+        }
     }
 
     init(
@@ -141,23 +119,23 @@ actor ServerHost {
         runtime: any ServerRuntimeProtocol,
         runtimeConfigurationStore: RuntimeConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        state: ServerState
+        state: ServerState,
     ) {
         let (immediatePublishRequests, immediatePublishContinuation) = AsyncStream.makeStream(
             of: Void.self,
-            bufferingPolicy: .bufferingNewest(1)
+            bufferingPolicy: .bufferingNewest(1),
         )
         let (coalescedPublishRequests, coalescedPublishContinuation) = AsyncStream.makeStream(
             of: Void.self,
-            bufferingPolicy: .bufferingNewest(1)
+            bufferingPolicy: .bufferingNewest(1),
         )
         let (publishedStateStream, publishedStateContinuation) = AsyncStream.makeStream(
             of: HostStateSnapshot.self,
-            bufferingPolicy: .bufferingNewest(1)
+            bufferingPolicy: .bufferingNewest(1),
         )
         let (hostEventStream, hostEventContinuation) = AsyncStream.makeStream(
             of: HostEvent.self,
-            bufferingPolicy: .bufferingNewest(32)
+            bufferingPolicy: .bufferingNewest(32),
         )
         let sharedPublishedStates = publishedStateStream.share(bufferingPolicy: .bufferingLatest(1))
         let sharedHostEvents = hostEventStream.share(bufferingPolicy: .bufferingLatest(32))
@@ -167,30 +145,30 @@ actor ServerHost {
             enabled: true,
             host: configuration.host,
             port: configuration.port,
-            sseHeartbeatSeconds: configuration.sseHeartbeatSeconds
+            sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
         )
         self.mcpConfig = mcpConfig ?? .init(
             enabled: false,
             path: "/mcp",
             serverName: "speak-swiftly-mcp",
-            title: "SpeakSwiftly"
+            title: "SpeakSwiftly",
         )
         self.runtime = runtime
         self.runtimeConfigurationStore = runtimeConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeConfigurationStore.initialActiveRuntimeSpeechBackend()
-        self.activeDefaultVoiceProfileName = runtimeConfigurationStore.initialActiveDefaultVoiceProfileName(
-            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName
+        activeDefaultVoiceProfileName = runtimeConfigurationStore.initialActiveDefaultVoiceProfileName(
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         self.state = state
-        self.transportStatuses = Self.initialTransportStatuses(httpConfig: self.httpConfig, mcpConfig: self.mcpConfig)
+        transportStatuses = Self.initialTransportStatuses(httpConfig: self.httpConfig, mcpConfig: self.mcpConfig)
         self.immediatePublishRequests = immediatePublishRequests
         self.immediatePublishContinuation = immediatePublishContinuation
         self.coalescedPublishRequests = coalescedPublishRequests
         self.coalescedPublishContinuation = coalescedPublishContinuation
         self.publishedStateContinuation = publishedStateContinuation
         self.hostEventContinuation = hostEventContinuation
-        self.makeSharedStateUpdates = { [sharedPublishedStates] in
+        makeSharedStateUpdates = { [sharedPublishedStates] in
             AsyncStream { continuation in
                 let task = Task {
                     for await snapshot in sharedPublishedStates {
@@ -204,7 +182,7 @@ actor ServerHost {
                 }
             }
         }
-        self.makeSharedHostEvents = { [sharedHostEvents] in
+        makeSharedHostEvents = { [sharedHostEvents] in
             AsyncStream { continuation in
                 let task = Task {
                     for await event in sharedHostEvents {
@@ -218,13 +196,40 @@ actor ServerHost {
                 }
             }
         }
-        self.encoder.outputFormatting = [.sortedKeys]
+        encoder.outputFormatting = [.sortedKeys]
     }
 
-    // MARK: - Lifecycle
+    // MARK: - Construction
+
+    static func makeLive(
+        appConfig: AppConfig,
+        state: ServerState,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+    ) async -> ServerHost {
+        let runtimeConfigurationStore = RuntimeConfigurationStore(environment: environment)
+        let startupConfiguration = runtimeConfigurationStore.startupConfiguration()
+        let runtime = await ServerRuntimeAdapter(
+            runtime: SpeakSwiftlyRuntimeLauncher.shared.launch(
+                configuration: startupConfiguration,
+                environment: environment,
+                makeRuntime: { configuration in
+                    await SpeakSwiftly.liftoff(configuration: configuration)
+                },
+            ),
+        )
+        return ServerHost(
+            configuration: appConfig.server,
+            httpConfig: appConfig.http,
+            mcpConfig: appConfig.mcp,
+            runtime: runtime,
+            runtimeConfigurationStore: runtimeConfigurationStore,
+            activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
+            state: state,
+        )
+    }
 
     func start() async {
-        self.publishTask = Task {
+        publishTask = Task {
             let immediateRequests = self.immediatePublishRequests
             let coalescedRequests = self.coalescedPublishRequests.debounce(for: .milliseconds(25))
             for await _ in merge(immediateRequests, coalescedRequests) {
@@ -233,7 +238,7 @@ actor ServerHost {
         }
 
         let statusStream = await runtime.statusEvents()
-        self.statusTask = Task {
+        statusTask = Task {
             for await status in statusStream {
                 await self.handle(status: status)
             }
@@ -244,8 +249,8 @@ actor ServerHost {
     }
 
     func shutdown() async {
-        self.statusTask?.cancel()
-        let requestMonitorTasks = self.requestMonitorTasks
+        statusTask?.cancel()
+        let requestMonitorTasks = requestMonitorTasks
         self.requestMonitorTasks.removeAll()
         for task in requestMonitorTasks.values {
             task.cancel()
@@ -254,8 +259,8 @@ actor ServerHost {
         for task in requestMonitorTasks.values {
             await task.value
         }
-        self.workerMode = "stopped"
-        self.workerStage = "stopped"
+        workerMode = "stopped"
+        workerStage = "stopped"
         if httpConfig.enabled {
             updateTransportStatus(named: "http", state: "stopped")
         }
@@ -265,7 +270,7 @@ actor ServerHost {
 
         pendingRuntimeRefresh = false
         await publishState()
-        self.publishTask?.cancel()
+        publishTask?.cancel()
         immediatePublishContinuation.finish()
         coalescedPublishContinuation.finish()
         publishedStateContinuation.finish()
@@ -317,7 +322,7 @@ actor ServerHost {
         recordRecentError(
             source: "transport:\(name)",
             code: "transport_failed",
-            message: message
+            message: message,
         )
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
@@ -332,7 +337,7 @@ actor ServerHost {
             recordRecentError(
                 source: "config",
                 code: "reload_requires_restart",
-                message: "SpeakSwiftlyServer reloaded configuration from disk, but these settings still require a full restart before they can take effect: \(restartRequiredKeys.joined(separator: ", "))."
+                message: "SpeakSwiftlyServer reloaded configuration from disk, but these settings still require a full restart before they can take effect: \(restartRequiredKeys.joined(separator: ", ")).",
             )
         }
 
@@ -345,7 +350,7 @@ actor ServerHost {
         recordRecentError(
             source: "config",
             code: "reload_rejected",
-            message: "SpeakSwiftlyServer detected a configuration file change, but the updated values were not valid and were left unapplied. Likely cause: \(message)"
+            message: "SpeakSwiftlyServer detected a configuration file change, but the updated values were not valid and were left unapplied. Likely cause: \(message)",
         )
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
@@ -354,7 +359,7 @@ actor ServerHost {
         recordRecentError(
             source: "config",
             code: "reload_watch_failed",
-            message: "SpeakSwiftlyServer could not continue watching for configuration file updates. Likely cause: \(error.localizedDescription)"
+            message: "SpeakSwiftlyServer could not continue watching for configuration file updates. Likely cause: \(error.localizedDescription)",
         )
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
@@ -374,7 +379,7 @@ actor ServerHost {
             profileCacheState: profileCacheState,
             profileCacheWarning: profileCacheWarning,
             profileCount: profileCache.count,
-            lastProfileRefreshAt: lastProfileRefreshAt.map(TimestampFormatter.string(from:))
+            lastProfileRefreshAt: lastProfileRefreshAt.map(TimestampFormatter.string(from:)),
         )
 
         return .init(
@@ -386,7 +391,7 @@ actor ServerHost {
             currentGenerationJobs: currentGenerationJobSnapshots(),
             runtimeConfiguration: runtimeConfigurationSnapshot(),
             transports: transportSnapshots(),
-            recentErrors: recentErrors
+            recentErrors: recentErrors,
         )
     }
 
@@ -402,7 +407,7 @@ actor ServerHost {
             workerMode: overview.workerMode,
             workerStage: overview.workerStage,
             workerReady: overview.workerReady,
-            startupError: overview.startupError
+            startupError: overview.startupError,
         )
     }
 
@@ -422,16 +427,8 @@ actor ServerHost {
                 profileCacheState: overview.profileCacheState,
                 profileCacheWarning: overview.profileCacheWarning,
                 profileCount: overview.profileCount,
-                lastProfileRefreshAt: overview.lastProfileRefreshAt
-            )
+                lastProfileRefreshAt: overview.lastProfileRefreshAt,
+            ),
         )
-    }
-
-    var serverMode: String {
-        if workerMode == "ready", profileCacheState != "stale" {
-            "ready"
-        } else {
-            "degraded"
-        }
     }
 }

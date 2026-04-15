@@ -12,7 +12,7 @@ extension MockRuntime {
         from text: String,
         voice voiceDescription: String,
         outputPath: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         createProfileInvocations.append(
@@ -22,8 +22,8 @@ extension MockRuntime {
                 text: text,
                 voiceDescription: voiceDescription,
                 outputPath: outputPath,
-                cwd: cwd
-            )
+                cwd: cwd,
+            ),
         )
         if mutationRefreshBehavior == .applyMutations {
             profiles.append(
@@ -35,8 +35,8 @@ extension MockRuntime {
                     sourceText: text,
                     transcriptSource: nil,
                     transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil
-                )
+                    transcriptionModelRepo: nil,
+                ),
             )
         }
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -51,7 +51,7 @@ extension MockRuntime {
         vibe: SpeakSwiftly.Vibe,
         from referenceAudioPath: String,
         transcript: String?,
-        cwd: String?
+        cwd: String?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         createCloneInvocations.append(
@@ -60,8 +60,8 @@ extension MockRuntime {
                 vibe: vibe,
                 referenceAudioPath: referenceAudioPath,
                 transcript: transcript,
-                cwd: cwd
-            )
+                cwd: cwd,
+            ),
         )
         if mutationRefreshBehavior == .applyMutations {
             profiles.append(
@@ -73,8 +73,8 @@ extension MockRuntime {
                     sourceText: transcript ?? "Imported clone transcript.",
                     transcriptSource: transcript == nil ? .inferred : .provided,
                     transcriptResolvedAt: Date(),
-                    transcriptionModelRepo: nil
-                )
+                    transcriptionModelRepo: nil,
+                ),
             )
         }
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
@@ -87,7 +87,7 @@ extension MockRuntime {
     func listVoiceProfiles() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         listVoiceProfilesCallCount += 1
-        let profiles = self.profiles
+        let profiles = profiles
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, profiles: profiles, activeRequests: nil)))
             continuation.finish()
@@ -105,6 +105,7 @@ extension MockRuntime {
         if mutationRefreshBehavior == .applyMutations {
             profiles = profiles.map { profile in
                 guard profile.profileName == profileName else { return profile }
+
                 return SpeakSwiftly.ProfileSummary(
                     profileName: newProfileName,
                     vibe: profile.vibe,
@@ -113,7 +114,7 @@ extension MockRuntime {
                     sourceText: profile.sourceText,
                     transcriptSource: profile.transcriptSource,
                     transcriptResolvedAt: profile.transcriptResolvedAt,
-                    transcriptionModelRepo: profile.transcriptionModelRepo
+                    transcriptionModelRepo: profile.transcriptionModelRepo,
                 )
             }
         }
@@ -173,12 +174,13 @@ extension MockRuntime {
                 continuation.finish(
                     throwing: SpeakSwiftly.Error(
                         code: .generationJobNotFound,
-                        message: "No mock generation job matched '\(jobID)'."
-                    )
+                        message: "No mock generation job matched '\(jobID)'.",
+                    ),
                 )
             }
             return RuntimeRequestHandle(id: requestID, operation: "expire_generation_job", profileName: nil, events: events)
         }
+
         let current = generationJobs[index]
         generationJobs[index] = try! makeGenerationJob(
             jobID: current.jobID,
@@ -195,7 +197,7 @@ extension MockRuntime {
                     text: $0.text,
                     textProfileName: $0.textProfileName,
                     textContext: $0.textContext,
-                    sourceFormat: $0.sourceFormat
+                    sourceFormat: $0.sourceFormat,
                 )
             },
             artifacts: current.artifacts.map {
@@ -206,7 +208,7 @@ extension MockRuntime {
                     filePath: $0.filePath,
                     sampleRate: $0.sampleRate,
                     profileName: $0.profileName,
-                    textProfileName: $0.textProfileName
+                    textProfileName: $0.textProfileName,
                 )
             },
             failure: current.failure.map { .init(code: $0.code, message: $0.message) },
@@ -214,7 +216,7 @@ extension MockRuntime {
             completedAt: current.completedAt,
             failedAt: current.failedAt,
             expiresAt: current.expiresAt,
-            retentionPolicy: current.retentionPolicy.rawValue
+            retentionPolicy: current.retentionPolicy.rawValue,
         )
         let expiredJob = generationJobs[index]
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in

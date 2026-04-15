@@ -39,12 +39,6 @@ public final class EmbeddedServerSession: @unchecked Sendable {
         let waitUntilStopped: @Sendable () async throws -> Void
     }
 
-    /// The app-facing observable projection of the embedded host state.
-    public let state: ServerState
-
-    private let lifecycle: LifecycleHooks
-    private let stopCoordinator = StopCoordinator()
-
     actor StopCoordinator {
         private var didRequestStop = false
 
@@ -52,22 +46,27 @@ public final class EmbeddedServerSession: @unchecked Sendable {
             guard !didRequestStop else {
                 return false
             }
+
             didRequestStop = true
             return true
         }
     }
 
+    /// The app-facing observable projection of the embedded host state.
+    public let state: ServerState
+
+    private let lifecycle: LifecycleHooks
+    private let stopCoordinator = StopCoordinator()
+
     // MARK: - Initialization
 
     private init(
         state: ServerState,
-        lifecycle: LifecycleHooks
+        lifecycle: LifecycleHooks,
     ) {
         self.state = state
         self.lifecycle = lifecycle
     }
-
-    // MARK: - Lifecycle
 
     /// Starts an embedded server session using the package's embedded-session default profile.
     ///
@@ -76,13 +75,13 @@ public final class EmbeddedServerSession: @unchecked Sendable {
     /// global process environment state first.
     public static func start(
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        options: Options = .init()
+        options: Options = .init(),
     ) async throws -> EmbeddedServerSession {
         try await start(
             environment: environment,
             options: options,
             defaultProfile: .embeddedSession,
-            bootstrap: liveBootstrap
+            bootstrap: liveBootstrap,
         )
     }
 
@@ -90,27 +89,27 @@ public final class EmbeddedServerSession: @unchecked Sendable {
         environment: [String: String],
         options: Options = .init(),
         defaultProfile: AppRuntimeDefaultProfile = .embeddedSession,
-        bootstrap: @escaping @Sendable ([String: String], ServerState) async throws -> LifecycleHooks
+        bootstrap: @escaping @Sendable ([String: String], ServerState) async throws -> LifecycleHooks,
     ) async throws -> EmbeddedServerSession {
         let state = await MainActor.run { ServerState() }
         let lifecycle = try await bootstrap(
             effectiveEnvironment(
                 environment: environment,
                 options: options,
-                defaultProfile: defaultProfile
+                defaultProfile: defaultProfile,
             ),
-            state
+            state,
         )
         return EmbeddedServerSession(state: state, lifecycle: lifecycle)
     }
 
     static func liveBootstrap(
         environment: [String: String],
-        state: ServerState
+        state: ServerState,
     ) async throws -> LifecycleHooks {
         let configStore = try await ConfigStore(
             environment: environment,
-            defaultProfile: .embeddedSession
+            defaultProfile: .embeddedSession,
         )
         let config = try configStore.loadAppConfig()
         let host = await ServerHost.makeLive(appConfig: config, state: state, environment: environment)
@@ -134,7 +133,7 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                             isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                             isRebuffering: response.playback.isRebuffering,
                             stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                            stableBufferTargetMS: response.playback.stableBufferTargetMS
+                            stableBufferTargetMS: response.playback.stableBufferTargetMS,
                         )
                     },
                     resumePlayback: {
@@ -145,7 +144,7 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                             isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
                             isRebuffering: response.playback.isRebuffering,
                             stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                            stableBufferTargetMS: response.playback.stableBufferTargetMS
+                            stableBufferTargetMS: response.playback.stableBufferTargetMS,
                         )
                     },
                     clearPlaybackQueue: {
@@ -155,8 +154,8 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                     cancelPlaybackRequest: { requestID in
                         let response = try await host.cancelQueuedOrActiveRequest(requestID: requestID)
                         return response.cancelledRequestID
-                    }
-                )
+                    },
+                ),
             )
         }
         let mcpSurface = await MCPSurface.build(configuration: config.mcp, host: host)
@@ -181,7 +180,7 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                         try await mcpReadinessGate.waitUntilReady()
                     }
                 },
-            ]
+            ],
         )
 
         if config.http.enabled {
@@ -199,9 +198,9 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                 service: HostLifecycleService(
                     host: host,
                     readinessGate: hostReadinessGate,
-                    shutdownBarrier: shutdownBarrier
-                )
-            )
+                    shutdownBarrier: shutdownBarrier,
+                ),
+            ),
         )
         if !configStore.services.isEmpty {
             services.append(
@@ -209,21 +208,21 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                     service: ConfigWatchService(
                         configStore: configStore,
                         host: host,
-                        shutdownBarrier: shutdownBarrier
+                        shutdownBarrier: shutdownBarrier,
                     ),
                     successTerminationBehavior: .ignore,
                     failureTerminationBehavior: .ignore,
-                    serviceName: "ConfigWatchService(non-fatal)"
-                )
+                    serviceName: "ConfigWatchService(non-fatal)",
+                ),
             )
         }
         services.append(
             .init(
                 service: HostPruneService(
                     host: host,
-                    shutdownBarrier: shutdownBarrier
-                )
-            )
+                    shutdownBarrier: shutdownBarrier,
+                ),
+            ),
         )
         if let mcpSurface, let mcpReadinessGate {
             services.append(
@@ -231,25 +230,25 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                     service: MCPLifecycleService(
                         surface: mcpSurface,
                         readinessGate: mcpReadinessGate,
-                        shutdownBarrier: shutdownBarrier
-                    )
-                )
+                        shutdownBarrier: shutdownBarrier,
+                    ),
+                ),
             )
         }
         services.append(
             .init(
                 service: EmbeddedApplicationService(
                     application: app,
-                    shutdownBarrier: shutdownBarrier
-                )
-            )
+                    shutdownBarrier: shutdownBarrier,
+                ),
+            ),
         )
 
         let serviceGroup = ServiceGroup(
             configuration: .init(
                 services: services,
-                logger: app.logger
-            )
+                logger: app.logger,
+            ),
         )
         let runTask = Task<Void, Error> {
             do {
@@ -278,8 +277,25 @@ public final class EmbeddedServerSession: @unchecked Sendable {
             },
             waitUntilStopped: {
                 _ = try await runTask.value
-            }
+            },
         )
+    }
+
+    private static func effectiveEnvironment(
+        environment: [String: String],
+        options: Options,
+        defaultProfile: AppRuntimeDefaultProfile,
+    ) -> [String: String] {
+        var resolvedEnvironment = environment
+        resolvedEnvironment[AppRuntimeDefaultProfile.environmentKey] = defaultProfile.rawValue
+        if let port = options.port {
+            resolvedEnvironment["APP_PORT"] = String(port)
+            resolvedEnvironment["APP_HTTP_PORT"] = String(port)
+        }
+        if let runtimeProfileRootURL = options.runtimeProfileRootURL {
+            resolvedEnvironment["SPEAKSWIFTLY_PROFILE_ROOT"] = runtimeProfileRootURL.standardizedFileURL.path
+        }
+        return resolvedEnvironment
     }
 
     /// Gracefully stops the embedded session and waits for transport and host cleanup to finish.
@@ -294,22 +310,5 @@ public final class EmbeddedServerSession: @unchecked Sendable {
 
     func waitUntilStopped() async throws {
         try await lifecycle.waitUntilStopped()
-    }
-
-    private static func effectiveEnvironment(
-        environment: [String: String],
-        options: Options,
-        defaultProfile: AppRuntimeDefaultProfile
-    ) -> [String: String] {
-        var resolvedEnvironment = environment
-        resolvedEnvironment[AppRuntimeDefaultProfile.environmentKey] = defaultProfile.rawValue
-        if let port = options.port {
-            resolvedEnvironment["APP_PORT"] = String(port)
-            resolvedEnvironment["APP_HTTP_PORT"] = String(port)
-        }
-        if let runtimeProfileRootURL = options.runtimeProfileRootURL {
-            resolvedEnvironment["SPEAKSWIFTLY_PROFILE_ROOT"] = runtimeProfileRootURL.standardizedFileURL.path
-        }
-        return resolvedEnvironment
     }
 }

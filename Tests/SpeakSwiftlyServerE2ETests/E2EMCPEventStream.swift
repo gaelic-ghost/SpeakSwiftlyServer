@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - MCP Event Stream
+// MARK: - E2EMCPEventStream
 
 final class E2EMCPEventStream: @unchecked Sendable {
     private let baseURL: URL
@@ -19,7 +19,7 @@ final class E2EMCPEventStream: @unchecked Sendable {
         configuration.waitsForConnectivity = false
         configuration.timeoutIntervalForRequest = 300
         configuration.timeoutIntervalForResource = 300
-        self.urlSession = URLSession(configuration: configuration)
+        urlSession = URLSession(configuration: configuration)
     }
 
     func start() async throws {
@@ -36,16 +36,17 @@ final class E2EMCPEventStream: @unchecked Sendable {
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     await connectionState.finish(
                         with: E2ETransportError(
-                            "The live MCP event stream did not open successfully for session '\(sessionID)'."
-                        )
+                            "The live MCP event stream did not open successfully for session '\(sessionID)'.",
+                        ),
                     )
                     await buffer.finish(
                         with: E2ETransportError(
-                            "The live MCP event stream did not open successfully for session '\(sessionID)'."
-                        )
+                            "The live MCP event stream did not open successfully for session '\(sessionID)'.",
+                        ),
                     )
                     return
                 }
+
                 await connectionState.markConnected()
 
                 for try await line in bytes.lines {
@@ -58,6 +59,7 @@ final class E2EMCPEventStream: @unchecked Sendable {
                         guard payload.isEmpty == false, let data = payload.data(using: .utf8) else {
                             continue
                         }
+
                         await buffer.append(data)
                     }
                 }
@@ -83,32 +85,33 @@ final class E2EMCPEventStream: @unchecked Sendable {
 
     func waitForNotification(
         timeout: Duration,
-        matching predicate: @escaping @Sendable ([String: Any]) -> Bool
+        matching predicate: @escaping @Sendable ([String: Any]) -> Bool,
     ) async throws -> [String: Any] {
         let deadline = ContinuousClock.now + timeout
         while ContinuousClock.now < deadline {
-            if let data = try await self.buffer.takeMatching(predicate) {
+            if let data = try await buffer.takeMatching(predicate) {
                 let json = try JSONSerialization.jsonObject(with: data)
                 guard let object = json as? [String: Any] else {
                     throw E2ETransportError(
-                        "The live MCP event stream produced a notification payload that was not a JSON object."
+                        "The live MCP event stream produced a notification payload that was not a JSON object.",
                     )
                 }
+
                 return object
             }
             try await Task.sleep(for: .milliseconds(100))
         }
-        let observedPayloads = await self.buffer.recentPayloads(limit: 12)
+        let observedPayloads = await buffer.recentPayloads(limit: 12)
         let preview = observedPayloads.isEmpty
             ? "none"
             : observedPayloads.joined(separator: "\n")
         throw E2ETransportError(
-            "The live MCP event stream timed out after waiting \(timeout) for a matching notification. The GET SSE stream stayed connected, but no matching notification arrived. Recent raw notification payloads seen before timeout:\n\(preview)"
+            "The live MCP event stream timed out after waiting \(timeout) for a matching notification. The GET SSE stream stayed connected, but no matching notification arrived. Recent raw notification payloads seen before timeout:\n\(preview)",
         )
     }
 }
 
-// MARK: - MCP Event Stream State
+// MARK: - E2EMCPEventStreamConnectionState
 
 private actor E2EMCPEventStreamConnectionState {
     private var isConnected = false
@@ -129,6 +132,8 @@ private actor E2EMCPEventStreamConnectionState {
         return isConnected ? true : nil
     }
 }
+
+// MARK: - E2ENotificationBuffer
 
 private actor E2ENotificationBuffer {
     private var notifications = [Data]()
@@ -158,6 +163,7 @@ private actor E2ENotificationBuffer {
             guard let object = json as? [String: Any] else {
                 continue
             }
+
             if predicate(object) {
                 return notifications.remove(at: index)
             }

@@ -1,13 +1,13 @@
 import Foundation
+import HTTPTypes
 import Hummingbird
 import HummingbirdTesting
-import HTTPTypes
 import MCP
 import NIOCore
 import SpeakSwiftly
+@testable import SpeakSwiftlyServer
 import Testing
 import TextForSpeech
-@testable import SpeakSwiftlyServer
 
 // MARK: - MCP Test Helpers
 
@@ -50,7 +50,7 @@ func mcpRuntimeOverviewToolRequestJSON() -> String {
 func mcpCallToolRequestJSON(
     name: String,
     arguments: [String: String],
-    id: String = "tool-1"
+    id: String = "tool-1",
 ) -> String {
     let sortedArguments = arguments
         .sorted { $0.key < $1.key }
@@ -76,15 +76,14 @@ func mcpSubscribeResourceRequestJSON(uri: String) -> String {
 }
 
 func nextMCPStreamEnvelope(
-    from iterator: inout AsyncThrowingStream<Data, Error>.AsyncIterator
+    from iterator: inout AsyncThrowingStream<Data, Error>.AsyncIterator,
 ) async throws -> [String: Any] {
     while let chunk = try await iterator.next() {
         let body = String(decoding: chunk, as: UTF8.self)
         if let dataLine = body
             .split(separator: "\n")
             .reversed()
-            .first(where: { $0.hasPrefix("data: ") })
-        {
+            .first(where: { $0.hasPrefix("data: ") }) {
             let payload = dataLine.dropFirst("data: ".count)
             if payload.isEmpty {
                 return [:]
@@ -95,6 +94,8 @@ func nextMCPStreamEnvelope(
 
     throw JSONError.emptyBody("The embedded MCP standalone stream ended before it delivered a JSON payload.")
 }
+
+// MARK: - JSONError
 
 enum JSONError: Error {
     case notDictionary

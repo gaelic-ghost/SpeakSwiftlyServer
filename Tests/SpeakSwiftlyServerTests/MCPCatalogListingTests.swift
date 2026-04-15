@@ -1,21 +1,21 @@
 import Foundation
 import MCP
-import Testing
 @testable import SpeakSwiftlyServer
+import Testing
 
 // MARK: - MCP Catalog Listing Tests
 
 extension ServerTests {
     @available(macOS 14, *)
-    @Test func embeddedMCPRoutesListToolsResourcesTemplatesAndPrompts() async throws {
+    @Test func `embedded MCP routes list tools resources templates and prompts`() async throws {
         try await Self.withEmbeddedMCPSurface { _, _, mcpSurface, sessionID in
             let listToolsEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpListToolsRequestJSON(),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let listToolsResult = try #require(mcpResultPayload(from: listToolsEnvelope))
             let tools = try #require(listToolsResult["tools"] as? [[String: Any]])
@@ -30,12 +30,12 @@ extension ServerTests {
             #expect(tools.contains { $0["name"] as? String == "get_runtime_overview" })
 
             let listResourcesEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpListResourcesRequestJSON(),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let listResourcesResult = try #require(mcpResultPayload(from: listResourcesEnvelope))
             let resources = try #require(listResourcesResult["resources"] as? [[String: Any]])
@@ -52,12 +52,12 @@ extension ServerTests {
             #expect(resources.contains { $0["uri"] as? String == "speak://runtime/status" })
 
             let listResourceTemplatesEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpListResourceTemplatesRequestJSON(),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let listResourceTemplatesResult = try #require(mcpResultPayload(from: listResourceTemplatesEnvelope))
             let templates = try #require(listResourceTemplatesResult["resourceTemplates"] as? [[String: Any]])
@@ -68,12 +68,12 @@ extension ServerTests {
             #expect(templates.contains { $0["uriTemplate"] as? String == "speak://requests/{request_id}" })
 
             let listPromptsEnvelope = try await mcpEnvelope(
-                from: await mcpSurface.handle(
+                from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpListPromptsRequestJSON(),
-                        sessionID: sessionID
-                    )
-                )
+                        sessionID: sessionID,
+                    ),
+                ),
             )
             let listPromptsResult = try #require(mcpResultPayload(from: listPromptsEnvelope))
             let prompts = try #require(listPromptsResult["prompts"] as? [[String: Any]])

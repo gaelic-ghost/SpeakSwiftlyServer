@@ -2,7 +2,7 @@ import Foundation
 
 let speakSwiftlyServerToolName = "SpeakSwiftlyServerTool"
 
-// MARK: - Serve Options
+// MARK: - ServeOptions
 
 public struct ServeOptions: Sendable {
     let runtimeProfileRootPath: String?
@@ -13,107 +13,36 @@ public struct ServeOptions: Sendable {
 
         while index < arguments.count {
             switch arguments[index] {
-            case "--profile-root":
-                runtimeProfileRootPath = try LaunchAgentOptions.requireValue(
-                    after: arguments,
-                    index: index,
-                    option: "--profile-root"
-                )
-                index += 2
+                case "--profile-root":
+                    runtimeProfileRootPath = try LaunchAgentOptions.requireValue(
+                        after: arguments,
+                        index: index,
+                        option: "--profile-root",
+                    )
+                    index += 2
 
-            default:
-                throw SpeakSwiftlyServerToolCommandError(
-                    "\(speakSwiftlyServerToolName) did not recognize serve option '\(arguments[index])'. Run `\(speakSwiftlyServerToolName) help` for supported flags."
-                )
+                default:
+                    throw SpeakSwiftlyServerToolCommandError(
+                        "\(speakSwiftlyServerToolName) did not recognize serve option '\(arguments[index])'. Run `\(speakSwiftlyServerToolName) help` for supported flags.",
+                    )
             }
         }
 
         return .init(
             runtimeProfileRootPath: runtimeProfileRootPath.map {
                 LaunchAgentOptions.resolvePath($0, relativeTo: currentDirectoryPath)
-            }
+            },
         )
     }
 }
 
-// MARK: - CLI Command
+// MARK: - SpeakSwiftlyServerToolCommand
 
 /// Top-level parsed command for the `SpeakSwiftlyServerTool` executable.
 public enum SpeakSwiftlyServerToolCommand {
     case serve(ServeOptions)
     case healthcheck(HealthcheckOptions)
     case launchAgent(LaunchAgentCommand)
-
-    // MARK: - Parsing
-
-    /// Parses command-line arguments into the tool's top-level command model.
-    public static func parse(
-        arguments: [String],
-        currentDirectoryPath: String = FileManager.default.currentDirectoryPath,
-        currentExecutablePath: String = CommandLine.arguments[0]
-    ) throws -> SpeakSwiftlyServerToolCommand {
-        guard let first = arguments.first else {
-            return .serve(.init(runtimeProfileRootPath: nil))
-        }
-
-        switch first {
-        case "serve":
-            return .serve(
-                try ServeOptions.parse(
-                    arguments: Array(arguments.dropFirst()),
-                    currentDirectoryPath: currentDirectoryPath
-                )
-            )
-
-        case "launch-agent":
-            return .launchAgent(
-                try LaunchAgentCommand.parse(
-                    arguments: Array(arguments.dropFirst()),
-                    currentDirectoryPath: currentDirectoryPath,
-                    currentExecutablePath: currentExecutablePath
-                )
-            )
-
-        case "healthcheck":
-            return .healthcheck(
-                try HealthcheckOptions.parse(arguments: Array(arguments.dropFirst()))
-            )
-
-        case "-h", "--help", "help":
-            throw SpeakSwiftlyServerToolCommandError(helpText)
-
-        default:
-            if first.hasPrefix("-") {
-                return .serve(
-                    try ServeOptions.parse(
-                        arguments: arguments,
-                        currentDirectoryPath: currentDirectoryPath
-                    )
-                )
-            }
-            throw SpeakSwiftlyServerToolCommandError(
-                "\(speakSwiftlyServerToolName) did not recognize command '\(first)'. Supported commands are `serve` and `launch-agent`."
-            )
-        }
-    }
-
-    // MARK: - Running
-
-    /// Runs the parsed command against the standalone runtime or LaunchAgent workflow.
-    public func run() async throws {
-        switch self {
-        case .serve(let options):
-            try await ServerRuntimeEntrypoint.run(
-                options: .init(runtimeProfileRootPath: options.runtimeProfileRootPath)
-            )
-
-        case .healthcheck(let options):
-            try await SpeakSwiftlyServerHealthcheck(options: options).run()
-
-        case .launchAgent(let command):
-            try command.run()
-        }
-    }
 
     // MARK: - Help
 
@@ -148,7 +77,80 @@ public enum SpeakSwiftlyServerToolCommand {
 
       Without arguments, \(speakSwiftlyServerToolName) defaults to `serve`.
     """
+
+    // MARK: - Parsing
+
+    /// Parses command-line arguments into the tool's top-level command model.
+    public static func parse(
+        arguments: [String],
+        currentDirectoryPath: String = FileManager.default.currentDirectoryPath,
+        currentExecutablePath: String = CommandLine.arguments[0],
+    ) throws -> SpeakSwiftlyServerToolCommand {
+        guard let first = arguments.first else {
+            return .serve(.init(runtimeProfileRootPath: nil))
+        }
+
+        switch first {
+            case "serve":
+                return try .serve(
+                    ServeOptions.parse(
+                        arguments: Array(arguments.dropFirst()),
+                        currentDirectoryPath: currentDirectoryPath,
+                    ),
+                )
+
+            case "launch-agent":
+                return try .launchAgent(
+                    LaunchAgentCommand.parse(
+                        arguments: Array(arguments.dropFirst()),
+                        currentDirectoryPath: currentDirectoryPath,
+                        currentExecutablePath: currentExecutablePath,
+                    ),
+                )
+
+            case "healthcheck":
+                return try .healthcheck(
+                    HealthcheckOptions.parse(arguments: Array(arguments.dropFirst())),
+                )
+
+            case "-h", "--help", "help":
+                throw SpeakSwiftlyServerToolCommandError(helpText)
+
+            default:
+                if first.hasPrefix("-") {
+                    return try .serve(
+                        ServeOptions.parse(
+                            arguments: arguments,
+                            currentDirectoryPath: currentDirectoryPath,
+                        ),
+                    )
+                }
+                throw SpeakSwiftlyServerToolCommandError(
+                    "\(speakSwiftlyServerToolName) did not recognize command '\(first)'. Supported commands are `serve` and `launch-agent`.",
+                )
+        }
+    }
+
+    // MARK: - Running
+
+    /// Runs the parsed command against the standalone runtime or LaunchAgent workflow.
+    public func run() async throws {
+        switch self {
+            case let .serve(options):
+                try await ServerRuntimeEntrypoint.run(
+                    options: .init(runtimeProfileRootPath: options.runtimeProfileRootPath),
+                )
+
+            case let .healthcheck(options):
+                try await SpeakSwiftlyServerHealthcheck(options: options).run()
+
+            case let .launchAgent(command):
+                try command.run()
+        }
+    }
 }
+
+// MARK: - SpeakSwiftlyServerToolCommandError
 
 /// Human-friendly parse or usage error for the top-level executable command surface.
 public struct SpeakSwiftlyServerToolCommandError: Error, CustomStringConvertible {
@@ -161,7 +163,7 @@ public struct SpeakSwiftlyServerToolCommandError: Error, CustomStringConvertible
     public var description: String { message }
 }
 
-// MARK: - Launch Agent Command
+// MARK: - LaunchAgentCommand
 
 /// Parsed subcommand for LaunchAgent install, uninstall, status, and property-list rendering.
 public struct LaunchAgentCommand {
@@ -181,37 +183,37 @@ public struct LaunchAgentCommand {
     static func parse(arguments: [String], currentDirectoryPath: String, currentExecutablePath: String) throws -> LaunchAgentCommand {
         guard let subcommand = arguments.first else {
             throw LaunchAgentCommandError(
-                "The `launch-agent` command requires a subcommand. Supported subcommands are `print-plist`, `install`, `promote-live`, `uninstall`, and `status`."
+                "The `launch-agent` command requires a subcommand. Supported subcommands are `print-plist`, `install`, `promote-live`, `uninstall`, and `status`.",
             )
         }
 
         switch subcommand {
-        case "print-plist":
-            return .init(action: .printPlist(try LaunchAgentOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath, currentExecutablePath: currentExecutablePath)))
+            case "print-plist":
+                return try .init(action: .printPlist(LaunchAgentOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath, currentExecutablePath: currentExecutablePath)))
 
-        case "install":
-            return .init(action: .install(try LaunchAgentOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath, currentExecutablePath: currentExecutablePath)))
+            case "install":
+                return try .init(action: .install(LaunchAgentOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath, currentExecutablePath: currentExecutablePath)))
 
-        case "promote-live":
-            return .init(action: .promoteLive(try LaunchAgentPromoteOptions.parse(
-                arguments: Array(arguments.dropFirst()),
-                currentDirectoryPath: currentDirectoryPath,
-                currentExecutablePath: currentExecutablePath
-            )))
+            case "promote-live":
+                return try .init(action: .promoteLive(LaunchAgentPromoteOptions.parse(
+                    arguments: Array(arguments.dropFirst()),
+                    currentDirectoryPath: currentDirectoryPath,
+                    currentExecutablePath: currentExecutablePath,
+                )))
 
-        case "uninstall":
-            return .init(action: .uninstall(try LaunchAgentStatusOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath)))
+            case "uninstall":
+                return try .init(action: .uninstall(LaunchAgentStatusOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath)))
 
-        case "status":
-            return .init(action: .status(try LaunchAgentStatusOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath)))
+            case "status":
+                return try .init(action: .status(LaunchAgentStatusOptions.parse(arguments: Array(arguments.dropFirst()), currentDirectoryPath: currentDirectoryPath)))
 
-        case "-h", "--help", "help":
-            throw LaunchAgentCommandError(SpeakSwiftlyServerToolCommand.helpText)
+            case "-h", "--help", "help":
+                throw LaunchAgentCommandError(SpeakSwiftlyServerToolCommand.helpText)
 
-        default:
-            throw LaunchAgentCommandError(
-                "\(speakSwiftlyServerToolName) did not recognize launch-agent subcommand '\(subcommand)'. Supported subcommands are `print-plist`, `install`, `promote-live`, `uninstall`, and `status`."
-            )
+            default:
+                throw LaunchAgentCommandError(
+                    "\(speakSwiftlyServerToolName) did not recognize launch-agent subcommand '\(subcommand)'. Supported subcommands are `print-plist`, `install`, `promote-live`, `uninstall`, and `status`.",
+                )
         }
     }
 
@@ -220,29 +222,32 @@ public struct LaunchAgentCommand {
     /// Executes the requested LaunchAgent management action.
     func run() throws {
         switch action {
-        case .printPlist(let options):
-            let data = try options.propertyListData()
-            guard let xml = String(data: data, encoding: .utf8) else {
-                throw LaunchAgentCommandError(
-                    "\(speakSwiftlyServerToolName) rendered a LaunchAgent property list, but it could not be decoded back into UTF-8 text for printing."
-                )
-            }
-            print(xml, terminator: "")
+            case let .printPlist(options):
+                let data = try options.propertyListData()
+                guard let xml = String(data: data, encoding: .utf8) else {
+                    throw LaunchAgentCommandError(
+                        "\(speakSwiftlyServerToolName) rendered a LaunchAgent property list, but it could not be decoded back into UTF-8 text for printing.",
+                    )
+                }
 
-        case .install(let options):
-            try options.install()
+                print(xml, terminator: "")
 
-        case .promoteLive(let options):
-            try options.promoteLive()
+            case let .install(options):
+                try options.install()
 
-        case .uninstall(let options):
-            try options.uninstall()
+            case let .promoteLive(options):
+                try options.promoteLive()
 
-        case .status(let options):
-            print(try options.statusSummary())
+            case let .uninstall(options):
+                try options.uninstall()
+
+            case let .status(options):
+                try print(options.statusSummary())
         }
     }
 }
+
+// MARK: - LaunchAgentCommandError
 
 /// Human-friendly parse or execution error for the LaunchAgent command surface.
 public struct LaunchAgentCommandError: Error, CustomStringConvertible {

@@ -3,27 +3,27 @@ import Testing
 // MARK: - HTTP Workflow Entry Tests
 
 extension HTTPWorkflowE2ETests {
-    @Test func httpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `http voice design lane runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runVoiceDesignLane(using: .http)
     }
 
-    @Test func httpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `http clone lane with provided transcript runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runCloneLane(using: .http, transcriptMode: .provided)
     }
 
-    @Test func httpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `http clone lane with inferred transcript runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runCloneLane(using: .http, transcriptMode: .inferred)
     }
 
-    @Test func httpMarvisVoiceDesignProfilesRunAudibleLivePlaybackAcrossAllVibes() async throws {
+    @Test func `http marvis voice design profiles run audible live playback across all vibes`() async throws {
         try await ServerE2E.runMarvisTripletLane(using: .http)
     }
 
-    @Test func httpMarvisQueuedLivePlaybackDrainsInOrder() async throws {
+    @Test func `http marvis queued live playback drains in order`() async throws {
         try await ServerE2E.runQueuedMarvisTripletLane(using: .http)
     }
 
-    @Test func httpProfileAndCloneCreationResolveRelativePathsAgainstExplicitCallerWorkingDirectory() async throws {
+    @Test func `http profile and clone creation resolve relative paths against explicit caller working directory`() async throws {
         try await ServerE2E.runRelativePathProfileAndCloneLane(using: .http)
     }
 }
@@ -31,27 +31,27 @@ extension HTTPWorkflowE2ETests {
 // MARK: - MCP Workflow Entry Tests
 
 extension MCPWorkflowE2ETests {
-    @Test func mcpVoiceDesignLaneRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `mcp voice design lane runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runVoiceDesignLane(using: .mcp)
     }
 
-    @Test func mcpCloneLaneWithProvidedTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `mcp clone lane with provided transcript runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runCloneLane(using: .mcp, transcriptMode: .provided)
     }
 
-    @Test func mcpCloneLaneWithInferredTranscriptRunsSequentialSilentAndAudibleCoverage() async throws {
+    @Test func `mcp clone lane with inferred transcript runs sequential silent and audible coverage`() async throws {
         try await ServerE2E.runCloneLane(using: .mcp, transcriptMode: .inferred)
     }
 
-    @Test func mcpMarvisVoiceDesignProfilesRunAudibleLivePlaybackAcrossAllVibes() async throws {
+    @Test func `mcp marvis voice design profiles run audible live playback across all vibes`() async throws {
         try await ServerE2E.runMarvisTripletLane(using: .mcp)
     }
 
-    @Test func mcpMarvisQueuedLivePlaybackDrainsInOrder() async throws {
+    @Test func `mcp marvis queued live playback drains in order`() async throws {
         try await ServerE2E.runQueuedMarvisTripletLane(using: .mcp)
     }
 
-    @Test func mcpProfileAndCloneCreationResolveRelativePathsAgainstExplicitCallerWorkingDirectory() async throws {
+    @Test func `mcp profile and clone creation resolve relative paths against explicit caller working directory`() async throws {
         try await ServerE2E.runRelativePathProfileAndCloneLane(using: .mcp)
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - App-Managed Install Layout
+// MARK: - ServerInstallLayout
 
 /// App-facing path contract for a per-user SpeakSwiftlyServer install.
 ///
@@ -51,7 +51,7 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
         runtimeProfileRootURL: URL,
         runtimeConfigurationFileURL: URL,
         standardOutLogURL: URL,
-        standardErrorLogURL: URL
+        standardErrorLogURL: URL,
     ) {
         self.launchAgentLabel = launchAgentLabel
         self.workingDirectoryURL = workingDirectoryURL
@@ -73,7 +73,7 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     public static func defaultForCurrentUser(
         fileManager: FileManager = .default,
         homeDirectoryURL: URL = FileManager.default.homeDirectoryForCurrentUser,
-        launchAgentLabel: String = "com.gaelic-ghost.speak-swiftly-server"
+        launchAgentLabel: String = "com.gaelic-ghost.speak-swiftly-server",
     ) -> ServerInstallLayout {
         let applicationSupportDirectoryURL = fileManager
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -111,13 +111,13 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
             runtimeProfileRootURL: runtimeProfileRootURL,
             runtimeConfigurationFileURL: runtimeConfigurationFileURL,
             standardOutLogURL: logsDirectoryURL.appendingPathComponent("stdout.log", isDirectory: false),
-            standardErrorLogURL: logsDirectoryURL.appendingPathComponent("stderr.log", isDirectory: false)
+            standardErrorLogURL: logsDirectoryURL.appendingPathComponent("stderr.log", isDirectory: false),
         )
     }
 
     func launchAgentEnvironmentVariables(
         configFilePath: String?,
-        reloadIntervalSeconds: String?
+        reloadIntervalSeconds: String?,
     ) -> [String: String] {
         var environmentVariables = [String: String]()
         if let configFilePath, !configFilePath.isEmpty {
@@ -139,13 +139,15 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - Installed Server Logs
+// MARK: - ServerInstalledLogKind
 
 /// Identifies which retained log file from an installed server snapshot a caller wants to inspect.
 public enum ServerInstalledLogKind: String, Codable, Sendable, Equatable, CaseIterable {
     case stdout
     case stderr
 }
+
+// MARK: - ServerInstalledLogFileSnapshot
 
 /// Captures one retained stdout or stderr file from an installed standalone server.
 public struct ServerInstalledLogFileSnapshot: Codable, Sendable, Equatable {
@@ -161,13 +163,15 @@ public struct ServerInstalledLogFileSnapshot: Codable, Sendable, Equatable {
     /// Decodes the retained JSON line texts into strongly typed values.
     public func decodeJSONLines<T: Decodable & Sendable>(
         as type: T.Type = T.self,
-        decoder: JSONDecoder = JSONDecoder()
+        decoder: JSONDecoder = JSONDecoder(),
     ) throws -> [T] {
         try jsonLineTexts.map { line in
             try decoder.decode(T.self, from: Data(line.utf8))
         }
     }
 }
+
+// MARK: - ServerInstalledLogsSnapshot
 
 /// Bundles the retained stdout and stderr snapshots for one installed server layout.
 public struct ServerInstalledLogsSnapshot: Codable, Sendable, Equatable {
@@ -178,32 +182,34 @@ public struct ServerInstalledLogsSnapshot: Codable, Sendable, Equatable {
     /// Returns the retained log snapshot for the requested stream.
     public func file(for kind: ServerInstalledLogKind) -> ServerInstalledLogFileSnapshot {
         switch kind {
-        case .stdout:
-            stdout
-        case .stderr:
-            stderr
+            case .stdout:
+                stdout
+            case .stderr:
+                stderr
         }
     }
 }
+
+// MARK: - ServerInstalledLogs
 
 /// Reads retained stdout and stderr files from an app-managed standalone server install.
 public enum ServerInstalledLogs {
     /// Loads retained stdout and stderr content for the supplied install layout.
     public static func read(
         layout: ServerInstallLayout = .defaultForCurrentUser(),
-        maximumLineCount: Int? = 400
+        maximumLineCount: Int? = 400,
     ) throws -> ServerInstalledLogsSnapshot {
-        .init(
+        try .init(
             layout: layout,
-            stdout: try readFile(at: layout.standardOutLogURL, kind: .stdout, maximumLineCount: maximumLineCount),
-            stderr: try readFile(at: layout.standardErrorLogURL, kind: .stderr, maximumLineCount: maximumLineCount)
+            stdout: readFile(at: layout.standardOutLogURL, kind: .stdout, maximumLineCount: maximumLineCount),
+            stderr: readFile(at: layout.standardErrorLogURL, kind: .stderr, maximumLineCount: maximumLineCount),
         )
     }
 
     private static func readFile(
         at fileURL: URL,
         kind: ServerInstalledLogKind,
-        maximumLineCount: Int?
+        maximumLineCount: Int?,
     ) throws -> ServerInstalledLogFileSnapshot {
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: fileURL.path) else {
@@ -215,7 +221,7 @@ public enum ServerInstalledLogs {
                 lines: [],
                 jsonLineTexts: [],
                 totalLineCount: 0,
-                truncatedLineCount: 0
+                truncatedLineCount: 0,
             )
         }
 
@@ -251,7 +257,7 @@ public enum ServerInstalledLogs {
             lines: retainedLines,
             jsonLineTexts: jsonLineTexts,
             totalLineCount: allLines.count,
-            truncatedLineCount: truncatedLineCount
+            truncatedLineCount: truncatedLineCount,
         )
     }
 }

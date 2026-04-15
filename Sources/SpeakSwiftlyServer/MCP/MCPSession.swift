@@ -8,35 +8,35 @@ actor MCPSession {
     private let server: Server
     private let subscriptionBroker: MCPSubscriptionBroker
 
+    init(
+        host: ServerHost,
+        transport: StatefulHTTPServerTransport,
+        server: Server,
+        subscriptionBroker: MCPSubscriptionBroker,
+    ) {
+        self.host = host
+        self.transport = transport
+        self.server = server
+        self.subscriptionBroker = subscriptionBroker
+    }
+
     static func make(
         configuration: MCPConfig,
-        host: ServerHost
+        host: ServerHost,
     ) async -> MCPSession {
         let transport = StatefulHTTPServerTransport()
         let subscriptionBroker = MCPSubscriptionBroker()
         let server = await MCPSurface.buildServer(
             configuration: configuration,
             host: host,
-            subscriptionBroker: subscriptionBroker
+            subscriptionBroker: subscriptionBroker,
         )
         return .init(
             host: host,
             transport: transport,
             server: server,
-            subscriptionBroker: subscriptionBroker
+            subscriptionBroker: subscriptionBroker,
         )
-    }
-
-    init(
-        host: ServerHost,
-        transport: StatefulHTTPServerTransport,
-        server: Server,
-        subscriptionBroker: MCPSubscriptionBroker
-    ) {
-        self.host = host
-        self.transport = transport
-        self.server = server
-        self.subscriptionBroker = subscriptionBroker
     }
 
     func start() async throws {

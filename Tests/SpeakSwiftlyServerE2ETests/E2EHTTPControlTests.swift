@@ -7,15 +7,15 @@ import Darwin
 // MARK: - HTTP Control Surface End-to-End Tests
 
 extension ControlE2ETests {
-    @Test func httpTextProfileLifecycleCoversStoredActiveEffectiveAndPersistenceFlows() async throws {
+    @Test func `http text profile lifecycle covers stored active effective and persistence flows`() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }
 
         let server = try Self.makeServer(
-            port: Self.randomPort(in: 59_700..<59_800),
+            port: Self.randomPort(in: 59700..<59800),
             profileRootURL: sandbox.profileRootURL,
             silentPlayback: true,
-            mcpEnabled: false
+            mcpEnabled: false,
         )
         try server.start()
         defer { server.stop() }
@@ -23,23 +23,23 @@ extension ControlE2ETests {
         let client = E2EHTTPClient(baseURL: server.baseURL)
         try await waitUntilWorkerReady(using: client, timeout: Self.e2eTimeout, server: server)
 
-        let initialTextProfiles = try decode(
+        let initialTextProfiles = try await decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles", method: "GET").data
+            from: client.request(path: "/text-profiles", method: "GET").data,
         ).textProfiles
         #expect(initialTextProfiles.builtInStyle == "balanced")
         #expect(initialTextProfiles.baseProfile.id.isEmpty == false)
         #expect(initialTextProfiles.activeProfile.id.isEmpty == false)
 
-        let initialTextProfileStyle = try decode(
+        let initialTextProfileStyle = try await decode(
             E2ETextProfileStyleResponse.self,
-            from: try await client.request(path: "/text-profiles/style", method: "GET").data
+            from: client.request(path: "/text-profiles/style", method: "GET").data,
         ).textProfileStyle
         #expect(initialTextProfileStyle.builtInStyle == "balanced")
 
-        let createdStored = try decode(
+        let createdStored = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/stored",
                 method: "POST",
                 jsonBody: [
@@ -50,24 +50,25 @@ extension ControlE2ETests {
                             id: "expand-swift",
                             text: "SPM",
                             replacement: "Swift Package Manager",
-                            formats: ["swift_source"]
+                            formats: ["swift_source"],
                         ),
                     ],
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(createdStored.id == "http-text-profile")
         #expect(createdStored.replacements.count == 1)
 
-        let storedRoute = try decode(
+        let storedRoute = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/stored/http-text-profile", method: "GET").data
+            from: client.request(path: "/text-profiles/stored/http-text-profile", method: "GET").data,
         ).profile
         #expect(storedRoute.id == "http-text-profile")
 
-        let replacedStored = try decode(
+        let replacedStored = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/stored/http-text-profile",
                 method: "PUT",
                 jsonBody: [
@@ -79,40 +80,42 @@ extension ControlE2ETests {
                                 id: "expand-swift",
                                 text: "SPM",
                                 replacement: "Swift Package Manager",
-                                formats: ["swift_source"]
+                                formats: ["swift_source"],
                             ),
                             Self.replacementJSON(
                                 id: "expand-mcp",
                                 text: "MCP",
-                                replacement: "Model Context Protocol"
+                                replacement: "Model Context Protocol",
                             ),
                         ],
                     ],
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(replacedStored.name == "HTTP Text Profile Updated")
         #expect(replacedStored.replacements.count == 2)
 
-        let storedWithAddedReplacement = try decode(
+        let storedWithAddedReplacement = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/stored/http-text-profile/replacements",
                 method: "POST",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
                         id: "expand-tts",
                         text: "TTS",
-                        replacement: "text to speech"
+                        replacement: "text to speech",
                     ),
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(storedWithAddedReplacement.replacements.contains { $0.id == "expand-tts" })
 
-        let storedWithReplacedReplacement = try decode(
+        let storedWithReplacedReplacement = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/stored/http-text-profile/replacements/expand-tts",
                 method: "PUT",
                 jsonBody: [
@@ -120,18 +123,19 @@ extension ControlE2ETests {
                         id: "expand-tts",
                         text: "TTS",
                         replacement: "text-to-speech",
-                        phase: "after_built_ins"
+                        phase: "after_built_ins",
                     ),
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         let replacedTTSRule = storedWithReplacedReplacement.replacements.first { $0.id == "expand-tts" }
         #expect(replacedTTSRule?.replacement == "text-to-speech")
         #expect(replacedTTSRule?.phase == "after_built_ins")
 
-        let activeProfile = try decode(
+        let activeProfile = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/active",
                 method: "PUT",
                 jsonBody: [
@@ -143,34 +147,36 @@ extension ControlE2ETests {
                                 id: "expand-cwd",
                                 text: "cwd",
                                 replacement: "current working directory",
-                                match: "whole_token"
+                                match: "whole_token",
                             ),
                         ],
                     ],
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(activeProfile.id == "http-session-profile")
 
-        let activeWithAddedReplacement = try decode(
+        let activeWithAddedReplacement = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/active/replacements",
                 method: "POST",
                 jsonBody: [
                     "replacement": Self.replacementJSON(
                         id: "expand-repo",
                         text: "repo",
-                        replacement: "repository"
+                        replacement: "repository",
                     ),
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(activeWithAddedReplacement.replacements.contains { $0.id == "expand-repo" })
 
-        let activeWithReplacedReplacement = try decode(
+        let activeWithReplacedReplacement = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/active/replacements/expand-repo",
                 method: "PUT",
                 jsonBody: [
@@ -178,83 +184,87 @@ extension ControlE2ETests {
                         id: "expand-repo",
                         text: "repo",
                         replacement: "source repository",
-                        formats: ["markdown"]
+                        formats: ["markdown"],
                     ),
-                ]
-            ).data
+                ],
+            )
+            .data,
         ).profile
         #expect(activeWithReplacedReplacement.replacements.contains {
             $0.id == "expand-repo" && $0.replacement == "source repository"
         })
 
-        let activeAfterRemoval = try decode(
+        let activeAfterRemoval = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/active/replacements/expand-repo",
-                method: "DELETE"
-            ).data
+                method: "DELETE",
+            )
+            .data,
         ).profile
         #expect(activeAfterRemoval.replacements.contains { $0.id == "expand-repo" } == false)
 
-        let effectiveDefault = try decode(
+        let effectiveDefault = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/effective", method: "GET").data
+            from: client.request(path: "/text-profiles/effective", method: "GET").data,
         ).profile
         #expect(effectiveDefault.id == "http-session-profile")
 
-        let effectiveStored = try decode(
+        let effectiveStored = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/effective/http-text-profile", method: "GET").data
+            from: client.request(path: "/text-profiles/effective/http-text-profile", method: "GET").data,
         ).profile
         #expect(effectiveStored.id == "http-text-profile")
 
-        let baseProfile = try decode(
+        let baseProfile = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/base", method: "GET").data
+            from: client.request(path: "/text-profiles/base", method: "GET").data,
         ).profile
         #expect(baseProfile.id.isEmpty == false)
 
-        let savedSnapshot = try decode(
+        let savedSnapshot = try await decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/save", method: "POST").data
+            from: client.request(path: "/text-profiles/save", method: "POST").data,
         ).textProfiles
         #expect(savedSnapshot.storedProfiles.contains { $0.id == "http-text-profile" })
 
-        let compactSnapshot = try decode(
+        let compactSnapshot = try await decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/style",
                 method: "PUT",
-                jsonBody: ["built_in_style": "compact"]
-            ).data
+                jsonBody: ["built_in_style": "compact"],
+            )
+            .data,
         ).textProfiles
         #expect(compactSnapshot.builtInStyle == "compact")
 
-        let loadedSnapshot = try decode(
+        let loadedSnapshot = try await decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/load", method: "POST").data
+            from: client.request(path: "/text-profiles/load", method: "POST").data,
         ).textProfiles
         #expect(loadedSnapshot.storedProfiles.contains { $0.id == "http-text-profile" })
         #expect(loadedSnapshot.builtInStyle == "compact")
 
-        let resetProfile = try decode(
+        let resetProfile = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(path: "/text-profiles/active/reset", method: "POST").data
+            from: client.request(path: "/text-profiles/active/reset", method: "POST").data,
         ).profile
         #expect(resetProfile.id == initialTextProfiles.activeProfile.id)
 
-        let storedAfterStoredRemoval = try decode(
+        let storedAfterStoredRemoval = try await decode(
             E2ETextProfileResponse.self,
-            from: try await client.request(
+            from: client.request(
                 path: "/text-profiles/stored/http-text-profile/replacements/expand-tts",
-                method: "DELETE"
-            ).data
+                method: "DELETE",
+            )
+            .data,
         ).profile
         #expect(storedAfterStoredRemoval.replacements.contains { $0.id == "expand-tts" } == false)
 
-        let finalSnapshot = try decode(
+        let finalSnapshot = try await decode(
             E2ETextProfileListResponse.self,
-            from: try await client.request(path: "/text-profiles/stored/http-text-profile", method: "DELETE").data
+            from: client.request(path: "/text-profiles/stored/http-text-profile", method: "DELETE").data,
         ).textProfiles
         #expect(finalSnapshot.storedProfiles.contains { $0.id == "http-text-profile" } == false)
     }
