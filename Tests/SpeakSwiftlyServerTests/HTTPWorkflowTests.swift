@@ -9,7 +9,7 @@ import TextForSpeech
 
 // MARK: - HTTP Workflow Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func routesExposeHealthProfilesAndQueuedSpeechJobLifecycle() async throws {
         let runtime = MockRuntime()

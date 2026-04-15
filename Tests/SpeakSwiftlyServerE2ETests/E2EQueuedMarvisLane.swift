@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Queued Marvis End-to-End Lane
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func runQueuedMarvisTripletLane(using transport: E2ETransport) async throws {
         struct MarvisQueuedLane {
             let profileName: String

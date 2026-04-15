@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - End-to-End Support Namespace
 
-struct SpeakSwiftlyServerE2ETests {
+struct ServerE2E {
     // MARK: - Test Fixtures
 
     static let testingProfileText = "Hello there from SpeakSwiftlyServer end-to-end coverage."
@@ -22,17 +22,17 @@ struct SpeakSwiftlyServerE2ETests {
     """
 }
 
-protocol SpeakSwiftlyServerE2ESuiteSupport {}
+protocol E2ESuiteSupport {}
 
-extension SpeakSwiftlyServerE2ESuiteSupport {
-    static var testingProfileText: String { SpeakSwiftlyServerE2ETests.testingProfileText }
-    static var testingProfileVoiceDescription: String { SpeakSwiftlyServerE2ETests.testingProfileVoiceDescription }
-    static var operatorControlPlaybackText: String { SpeakSwiftlyServerE2ETests.operatorControlPlaybackText }
-    static var e2eTimeout: Duration { SpeakSwiftlyServerE2ETests.e2eTimeout }
-    static var isPlaybackTraceEnabled: Bool { SpeakSwiftlyServerE2ETests.isPlaybackTraceEnabled }
+extension E2ESuiteSupport {
+    static var testingProfileText: String { ServerE2E.testingProfileText }
+    static var testingProfileVoiceDescription: String { ServerE2E.testingProfileVoiceDescription }
+    static var operatorControlPlaybackText: String { ServerE2E.operatorControlPlaybackText }
+    static var e2eTimeout: Duration { ServerE2E.e2eTimeout }
+    static var isPlaybackTraceEnabled: Bool { ServerE2E.isPlaybackTraceEnabled }
 
     static func randomPort(in range: Range<Int>) -> Int {
-        SpeakSwiftlyServerE2ETests.randomPort(in: range)
+        ServerE2E.randomPort(in: range)
     }
 
     static func makeServer(
@@ -43,7 +43,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         mcpEnabled: Bool,
         speechBackend: String? = nil
     ) throws -> ServerProcess {
-        try SpeakSwiftlyServerE2ETests.makeServer(
+        try ServerE2E.makeServer(
             port: port,
             profileRootURL: profileRootURL,
             silentPlayback: silentPlayback,
@@ -63,7 +63,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         formats: [String] = [],
         priority: Int = 0
     ) -> [String: Any] {
-        SpeakSwiftlyServerE2ETests.replacementJSON(
+        ServerE2E.replacementJSON(
             id: id,
             text: text,
             replacement: replacement,
@@ -76,15 +76,15 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
     }
 
     static func requirePromptText(in result: [String: Any]) throws -> String {
-        try SpeakSwiftlyServerE2ETests.requirePromptText(in: result)
+        try ServerE2E.requirePromptText(in: result)
     }
 
     static func requireObjectPayload(from payload: Any) throws -> [String: Any] {
-        try SpeakSwiftlyServerE2ETests.requireObjectPayload(from: payload)
+        try ServerE2E.requireObjectPayload(from: payload)
     }
 
     static func requireArrayPayload(from payload: Any) throws -> [[String: Any]] {
-        try SpeakSwiftlyServerE2ETests.requireArrayPayload(from: payload)
+        try ServerE2E.requireArrayPayload(from: payload)
     }
 
     static func createVoiceDesignProfile(
@@ -97,7 +97,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         outputPath: String? = nil,
         cwd: String? = nil
     ) async throws {
-        try await SpeakSwiftlyServerE2ETests.createVoiceDesignProfile(
+        try await ServerE2E.createVoiceDesignProfile(
             using: client,
             server: server,
             profileName: profileName,
@@ -119,7 +119,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         outputPath: String? = nil,
         cwd: String? = nil
     ) async throws {
-        try await SpeakSwiftlyServerE2ETests.createVoiceDesignProfile(
+        try await ServerE2E.createVoiceDesignProfile(
             using: client,
             server: server,
             profileName: profileName,
@@ -132,19 +132,19 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
     }
 
     static func assertProfileIsVisible(using client: E2EHTTPClient, profileName: String) async throws {
-        try await SpeakSwiftlyServerE2ETests.assertProfileIsVisible(using: client, profileName: profileName)
+        try await ServerE2E.assertProfileIsVisible(using: client, profileName: profileName)
     }
 
     static func assertProfileIsVisible(using client: E2EMCPClient, profileName: String) async throws {
-        try await SpeakSwiftlyServerE2ETests.assertProfileIsVisible(using: client, profileName: profileName)
+        try await ServerE2E.assertProfileIsVisible(using: client, profileName: profileName)
     }
 
     static func assertProfileIsNotVisible(using client: E2EHTTPClient, profileName: String) async throws {
-        try await SpeakSwiftlyServerE2ETests.assertProfileIsNotVisible(using: client, profileName: profileName)
+        try await ServerE2E.assertProfileIsNotVisible(using: client, profileName: profileName)
     }
 
     static func submitSpeechJob(using client: E2EHTTPClient, text: String, profileName: String) async throws -> String {
-        try await SpeakSwiftlyServerE2ETests.submitSpeechJob(using: client, text: text, profileName: profileName)
+        try await ServerE2E.submitSpeechJob(using: client, text: text, profileName: profileName)
     }
 
     static func waitForPlaybackState(
@@ -152,7 +152,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         timeout: Duration,
         matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool
     ) async throws -> E2EPlaybackStateSnapshot {
-        try await SpeakSwiftlyServerE2ETests.waitForPlaybackState(using: client, timeout: timeout, matching: predicate)
+        try await ServerE2E.waitForPlaybackState(using: client, timeout: timeout, matching: predicate)
     }
 
     static func waitForGenerationQueue(
@@ -160,7 +160,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         timeout: Duration,
         matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool
     ) async throws -> E2EQueueSnapshotResponse {
-        try await SpeakSwiftlyServerE2ETests.waitForGenerationQueue(using: client, timeout: timeout, matching: predicate)
+        try await ServerE2E.waitForGenerationQueue(using: client, timeout: timeout, matching: predicate)
     }
 
     static func waitForMCPPlaybackState(
@@ -168,7 +168,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         timeout: Duration,
         matching predicate: @escaping @Sendable (E2EPlaybackStateSnapshot) -> Bool
     ) async throws -> E2EPlaybackStateSnapshot {
-        try await SpeakSwiftlyServerE2ETests.waitForMCPPlaybackState(using: client, timeout: timeout, matching: predicate)
+        try await ServerE2E.waitForMCPPlaybackState(using: client, timeout: timeout, matching: predicate)
     }
 
     static func waitForMCPGenerationQueue(
@@ -176,15 +176,15 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         timeout: Duration,
         matching predicate: @escaping @Sendable (E2EQueueSnapshotResponse) -> Bool
     ) async throws -> E2EQueueSnapshotResponse {
-        try await SpeakSwiftlyServerE2ETests.waitForMCPGenerationQueue(using: client, timeout: timeout, matching: predicate)
+        try await ServerE2E.waitForMCPGenerationQueue(using: client, timeout: timeout, matching: predicate)
     }
 
     static func assertSpeechJobCancelled(_ snapshot: E2EJobSnapshot, expectedJobID jobID: String) {
-        SpeakSwiftlyServerE2ETests.assertSpeechJobCancelled(snapshot, expectedJobID: jobID)
+        ServerE2E.assertSpeechJobCancelled(snapshot, expectedJobID: jobID)
     }
 
     static func assertSpeechJobCompleted(_ snapshot: E2EJobSnapshot, expectedJobID jobID: String) {
-        SpeakSwiftlyServerE2ETests.assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
+        ServerE2E.assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
     }
 }
 
@@ -198,7 +198,7 @@ extension SpeakSwiftlyServerE2ESuiteSupport {
         "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
     )
 )
-struct SpeakSwiftlyServerE2EHTTPWorkflowEntryTests: SpeakSwiftlyServerE2ESuiteSupport {}
+struct HTTPWorkflowE2ETests: E2ESuiteSupport {}
 
 @Suite(
     "MCP Workflow Entry",
@@ -208,7 +208,7 @@ struct SpeakSwiftlyServerE2EHTTPWorkflowEntryTests: SpeakSwiftlyServerE2ESuiteSu
         "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
     )
 )
-struct SpeakSwiftlyServerE2EMCPWorkflowEntryTests: SpeakSwiftlyServerE2ESuiteSupport {}
+struct MCPWorkflowE2ETests: E2ESuiteSupport {}
 
 @Suite(
     "Control Surfaces",
@@ -218,4 +218,4 @@ struct SpeakSwiftlyServerE2EMCPWorkflowEntryTests: SpeakSwiftlyServerE2ESuiteSup
         "Set SPEAKSWIFTLYSERVER_E2E=1 to run live end-to-end coverage."
     )
 )
-struct SpeakSwiftlyServerE2EControlSurfaceTests: SpeakSwiftlyServerE2ESuiteSupport {}
+struct ControlE2ETests: E2ESuiteSupport {}

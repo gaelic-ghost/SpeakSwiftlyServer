@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - MCP Catalog Surface End-to-End Tests
 
-extension SpeakSwiftlyServerE2EControlSurfaceTests {
+extension ControlE2ETests {
     @Test func mcpCatalogControlResourcesPromptsAndSubscriptionsStayLiveAndAccurate() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }

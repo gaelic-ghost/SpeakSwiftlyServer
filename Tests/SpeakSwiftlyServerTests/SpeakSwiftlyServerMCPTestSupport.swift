@@ -20,7 +20,7 @@ func mcpStatusCode(from response: MCP.HTTPResponse) -> Int {
 }
 
 func mcpInitializeRequestJSON(id: String = "initialize-1") -> String {
-    #"{"jsonrpc":"2.0","id":"\#(id)","method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"SpeakSwiftlyServerTests","version":"1.0"}}}"#
+    #"{"jsonrpc":"2.0","id":"\#(id)","method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ServerTests","version":"1.0"}}}"#
 }
 
 func mcpInitializedNotificationJSON() -> String {

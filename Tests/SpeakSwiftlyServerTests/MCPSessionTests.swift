@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Session Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func embeddedMCPSupportsMultipleIndependentSessions() async throws {
         let runtime = MockRuntime()

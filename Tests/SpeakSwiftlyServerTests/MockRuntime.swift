@@ -111,7 +111,7 @@ actor MockRuntime: ServerRuntimeProtocol {
         self.mutationRefreshBehavior = mutationRefreshBehavior
         self.startBehavior = startBehavior
         self.textRuntimePersistenceURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SpeakSwiftlyServerTests", isDirectory: true)
+            .appendingPathComponent("ServerTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("json")
         self.textRuntime = try! TextForSpeech.Runtime(persistence: .file(textRuntimePersistenceURL))

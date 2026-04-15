@@ -4,7 +4,7 @@ import Testing
 
 // MARK: - Shared End-to-End Assertions
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func recordQueuedMarvisHTTPDiagnostics(
         using client: E2EHTTPClient,
         requestIDs: [String],

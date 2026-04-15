@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Marvis End-to-End Lane
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func runMarvisTripletLane(using transport: E2ETransport) async throws {
         struct MarvisProfileLane {
             let profileName: String

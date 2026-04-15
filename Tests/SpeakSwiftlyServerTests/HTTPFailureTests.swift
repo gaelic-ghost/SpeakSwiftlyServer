@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - HTTP Failure Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func runtimeDegradationWhileSpeechJobsAreInFlightMarksJobsDegradedAndRejectsNewWork() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)

@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Server Runtime Helpers
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     private struct SpeakSwiftlyPublishedRuntimeMetadata: Decodable {
         let buildConfiguration: String
         let productsPath: String

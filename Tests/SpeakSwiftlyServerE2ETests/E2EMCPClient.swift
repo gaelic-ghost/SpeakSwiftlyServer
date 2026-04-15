@@ -152,7 +152,7 @@ private extension E2EMCPClient {
                 "protocolVersion": "2025-11-25",
                 "capabilities": [:],
                 "clientInfo": [
-                    "name": "SpeakSwiftlyServerE2ETests",
+                    "name": "ServerE2E",
                     "version": "1.0",
                 ],
             ],

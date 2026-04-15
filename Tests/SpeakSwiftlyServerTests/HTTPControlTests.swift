@@ -8,7 +8,7 @@ import Testing
 
 // MARK: - HTTP Control Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func routesExposeQueueInspectionAndControlOperations() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)

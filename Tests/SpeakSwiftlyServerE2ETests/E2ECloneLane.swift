@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Clone End-to-End Lane
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func runCloneLane(
         using transport: E2ETransport,
         transcriptMode: CloneTranscriptMode

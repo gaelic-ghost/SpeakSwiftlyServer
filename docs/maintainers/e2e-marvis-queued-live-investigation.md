@@ -3,11 +3,11 @@
 ## Context
 
 - Date observed: `2026-04-08`
-- Historical full-suite command: `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2ETests`
+- Historical full-suite command: `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter ServerE2E`
 - Current equivalent focused reruns:
-  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EHTTPWorkflowEntryTests`
-  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EMCPWorkflowEntryTests`
-  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter SpeakSwiftlyServerE2EControlSurfaceTests`
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter HTTPWorkflowE2ETests`
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter MCPWorkflowE2ETests`
+  - `SPEAKSWIFTLYSERVER_E2E=1 swift test --filter ControlE2ETests`
 - Active failing lane: `httpMarvisQueuedLivePlaybackDrainsInOrder`
 - Resolution status: fixed on `2026-04-09` after the `SpeakSwiftly 2.2.1` adoption, playback-control snapshot realignment, and the varied-text operator-control cleanup pass.
 
@@ -17,7 +17,7 @@
 - The process environment confirmed:
   - `APP_MCP_ENABLED=false`
   - `SPEAKSWIFTLY_SPEECH_BACKEND=marvis`
-- Those settings narrow the stuck run to the HTTP queued-Marvis lane now housed in `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2EQueuedMarvisLane.swift`.
+- Those settings narrow the stuck run to the HTTP queued-Marvis lane now housed in `Tests/SpeakSwiftlyServerE2ETests/E2EQueuedMarvisLane.swift`.
 
 ## Confirmed Failure Signals
 

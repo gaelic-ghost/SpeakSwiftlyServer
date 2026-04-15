@@ -55,9 +55,9 @@ The `help` path now also has CI coverage so obvious executable-surface regressio
 The opt-in live E2E coverage now runs as three serialized suites so maintainers can isolate transport and runtime failures without burning time on one giant rerun:
 
 ```bash
-SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter SpeakSwiftlyServerE2EHTTPWorkflowEntryTests
-SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter SpeakSwiftlyServerE2EMCPWorkflowEntryTests
-SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter SpeakSwiftlyServerE2EControlSurfaceTests
+SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter HTTPWorkflowE2ETests
+SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter MCPWorkflowE2ETests
+SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter ControlE2ETests
 ```
 
 Run those commands one at a time. Add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` when you want the underlying playback trace logs too.

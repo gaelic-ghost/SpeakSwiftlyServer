@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Catalog Support
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     static func withEmbeddedMCPSurface(
         _ body: @Sendable (

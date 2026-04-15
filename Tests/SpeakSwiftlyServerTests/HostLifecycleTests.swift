@@ -151,7 +151,7 @@ import Testing
         services: [service],
         gracefulShutdownSignals: [],
         cancellationSignals: [],
-        logger: Logger(label: "SpeakSwiftlyServerTests.HostLifecycle")
+        logger: Logger(label: "ServerTests.HostLifecycle")
     )
 
     let runTask = Task {
@@ -234,7 +234,7 @@ import Testing
         services: [service],
         gracefulShutdownSignals: [],
         cancellationSignals: [],
-        logger: Logger(label: "SpeakSwiftlyServerTests.HostPrune")
+        logger: Logger(label: "ServerTests.HostPrune")
     )
 
     let runTask = Task {

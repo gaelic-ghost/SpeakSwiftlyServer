@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Validation Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func embeddedMCPRejectsUnsupportedFormatArgumentsClearly() async throws {
         let runtime = MockRuntime()

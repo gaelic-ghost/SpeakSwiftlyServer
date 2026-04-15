@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Relative Path End-to-End Lane
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func runRelativePathProfileAndCloneLane(using transport: E2ETransport) async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }

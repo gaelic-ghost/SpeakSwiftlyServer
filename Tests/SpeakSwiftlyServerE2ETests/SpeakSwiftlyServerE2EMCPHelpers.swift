@@ -3,7 +3,7 @@ import Testing
 
 // MARK: - MCP End-to-End Helpers
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func createVoiceDesignProfile(
         using client: E2EMCPClient,
         server: ServerProcess,

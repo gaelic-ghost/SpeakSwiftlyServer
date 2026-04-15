@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Catalog Runtime Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func embeddedMCPRoutesDriveSpeechRuntimeAndTextProfileTools() async throws {
         try await Self.withEmbeddedMCPSurface { runtime, _, mcpSurface, sessionID in

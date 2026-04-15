@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Subscription Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func embeddedMCPResourceSubscriptionsEmitUpdatedNotifications() async throws {
         let runtime = MockRuntime()

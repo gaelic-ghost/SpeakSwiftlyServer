@@ -5,7 +5,7 @@ import CoreAudio
 
 // MARK: - Audio Route End-to-End Helpers
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     #if canImport(CoreAudio)
     private struct E2EAudioOutputDevice: Sendable {
         let id: AudioDeviceID

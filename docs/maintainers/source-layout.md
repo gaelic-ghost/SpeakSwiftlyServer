@@ -42,17 +42,17 @@ This document is the maintainer map for the current `SpeakSwiftly 3.x`-aligned s
 
 ## Test Sources
 
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerHTTPWorkflowTests.swift`, `SpeakSwiftlyServerHTTPControlTests.swift`, and `SpeakSwiftlyServerHTTPFailureTests.swift`
+- `Tests/SpeakSwiftlyServerTests/HTTPWorkflowTests.swift`, `HTTPControlTests.swift`, and `HTTPFailureTests.swift`
   Keep lifecycle-heavy HTTP route coverage split by mainline flows, immediate control paths, and error handling.
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerMCPCatalogListingTests.swift`, `SpeakSwiftlyServerMCPCatalogRuntimeTests.swift`, `SpeakSwiftlyServerMCPCatalogResourceTests.swift`, and `SpeakSwiftlyServerMCPCatalogSupport.swift`
+- `Tests/SpeakSwiftlyServerTests/MCPCatalogListingTests.swift`, `MCPCatalogRuntimeTests.swift`, `MCPCatalogResourceTests.swift`, and `SpeakSwiftlyServerMCPCatalogSupport.swift`
   Keep MCP catalog, runtime-tool, and resource/prompt coverage separate so the tool surface can grow without another single giant catalog test.
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerMCPSessionTests.swift` and `SpeakSwiftlyServerMCPSubscriptionTests.swift`
+- `Tests/SpeakSwiftlyServerTests/MCPSessionTests.swift` and `MCPSubscriptionTests.swift`
   Keep MCP session behavior and live-subscription behavior independent from catalog assertions.
-- `Tests/SpeakSwiftlyServerTests/SpeakSwiftlyServerConfigurationTests.swift`, `SpeakSwiftlyServerHostLifecycleTests.swift`, and `SpeakSwiftlyServerHostStateTests.swift`
+- `Tests/SpeakSwiftlyServerTests/ConfigTests.swift`, `HostLifecycleTests.swift`, and `HostStateTests.swift`
   Keep configuration, lifecycle, and shared-state coverage independent instead of mixing them into one broad host suite.
 - `Tests/SpeakSwiftlyServerTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
   Keep the typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks.
-- `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2ESuite.swift` plus the `SpeakSwiftlyServerE2E*Lane.swift`, `SpeakSwiftlyServerE2E*Helpers.swift`, `SpeakSwiftlyServerE2EWorkflowEntryTests.swift`, and `SpeakSwiftlyServerE2E*ControlSurfaceTests.swift` files
+- `Tests/SpeakSwiftlyServerE2ETests/E2ESuite.swift` plus the `E2E*Lane.swift`, `SpeakSwiftlyServerE2E*Helpers.swift`, `E2EWorkflowEntryTests.swift`, and `E2E*ControlTests.swift` files
   Keep the live `HTTP Workflow Entry`, `MCP Workflow Entry`, and `Control Surfaces` suites separate so maintainers can rerun the smallest failing surface instead of one giant serialized pass.
 - `Tests/SpeakSwiftlyServerE2ETests/E2EHTTPClient.swift`, `E2EMCPClient.swift`, and `E2EMCPEventStream.swift`
   Keep the live HTTP transport, MCP request transport, and MCP SSE stream handling separate so transport bugs do not regrow one giant helper file.

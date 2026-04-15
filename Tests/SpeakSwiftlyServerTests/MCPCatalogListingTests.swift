@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - MCP Catalog Listing Tests
 
-extension SpeakSwiftlyServerTests {
+extension ServerTests {
     @available(macOS 14, *)
     @Test func embeddedMCPRoutesListToolsResourcesTemplatesAndPrompts() async throws {
         try await Self.withEmbeddedMCPSurface { _, _, mcpSurface, sessionID in

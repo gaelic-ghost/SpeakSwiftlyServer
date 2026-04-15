@@ -33,7 +33,7 @@ enum CloneTranscriptMode: Sendable {
     var providedTranscript: String? {
         switch self {
         case .provided:
-            SpeakSwiftlyServerE2ETests.testingCloneSourceText
+            ServerE2E.testingCloneSourceText
         case .inferred:
             nil
         }

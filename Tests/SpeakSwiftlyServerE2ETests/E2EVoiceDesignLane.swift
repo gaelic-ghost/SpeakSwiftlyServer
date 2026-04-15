@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - Voice Design End-to-End Lane
 
-extension SpeakSwiftlyServerE2ETests {
+extension ServerE2E {
     static func runVoiceDesignLane(using transport: E2ETransport) async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }

@@ -6,7 +6,7 @@ import Darwin
 
 // MARK: - MCP Playback Surface End-to-End Tests
 
-extension SpeakSwiftlyServerE2EControlSurfaceTests {
+extension ControlE2ETests {
     @Test func mcpPlaybackAndVoiceMutationControlsStayLiveAndAccurate() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }
