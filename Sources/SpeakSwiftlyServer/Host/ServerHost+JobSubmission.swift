@@ -127,10 +127,15 @@ extension ServerHost {
             submittedAt: Date()
         )
 
-        Task {
+        requestMonitorTasks[handle.id] = Task {
             await self.consume(handle: handle)
+            self.clearRequestMonitorTask(id: handle.id)
         }
         await requestPublish(mode: .coalesced, refreshRuntimeState: true)
         return handle.id
+    }
+
+    func clearRequestMonitorTask(id: String) {
+        requestMonitorTasks[id] = nil
     }
 }

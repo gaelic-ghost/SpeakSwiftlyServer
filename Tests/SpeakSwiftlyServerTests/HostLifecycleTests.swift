@@ -215,6 +215,31 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func hostShutdownCancelsTrackedRequestMonitorTasks() async throws {
+    let runtime = MockRuntime(speakBehavior: .holdOpen)
+    let state = await MainActor.run { ServerState() }
+    let host = ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: state
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    try await waitUntilReady(host)
+
+    _ = try await host.submitSpeak(text: "Keep this request open until shutdown", profileName: "default")
+    #expect(await host.requestMonitorTaskCount() == 1)
+
+    await host.shutdown()
+
+    let lifecycleCounts = await runtime.lifecycleCounts()
+    #expect(lifecycleCounts.shutdown == 1)
+    #expect(await host.requestMonitorTaskCount() == 0)
+}
+
+@available(macOS 14, *)
 @Test func hostPruneServiceCancelsOnGracefulShutdownAndMarksShutdownBarrier() async throws {
     let runtime = MockRuntime()
     let configuration = testConfiguration(jobPruneIntervalSeconds: 60)

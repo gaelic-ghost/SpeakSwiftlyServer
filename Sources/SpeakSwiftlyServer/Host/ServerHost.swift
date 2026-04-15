@@ -63,6 +63,7 @@ actor ServerHost {
 
     var statusTask: Task<Void, Never>?
     var publishTask: Task<Void, Never>?
+    var requestMonitorTasks = [String: Task<Void, Never>]()
     var workerMode = "starting"
     var workerStage = "starting"
     var startupError: String?
@@ -244,7 +245,15 @@ actor ServerHost {
 
     func shutdown() async {
         self.statusTask?.cancel()
+        let requestMonitorTasks = self.requestMonitorTasks
+        self.requestMonitorTasks.removeAll()
+        for task in requestMonitorTasks.values {
+            task.cancel()
+        }
         await runtime.shutdown()
+        for task in requestMonitorTasks.values {
+            await task.value
+        }
         self.workerMode = "stopped"
         self.workerStage = "stopped"
         if httpConfig.enabled {
@@ -261,6 +270,10 @@ actor ServerHost {
         coalescedPublishContinuation.finish()
         publishedStateContinuation.finish()
         hostEventContinuation.finish()
+    }
+
+    func requestMonitorTaskCount() -> Int {
+        requestMonitorTasks.count
     }
 
     func jobPruneInterval() -> Duration {
