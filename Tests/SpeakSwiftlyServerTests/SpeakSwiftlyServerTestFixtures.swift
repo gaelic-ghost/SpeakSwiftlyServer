@@ -59,7 +59,10 @@ func sampleProfile() -> SpeakSwiftly.ProfileSummary {
         vibe: .femme,
         createdAt: Date(timeIntervalSince1970: 1_700_000_000),
         voiceDescription: "Warm and clear",
-        sourceText: "A reference voice sample."
+        sourceText: "A reference voice sample.",
+        transcriptSource: nil,
+        transcriptResolvedAt: nil,
+        transcriptionModelRepo: nil
     )
 }
 

@@ -32,7 +32,10 @@ extension MockRuntime {
                     vibe: vibe,
                     createdAt: Date(),
                     voiceDescription: voiceDescription,
-                    sourceText: text
+                    sourceText: text,
+                    transcriptSource: nil,
+                    transcriptResolvedAt: nil,
+                    transcriptionModelRepo: nil
                 )
             )
         }
@@ -67,7 +70,10 @@ extension MockRuntime {
                     vibe: vibe,
                     createdAt: Date(),
                     voiceDescription: "Imported reference audio clone.",
-                    sourceText: transcript ?? "Imported clone transcript."
+                    sourceText: transcript ?? "Imported clone transcript.",
+                    transcriptSource: transcript == nil ? .inferred : .provided,
+                    transcriptResolvedAt: Date(),
+                    transcriptionModelRepo: nil
                 )
             )
         }
@@ -104,7 +110,10 @@ extension MockRuntime {
                     vibe: profile.vibe,
                     createdAt: profile.createdAt,
                     voiceDescription: profile.voiceDescription,
-                    sourceText: profile.sourceText
+                    sourceText: profile.sourceText,
+                    transcriptSource: profile.transcriptSource,
+                    transcriptResolvedAt: profile.transcriptResolvedAt,
+                    transcriptionModelRepo: profile.transcriptionModelRepo
                 )
             }
         }
