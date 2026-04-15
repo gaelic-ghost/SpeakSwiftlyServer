@@ -113,7 +113,7 @@ public final class EmbeddedServerSession: @unchecked Sendable {
             defaultProfile: .embeddedSession
         )
         let config = try configStore.loadAppConfig()
-        let host = await ServerHost.live(appConfig: config, state: state, environment: environment)
+        let host = await ServerHost.makeLive(appConfig: config, state: state, environment: environment)
         await MainActor.run {
             state.configureActions(
                 .init(
@@ -160,27 +160,26 @@ public final class EmbeddedServerSession: @unchecked Sendable {
             )
         }
         let mcpSurface = await MCPSurface.build(configuration: config.mcp, host: host)
+        let hostReadinessGate = EmbeddedLifecycleReadinessGate()
+        let mcpReadinessGate = mcpSurface.map { _ in EmbeddedLifecycleReadinessGate() }
+        let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(
+            targetCount: 1 + (mcpSurface == nil ? 0 : 1)
+        )
         let app = assembleHBApp(
             configuration: config.http,
             host: host,
             mcpSurface: mcpSurface,
-            services: configStore.services
-        )
-
-        let configWatchTask = Task {
-            do {
-                for try await update in configStore.updates() {
-                    switch update {
-                    case .reloaded(let updatedConfig):
-                        await host.applyConfigurationUpdate(updatedConfig)
-                    case .rejected(let message):
-                        await host.markConfigurationReloadRejected(message)
+            beforeServerStarts: [
+                {
+                    try await hostReadinessGate.waitUntilReady()
+                },
+                {
+                    if let mcpReadinessGate {
+                        try await mcpReadinessGate.waitUntilReady()
                     }
-                }
-            } catch {
-                await host.markConfigurationWatchFailed(error)
-            }
-        }
+                },
+            ]
+        )
 
         if config.http.enabled {
             await host.markTransportStarting(name: "http")
@@ -189,19 +188,46 @@ public final class EmbeddedServerSession: @unchecked Sendable {
             await host.markTransportStarting(name: "mcp")
         }
 
+        var services = configStore.services
+        services.append(
+            HostLifecycleService(
+                host: host,
+                readinessGate: hostReadinessGate,
+                shutdownBarrier: shutdownBarrier
+            )
+        )
+        if !configStore.services.isEmpty {
+            services.append(
+                ConfigWatchService(
+                    configStore: configStore,
+                    host: host
+                )
+            )
+        }
+        if let mcpSurface, let mcpReadinessGate {
+            services.append(
+                MCPLifecycleService(
+                    surface: mcpSurface,
+                    readinessGate: mcpReadinessGate,
+                    shutdownBarrier: shutdownBarrier
+                )
+            )
+        }
+        services.append(
+            EmbeddedApplicationService(
+                application: app,
+                shutdownBarrier: shutdownBarrier
+            )
+        )
+
         let serviceGroup = ServiceGroup(
-            services: [app],
+            services: services,
             gracefulShutdownSignals: [],
             cancellationSignals: [],
             logger: app.logger
         )
         let runTask = Task<Void, Error> {
-            var thrownError: (any Error)?
-
             do {
-                if let mcpSurface {
-                    try await mcpSurface.start()
-                }
                 try await serviceGroup.run()
                 if config.http.enabled {
                     await host.markTransportStopped(name: "http")
@@ -217,23 +243,12 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                 if config.mcp.enabled {
                     await host.markTransportFailed(name: "mcp", message: message)
                 }
-                thrownError = error
-            }
-
-            configWatchTask.cancel()
-            if let mcpSurface {
-                await mcpSurface.stop()
-            }
-            await host.shutdown()
-
-            if let thrownError {
-                throw thrownError
+                throw error
             }
         }
 
         return LifecycleHooks(
             requestStop: {
-                configWatchTask.cancel()
                 await serviceGroup.triggerGracefulShutdown()
             },
             waitUntilStopped: {

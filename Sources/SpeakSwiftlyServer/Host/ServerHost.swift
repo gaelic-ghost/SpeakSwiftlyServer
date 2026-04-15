@@ -106,7 +106,7 @@ actor ServerHost {
 
     // MARK: - Construction
 
-    static func live(
+    static func makeLive(
         appConfig: AppConfig,
         state: ServerState,
         environment: [String: String] = ProcessInfo.processInfo.environment
@@ -131,7 +131,6 @@ actor ServerHost {
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
             state: state
         )
-        await host.start()
         return host
     }
 

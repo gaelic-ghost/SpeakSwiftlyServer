@@ -150,6 +150,7 @@ Current note: the embedded-session path now has the clearest app-facing read mod
 
 Current note: these are intentionally deferred adoption candidates from the broader `SpeakSwiftly 3.x` runtime surface. They are worth revisiting after the current release ships, but they are not required to make the present server release coherent.
 
+- [ ] Refactor the embedded-session lifecycle around explicit `Service`-shaped host, config-watch, and MCP services owned by one outer `ServiceGroup`, as outlined in `docs/maintainers/embedded-service-lifecycle-plan.md`.
 - [ ] Decide whether the runtime's request-update and generation-event stream surfaces should gain first-class HTTP and MCP exposure, or whether the retained request snapshots remain the cleaner operator contract.
 - [ ] Revisit whether text-profile persistence state, repair, and storage diagnostics need a more explicit operator-facing surface than the current snapshot plus load/save controls.
 - [ ] Decide whether any newer voice-profile maintenance operations beyond create, clone, list, rename, reroll, and delete belong in the public server contract or should stay library-only until a downstream operator use case is concrete.

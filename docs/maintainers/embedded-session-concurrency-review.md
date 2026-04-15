@@ -122,7 +122,7 @@ move bootstrap work off the main actor.
 
 ### Could we broaden ServiceLifecycle usage later?
 
-Possibly, but it should be a separate design decision.
+Yes, but it should be a separate design decision.
 
 The most plausible future broadening would be to make some package-owned long-running components
 more explicitly `Service`-shaped, such as:
@@ -134,17 +134,21 @@ more explicitly `Service`-shaped, such as:
 That could make composition cleaner if the embedded library surface grows more long-running owned
 subsystems.
 
+That follow-on decision is now recorded in:
+
+- `docs/maintainers/embedded-service-lifecycle-plan.md`
+
 ### Recommendation
 
-For this release-facing pass:
+For the release-facing concurrency pass, fixing `EmbeddedServerSession` isolation directly was the
+right first move.
 
-- keep the current `ServiceGroup` usage
-- fix main-actor isolation directly in `EmbeddedServerSession`
-- do **not** introduce a new library-level `Service` architecture pivot just to solve startup
-  responsiveness
+For the follow-on composition pass, the package now has a recorded plan to:
 
-Treat broader `ServiceLifecycle` adoption as a future composition cleanup only if the library grows
-enough independent long-running subsystems to earn that abstraction.
+- keep one outer embedded-session `ServiceGroup`
+- promote host lifecycle, config watching, and MCP readiness into explicit `Service`-shaped
+  components
+- keep `ServerState` as the app-facing `@MainActor` projection instead of treating it as a service
 
 ## Checklist
 
@@ -152,5 +156,5 @@ enough independent long-running subsystems to earn that abstraction.
 - [x] Move embedded bootstrap work off the main actor while keeping `ServerState` main-actor-owned.
 - [x] Remove unnecessary `@MainActor` coupling from lifecycle hooks.
 - [x] Narrow the action-plumbing isolation so host work is not modeled as UI-owned.
-- [ ] Decide later whether additional library-internal `ServiceLifecycle` adoption is warranted for
-      composition, not for basic embedded startup correctness.
+- [x] Record the follow-on `ServiceLifecycle` composition plan for host, config-watch, and MCP
+      lifecycle cleanup in `docs/maintainers/embedded-service-lifecycle-plan.md`.

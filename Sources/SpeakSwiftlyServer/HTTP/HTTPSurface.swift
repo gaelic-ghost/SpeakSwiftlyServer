@@ -8,7 +8,8 @@ func assembleHBApp(
     configuration: HTTPConfig,
     host: ServerHost,
     mcpSurface: MCPSurface? = nil,
-    services: [any Service] = []
+    services: [any Service] = [],
+    beforeServerStarts startupProcesses: [@Sendable () async throws -> Void] = []
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
     if configuration.enabled {
@@ -16,7 +17,7 @@ func assembleHBApp(
     }
     mcpSurface?.mount(on: router)
 
-    return Application(
+    var app = Application(
         router: router,
         configuration: .init(address: .hostname(configuration.host, port: configuration.port)),
         services: services,
@@ -29,6 +30,12 @@ func assembleHBApp(
             }
         }
     )
+
+    for startupProcess in startupProcesses {
+        app.beforeServerStarts(perform: startupProcess)
+    }
+
+    return app
 }
 
 // MARK: - Route Registration
