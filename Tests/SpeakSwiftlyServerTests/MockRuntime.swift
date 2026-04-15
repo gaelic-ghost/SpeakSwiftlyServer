@@ -108,12 +108,15 @@ actor MockRuntime: ServerRuntimeProtocol {
         self.speakBehavior = speakBehavior
         self.mutationRefreshBehavior = mutationRefreshBehavior
         self.startBehavior = startBehavior
-        textRuntimePersistenceURL = FileManager.default
+        let persistenceURL = FileManager.default
             .temporaryDirectory
             .appendingPathComponent("ServerTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("json")
-        textRuntime = try! TextForSpeech.Runtime(persistence: .file(textRuntimePersistenceURL))
+        textRuntimePersistenceURL = persistenceURL
+        textRuntime = requireFixture("MockRuntime text runtime bootstrap") {
+            try TextForSpeech.Runtime(persistence: .file(persistenceURL))
+        }
     }
 
     func start() async {

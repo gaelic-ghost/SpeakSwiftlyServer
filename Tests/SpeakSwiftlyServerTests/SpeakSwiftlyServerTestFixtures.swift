@@ -228,6 +228,17 @@ func fixtureDecode<T: Decodable>(_ payload: some Encodable, as type: T.Type) thr
     return try decoder.decode(type, from: encoder.encode(payload))
 }
 
+func requireFixture<T>(
+    _ description: String,
+    _ build: () throws -> T,
+) -> T {
+    do {
+        return try build()
+    } catch {
+        fatalError("The test fixture builder for \(description) failed unexpectedly: \(error)")
+    }
+}
+
 func makeGeneratedFile(
     artifactID: String,
     createdAt: Date,

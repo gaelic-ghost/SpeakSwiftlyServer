@@ -182,42 +182,44 @@ extension MockRuntime {
         }
 
         let current = generationJobs[index]
-        generationJobs[index] = try! makeGenerationJob(
-            jobID: current.jobID,
-            jobKind: current.jobKind.rawValue,
-            createdAt: current.createdAt,
-            updatedAt: Date(),
-            profileName: current.profileName,
-            textProfileName: current.textProfileName,
-            speechBackend: current.speechBackend.rawValue,
-            state: "expired",
-            items: current.items.map {
-                GenerationJobItemFixture(
-                    artifactID: $0.artifactID,
-                    text: $0.text,
-                    textProfileName: $0.textProfileName,
-                    textContext: $0.textContext,
-                    sourceFormat: $0.sourceFormat,
-                )
-            },
-            artifacts: current.artifacts.map {
-                GenerationArtifactFixture(
-                    artifactID: $0.artifactID,
-                    kind: $0.kind.rawValue,
-                    createdAt: $0.createdAt,
-                    filePath: $0.filePath,
-                    sampleRate: $0.sampleRate,
-                    profileName: $0.profileName,
-                    textProfileName: $0.textProfileName,
-                )
-            },
-            failure: current.failure.map { .init(code: $0.code, message: $0.message) },
-            startedAt: current.startedAt,
-            completedAt: current.completedAt,
-            failedAt: current.failedAt,
-            expiresAt: current.expiresAt,
-            retentionPolicy: current.retentionPolicy.rawValue,
-        )
+        generationJobs[index] = requireFixture("expired generation job '\(current.jobID)'") {
+            try makeGenerationJob(
+                jobID: current.jobID,
+                jobKind: current.jobKind.rawValue,
+                createdAt: current.createdAt,
+                updatedAt: Date(),
+                profileName: current.profileName,
+                textProfileName: current.textProfileName,
+                speechBackend: current.speechBackend.rawValue,
+                state: "expired",
+                items: current.items.map {
+                    GenerationJobItemFixture(
+                        artifactID: $0.artifactID,
+                        text: $0.text,
+                        textProfileName: $0.textProfileName,
+                        textContext: $0.textContext,
+                        sourceFormat: $0.sourceFormat,
+                    )
+                },
+                artifacts: current.artifacts.map {
+                    GenerationArtifactFixture(
+                        artifactID: $0.artifactID,
+                        kind: $0.kind.rawValue,
+                        createdAt: $0.createdAt,
+                        filePath: $0.filePath,
+                        sampleRate: $0.sampleRate,
+                        profileName: $0.profileName,
+                        textProfileName: $0.textProfileName,
+                    )
+                },
+                failure: current.failure.map { .init(code: $0.code, message: $0.message) },
+                startedAt: current.startedAt,
+                completedAt: current.completedAt,
+                failedAt: current.failedAt,
+                expiresAt: current.expiresAt,
+                retentionPolicy: current.retentionPolicy.rawValue,
+            )
+        }
         let expiredJob = generationJobs[index]
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generationJob: expiredJob, activeRequests: nil)))

@@ -124,13 +124,13 @@ extension ServerHost {
                 activeRequests: playbackStatus.activeRequest.map { [$0] } ?? [],
                 queuedRequests: playbackQueueStatus.queuedRequests,
             )
-        } else if expectedState == .playing, playbackStatus.activeRequest != nil {
+        } else if expectedState == .playing, let activeRequest = playbackStatus.activeRequest {
             playbackQueueStatus = .init(
                 queueType: playbackQueueStatus.queueType,
                 activeCount: 1,
                 queuedCount: playbackQueueStatus.queuedCount,
-                activeRequest: playbackStatus.activeRequest,
-                activeRequests: [playbackStatus.activeRequest!],
+                activeRequest: activeRequest,
+                activeRequests: [activeRequest],
                 queuedRequests: playbackQueueStatus.queuedRequests,
             )
         }
