@@ -1,0 +1,15 @@
+interface:
+  display_name: "SpeakSwiftly Voices"
+  short_description: "Create voices and generate spoken output."
+  default_prompt: "Use $speak-swiftly-voice-workflows to create or choose a SpeakSwiftly voice profile and generate speech."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "speak_swiftly"
+      description: "Local SpeakSwiftlyServer MCP surface for voice profiles, live playback, and retained generation artifacts."
+      transport: "streamable_http"
+      url: "http://127.0.0.1:7337/mcp"
+
+policy:
+  allow_implicit_invocation: true
