@@ -7,6 +7,7 @@ Swift executable package for a shared localhost host process that exposes the pu
 - [Overview](#overview)
 - [Setup](#setup)
 - [Usage](#usage)
+- [Codex Plugin](#codex-plugin)
 - [Embedding](#embedding)
 - [Configuration](#configuration)
 - [Contributing](#contributing)
@@ -221,6 +222,19 @@ let layout = ServerInstallLayout.defaultForCurrentUser()
 print(layout.standardErrorLogURL.path)
 print(layout.runtimeProfileRootURL.path)
 ```
+
+## Codex Plugin
+
+This repository is also packaged as a repo-local Codex plugin through [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json). The plugin points at the checked-in [`.mcp.json`](./.mcp.json) connection for the local `speak_swiftly` MCP server and the tracked [skills](./skills/) bundle that teaches Codex how to use the surface intentionally.
+
+The first plugin pass currently ships four focused skills:
+
+- [`speak-swiftly-mcp`](./skills/speak-swiftly-mcp/SKILL.md) for broad MCP orientation and workflow selection
+- [`speak-swiftly-runtime-operator`](./skills/speak-swiftly-runtime-operator/SKILL.md) for runtime state, playback, queue, and request control
+- [`speak-swiftly-voice-workflows`](./skills/speak-swiftly-voice-workflows/SKILL.md) for voice profiles, live speech, and retained artifacts
+- [`speak-swiftly-text-profiles`](./skills/speak-swiftly-text-profiles/SKILL.md) for normalization styles, stored profiles, and replacement editing
+
+The repo-local marketplace advertisement lives in [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json). That entry intentionally points at the repository root so this checkout itself can be discovered and installed as one local plugin instead of forcing a second nested plugin copy inside the repo.
 
 The package also now exposes [`ServerInstalledLogs`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/AppManagedInstallLayout.swift), which lets the app read the owned stdout and stderr files as plain text, line arrays, or decodable JSON-line payloads:
 

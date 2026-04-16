@@ -1,7 +1,7 @@
 {
   "name": "speak-swiftly-server",
-  "version": "2.0.4",
-  "description": "Local Codex plugin packaging for the SpeakSwiftlyServer MCP surface and repo-shared skills.",
+  "version": "2.1.0",
+  "description": "Repo-local Codex plugin for the SpeakSwiftlyServer MCP surface, focused operator skills, and shared local MCP configuration.",
   "author": {
     "name": "Gale",
     "email": "mail@galewilliams.com",
@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "SpeakSwiftlyServer",
     "shortDescription": "Local speech and playback workflows for Codex.",
-    "longDescription": "Repo-root Codex plugin for the local SpeakSwiftlyServer MCP surface, plus repo-shared skills and future app surfaces.",
+    "longDescription": "Repo-local Codex plugin for the SpeakSwiftlyServer MCP surface, including focused skills for runtime operation, voice workflows, and text-profile authoring.",
     "developerName": "Gale",
     "category": "Productivity",
     "capabilities": [
@@ -32,9 +32,9 @@
     ],
     "websiteURL": "https://github.com/gaelic-ghost/SpeakSwiftlyServer",
     "defaultPrompt": [
-      "Read this reply aloud through SpeakSwiftly.",
-      "Inspect the local SpeakSwiftly runtime state.",
-      "Create and manage SpeakSwiftly text profiles."
+      "Use SpeakSwiftly to read this reply aloud.",
+      "Inspect the local SpeakSwiftly runtime and queue state.",
+      "Create or edit a SpeakSwiftly text profile."
     ]
   }
 }

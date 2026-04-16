@@ -1,0 +1,15 @@
+interface:
+  display_name: "SpeakSwiftly Runtime"
+  short_description: "Operate runtime, queue, playback, and requests."
+  default_prompt: "Use $speak-swiftly-runtime-operator to inspect the local SpeakSwiftly runtime and control playback or queued work."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "speak_swiftly"
+      description: "Local SpeakSwiftlyServer MCP surface for runtime state, queue inspection, and control actions."
+      transport: "streamable_http"
+      url: "http://127.0.0.1:7337/mcp"
+
+policy:
+  allow_implicit_invocation: true

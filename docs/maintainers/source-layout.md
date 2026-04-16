@@ -61,6 +61,21 @@ This document is the maintainer map for the current `SpeakSwiftly 3.x`-aligned s
 - `Tests/SpeakSwiftlyServerE2ETests/SpeakSwiftlyServerE2EAudioRouteHelpers.swift`
   Keeps audible-suite-only CoreAudio route stabilization out of the request and lane helpers so the machine-level workaround stays obvious and isolated.
 
+## Plugin And Skill Sources
+
+- `.codex-plugin/plugin.json`
+  Holds the repo-root Codex plugin manifest for this checkout, including the tracked skill and MCP config paths.
+- `.agents/plugins/marketplace.json`
+  Holds the repo-local marketplace advertisement that lets this repository surface as an installable local Codex plugin.
+- `skills/speak-swiftly-mcp/`
+  Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
+- `skills/speak-swiftly-runtime-operator/`
+  Holds the runtime, queue, playback, and request-control skill.
+- `skills/speak-swiftly-voice-workflows/`
+  Holds the voice-profile, live-speech, and retained-artifact skill.
+- `skills/speak-swiftly-text-profiles/`
+  Holds the text-normalization, stored-profile, and replacement-authoring skill.
+
 ## Current Cleanup Follow-Through
 
 - Keep same-type `ServerHost` extensions as the preferred split mechanism for host refactors. Do not introduce helper coordinators or wrapper objects unless a real ownership boundary changes.

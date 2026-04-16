@@ -1,0 +1,15 @@
+interface:
+  display_name: "SpeakSwiftly Text Profiles"
+  short_description: "Shape text normalization before speech generation."
+  default_prompt: "Use $speak-swiftly-text-profiles to inspect or edit SpeakSwiftly text normalization rules."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "speak_swiftly"
+      description: "Local SpeakSwiftlyServer MCP surface for text-profile snapshots, replacement editing, and persistence."
+      transport: "streamable_http"
+      url: "http://127.0.0.1:7337/mcp"
+
+policy:
+  allow_implicit_invocation: true

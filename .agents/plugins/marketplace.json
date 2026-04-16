@@ -1,7 +1,20 @@
 {
-  "name": "local-repo",
+  "name": "speak-swiftly-server-local",
   "interface": {
-    "displayName": "Local Repo"
+    "displayName": "SpeakSwiftlyServer Local Plugins"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "speak-swiftly-server",
+      "source": {
+        "source": "local",
+        "path": "."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
 }
