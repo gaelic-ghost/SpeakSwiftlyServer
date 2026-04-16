@@ -19,6 +19,7 @@ Start with [AGENTS.md](AGENTS.md) for the repo's package, architecture, and mono
 - [README.md](README.md) is the operator-facing entrypoint.
 - [API.md](API.md) is the detailed HTTP and MCP contract reference.
 - [docs/maintainers/source-layout.md](docs/maintainers/source-layout.md) is the maintainer map for the current source split.
+- [docs/maintainers/release-workflow.md](docs/maintainers/release-workflow.md) is the maintainer release contract for feature branches, worktrees, and the final publish step on `main`.
 - [docs/maintainers/docc-spi-hosting-plan.md](docs/maintainers/docc-spi-hosting-plan.md) tracks the first DocC pass and the SPI-hosted documentation plan.
 - [ROADMAP.md](ROADMAP.md) tracks planned work and release-gate follow-through.
 
@@ -100,17 +101,18 @@ For the current split of host, HTTP, MCP, model, and test files, use [docs/maint
 
 ## Release Workflow
 
-Use the repo-maintenance toolkit for the tagged release path:
+Use the repo-maintenance toolkit's release split intentionally:
 
 ```bash
-scripts/repo-maintenance/release.sh
+scripts/repo-maintenance/release-prepare.sh --version vX.Y.Z
+scripts/repo-maintenance/release-publish.sh --version vX.Y.Z --skip-live-service-refresh
 ```
 
-That path builds `SpeakSwiftlyServerTool` in `release` mode, stages the binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, copies the adjacent `Resources/default.metallib` into that staged artifact directory, and refreshes `.release-artifacts/current` to the tagged build. The live LaunchAgent install path is expected to consume that staged release artifact by default.
+Use `release-prepare.sh` from a feature branch or worktree when the job is "push this release candidate, open or update the PR, and queue auto-merge." Use `release-publish.sh` from local `main` after that PR merges when the job is "cut the actual tag and GitHub release." The compatibility wrapper `release.sh` now defaults to the publish path and refuses to run from a non-release branch.
 
-The same release flow now also refreshes the live per-user LaunchAgent-backed service by default with `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` after the tagged artifact is staged and the release push succeeds. Use `--skip-live-service-refresh` when you need a tag-only or artifact-only release pass, or `--live-service-config-file /absolute/path/to/server.yaml` when the live service should be refreshed against a different config file.
+The publish path builds `SpeakSwiftlyServerTool` in `release` mode, stages the binary under `.release-artifacts/<tag>/SpeakSwiftlyServerTool`, copies the adjacent `Resources/default.metallib` into that staged artifact directory, refreshes `.release-artifacts/current` to the tagged build, tags `HEAD`, pushes the tag, creates the GitHub release, and can refresh the live per-user LaunchAgent-backed service by default with `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`. Use `--skip-live-service-refresh` when you need a tag-only or artifact-only release pass, or `--live-service-config-file /absolute/path/to/server.yaml` when the live service should be refreshed against a different config file.
 
-For the current patch release target and the first Swift Package Index submission pass, use [docs/maintainers/v3.1.1-release-and-spi-checklist.md](docs/maintainers/v3.1.1-release-and-spi-checklist.md) instead of reconstructing that flow from memory.
+For the current release contract, use [docs/maintainers/release-workflow.md](docs/maintainers/release-workflow.md). For the historical patch release target and the first Swift Package Index submission pass, use [docs/maintainers/v3.1.1-release-and-spi-checklist.md](docs/maintainers/v3.1.1-release-and-spi-checklist.md) instead of reconstructing that older flow from memory.
 
 ## Monorepo And Submodule Handoff
 

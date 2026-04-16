@@ -8,6 +8,8 @@ for required in \
   "$REPO_MAINTENANCE_ROOT/validate-all.sh" \
   "$REPO_MAINTENANCE_ROOT/sync-shared.sh" \
   "$REPO_MAINTENANCE_ROOT/release.sh" \
+  "$REPO_MAINTENANCE_ROOT/release-prepare.sh" \
+  "$REPO_MAINTENANCE_ROOT/release-publish.sh" \
   "$REPO_MAINTENANCE_ROOT/lib/common.sh"
 do
   [ -f "$required" ] || die "The repo-maintenance toolkit is missing the required file $required."

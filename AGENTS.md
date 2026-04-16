@@ -11,13 +11,17 @@
 - Treat `Package.swift` as the source of truth for package structure, products, targets, dependencies, resources, and deployment targets.
 - Prefer `swift package` subcommands for structural edits when SwiftPM already exposes the right operation.
 - Keep package graph changes together in one pass, including `Package.swift`, `Package.resolved`, target layout, and any matching docs or tests.
-- Use `scripts/repo-maintenance/validate-all.sh` for maintainer validation, `scripts/repo-maintenance/sync-shared.sh` for repo-local sync steps, and `scripts/repo-maintenance/release.sh` for releases.
+- Use `scripts/repo-maintenance/validate-all.sh` for maintainer validation, `scripts/repo-maintenance/sync-shared.sh` for repo-local sync steps, `scripts/repo-maintenance/release-prepare.sh` for branch or worktree release prep, and `scripts/repo-maintenance/release-publish.sh` for the final release cut from the release branch. `scripts/repo-maintenance/release.sh` remains the compatibility dispatcher.
 - Keep package resources under the owning target tree and load them through `Bundle.module`.
 - Treat tagged releases as the distribution surface for this repository, especially when the staged LaunchAgent artifact path changes.
 
 ## Repo Workflow
 
 - Treat this standalone `SpeakSwiftlyServer` repository as the source of truth for development, tags, and releases.
+- Treat `main` as the release branch for this repository unless a future repo-local change says otherwise.
+- Use `scripts/repo-maintenance/release-prepare.sh` from feature branches and worktrees when the job is to validate a release candidate, push the branch, open or update the pull request, and queue auto-merge.
+- Use `scripts/repo-maintenance/release-publish.sh` only from local `main` after the release PR has merged when the job is to cut the annotated tag and GitHub release.
+- Do not publish release tags or GitHub releases directly from a feature branch or feature worktree in this repository.
 - Treat the resolved `SpeakSwiftly` dependency declared in `Package.swift` and locked in `Package.resolved` as the source of truth for normal `xcrun swift build` and `xcrun swift test` runs here.
 - Do not retarget this package to a local `../SpeakSwiftly` checkout unless the manifest is being changed intentionally for a specific local-integration task.
 - If unreleased `SpeakSwiftly` changes are needed here, prefer stabilizing and tagging them in `SpeakSwiftly` first, then update this repository to that release instead of integrating against half-finished sibling checkout work.

@@ -408,13 +408,15 @@ If you are integrating against the server rather than just running it locally, u
 
 Use [CONTRIBUTING.md](CONTRIBUTING.md) for the maintainer workflow, validation path, live end-to-end coverage, release flow, and monorepo handoff rules.
 
+The maintainer release contract is now intentionally split by checkout context: use `scripts/repo-maintenance/release-prepare.sh` from a feature branch or worktree when the job is "push this release candidate, open or update the PR, and queue auto-merge," then use `scripts/repo-maintenance/release-publish.sh` from local `main` after the PR merges when the job is "cut the actual tag and GitHub release." The current details live in [docs/maintainers/release-workflow.md](docs/maintainers/release-workflow.md).
+
 ## Development
 
 The shared runtime entrypoint lives in [`Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.swift) inside the `SpeakSwiftlyServer` module, with a thin executable wrapper in [`Sources/SpeakSwiftlyServerTool/SpeakSwiftlyServerToolMain.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Sources/SpeakSwiftlyServerTool/SpeakSwiftlyServerToolMain.swift) for the unified `SpeakSwiftlyServerTool` executable target.
 
 The design stays deliberately direct. The service talks to the public `SpeakSwiftly.Runtime` surface, its public text normalizer, and its public event and summary types instead of reaching through the library boundary to construct raw worker requests itself.
 
-For the maintainer workflow, source split, and release path, use [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/maintainers/source-layout.md](docs/maintainers/source-layout.md).
+For the maintainer workflow, source split, and release path, use [CONTRIBUTING.md](CONTRIBUTING.md), [docs/maintainers/source-layout.md](docs/maintainers/source-layout.md), and [docs/maintainers/release-workflow.md](docs/maintainers/release-workflow.md).
 
 ## Repository Layout
 

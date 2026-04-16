@@ -38,6 +38,86 @@ ensure_git_repo() {
   git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "The repo-maintenance toolkit must run inside a git worktree rooted at $REPO_ROOT."
 }
 
+release_remote() {
+  printf '%s\n' "${REPO_MAINTENANCE_DEFAULT_RELEASE_REMOTE:-origin}"
+}
+
+release_branch() {
+  printf '%s\n' "${REPO_MAINTENANCE_DEFAULT_RELEASE_BRANCH:-main}"
+}
+
+current_branch() {
+  git -C "$REPO_ROOT" symbolic-ref --quiet --short HEAD || true
+}
+
+ensure_named_branch() {
+  branch_name="$(current_branch)"
+  [ -n "$branch_name" ] || die "Release workflow requires a named branch instead of detached HEAD."
+  printf '%s\n' "$branch_name"
+}
+
+ensure_clean_worktree() {
+  status_output="$(git -C "$REPO_ROOT" status --porcelain)"
+  [ -z "$status_output" ] || die "Release workflow requires a clean worktree before continuing."
+}
+
+ensure_release_tag_format() {
+  case "${RELEASE_TAG:-}" in
+    v[0-9]*.[0-9]*.[0-9]*|v[0-9]*.[0-9]*.[0-9]*-*)
+      ;;
+    *)
+      die "Release tag must use vX.Y.Z SemVer syntax."
+      ;;
+  esac
+}
+
+ensure_on_release_branch() {
+  branch_name="$(ensure_named_branch)"
+  expected_branch="$(release_branch)"
+  [ "$branch_name" = "$expected_branch" ] || die "Release publish must run from $expected_branch. Current branch is $branch_name."
+}
+
+ensure_not_on_release_branch() {
+  branch_name="$(ensure_named_branch)"
+  protected_branch="$(release_branch)"
+  [ "$branch_name" != "$protected_branch" ] || die "Release prepare must run from a feature branch or worktree, not from $protected_branch. Use release-publish.sh instead."
+}
+
+ensure_gh_cli() {
+  command -v gh >/dev/null 2>&1 || die "This workflow requires the GitHub CLI (`gh`) to be installed and authenticated."
+}
+
+sync_local_release_branch() {
+  remote_name="$(release_remote)"
+  branch_name="$(release_branch)"
+
+  git -C "$REPO_ROOT" fetch "$remote_name" "$branch_name"
+
+  local_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  remote_sha="$(git -C "$REPO_ROOT" rev-parse "$remote_name/$branch_name")"
+
+  if [ "$local_sha" = "$remote_sha" ]; then
+    log "Local $branch_name already matches $remote_name/$branch_name."
+    return 0
+  fi
+
+  if git -C "$REPO_ROOT" merge-base --is-ancestor "$local_sha" "$remote_sha"; then
+    if [ "${REPO_MAINTENANCE_DRY_RUN:-false}" = "true" ]; then
+      log "Would fast-forward local $branch_name to $remote_name/$branch_name."
+    else
+      git -C "$REPO_ROOT" pull --ff-only "$remote_name" "$branch_name"
+      log "Fast-forwarded local $branch_name to $remote_name/$branch_name."
+    fi
+    return 0
+  fi
+
+  if git -C "$REPO_ROOT" merge-base --is-ancestor "$remote_sha" "$local_sha"; then
+    die "Local $branch_name has commits that are not on $remote_name/$branch_name. Push or reconcile that branch before publishing a release."
+  fi
+
+  die "Local $branch_name and $remote_name/$branch_name have diverged. Reconcile them before publishing a release."
+}
+
 swiftpm() {
   if command -v xcrun >/dev/null 2>&1; then
     xcrun swift "$@"
@@ -71,6 +151,42 @@ find_speak_swiftly_metallib() {
   runtime_metallib_path="$(rebase_speak_swiftly_runtime_path "$metadata_path" "$runtime_metallib_path")"
   [ -f "$runtime_metallib_path" ] || die "SpeakSwiftly runtime metadata at $metadata_path pointed at a missing metallib path: $runtime_metallib_path"
   printf '%s\n' "$runtime_metallib_path"
+}
+
+stage_release_artifact() {
+  artifact_root="$(release_artifacts_root)"
+  tag_dir="$(release_artifact_tag_dir)"
+  current_link="$(release_artifact_current_dir)"
+
+  if [ "${REPO_MAINTENANCE_DRY_RUN:-false}" = "true" ]; then
+    log "Would build SpeakSwiftlyServerTool in release mode and stage it under $tag_dir."
+    log "Would refresh $current_link to point at $RELEASE_TAG."
+    return 0
+  fi
+
+  log "Building SpeakSwiftlyServerTool in release mode."
+  swiftpm build -c release --product SpeakSwiftlyServerTool
+
+  bin_path="$(swiftpm build -c release --show-bin-path)"
+  source_tool="$bin_path/SpeakSwiftlyServerTool"
+  [ -f "$source_tool" ] || die "Release build completed, but the expected tool executable was not found at $source_tool."
+  [ -x "$source_tool" ] || die "Release build completed, but $source_tool is not executable."
+  source_metallib="$(find_speak_swiftly_metallib)"
+
+  mkdir -p "$tag_dir"
+  cp "$source_tool" "$tag_dir/SpeakSwiftlyServerTool"
+  chmod 755 "$tag_dir/SpeakSwiftlyServerTool"
+  resources_dir="$(release_artifact_resources_dir "$tag_dir")"
+  mkdir -p "$resources_dir"
+  cp "$source_metallib" "$resources_dir/default.metallib"
+
+  mkdir -p "$artifact_root"
+  rm -f "$current_link"
+  ln -s "$RELEASE_TAG" "$current_link"
+
+  log "Staged release artifact at $tag_dir/SpeakSwiftlyServerTool."
+  log "Staged metallib resource at $resources_dir/default.metallib."
+  log "Updated current release artifact link at $current_link."
 }
 
 speak_swiftly_runtime_root() {
