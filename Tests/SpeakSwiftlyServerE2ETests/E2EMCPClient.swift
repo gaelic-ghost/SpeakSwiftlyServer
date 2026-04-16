@@ -191,6 +191,7 @@ private extension E2EMCPClient {
     ) async throws -> E2EHTTPResponse {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = "POST"
+        request.timeoutInterval = 120
         request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")

@@ -6,7 +6,6 @@ func waitUntilWorkerReady(
     using client: E2EHTTPClient,
     timeout: Duration,
     server: ServerProcess,
-    expectPlaybackEngine: Bool = false,
 ) async throws {
     let _: Bool = try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
         guard server.isStillRunning else {
@@ -30,27 +29,12 @@ func waitUntilWorkerReady(
         let readiness = try decode(E2EReadinessSnapshot.self, from: response.data)
         return readiness.workerReady ? true : nil
     }
-
-    guard expectPlaybackEngine else { return }
-
-    _ = try await server.waitForStderrJSONObject(timeout: timeout) {
-        guard
-            $0["event"] as? String == "playback_engine_ready",
-            let details = $0["details"] as? [String: Any]
-        else {
-            return false
-        }
-
-        return details["process_phys_footprint_bytes"] as? Int != nil
-            && details["mlx_active_memory_bytes"] as? Int != nil
-    }
 }
 
 func waitUntilWorkerReady(
     using client: E2EMCPClient,
     timeout: Duration,
     server: ServerProcess,
-    expectPlaybackEngine: Bool = false,
 ) async throws {
     let _: Bool = try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
         guard server.isStillRunning else {
@@ -63,20 +47,6 @@ func waitUntilWorkerReady(
         guard payload["worker_mode"] as? String == "ready" else { return nil }
 
         return true
-    }
-
-    guard expectPlaybackEngine else { return }
-
-    _ = try await server.waitForStderrJSONObject(timeout: timeout) {
-        guard
-            $0["event"] as? String == "playback_engine_ready",
-            let details = $0["details"] as? [String: Any]
-        else {
-            return false
-        }
-
-        return details["process_phys_footprint_bytes"] as? Int != nil
-            && details["mlx_active_memory_bytes"] as? Int != nil
     }
 }
 

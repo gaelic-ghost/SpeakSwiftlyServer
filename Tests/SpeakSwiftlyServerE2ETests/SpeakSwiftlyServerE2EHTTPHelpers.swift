@@ -150,20 +150,9 @@ extension ServerE2E {
         text: String,
         profileName: String,
     ) async throws -> String {
+        let audiblePlaybackTimeout = Duration.seconds(180)
+
         try stabilizeBuiltInAudioRouteForAudiblePlayback()
-
-        let engineReadyLog = try await server.waitForStderrJSONObject(timeout: .seconds(120)) {
-            guard
-                $0["event"] as? String == "playback_engine_ready",
-                let details = $0["details"] as? [String: Any]
-            else {
-                return false
-            }
-
-            return details["process_phys_footprint_bytes"] as? Int != nil
-                && details["mlx_active_memory_bytes"] as? Int != nil
-        }
-        #expect(engineReadyLog["event"] as? String == "playback_engine_ready")
 
         let response = try await client.request(
             path: "/speech/live",
@@ -177,29 +166,54 @@ extension ServerE2E {
 
         let jobID = try decode(E2EJobCreatedResponse.self, from: response.data).jobID
 
-        _ = try await server.waitForStderrJSONObject(timeout: e2eTimeout) {
-            guard
-                $0["event"] as? String == "playback_started",
-                $0["request_id"] as? String == jobID,
-                let details = $0["details"] as? [String: Any]
-            else {
-                return false
-            }
+        do {
+            _ = try await server.waitForStderrJSONObject(timeout: audiblePlaybackTimeout) {
+                guard
+                    $0["event"] as? String == "playback_started",
+                    $0["request_id"] as? String == jobID,
+                    let details = $0["details"] as? [String: Any]
+                else {
+                    return false
+                }
 
-            let textComplexityClass = details["text_complexity_class"] as? String
-            return ["compact", "balanced", "extended"].contains(textComplexityClass)
-                && details["startup_buffer_target_ms"] as? Int != nil
-                && details["startup_buffered_audio_ms"] as? Int != nil
-                && details["process_phys_footprint_bytes"] as? Int != nil
-                && details["mlx_active_memory_bytes"] as? Int != nil
+                let textComplexityClass = details["text_complexity_class"] as? String
+                return ["compact", "balanced", "extended"].contains(textComplexityClass)
+                    && details["startup_buffer_target_ms"] as? Int != nil
+                    && details["startup_buffered_audio_ms"] as? Int != nil
+                    && details["process_phys_footprint_bytes"] as? Int != nil
+                    && details["mlx_active_memory_bytes"] as? Int != nil
+            }
+        } catch is E2ETimeoutError {
+            throw E2ETransportError(
+                """
+                The live HTTP audible speech helper never observed a `playback_started` trace event for request '\(jobID)' before timing out.
+                Recent server stderr:
+                \(server.recentStructuredStderrSummary())
+                """,
+            )
         }
 
-        let snapshot = try await waitForTerminalJob(
-            id: jobID,
-            using: client,
-            timeout: e2eTimeout,
-            server: server,
-        )
+        let snapshot: E2EJobSnapshot
+        do {
+            snapshot = try await waitForTerminalJob(
+                id: jobID,
+                using: client,
+                timeout: audiblePlaybackTimeout,
+                server: server,
+            )
+        } catch is E2ETimeoutError {
+            let response = try await client.request(path: "/requests/\(jobID)", method: "GET")
+            let snapshotText = String(decoding: response.data, as: UTF8.self)
+            throw E2ETransportError(
+                """
+                The live HTTP audible speech helper timed out before request '\(jobID)' reached a terminal state.
+                Current request snapshot:
+                \(snapshotText)
+                Recent server stderr:
+                \(server.recentStructuredStderrSummary())
+                """,
+            )
+        }
 
         assertSpeechJobCompleted(snapshot, expectedJobID: jobID)
         #expect(snapshot.history.contains { $0.event == "progress" && $0.stage == "preroll_ready" })

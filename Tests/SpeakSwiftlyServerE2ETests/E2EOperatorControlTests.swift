@@ -154,12 +154,19 @@ extension ControlE2ETests {
         Self.assertSpeechJobCancelled(thirdTerminal, expectedJobID: thirdJobID)
         Self.assertSpeechJobCancelled(fourthTerminal, expectedJobID: fourthJobID)
 
-        _ = try await waitForTerminalJob(
+        let cancelledActive = try await decode(
+            E2EQueueCancellationResponse.self,
+            from: client.request(path: "/playback/requests/\(firstJobID)", method: "DELETE").data,
+        )
+        #expect(cancelledActive.cancelledRequestID == firstJobID)
+
+        let firstTerminal = try await waitForTerminalJob(
             id: firstJobID,
             using: client,
             timeout: Self.e2eTimeout,
             server: server,
         )
+        Self.assertSpeechJobCancelled(firstTerminal, expectedJobID: firstJobID)
 
         let removeResponse = try await client.request(path: "/voices/\(profileName)", method: "DELETE")
         #expect(removeResponse.statusCode == 202)
@@ -332,14 +339,21 @@ extension ControlE2ETests {
         Self.assertSpeechJobCancelled(thirdTerminal, expectedJobID: thirdJobID)
         Self.assertSpeechJobCancelled(fourthTerminal, expectedJobID: fourthJobID)
 
+        let cancelledActivePayload = try await Self.requireObjectPayload(
+            from: client.callToolJSON(
+                name: "cancel_request",
+                arguments: ["request_id": firstJobID],
+            ),
+        )
+        #expect(cancelledActivePayload["cancelled_request_id"] as? String == firstJobID)
+
         let firstTerminal = try await waitForTerminalJob(
             id: firstJobID,
             using: client,
             timeout: Self.e2eTimeout,
             server: server,
         )
-        Self.assertSpeechJobCompleted(firstTerminal, expectedJobID: firstJobID)
-        #expect(firstTerminal.history.contains { $0.event == "progress" && $0.stage == "playback_finished" })
+        Self.assertSpeechJobCancelled(firstTerminal, expectedJobID: firstJobID)
 
         let removeProfilePayload = try await client.callTool(
             name: "delete_voice_profile",

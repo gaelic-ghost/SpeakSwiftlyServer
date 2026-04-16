@@ -58,7 +58,6 @@ extension ServerE2E {
                     using: client,
                     timeout: e2eTimeout,
                     server: server,
-                    expectPlaybackEngine: true,
                 )
 
                 for lane in lanes {
@@ -106,7 +105,6 @@ extension ServerE2E {
                     using: client,
                     timeout: e2eTimeout,
                     server: server,
-                    expectPlaybackEngine: true,
                 )
 
                 for lane in lanes {

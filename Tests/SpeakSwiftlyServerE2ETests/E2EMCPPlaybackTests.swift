@@ -150,12 +150,21 @@ extension ControlE2ETests {
         let clearedPayload = try await Self.requireObjectPayload(from: client.callToolJSON(name: "clear_playback_queue", arguments: [:]))
         #expect((clearedPayload["cleared_count"] as? Int) ?? 0 >= 2)
 
-        _ = try await waitForTerminalJob(
+        let cancelledActivePayload = try await Self.requireObjectPayload(
+            from: client.callToolJSON(
+                name: "cancel_request",
+                arguments: ["request_id": firstSpeechJobID],
+            ),
+        )
+        #expect(cancelledActivePayload["cancelled_request_id"] as? String == firstSpeechJobID)
+
+        let firstSpeechTerminal = try await waitForTerminalJob(
             id: firstSpeechJobID,
             using: client,
             timeout: Self.e2eTimeout,
             server: server,
         )
+        Self.assertSpeechJobCancelled(firstSpeechTerminal, expectedJobID: firstSpeechJobID)
         let jobsResourcePayload = try await Self.requireArrayPayload(from: client.readResourceJSON(uri: "speak://requests"))
         #expect(jobsResourcePayload.contains { $0["request_id"] as? String == firstSpeechJobID })
 

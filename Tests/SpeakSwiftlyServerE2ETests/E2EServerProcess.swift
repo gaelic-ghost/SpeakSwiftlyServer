@@ -128,6 +128,15 @@ final class ServerProcess: @unchecked Sendable {
         }
     }
 
+    func recentStructuredStderrSummary(limit: Int = 20) -> String {
+        let recentLines = Array(stderrRecorder.snapshot.suffix(limit))
+        guard !recentLines.isEmpty else {
+            return "No stderr lines were captured from the live SpeakSwiftlyServer process."
+        }
+
+        return recentLines.joined(separator: "\n")
+    }
+
     func waitForStderrJSONObject(
         timeout: Duration,
         matching predicate: @escaping @Sendable ([String: Any]) -> Bool,

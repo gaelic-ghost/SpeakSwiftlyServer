@@ -4,6 +4,7 @@ import Foundation
 
 struct E2EHTTPClient {
     let baseURL: URL
+    private let requestTimeout: TimeInterval = 120
 
     func request(
         path: String,
@@ -12,6 +13,7 @@ struct E2EHTTPClient {
     ) async throws -> E2EHTTPResponse {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
+        request.timeoutInterval = requestTimeout
         request.setValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")
         if let jsonBody {
             request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
