@@ -37,7 +37,7 @@ The package stays intentionally narrow. Hummingbird owns transport hosting, `Spe
 
 ### Current SpeakSwiftly Alignment
 
-This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `3.0.4` package dependency.
+This server is aligned to the current public library surface of its resolved [`SpeakSwiftly`](https://github.com/gaelic-ghost/SpeakSwiftly) `3.0.5` package dependency.
 
 Today the server relies on the current typed runtime capabilities that matter for transport hosting:
 
@@ -101,7 +101,7 @@ That narrowness also informs platform policy. The package should prefer maintain
 
 ## Setup
 
-This package resolves its SwiftPM dependencies from GitHub source control in [`Package.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.swift) and locks the resolved revisions in [`Package.resolved`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.resolved). `SpeakSwiftly` uses a normal semantic-version requirement here, and this package currently follows it with an up-to-next-major constraint starting at `3.0.4`.
+This package resolves its SwiftPM dependencies from GitHub source control in [`Package.swift`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.swift) and locks the resolved revisions in [`Package.resolved`](https://github.com/gaelic-ghost/SpeakSwiftlyServer/blob/main/Package.resolved). `SpeakSwiftly` uses a normal semantic-version requirement here, and this package currently follows it with an up-to-next-major constraint starting at `3.0.5`. The server's direct `TextForSpeech` dependency now tracks `0.17.0`, matching the current upstream `SpeakSwiftly` graph.
 
 Build the package with SwiftPM through Xcode's selected toolchain:
 
