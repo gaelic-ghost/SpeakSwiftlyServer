@@ -1,0 +1,7 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+[features]
+codex_hooks = true
+
+# Experimental probe: record whatever payload Codex sends to the notify command.
+notify = ["node", ".codex/hooks/notify-dump.mjs"]
