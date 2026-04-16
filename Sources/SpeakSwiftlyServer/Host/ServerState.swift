@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SpeakSwiftly
 
 // MARK: - Observable State
 
@@ -27,6 +28,21 @@ public final class ServerState {
                     "ServerState could not clear the default voice profile because no embedded host action performer is configured yet.",
                 )
             },
+            switchSpeechBackend: { speechBackend in
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not switch the active speech backend to '\(speechBackend.rawValue)' because no embedded host action performer is configured yet.",
+                )
+            },
+            reloadModels: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not reload resident runtime models because no embedded host action performer is configured yet.",
+                )
+            },
+            unloadModels: {
+                throw ServerStateActionError.unavailable(
+                    "ServerState could not unload resident runtime models because no embedded host action performer is configured yet.",
+                )
+            },
             pausePlayback: {
                 throw ServerStateActionError.unavailable(
                     "ServerState could not pause playback because no embedded host action performer is configured yet.",
@@ -52,6 +68,9 @@ public final class ServerState {
         let refreshVoiceProfiles: @Sendable () async throws -> [ProfileSnapshot]
         let setDefaultVoiceProfileName: @Sendable (String) async throws -> String
         let clearDefaultVoiceProfileName: @Sendable () async throws -> String?
+        let switchSpeechBackend: @Sendable (SpeakSwiftly.SpeechBackend) async throws -> HostStateSnapshot
+        let reloadModels: @Sendable () async throws -> HostStateSnapshot
+        let unloadModels: @Sendable () async throws -> HostStateSnapshot
         let pausePlayback: @Sendable () async throws -> PlaybackStatusSnapshot
         let resumePlayback: @Sendable () async throws -> PlaybackStatusSnapshot
         let clearPlaybackQueue: @Sendable () async throws -> Int
@@ -176,6 +195,30 @@ public final class ServerState {
         overview = overview.replacing(defaultVoiceProfileName: resolvedProfileName)
     }
 
+    /// Switches the active runtime speech backend and applies the refreshed host state snapshot.
+    @discardableResult
+    public func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> HostStateSnapshot {
+        let snapshot = try await actions.switchSpeechBackend(speechBackend)
+        applyHostStateSnapshot(snapshot)
+        return snapshot
+    }
+
+    /// Reloads resident runtime models and applies the refreshed host state snapshot.
+    @discardableResult
+    public func reloadModels() async throws -> HostStateSnapshot {
+        let snapshot = try await actions.reloadModels()
+        applyHostStateSnapshot(snapshot)
+        return snapshot
+    }
+
+    /// Unloads resident runtime models and applies the refreshed host state snapshot.
+    @discardableResult
+    public func unloadModels() async throws -> HostStateSnapshot {
+        let snapshot = try await actions.unloadModels()
+        applyHostStateSnapshot(snapshot)
+        return snapshot
+    }
+
     /// Requests a playback pause through the embedded host and returns the updated playback snapshot.
     @discardableResult
     public func pausePlayback() async throws -> PlaybackStatusSnapshot {
@@ -202,6 +245,18 @@ public final class ServerState {
     @discardableResult
     public func cancelPlaybackRequest(_ requestID: String) async throws -> String {
         try await actions.cancelPlaybackRequest(requestID)
+    }
+
+    func applyHostStateSnapshot(_ snapshot: HostStateSnapshot) {
+        overview = snapshot.overview
+        runtimeRefresh = snapshot.runtimeRefresh
+        generationQueue = snapshot.generationQueue
+        playbackQueue = snapshot.playbackQueue
+        playback = snapshot.playback
+        currentGenerationJobs = snapshot.currentGenerationJobs
+        runtimeConfiguration = snapshot.runtimeConfiguration
+        transports = snapshot.transports
+        recentErrors = snapshot.recentErrors
     }
 
     func configureActions(_ actions: Actions) {

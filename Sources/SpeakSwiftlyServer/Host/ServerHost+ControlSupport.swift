@@ -154,6 +154,7 @@ extension ServerHost {
             )
         }
 
+        await self.handle(status: status)
         return .init(status: status)
     }
 

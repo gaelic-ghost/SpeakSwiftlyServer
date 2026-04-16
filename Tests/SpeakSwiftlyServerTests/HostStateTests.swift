@@ -1,4 +1,5 @@
 import Foundation
+import SpeakSwiftly
 @testable import SpeakSwiftlyServer
 import Testing
 
@@ -326,6 +327,18 @@ import Testing
                 clearDefaultVoiceProfileName: {
                     try await host.clearDefaultVoiceProfileName()
                 },
+                switchSpeechBackend: { speechBackend in
+                    _ = try await host.switchSpeechBackend(to: speechBackend)
+                    return await host.hostStateSnapshot()
+                },
+                reloadModels: {
+                    _ = try await host.reloadModels()
+                    return await host.hostStateSnapshot()
+                },
+                unloadModels: {
+                    _ = try await host.unloadModels()
+                    return await host.hostStateSnapshot()
+                },
                 pausePlayback: {
                     let response = try await host.pausePlayback()
                     return .init(
@@ -386,6 +399,24 @@ import Testing
     #expect(await host.defaultVoiceProfileName() == nil)
     #expect(await host.resolvedRequestedVoiceProfileName(nil) == nil)
 
+    let switchedSnapshot = try await state.switchSpeechBackend(to: .marvis)
+    #expect(switchedSnapshot.runtimeConfiguration.activeRuntimeSpeechBackend == "marvis")
+    let runtimeConfigurationAfterSwitch = await MainActor.run { state.runtimeConfiguration }
+    #expect(runtimeConfigurationAfterSwitch.activeRuntimeSpeechBackend == "marvis")
+
+    let reloadedSnapshot = try await state.reloadModels()
+    #expect(reloadedSnapshot.overview.workerStage == "resident_model_ready")
+    let overviewAfterReload = await MainActor.run { state.overview }
+    #expect(overviewAfterReload.workerStage == "resident_model_ready")
+
+    let unloadedSnapshot = try await state.unloadModels()
+    #expect(unloadedSnapshot.overview.workerStage == "resident_models_unloaded")
+    let overviewAfterUnload = await MainActor.run { state.overview }
+    #expect(overviewAfterUnload.workerStage == "resident_models_unloaded")
+
+    let readySnapshotBeforePlayback = try await state.reloadModels()
+    #expect(readySnapshotBeforePlayback.overview.workerStage == "resident_model_ready")
+
     let firstJobID = try await host.submitSpeak(text: "Hold this line", profileName: "default")
     let secondJobID = try await host.submitSpeak(text: "Cancel me next", profileName: "default")
 
@@ -436,6 +467,18 @@ import Testing
                 },
                 clearDefaultVoiceProfileName: {
                     try await host.clearDefaultVoiceProfileName()
+                },
+                switchSpeechBackend: { speechBackend in
+                    _ = try await host.switchSpeechBackend(to: speechBackend)
+                    return await host.hostStateSnapshot()
+                },
+                reloadModels: {
+                    _ = try await host.reloadModels()
+                    return await host.hostStateSnapshot()
+                },
+                unloadModels: {
+                    _ = try await host.unloadModels()
+                    return await host.hostStateSnapshot()
                 },
                 pausePlayback: {
                     let response = try await host.pausePlayback()

@@ -257,13 +257,16 @@ optional MCP readiness and drain, and the wrapped Hummingbird application as sib
 services. Hummingbird still owns its own internal application `ServiceGroup`, but app code should
 keep treating `EmbeddedServerSession` itself as the lifecycle boundary.
 
-From app code, `ServerState` now also exposes app-facing control points for the cached voice-profile list, the effective default voice profile, and playback actions:
+From app code, `ServerState` now also exposes app-facing control points for the cached voice-profile list, the effective default voice profile, runtime model lifecycle, and playback actions:
 
 - `listVoiceProfiles()` and `refreshVoiceProfiles()`
 - `setDefaultVoiceProfileName(_:)` and `clearDefaultVoiceProfileName()`
+- `switchSpeechBackend(to:)`, `reloadModels()`, and `unloadModels()`
 - `pausePlayback()`, `resumePlayback()`, `clearPlaybackQueue()`, and `cancelPlaybackRequest(_:)`
 
 Those default-profile actions mutate the host-owned effective default that HTTP and MCP speech-generation requests use when `profile_name` is omitted. That app-managed default starts from configuration, can be changed live by the embedded app, and is persisted in the server runtime configuration so it survives process restart. Clearing the app-managed default removes the persisted override and falls back to the configured `app.defaultVoiceProfileName` when one exists.
+
+The runtime control actions apply the refreshed host snapshot back onto `ServerState` before they return, so app code gets one coherent post-action picture of the current backend, worker stage, queues, playback state, and transport health instead of needing to stitch together several follow-up reads.
 
 Start an embedded session from app code like this:
 

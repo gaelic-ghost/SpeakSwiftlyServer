@@ -125,6 +125,18 @@ public final class EmbeddedServerSession: @unchecked Sendable {
                     clearDefaultVoiceProfileName: {
                         try await host.clearDefaultVoiceProfileName()
                     },
+                    switchSpeechBackend: { speechBackend in
+                        _ = try await host.switchSpeechBackend(to: speechBackend)
+                        return await host.hostStateSnapshot()
+                    },
+                    reloadModels: {
+                        _ = try await host.reloadModels()
+                        return await host.hostStateSnapshot()
+                    },
+                    unloadModels: {
+                        _ = try await host.unloadModels()
+                        return await host.hostStateSnapshot()
+                    },
                     pausePlayback: {
                         let response = try await host.pausePlayback()
                         return .init(
