@@ -16,7 +16,9 @@ assistant replies and inspecting Codex notification payloads.
   `SpeakSwiftlyServer` HTTP route at `POST /speech/live`.
 - `.codex/hooks/notify-dump.mjs`
   Records whatever Codex passes to the `notify` command so we can inspect the
-  real payload shape.
+  real payload shape. The probe captures both the documented JSON argument and
+  any unexpected stdin payload so we can compare real behavior across Codex
+  surfaces.
 - `.codex/logs/stop-tts.jsonl`
   Runtime log for queued, skipped, and failed TTS attempts.
 - `.codex/logs/notify-events.jsonl`
@@ -43,7 +45,7 @@ The `Stop` hook script accepts a few optional environment overrides:
 The current prototype was validated with a synthetic `Stop` payload and queued a
 live speech request successfully against the local server.
 
-The current `notify` probe was only validated with synthetic JSON over `stdin`.
-The Codex docs say the notify command receives a JSON payload, but they do not
-currently document the exact runtime shape, so the probe intentionally records
-raw input instead of assuming field names.
+The current `notify` probe was validated with synthetic JSON passed both as the
+documented command-line argument and over `stdin`. The current Codex docs say
+the notify command receives a single JSON argument, so the probe now logs both
+paths in case any Codex surface differs in practice.

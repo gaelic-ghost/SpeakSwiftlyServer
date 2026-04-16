@@ -17,7 +17,17 @@ async function readStdin() {
 
 async function main() {
   await mkdir(logDir, { recursive: true });
+  const rawArg = process.argv[2] ?? "";
   const rawStdin = await readStdin();
+
+  let parsedArg = null;
+  if (rawArg.trim().length > 0) {
+    try {
+      parsedArg = JSON.parse(rawArg);
+    } catch {
+      parsedArg = rawArg;
+    }
+  }
 
   let parsedStdin = null;
   if (rawStdin.trim().length > 0) {
@@ -32,7 +42,9 @@ async function main() {
     timestamp: new Date().toISOString(),
     argv: process.argv,
     cwd: process.cwd(),
+    arg: parsedArg,
     stdin: parsedStdin,
+    event: parsedArg ?? parsedStdin,
     env: {
       TERM_PROGRAM: process.env.TERM_PROGRAM ?? null,
       TMUX: process.env.TMUX ?? null,
