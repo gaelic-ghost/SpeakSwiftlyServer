@@ -322,7 +322,7 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
         let result = try runProcess(
             executableURL: URL(fileURLWithPath: pgrepPath),
             arguments: ["-fl", "SpeakSwiftlyServerTool serve"],
-            allowNonZeroExit: false,
+            allowNonZeroExit: true,
             failureSummary: "The live end-to-end suite could not inspect the current process table for competing SpeakSwiftlyServerTool serve processes.",
         )
 
