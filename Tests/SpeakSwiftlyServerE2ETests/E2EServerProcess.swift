@@ -323,7 +323,11 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
             .split(separator: "\n")
             .map(String.init)
             .filter { line in
-                line.contains("SpeakSwiftlyServerTool serve") && !line.hasPrefix(currentProcessIdentifier + " ")
+                guard line.contains("SpeakSwiftlyServerTool serve") else { return false }
+                guard !line.hasPrefix(currentProcessIdentifier + " ") else { return false }
+                guard !line.contains("\(pgrepPath) -fl SpeakSwiftlyServerTool serve") else { return false }
+
+                return true
             }
 
         guard competingProcesses.isEmpty else {
