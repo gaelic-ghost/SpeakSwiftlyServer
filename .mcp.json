@@ -3,7 +3,7 @@
     "speak_swiftly": {
       "type": "http",
       "url": "http://127.0.0.1:7337/mcp",
-      "note": "Connects to the local SpeakSwiftlyServer MCP surface exposed by the shared HTTP server. The usual live local service listens on APP_PORT=7337 with APP_MCP_PATH=/mcp, but built-in runtime defaults keep APP_MCP_ENABLED=false until MCP is turned on through APP_CONFIG_FILE or APP_MCP_ENABLED=true."
+      "note": "Connects to the local SpeakSwiftlyServer MCP surface exposed by the shared HTTP server. When this plugin is installed through a Codex marketplace, the plugin provides the Codex-side MCP registration for this endpoint. The live service still needs to expose /mcp on 127.0.0.1:7337, and built-in runtime defaults keep APP_MCP_ENABLED=false until MCP is turned on through APP_CONFIG_FILE or APP_MCP_ENABLED=true."
     }
   }
 }

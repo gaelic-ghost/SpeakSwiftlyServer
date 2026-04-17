@@ -225,11 +225,12 @@ print(layout.runtimeProfileRootURL.path)
 
 ## Codex Plugin
 
-This repository is also packaged as a repo-local Codex plugin through [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json). The plugin points at the checked-in [`.mcp.json`](./.mcp.json) connection for the local `speak_swiftly` MCP server and the tracked [skills](./skills/) bundle that teaches Codex how to use the surface intentionally.
+This repository is also packaged as a repo-local Codex plugin through [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json). The plugin points at the checked-in [`.mcp.json`](./.mcp.json) connection for the local `speak_swiftly` MCP server and the tracked [skills](./skills/) bundle that teaches Codex how to use the surface intentionally. When the plugin is installed through a Codex marketplace, Codex installs the plugin into its plugin cache and loads that installed copy from there, so the plugin surface is the normal Codex-side MCP wiring path. Users should not need to add a second handwritten global MCP entry just to reach the local server.
 
-The first plugin pass currently ships four focused skills:
+The first plugin pass currently ships five focused skills:
 
 - [`speak-swiftly-mcp`](./skills/speak-swiftly-mcp/SKILL.md) for broad MCP orientation and workflow selection
+- [`speak-swiftly-launchagent-setup`](./skills/speak-swiftly-launchagent-setup/SKILL.md) for installing, refreshing, validating, and removing the per-user LaunchAgent-backed service
 - [`speak-swiftly-runtime-operator`](./skills/speak-swiftly-runtime-operator/SKILL.md) for runtime state, playback, queue, and request control
 - [`speak-swiftly-voice-workflows`](./skills/speak-swiftly-voice-workflows/SKILL.md) for voice profiles, live speech, and retained artifacts
 - [`speak-swiftly-text-profiles`](./skills/speak-swiftly-text-profiles/SKILL.md) for normalization styles, stored profiles, and replacement editing
