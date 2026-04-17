@@ -80,7 +80,17 @@ SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter MCPWorkflowE2ETests
 SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter ControlE2ETests
 ```
 
-Run those commands one at a time. Add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` when you want the underlying playback trace logs too.
+Run those commands one at a time, in separate foreground processes, and never overlap them. Do not background one suite while starting another, and do not run the HTTP, MCP, or control suites in parallel.
+
+Before any live E2E run, stop the LaunchAgent-backed live service first:
+
+```bash
+./.release-artifacts/current/SpeakSwiftlyServerTool launch-agent uninstall
+```
+
+That shutdown step matters because the live service and the test-owned helper can both speak audible test strings if they are alive together. The harness now fails fast when the LaunchAgent-backed service is still loaded or when another `SpeakSwiftlyServerTool serve` helper is already running, because live E2E coverage is intentionally a one-speaking-server surface.
+
+Add `SPEAKSWIFTLY_PLAYBACK_TRACE=1` when you want the underlying playback trace logs too.
 
 The suite split is:
 
@@ -90,6 +100,8 @@ The suite split is:
   Covers the same entry and audible-runtime lanes through the MCP transport.
 - `Control Surfaces`
   Covers HTTP and MCP text-profile control, playback control, queue mutation, catalog resources, prompts, and subscription behavior.
+
+The checked-in `Tests/SpeakSwiftlyServer-Package-E2E.xctestplan` is the dedicated live E2E plan for the `SpeakSwiftlyServerE2ETests` target, while `Tests/SpeakSwiftlyServer-Package-Main.xctestplan` stays on the non-E2E targets. The suite-level `.serialized` traits in `Tests/SpeakSwiftlyServerE2ETests/E2ESuite.swift` keep each suite ordered within a process, and the helper-side execution-lane lock keeps separate live E2E processes from owning the speaking server at the same time.
 
 The live audible harness pins macOS built-in speakers immediately before audible startup and again immediately before audible request submission so Bluetooth route changes do not create false negatives.
 

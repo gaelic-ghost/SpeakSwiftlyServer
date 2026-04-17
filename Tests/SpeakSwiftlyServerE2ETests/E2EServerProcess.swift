@@ -230,6 +230,9 @@ final class ServerProcess: @unchecked Sendable {
 final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
     private static let lockURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent("speak-swiftly-server-e2e-live-server.lock", isDirectory: false)
+    private static let launchAgentLabel = "com.gaelic-ghost.speak-swiftly-server"
+    private static let launchctlPath = "/bin/launchctl"
+    private static let psPath = "/bin/ps"
 
     private var fileDescriptor: Int32?
     private let lockPath: String
@@ -243,7 +246,10 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
         self.lockPath = lockPath
     }
 
-    static func acquire(timeout: Duration = .seconds(60)) throws -> E2ELiveServerExecutionLaneLease {
+    static func acquire(timeout: Duration = .seconds(5)) throws -> E2ELiveServerExecutionLaneLease {
+        try ensureLaunchAgentBackedLiveServiceIsNotLoaded()
+        try ensureNoCompetingServeProcessIsRunning()
+
         let lockPath = lockURL.path
         let descriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard descriptor >= 0 else {
@@ -272,7 +278,11 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
             if DispatchTime.now().uptimeNanoseconds >= deadline {
                 close(descriptor)
                 throw E2ETransportError(
-                    "The live end-to-end suite waited more than \(durationDescription(timeout)) for the exclusive server-lane lock at '\(lockPath)'. Another live server test or an orphaned helper is still holding the lane.",
+                    """
+                    The live end-to-end suite waited more than \(durationDescription(timeout)) for the exclusive server-lane lock at '\(lockPath)'.
+                    Another live end-to-end test process is already holding the lane.
+                    Run live end-to-end coverage in one foreground process at a time, and do not overlap HTTP, MCP, or control-suite reruns.
+                    """,
                 )
             }
 
@@ -286,6 +296,55 @@ final class E2ELiveServerExecutionLaneLease: @unchecked Sendable {
         flock(fileDescriptor, LOCK_UN)
         close(fileDescriptor)
         self.fileDescriptor = nil
+    }
+
+    private static func ensureLaunchAgentBackedLiveServiceIsNotLoaded() throws {
+        let userDomain = "gui/\(getuid())"
+        let result = try runProcess(
+            executableURL: URL(fileURLWithPath: launchctlPath),
+            arguments: ["print", "\(userDomain)/\(launchAgentLabel)"],
+            allowNonZeroExit: true,
+            failureSummary: "The live end-to-end suite could not inspect the LaunchAgent-backed SpeakSwiftlyServer service state.",
+        )
+
+        guard result.exitCode != 0 else {
+            throw E2ETransportError(
+                """
+                The LaunchAgent-backed live SpeakSwiftlyServer service '\(launchAgentLabel)' is still loaded in '\(userDomain)'.
+                Live end-to-end coverage must run without the always-on service active, or the machine can end up speaking from two different server processes at once.
+                Stop it first with `./.release-artifacts/current/SpeakSwiftlyServerTool launch-agent uninstall` and then rerun the end-to-end command.
+                """,
+            )
+        }
+    }
+
+    private static func ensureNoCompetingServeProcessIsRunning() throws {
+        let result = try runProcess(
+            executableURL: URL(fileURLWithPath: psPath),
+            arguments: ["-axo", "pid=,command="],
+            allowNonZeroExit: false,
+            failureSummary: "The live end-to-end suite could not inspect the current process table for competing SpeakSwiftlyServerTool serve processes.",
+        )
+
+        let currentProcessIdentifier = String(ProcessInfo.processInfo.processIdentifier)
+        let competingProcesses = result.standardOutput
+            .split(separator: "\n")
+            .map(String.init)
+            .filter { line in
+                line.contains("SpeakSwiftlyServerTool serve") && !line.contains(currentProcessIdentifier)
+            }
+
+        guard competingProcesses.isEmpty else {
+            let processSummary = competingProcesses.joined(separator: "\n")
+            throw E2ETransportError(
+                """
+                The live end-to-end suite found an existing `SpeakSwiftlyServerTool serve` process before it could start its own helper.
+                Live end-to-end coverage must own the only speaking server process on the machine while it runs.
+                Existing processes:
+                \(processSummary)
+                """,
+            )
+        }
     }
 }
 
@@ -303,4 +362,50 @@ private func durationDescription(_ duration: Duration) -> String {
     let fractionalSeconds = Double(duration.components.seconds)
         + Double(duration.components.attoseconds) / 1_000_000_000_000_000_000
     return String(format: "%.2f second(s)", fractionalSeconds)
+}
+
+private struct E2EProcessExecutionResult {
+    let exitCode: Int32
+    let standardOutput: String
+    let standardError: String
+}
+
+@discardableResult
+private func runProcess(
+    executableURL: URL,
+    arguments: [String],
+    allowNonZeroExit: Bool,
+    failureSummary: String,
+) throws -> E2EProcessExecutionResult {
+    let process = Process()
+    process.executableURL = executableURL
+    process.arguments = arguments
+
+    let standardOutput = Pipe()
+    let standardError = Pipe()
+    process.standardOutput = standardOutput
+    process.standardError = standardError
+
+    do {
+        try process.run()
+        process.waitUntilExit()
+    } catch {
+        throw E2ETransportError("\(failureSummary) Likely cause: \(error.localizedDescription)")
+    }
+
+    let result = E2EProcessExecutionResult(
+        exitCode: process.terminationStatus,
+        standardOutput: String(decoding: standardOutput.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+        standardError: String(decoding: standardError.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+    )
+
+    if !allowNonZeroExit, result.exitCode != 0 {
+        throw E2ETransportError(
+            "\(failureSummary) The helper process exited with status \(result.exitCode). stderr: \(result.standardError)",
+        )
+    }
+
+    return result
 }

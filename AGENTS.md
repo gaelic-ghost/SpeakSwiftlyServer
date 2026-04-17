@@ -40,6 +40,8 @@
 ## Swift Package Workflow
 
 - Use `xcrun swift build` and `xcrun swift test` as the default first-pass validation commands so repo-local SwiftPM work stays on the Xcode-selected toolchain.
+- Treat the live `SpeakSwiftlyServerE2ETests` target as a one-process, one-suite-at-a-time surface. Even though the target is split into HTTP, MCP, and control suites, those live end-to-end suites must always be run sequentially in separate foreground commands and must never overlap in parallel.
+- Before running any live end-to-end suite, stop the LaunchAgent-backed live service first so the machine does not end up speaking from both the always-on service and the test-owned helper at the same time. Use `./.release-artifacts/current/SpeakSwiftlyServerTool launch-agent uninstall` for that shutdown step unless a future repo-owned operator command replaces it.
 - Use `bootstrap-swift-package` only when a brand-new Swift package repository still needs to be created from scratch.
 - Use `sync-swift-package-guidance` when this repo guidance drifts and needs a deliberate refresh against the current Swift package baseline.
 - Use `swift-package-build-run-workflow` for manifest, dependency, build, run, resource, and packaging work when `Package.swift` is the source of truth.
