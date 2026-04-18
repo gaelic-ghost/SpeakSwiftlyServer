@@ -1,8 +1,6 @@
 import Foundation
 import SpeakSwiftly
 
-// MARK: - SpeakSwiftly Runtime Launcher
-
 /// Bridges package-owned startup environment overrides into `SpeakSwiftly.liftoff(...)`.
 ///
 /// `SpeakSwiftly` currently resolves its profile-root override from the process environment during

@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Text Profile Routes
-
 func registerHTTPTextProfileRoutes(
     on router: Router<BasicRequestContext>,
     host: ServerHost,

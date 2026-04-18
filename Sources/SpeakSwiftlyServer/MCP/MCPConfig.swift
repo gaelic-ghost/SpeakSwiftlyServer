@@ -1,8 +1,6 @@
 import Configuration
 import Foundation
 
-// MARK: - MCP Config
-
 struct MCPConfig {
     let enabled: Bool
     let path: String

@@ -2,13 +2,9 @@ import AsyncAlgorithms
 import Foundation
 import ServiceLifecycle
 
-// MARK: - EmbeddedLifecycleReadinessError
-
 private struct EmbeddedLifecycleReadinessError: Error {
     let message: String
 }
-
-// MARK: - EmbeddedLifecycleReadinessGate
 
 actor EmbeddedLifecycleReadinessGate {
     private enum State {
@@ -64,8 +60,6 @@ actor EmbeddedLifecycleReadinessGate {
     }
 }
 
-// MARK: - EmbeddedLifecycleShutdownBarrier
-
 actor EmbeddedLifecycleShutdownBarrier {
     private let targetCount: Int
     private var completedCount = 0
@@ -107,8 +101,6 @@ actor EmbeddedLifecycleShutdownBarrier {
     }
 }
 
-// MARK: - HostLifecycleService
-
 struct HostLifecycleService: Service {
     let host: ServerHost
     let readinessGate: EmbeddedLifecycleReadinessGate
@@ -128,8 +120,6 @@ struct HostLifecycleService: Service {
         await host.shutdown()
     }
 }
-
-// MARK: - HostPruneService
 
 struct HostPruneService: Service {
     let host: ServerHost
@@ -155,8 +145,6 @@ struct HostPruneService: Service {
         await shutdownBarrier.markCompleted()
     }
 }
-
-// MARK: - ConfigWatchService
 
 struct ConfigWatchService: Service {
     let configStore: ConfigStore
@@ -187,8 +175,6 @@ struct ConfigWatchService: Service {
     }
 }
 
-// MARK: - MCPLifecycleService
-
 struct MCPLifecycleService: Service {
     let surface: MCPSurface
     let readinessGate: EmbeddedLifecycleReadinessGate
@@ -216,8 +202,6 @@ struct MCPLifecycleService: Service {
         }
     }
 }
-
-// MARK: - EmbeddedApplicationService
 
 struct EmbeddedApplicationService: Service {
     let application: any Service

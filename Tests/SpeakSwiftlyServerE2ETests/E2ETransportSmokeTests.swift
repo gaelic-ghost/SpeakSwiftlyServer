@@ -20,17 +20,17 @@ extension ServerTransportE2ETests {
         let client = E2EHTTPClient(baseURL: server.baseURL)
         try await waitUntilWorkerReady(using: client, timeout: Self.e2eTimeout, server: server)
 
-        let health = try decode(
+        let health = try await decode(
             E2EHealthSnapshot.self,
-            from: try await client.request(path: "/healthz", method: "GET").data,
+            from: client.request(path: "/healthz", method: "GET").data,
         )
         #expect(health.status == "ok")
         #expect(health.workerMode == "ready")
         #expect(health.workerReady)
 
-        let readiness = try decode(
+        let readiness = try await decode(
             E2EReadinessSnapshot.self,
-            from: try await client.request(path: "/readyz", method: "GET").data,
+            from: client.request(path: "/readyz", method: "GET").data,
         )
         #expect(readiness.workerReady)
 
@@ -44,9 +44,9 @@ extension ServerTransportE2ETests {
         )
         try await ServerE2E.assertProfileIsVisible(using: client, profileName: profileName)
 
-        let status = try decode(
+        let status = try await decode(
             E2EStatusSnapshot.self,
-            from: try await client.request(path: "/runtime/host", method: "GET").data,
+            from: client.request(path: "/runtime/host", method: "GET").data,
         )
         #expect(status.workerMode == "ready")
         #expect(status.cachedProfiles.contains { $0.profileName == profileName })
@@ -65,9 +65,9 @@ extension ServerTransportE2ETests {
         )
         ServerE2E.assertSpeechJobCompleted(terminalSnapshot, expectedJobID: jobID)
 
-        let retainedSnapshot = try decode(
+        let retainedSnapshot = try await decode(
             E2EJobSnapshot.self,
-            from: try await client.request(path: "/requests/\(jobID)", method: "GET").data,
+            from: client.request(path: "/requests/\(jobID)", method: "GET").data,
         )
         #expect(retainedSnapshot.requestID == jobID)
         #expect(retainedSnapshot.status == "completed")
@@ -101,8 +101,8 @@ extension ServerTransportE2ETests {
         )
         try await waitUntilWorkerReady(using: client, timeout: Self.e2eTimeout, server: server)
 
-        let runtimeOverview = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://runtime/overview"),
+        let runtimeOverview = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://runtime/overview"),
         )
         let transports = try requireArray("transports", in: runtimeOverview)
         #expect(transports.contains {
@@ -151,8 +151,8 @@ extension ServerTransportE2ETests {
         let profiles = try await requireProfiles(from: client.callToolJSON(name: "list_voice_profiles", arguments: [:]))
         #expect(profiles.contains { $0.profileName == profileName })
 
-        let profileDetail = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://voices/\(profileName)"),
+        let profileDetail = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://voices/\(profileName)"),
         )
         #expect(profileDetail["profile_name"] as? String == profileName)
 
@@ -174,8 +174,8 @@ extension ServerTransportE2ETests {
         )
         ServerE2E.assertSpeechJobCompleted(speechTerminal, expectedJobID: speechJobID)
 
-        let retainedRequest = try Self.requireObjectPayload(
-            from: try await client.readResourceJSON(uri: "speak://requests/\(speechJobID)"),
+        let retainedRequest = try await Self.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak://requests/\(speechJobID)"),
         )
         #expect(retainedRequest["request_id"] as? String == speechJobID)
         #expect(retainedRequest["status"] as? String == "completed")

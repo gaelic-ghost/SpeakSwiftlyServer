@@ -2,8 +2,6 @@ import Foundation
 import Observation
 import SpeakSwiftly
 
-// MARK: - Embedded Server
-
 /// Main-actor observable app model for an embedded SpeakSwiftly server session.
 ///
 /// `EmbeddedServer` is the consumer-facing type an app should own directly. It exposes the current

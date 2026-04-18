@@ -2,8 +2,6 @@ import Foundation
 import Hummingbird
 import SpeakSwiftly
 
-// MARK: - ActiveRequestSnapshot
-
 /// The active request currently running in a host queue.
 public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
     public let id: String
@@ -28,8 +26,6 @@ public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
         self.profileName = profileName
     }
 }
-
-// MARK: - QueuedRequestSnapshot
 
 /// A queued request waiting for work in a host queue.
 public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
@@ -60,8 +56,6 @@ public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - QueueSnapshotResponse
-
 struct QueueSnapshotResponse: ResponseEncodable {
     let queueType: String
     let activeRequest: ActiveRequestSnapshot?
@@ -75,8 +69,6 @@ struct QueueSnapshotResponse: ResponseEncodable {
         case queue
     }
 }
-
-// MARK: - PlaybackStateSnapshot
 
 /// Transport-facing playback state snapshot used by HTTP and MCP control surfaces.
 struct PlaybackStateSnapshot: Codable, Equatable {
@@ -106,8 +98,6 @@ struct PlaybackStateSnapshot: Codable, Equatable {
     }
 }
 
-// MARK: - PlaybackStateResponse
-
 struct PlaybackStateResponse: ResponseEncodable {
     let playback: PlaybackStateSnapshot
 }
@@ -123,8 +113,6 @@ extension PlaybackStateSnapshot {
     }
 }
 
-// MARK: - QueueClearedResponse
-
 struct QueueClearedResponse: ResponseEncodable {
     let clearedCount: Int
 
@@ -133,8 +121,6 @@ struct QueueClearedResponse: ResponseEncodable {
     }
 }
 
-// MARK: - QueueCancellationResponse
-
 struct QueueCancellationResponse: ResponseEncodable {
     let cancelledRequestID: String
 
@@ -142,8 +128,6 @@ struct QueueCancellationResponse: ResponseEncodable {
         case cancelledRequestID = "cancelled_request_id"
     }
 }
-
-// MARK: - HealthSnapshot
 
 struct HealthSnapshot: ResponseEncodable {
     let status: String
@@ -166,8 +150,6 @@ struct HealthSnapshot: ResponseEncodable {
         case startupError = "startup_error"
     }
 }
-
-// MARK: - ReadinessSnapshot
 
 struct ReadinessSnapshot: ResponseEncodable {
     let status: String
@@ -194,8 +176,6 @@ struct ReadinessSnapshot: ResponseEncodable {
         case lastProfileRefreshAt = "last_profile_refresh_at"
     }
 }
-
-// MARK: - StatusSnapshot
 
 struct StatusSnapshot: ResponseEncodable {
     enum CodingKeys: String, CodingKey {

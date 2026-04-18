@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Job Tracking
-
 extension ServerHost {
     func jobSnapshot(id: String) throws -> JobSnapshot {
         pruneCompletedJobs()

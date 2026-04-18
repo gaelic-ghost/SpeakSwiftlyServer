@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Launch Agent Options
-
 struct LaunchAgentOptions {
     let label: String
     let toolExecutablePath: String
@@ -61,8 +59,6 @@ struct LaunchAgentOptions {
         self.launchctlPath = launchctlPath
         self.userDomain = userDomain
     }
-
-    // MARK: - Parsing
 
     static func parse(
         arguments: [String],

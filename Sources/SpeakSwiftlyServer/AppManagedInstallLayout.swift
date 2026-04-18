@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - ServerInstallLayout
-
 /// App-facing path contract for a per-user SpeakSwiftlyServer install.
 ///
 /// The forthcoming macOS app should treat these paths as the owned install surface for the
@@ -139,15 +137,11 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - ServerInstalledLogKind
-
 /// Identifies which retained log file from an installed server snapshot a caller wants to inspect.
 public enum ServerInstalledLogKind: String, Codable, Sendable, Equatable, CaseIterable {
     case stdout
     case stderr
 }
-
-// MARK: - ServerInstalledLogFileSnapshot
 
 /// Captures one retained stdout or stderr file from an installed standalone server.
 public struct ServerInstalledLogFileSnapshot: Codable, Sendable, Equatable {
@@ -171,8 +165,6 @@ public struct ServerInstalledLogFileSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - ServerInstalledLogsSnapshot
-
 /// Bundles the retained stdout and stderr snapshots for one installed server layout.
 public struct ServerInstalledLogsSnapshot: Codable, Sendable, Equatable {
     public let layout: ServerInstallLayout
@@ -189,8 +181,6 @@ public struct ServerInstalledLogsSnapshot: Codable, Sendable, Equatable {
         }
     }
 }
-
-// MARK: - ServerInstalledLogs
 
 /// Reads retained stdout and stderr files from an app-managed standalone server install.
 public enum ServerInstalledLogs {

@@ -21,7 +21,7 @@ func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedReq
 }
 
 func supportedRawValuesDescription<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> String
-where T.AllCases: Collection, T.RawValue == String {
+    where T.AllCases: Collection, T.RawValue == String {
     T.allCases.map(\.rawValue).joined(separator: ", ")
 }
 
@@ -30,7 +30,7 @@ func decodeStringEnum<T: RawRepresentable & CaseIterable>(
     fieldName: String,
     valueType: T.Type,
 ) throws -> T
-where T.AllCases: Collection, T.RawValue == String {
+    where T.AllCases: Collection, T.RawValue == String {
     guard let value = T(rawValue: rawValue) else {
         throw MCPError.invalidParams(
             "Tool argument '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedRawValuesDescription(T.self)).",

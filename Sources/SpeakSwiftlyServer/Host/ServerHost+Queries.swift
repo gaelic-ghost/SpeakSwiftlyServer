@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Query Surface
-
 extension ServerHost {
     // MARK: - Public Query Surface
 

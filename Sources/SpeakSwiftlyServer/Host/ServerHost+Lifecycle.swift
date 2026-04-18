@@ -1,8 +1,6 @@
 import AsyncAlgorithms
 import Foundation
 
-// MARK: - Host Lifecycle Surface
-
 extension ServerHost {
     // MARK: - Runtime Lifecycle
 

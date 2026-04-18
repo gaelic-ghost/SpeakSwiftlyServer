@@ -1,8 +1,6 @@
 import Foundation
 import MCP
 
-// MARK: - MCPResourceCatalog
-
 enum MCPResourceCatalog {
     static let resourceURIs = Set([
         "speak://runtime/overview",

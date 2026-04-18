@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Playback Routes
-
 func registerHTTPPlaybackRoutes(
     on router: Router<BasicRequestContext>,
     host: ServerHost,

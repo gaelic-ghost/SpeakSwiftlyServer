@@ -2,8 +2,6 @@ import Foundation
 import Hummingbird
 import SpeakSwiftly
 
-// MARK: - ServerWorkerStatusEvent
-
 /// Worker readiness or mode change emitted on the shared job event stream.
 struct ServerWorkerStatusEvent: Encodable, Equatable {
     let event = "worker_status"
@@ -16,8 +14,6 @@ struct ServerWorkerStatusEvent: Encodable, Equatable {
         case workerMode = "worker_mode"
     }
 }
-
-// MARK: - ServerQueuedEvent
 
 /// Queue-placement event emitted when a request cannot start immediately.
 struct ServerQueuedEvent: Encodable, Equatable {
@@ -34,8 +30,6 @@ struct ServerQueuedEvent: Encodable, Equatable {
     }
 }
 
-// MARK: - ServerStartedEvent
-
 /// Start event emitted when a queued request begins execution.
 struct ServerStartedEvent: Encodable, Equatable {
     let id: String
@@ -43,16 +37,12 @@ struct ServerStartedEvent: Encodable, Equatable {
     let op: String
 }
 
-// MARK: - ServerProgressEvent
-
 /// Progress event emitted while a request advances through runtime stages.
 struct ServerProgressEvent: Encodable, Equatable {
     let id: String
     let event = "progress"
     let stage: String
 }
-
-// MARK: - ServerSuccessEvent
 
 /// Success-shaped event payload used for acknowledgements and completions.
 struct ServerSuccessEvent: Encodable, Equatable {
@@ -105,8 +95,6 @@ struct ServerSuccessEvent: Encodable, Equatable {
     let cancelledRequestID: String?
 }
 
-// MARK: - ServerFailureEvent
-
 /// Failure-shaped event payload emitted when a request cannot complete successfully.
 struct ServerFailureEvent: Encodable, Equatable {
     let id: String
@@ -114,8 +102,6 @@ struct ServerFailureEvent: Encodable, Equatable {
     let code: String
     let message: String
 }
-
-// MARK: - ServerJobEvent
 
 /// Union event type for one job's lifecycle on the shared event stream.
 enum ServerJobEvent: Equatable, Encodable {
@@ -176,8 +162,6 @@ enum ServerJobEvent: Equatable, Encodable {
         }
     }
 }
-
-// MARK: - JobSnapshot
 
 /// Snapshot of one retained request lifecycle, including latest and terminal events.
 struct JobSnapshot: ResponseEncodable {

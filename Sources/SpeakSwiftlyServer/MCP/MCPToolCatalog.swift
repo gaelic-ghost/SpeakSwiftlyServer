@@ -1,8 +1,6 @@
 import Foundation
 import MCP
 
-// MARK: - Tool Catalog
-
 enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(

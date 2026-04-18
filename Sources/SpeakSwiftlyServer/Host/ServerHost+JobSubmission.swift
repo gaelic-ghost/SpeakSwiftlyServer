@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Job Submission
-
 extension ServerHost {
     func queueSpeechLive(
         text: String,

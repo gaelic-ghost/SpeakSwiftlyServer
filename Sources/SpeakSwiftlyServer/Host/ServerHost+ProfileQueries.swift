@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Profile Query Surface
-
 extension ServerHost {
     // MARK: - Voice Profile Queries
 

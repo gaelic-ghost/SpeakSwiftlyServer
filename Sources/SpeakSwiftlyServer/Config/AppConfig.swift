@@ -1,8 +1,6 @@
 import Configuration
 import Foundation
 
-// MARK: - App Config
-
 struct AppConfig {
     let server: ServerConfiguration
     let http: HTTPConfig
@@ -27,8 +25,6 @@ struct AppConfig {
         )
         mcp = try MCPConfig(config: config.scoped(to: "mcp"))
     }
-
-    // MARK: - Loading
 
     static func load(
         environment: [String: String] = ProcessInfo.processInfo.environment,

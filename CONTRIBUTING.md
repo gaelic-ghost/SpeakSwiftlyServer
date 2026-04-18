@@ -121,6 +121,11 @@ The maintainer validation entrypoint is:
 sh scripts/repo-maintenance/validate-all.sh
 ```
 
+That validation path now includes the default package lane (`xcrun swift build` and
+`xcrun swift test`) before the repo-owned DocC, formatting, and lint checks, so maintainers
+do not need a separate "ordinary SwiftPM lane" command chain just to get the standard package
+signal.
+
 Direct formatter and linter commands are:
 
 ```bash

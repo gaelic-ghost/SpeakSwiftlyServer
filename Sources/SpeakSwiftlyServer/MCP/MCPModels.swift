@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - MCP Models
-
 struct MCPAcceptedRequestResult: Codable {
     let requestID: String
     let requestResourceURI: String

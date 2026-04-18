@@ -1,8 +1,6 @@
 import Foundation
 import SpeakSwiftly
 
-// MARK: - Host Control Support
-
 extension ServerHost {
     // MARK: - Playback Control Helpers
 

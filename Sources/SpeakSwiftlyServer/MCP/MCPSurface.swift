@@ -2,8 +2,6 @@ import Foundation
 import Hummingbird
 import MCP
 
-// MARK: - MCP Surface
-
 struct MCPSurface {
     private let sessions: MCPSessionRegistry
 

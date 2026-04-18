@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Speech Backend Surface Helpers
-
 func exposedSpeechBackendIdentifiers() -> [String] {
     SpeakSwiftly.SpeechBackend.allCases.map(\.rawValue)
 }
@@ -49,8 +47,6 @@ func makeSpeechSourceFormat(_ rawValue: String?) throws -> TextForSpeech.SourceF
     try rawValue.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
 }
 
-// MARK: - SpeakRequestPayload
-
 struct SpeakRequestPayload: Decodable {
     enum CodingKeys: String, CodingKey {
         case text
@@ -86,8 +82,6 @@ struct SpeakRequestPayload: Decodable {
     }
 }
 
-// MARK: - CreateProfileRequestPayload
-
 struct CreateProfileRequestPayload: Decodable {
     let profileName: String
     let vibe: String
@@ -110,8 +104,6 @@ struct CreateProfileRequestPayload: Decodable {
     }
 }
 
-// MARK: - CreateCloneRequestPayload
-
 struct CreateCloneRequestPayload: Decodable {
     let profileName: String
     let vibe: String
@@ -132,8 +124,6 @@ struct CreateCloneRequestPayload: Decodable {
     }
 }
 
-// MARK: - GenerateBatchRequestPayload
-
 struct GenerateBatchRequestPayload: Decodable {
     let profileName: String?
     let items: [BatchItemRequestPayload]
@@ -143,8 +133,6 @@ struct GenerateBatchRequestPayload: Decodable {
         case items
     }
 }
-
-// MARK: - BatchItemRequestPayload
 
 struct BatchItemRequestPayload: Decodable {
     enum CodingKeys: String, CodingKey {
@@ -191,8 +179,6 @@ struct BatchItemRequestPayload: Decodable {
     }
 }
 
-// MARK: - RuntimeConfigurationUpdatePayload
-
 struct RuntimeConfigurationUpdatePayload: Decodable {
     let speechBackend: String
 
@@ -204,8 +190,6 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
         try resolveSpeechBackend(speechBackend, fieldName: "speech_backend")
     }
 }
-
-// MARK: - RequestAcceptedResponse
 
 struct RequestAcceptedResponse: ResponseEncodable {
     let requestID: String
@@ -219,19 +203,13 @@ struct RequestAcceptedResponse: ResponseEncodable {
     }
 }
 
-// MARK: - RequestListResponse
-
 struct RequestListResponse: ResponseEncodable {
     let requests: [JobSnapshot]
 }
 
-// MARK: - RuntimeStatusResponse
-
 struct RuntimeStatusResponse: ResponseEncodable {
     let status: SpeakSwiftly.StatusEvent
 }
-
-// MARK: - RuntimeBackendResponse
 
 struct RuntimeBackendResponse: ResponseEncodable {
     let speechBackend: String
@@ -241,16 +219,12 @@ struct RuntimeBackendResponse: ResponseEncodable {
     }
 }
 
-// MARK: - TimestampFormatter
-
 enum TimestampFormatter {
     static func string(from date: Date) -> String {
         let formatter = ISO8601DateFormatter()
         return formatter.string(from: date)
     }
 }
-
-// MARK: - NormalizationFormat
 
 enum NormalizationFormat {
     case text(TextForSpeech.TextFormat)

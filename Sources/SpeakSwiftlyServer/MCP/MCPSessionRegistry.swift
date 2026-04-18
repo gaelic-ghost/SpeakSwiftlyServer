@@ -2,8 +2,6 @@ import Foundation
 import HTTPTypes
 import MCP
 
-// MARK: - MCPSessionRegistry
-
 actor MCPSessionRegistry {
     let path: String
 

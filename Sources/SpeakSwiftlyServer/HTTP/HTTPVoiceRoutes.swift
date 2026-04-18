@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Voice Routes
-
 func registerHTTPVoiceRoutes(
     on router: Router<BasicRequestContext>,
     configuration: HTTPConfig,

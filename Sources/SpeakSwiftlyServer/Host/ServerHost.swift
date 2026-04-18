@@ -4,8 +4,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Server Host
-
 actor ServerHost {
     enum PublishMode {
         case immediate

@@ -6,8 +6,6 @@ import Foundation
 let launchAgentGraceIntervalMicroseconds: useconds_t = 100_000
 let launchAgentBootstrapRetryCount = 10
 
-// MARK: - LaunchAgentStatusOptions
-
 struct LaunchAgentStatusOptions {
     let label: String
     let plistPath: String
@@ -123,8 +121,6 @@ struct LaunchAgentStatusOptions {
     }
 }
 
-// MARK: - LaunchAgentDefaults
-
 enum LaunchAgentDefaults {
     static let label = "com.gaelic-ghost.speak-swiftly-server"
     static let defaultProfile: AppRuntimeDefaultProfile = .launchAgent
@@ -151,15 +147,11 @@ enum LaunchAgentDefaults {
     }
 }
 
-// MARK: - LaunchctlResult
-
 struct LaunchctlResult {
     let exitCode: Int32
     let standardOutput: String
     let standardError: String
 }
-
-// MARK: - ProcessExecutionResult
 
 struct ProcessExecutionResult {
     let exitCode: Int32

@@ -1,8 +1,6 @@
 import Configuration
 import Foundation
 
-// MARK: - Runtime Default Profiles
-
 enum AppRuntimeDefaultProfile: String {
     case standaloneExecutable = "standalone-executable"
     case launchAgent = "launch-agent"

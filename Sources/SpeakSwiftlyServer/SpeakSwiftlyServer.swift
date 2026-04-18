@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - ServerRuntimeEntrypointOptions
-
 package struct ServerRuntimeEntrypointOptions {
     package let runtimeProfileRootPath: String?
 
@@ -14,8 +12,6 @@ package struct ServerRuntimeEntrypointOptions {
         }
     }
 }
-
-// MARK: - ServerRuntimeEntrypoint
 
 /// Starts the standalone SpeakSwiftly server runtime using the package's default embedded bootstrap path.
 package enum ServerRuntimeEntrypoint {

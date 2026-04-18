@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Runtime Routes
-
 func registerHTTPRuntimeRoutes(
     on router: Router<BasicRequestContext>,
     configuration: HTTPConfig,

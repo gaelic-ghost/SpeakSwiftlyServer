@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - ProfileCacheStatusSnapshot
-
 struct ProfileCacheStatusSnapshot: Codable, Equatable {
     let state: String
     let warning: String?
@@ -16,8 +14,6 @@ struct ProfileCacheStatusSnapshot: Codable, Equatable {
     }
 }
 
-// MARK: - TextProfilesStatusSnapshot
-
 struct TextProfilesStatusSnapshot: Codable, Equatable {
     let activeProfileID: String
     let storedProfileCount: Int
@@ -27,8 +23,6 @@ struct TextProfilesStatusSnapshot: Codable, Equatable {
         case storedProfileCount = "stored_profile_count"
     }
 }
-
-// MARK: - RuntimeConfigurationStatusSnapshot
 
 struct RuntimeConfigurationStatusSnapshot: Codable, Equatable {
     let activeRuntimeSpeechBackend: String
@@ -54,16 +48,12 @@ struct RuntimeConfigurationStatusSnapshot: Codable, Equatable {
     }
 }
 
-// MARK: - JobEventUpdate
-
 struct JobEventUpdate: Equatable {
     let jobID: String
     let event: ServerJobEvent
     let historyIndex: Int
     let terminal: Bool
 }
-
-// MARK: - HostEvent
 
 enum HostEvent {
     case transportChanged(TransportStatusSnapshot)

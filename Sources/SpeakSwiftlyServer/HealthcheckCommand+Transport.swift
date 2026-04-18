@@ -119,8 +119,6 @@ extension SpeakSwiftlyServerHealthcheck {
     }
 }
 
-// MARK: - Healthcheck Transport Models
-
 struct DecodedHTTPResponse<Response> {
     let statusCode: Int
     let value: Response

@@ -1,8 +1,6 @@
 import Foundation
 import MCP
 
-// MARK: - MCPPromptCatalog
-
 enum MCPPromptCatalog {
     static let promptNames = Set([
         "draft_profile_voice_description",

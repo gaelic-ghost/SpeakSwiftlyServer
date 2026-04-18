@@ -2,8 +2,6 @@ import Foundation
 import Hummingbird
 import SpeakSwiftly
 
-// MARK: - Host Event Support
-
 extension ServerHost {
     // MARK: - Transport and Error Tracking
 

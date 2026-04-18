@@ -3,8 +3,6 @@ import Foundation
 import ServiceLifecycle
 import SystemPackage
 
-// MARK: - Config Store
-
 struct ConfigStore {
     enum Update {
         case reloaded(AppConfig)

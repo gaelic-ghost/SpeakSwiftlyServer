@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - LaunchAgentPromoteOptions
-
 struct LaunchAgentPromoteOptions {
     let installOptions: LaunchAgentOptions
     let repositoryRootPath: String
@@ -55,15 +53,11 @@ struct LaunchAgentPromoteOptions {
     }
 }
 
-// MARK: - ReleaseArtifactPromotionResult
-
 private struct ReleaseArtifactPromotionResult {
     let builtExecutablePath: String
     let stagedExecutablePath: String
     let stagedMetallibPath: String
 }
-
-// MARK: - ReleaseArtifactPromoter
 
 private enum ReleaseArtifactPromoter {
     private struct SpeakSwiftlyPublishedRuntimeMetadata: Decodable {

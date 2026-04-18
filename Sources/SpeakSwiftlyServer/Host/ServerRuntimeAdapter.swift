@@ -2,8 +2,6 @@ import Foundation
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Runtime Adapter
-
 actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     private let runtime: SpeakSwiftly.Runtime
 

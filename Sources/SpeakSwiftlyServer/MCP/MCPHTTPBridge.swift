@@ -4,8 +4,6 @@ import Hummingbird
 import MCP
 import NIOCore
 
-// MARK: - HTTP Bridge
-
 enum MCPHTTPBridge {
     static func makeHTTPRequest(from request: Request) async throws -> MCP.HTTPRequest {
         let bodyBuffer = try await request.body.collect(upTo: 10 * 1024 * 1024)

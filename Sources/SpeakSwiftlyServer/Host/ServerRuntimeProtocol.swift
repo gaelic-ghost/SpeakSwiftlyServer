@@ -4,8 +4,6 @@ import TextForSpeech
 
 typealias SpeechNormalizationContext = TextForSpeech.Context
 
-// MARK: - RuntimeRequestHandle
-
 struct RuntimeRequestHandle {
     let id: String
     let operation: String
@@ -34,8 +32,6 @@ struct RuntimeRequestHandle {
     }
 }
 
-// MARK: - Operation Naming
-
 func canonicalOperationName(_ operation: String) -> String {
     switch operation {
         case "queue_speech_live":
@@ -56,8 +52,6 @@ func canonicalOperationName(_ operation: String) -> String {
             operation
     }
 }
-
-// MARK: - ServerRuntimeProtocol
 
 protocol ServerRuntimeProtocol: Actor {
     func start() async

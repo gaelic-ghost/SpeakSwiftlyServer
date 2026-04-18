@@ -2,8 +2,6 @@ import Foundation
 import Hummingbird
 import ServiceLifecycle
 
-// MARK: - HTTP Surface
-
 func assembleHBApp(
     configuration: HTTPConfig,
     host: ServerHost,
@@ -37,8 +35,6 @@ func assembleHBApp(
 
     return app
 }
-
-// MARK: - Route Registration
 
 private func registerHTTPRoutes(
     on router: Router<BasicRequestContext>,

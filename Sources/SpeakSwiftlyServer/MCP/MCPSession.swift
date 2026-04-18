@@ -1,7 +1,5 @@
 import MCP
 
-// MARK: - Session
-
 actor MCPSession {
     private let host: ServerHost
     private let transport: StatefulHTTPServerTransport

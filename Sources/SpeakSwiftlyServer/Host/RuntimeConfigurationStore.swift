@@ -1,8 +1,6 @@
 import Foundation
 import SpeakSwiftly
 
-// MARK: - RuntimeConfigurationStore
-
 struct RuntimeConfigurationStore {
     private final class FileSystem: @unchecked Sendable {
         private let fileManager: FileManager
@@ -294,8 +292,6 @@ private extension RuntimeConfigurationStore {
         }
     }
 }
-
-// MARK: - RuntimeConfigurationStoreError
 
 struct RuntimeConfigurationStoreError: LocalizedError {
     let message: String

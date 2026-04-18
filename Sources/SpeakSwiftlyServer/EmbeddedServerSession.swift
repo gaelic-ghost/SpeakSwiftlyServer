@@ -2,14 +2,10 @@ import Foundation
 import Hummingbird
 import ServiceLifecycle
 
-// MARK: - EmbeddedServerLifecycleHooks
-
 struct EmbeddedServerLifecycleHooks {
     let requestStop: @Sendable () async -> Void
     let waitUntilStopped: @Sendable () async throws -> Void
 }
-
-// MARK: - EmbeddedServerStopCoordinator
 
 actor EmbeddedServerStopCoordinator {
     private var didRequestStop = false

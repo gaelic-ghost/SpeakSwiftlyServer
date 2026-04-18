@@ -3,8 +3,6 @@ import MCP
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - Tool Handlers
-
 extension MCPSurface {
     static func registerToolHandlers(
         on server: Server,

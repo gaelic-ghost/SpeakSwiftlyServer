@@ -3,8 +3,6 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
-// MARK: - ProfileSnapshot
-
 /// Summary of one cached voice profile known to the shared runtime.
 public struct ProfileSnapshot: Codable, Sendable, Equatable {
     public let profileName: String
@@ -44,13 +42,9 @@ public struct ProfileSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - ProfileListResponse
-
 struct ProfileListResponse: ResponseEncodable {
     let profiles: [ProfileSnapshot]
 }
-
-// MARK: - RenameVoiceProfileRequestPayload
 
 struct RenameVoiceProfileRequestPayload: Decodable {
     let newProfileName: String
@@ -59,8 +53,6 @@ struct RenameVoiceProfileRequestPayload: Decodable {
         case newProfileName = "new_profile_name"
     }
 }
-
-// MARK: - TextReplacementSnapshot
 
 /// One text-normalization replacement rule exposed through the server surfaces.
 struct TextReplacementSnapshot: Codable, Equatable {
@@ -203,8 +195,6 @@ struct TextReplacementSnapshot: Codable, Equatable {
     }
 }
 
-// MARK: - TextProfileSnapshot
-
 /// One text profile and its replacement rules as exposed by the server.
 struct TextProfileSnapshot: Codable, Equatable {
     let id: String
@@ -226,8 +216,6 @@ struct TextProfileSnapshot: Codable, Equatable {
     }
 }
 
-// MARK: - TextProfileStyleSnapshot
-
 struct TextProfileStyleSnapshot: Codable, Equatable {
     let builtInStyle: String
 
@@ -239,8 +227,6 @@ struct TextProfileStyleSnapshot: Codable, Equatable {
         builtInStyle = style.rawValue
     }
 }
-
-// MARK: - TextProfilesSnapshot
 
 struct TextProfilesSnapshot: ResponseEncodable, Equatable {
     let builtInStyle: String
@@ -258,8 +244,6 @@ struct TextProfilesSnapshot: ResponseEncodable, Equatable {
     }
 }
 
-// MARK: - TextProfileListResponse
-
 struct TextProfileListResponse: ResponseEncodable {
     let textProfiles: TextProfilesSnapshot
 
@@ -268,13 +252,9 @@ struct TextProfileListResponse: ResponseEncodable {
     }
 }
 
-// MARK: - TextProfileResponse
-
 struct TextProfileResponse: ResponseEncodable {
     let profile: TextProfileSnapshot
 }
-
-// MARK: - TextProfileStyleResponse
 
 struct TextProfileStyleResponse: ResponseEncodable {
     let textProfileStyle: TextProfileStyleSnapshot
@@ -284,33 +264,23 @@ struct TextProfileStyleResponse: ResponseEncodable {
     }
 }
 
-// MARK: - CreateTextProfileRequestPayload
-
 struct CreateTextProfileRequestPayload: Decodable {
     let id: String
     let name: String
     let replacements: [TextReplacementSnapshot]
 }
 
-// MARK: - StoreTextProfileRequestPayload
-
 struct StoreTextProfileRequestPayload: Decodable {
     let profile: TextProfileSnapshot
 }
-
-// MARK: - UseTextProfileRequestPayload
 
 struct UseTextProfileRequestPayload: Decodable {
     let profile: TextProfileSnapshot
 }
 
-// MARK: - TextReplacementRequestPayload
-
 struct TextReplacementRequestPayload: Decodable {
     let replacement: TextReplacementSnapshot
 }
-
-// MARK: - SetTextProfileStyleRequestPayload
 
 struct SetTextProfileStyleRequestPayload: Decodable {
     let builtInStyle: String

@@ -1,8 +1,6 @@
 import Configuration
 import Foundation
 
-// MARK: - ServerConfiguration
-
 struct ServerConfiguration {
     let name: String
     let environment: String
@@ -117,8 +115,6 @@ struct ServerConfiguration {
         return value
     }
 }
-
-// MARK: - ServerConfigurationError
 
 struct ServerConfigurationError: Error, CustomStringConvertible {
     let message: String

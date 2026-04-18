@@ -1,8 +1,6 @@
 import Foundation
 import SpeakSwiftly
 
-// MARK: - Host State Flow
-
 extension ServerHost {
     // MARK: - Publish Flow
 

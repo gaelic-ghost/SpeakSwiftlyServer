@@ -3,7 +3,7 @@
 # configuration changes later, re-export from the shared SwiftFormat settings
 # and review the diff before importing it back into the app.
 
---rules andOperator,anyObjectProtocol,applicationMain,assertionFailures,blankLineAfterImports,blankLinesAfterGuardStatements,blankLinesAroundMark,blankLinesAtEndOfScope,blankLinesAtStartOfScope,blankLinesBetweenChainedFunctions,blankLinesBetweenImports,blankLinesBetweenScopes,braces,conditionalAssignment,consecutiveBlankLines,consecutiveSpaces,consistentSwitchCaseSpacing,docComments,docCommentsBeforeModifiers,duplicateImports,elseOnSameLine,emptyBraces,emptyExtensions,enumNamespaces,environmentEntry,extensionAccessControl,fileMacro,genericExtensions,headerFileName,hoistAwait,hoistPatternLet,hoistTry,indent,initCoderUnavailable,isEmpty,leadingDelimiters,linebreakAtEndOfFile,linebreaks,markTypes,modifierOrder,noForceTryInTests,noForceUnwrapInTests,noGuardInTests,numberFormatting,opaqueGenericParameters,organizeDeclarations,preferFinalClasses,privateStateVariables,redundantAsync,redundantBackticks,redundantBreak,redundantClosure,redundantEquatable,redundantExtensionACL,redundantFileprivate,redundantGet,redundantInit,redundantInternal,redundantLet,redundantLetError,redundantMemberwiseInit,redundantNilInit,redundantObjc,redundantOptionalBinding,redundantParens,redundantPattern,redundantPublic,redundantRawValues,redundantReturn,redundantSelf,redundantSendable,redundantStaticSelf,redundantSwiftTestingSuite,redundantThrows,redundantType,redundantTypedThrows,redundantVariable,redundantViewBuilder,semicolons,simplifyGenericConstraints,sortDeclarations,sortImports,sortTypealiases,spaceAroundBraces,spaceAroundBrackets,spaceAroundComments,spaceAroundGenerics,spaceAroundOperators,spaceAroundParens,spaceInsideBrackets,spaceInsideComments,spaceInsideGenerics,spaceInsideParens,strongOutlets,strongifiedSelf,swiftTestingTestCaseNames,todos,trailingClosures,trailingCommas,trailingSpace,typeSugar,validateTestCases,void,wrap,wrapArguments,wrapAttributes,wrapLoopBodies,wrapMultilineFunctionChains,wrapSingleLineComments,yodaConditions
+--rules andOperator,anyObjectProtocol,applicationMain,assertionFailures,blankLineAfterImports,blankLinesAfterGuardStatements,blankLinesAroundMark,blankLinesAtEndOfScope,blankLinesAtStartOfScope,blankLinesBetweenChainedFunctions,blankLinesBetweenImports,blankLinesBetweenScopes,braces,conditionalAssignment,consecutiveBlankLines,consecutiveSpaces,consistentSwitchCaseSpacing,docComments,docCommentsBeforeModifiers,duplicateImports,elseOnSameLine,emptyBraces,emptyExtensions,enumNamespaces,environmentEntry,extensionAccessControl,fileMacro,genericExtensions,headerFileName,hoistAwait,hoistPatternLet,hoistTry,indent,initCoderUnavailable,isEmpty,leadingDelimiters,linebreakAtEndOfFile,linebreaks,modifierOrder,noForceTryInTests,noForceUnwrapInTests,noGuardInTests,numberFormatting,opaqueGenericParameters,organizeDeclarations,preferFinalClasses,privateStateVariables,redundantAsync,redundantBackticks,redundantBreak,redundantClosure,redundantEquatable,redundantExtensionACL,redundantFileprivate,redundantGet,redundantInit,redundantInternal,redundantLet,redundantLetError,redundantMemberwiseInit,redundantNilInit,redundantObjc,redundantOptionalBinding,redundantParens,redundantPattern,redundantPublic,redundantRawValues,redundantReturn,redundantSelf,redundantSendable,redundantStaticSelf,redundantSwiftTestingSuite,redundantThrows,redundantType,redundantTypedThrows,redundantVariable,redundantViewBuilder,semicolons,simplifyGenericConstraints,sortDeclarations,sortImports,sortTypealiases,spaceAroundBraces,spaceAroundBrackets,spaceAroundComments,spaceAroundGenerics,spaceAroundOperators,spaceAroundParens,spaceInsideBrackets,spaceInsideComments,spaceInsideGenerics,spaceInsideParens,strongOutlets,strongifiedSelf,swiftTestingTestCaseNames,todos,trailingClosures,trailingCommas,trailingSpace,typeSugar,validateTestCases,void,wrap,wrapArguments,wrapAttributes,wrapLoopBodies,wrapMultilineFunctionChains,wrapSingleLineComments,yodaConditions
 
 --acronyms ID,URL,UUID
 --allow-partial-wrapping true
@@ -27,11 +27,9 @@
 --equatable-macro none
 --exponent-case lowercase
 --extension-acl on-extension
---extension-mark "MARK: - %t + %c"
 --file-macro "#file"
 --func-attributes preserve
 --group-blank-lines true
---grouped-extension "MARK: %c"
 --guard-else auto
 --header ignore
 --hex-grouping 4,8
@@ -49,9 +47,7 @@
 --mark-class-threshold 40
 --mark-enum-threshold 40
 --mark-extension-threshold 40
---mark-extensions if-not-empty
 --mark-struct-threshold 40
---mark-types if-not-empty
 --max-width none
 --operator-func spaced
 --organization-mode type
@@ -80,7 +76,6 @@
 --type-blank-lines remove
 --type-body-marks preserve
 --type-delimiter space-after
---type-mark "MARK: - %t"
 --class-threshold 40
 --enum-threshold 40
 --extension-threshold 40

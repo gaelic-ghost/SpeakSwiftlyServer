@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Speech Submission Routes
-
 func registerHTTPSpeechRoutes(
     on router: Router<BasicRequestContext>,
     configuration: HTTPConfig,

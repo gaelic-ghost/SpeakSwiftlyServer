@@ -1,7 +1,5 @@
 import Hummingbird
 
-// MARK: - Generation Routes
-
 func registerHTTPGenerationRoutes(
     on router: Router<BasicRequestContext>,
     host: ServerHost,

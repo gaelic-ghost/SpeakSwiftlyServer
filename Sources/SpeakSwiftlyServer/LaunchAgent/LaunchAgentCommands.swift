@@ -2,8 +2,6 @@ import Foundation
 
 let speakSwiftlyServerToolName = "SpeakSwiftlyServerTool"
 
-// MARK: - ServeOptions
-
 package struct ServeOptions {
     let runtimeProfileRootPath: String?
 
@@ -35,8 +33,6 @@ package struct ServeOptions {
         )
     }
 }
-
-// MARK: - SpeakSwiftlyServerToolCommand
 
 /// Top-level parsed command for the `SpeakSwiftlyServerTool` executable.
 package enum SpeakSwiftlyServerToolCommand {
@@ -77,8 +73,6 @@ package enum SpeakSwiftlyServerToolCommand {
 
       Without arguments, \(speakSwiftlyServerToolName) defaults to `serve`.
     """
-
-    // MARK: - Parsing
 
     /// Parses command-line arguments into the tool's top-level command model.
     package static func parse(
@@ -131,8 +125,6 @@ package enum SpeakSwiftlyServerToolCommand {
         }
     }
 
-    // MARK: - Running
-
     /// Runs the parsed command against the standalone runtime or LaunchAgent workflow.
     package func run() async throws {
         switch self {
@@ -150,8 +142,6 @@ package enum SpeakSwiftlyServerToolCommand {
     }
 }
 
-// MARK: - SpeakSwiftlyServerToolCommandError
-
 /// Human-friendly parse or usage error for the top-level executable command surface.
 package struct SpeakSwiftlyServerToolCommandError: Error, CustomStringConvertible {
     package let message: String
@@ -162,8 +152,6 @@ package struct SpeakSwiftlyServerToolCommandError: Error, CustomStringConvertibl
 
     package var description: String { message }
 }
-
-// MARK: - LaunchAgentCommand
 
 /// Parsed subcommand for LaunchAgent install, uninstall, status, and property-list rendering.
 package struct LaunchAgentCommand {
@@ -176,8 +164,6 @@ package struct LaunchAgentCommand {
     }
 
     let action: Action
-
-    // MARK: - Parsing
 
     /// Parses the `launch-agent` subcommand surface.
     static func parse(arguments: [String], currentDirectoryPath: String, currentExecutablePath: String) throws -> LaunchAgentCommand {
@@ -217,8 +203,6 @@ package struct LaunchAgentCommand {
         }
     }
 
-    // MARK: - Running
-
     /// Executes the requested LaunchAgent management action.
     func run() throws {
         switch action {
@@ -246,8 +230,6 @@ package struct LaunchAgentCommand {
         }
     }
 }
-
-// MARK: - LaunchAgentCommandError
 
 /// Human-friendly parse or execution error for the LaunchAgent command surface.
 package typealias LaunchAgentCommandError = SpeakSwiftlyServerToolCommandError

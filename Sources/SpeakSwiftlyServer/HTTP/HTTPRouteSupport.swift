@@ -3,8 +3,6 @@ import HTTPTypes
 import Hummingbird
 import NIOCore
 
-// MARK: - Route Support
-
 func buildAcceptedRequestResponse(
     request: Request,
     configuration: HTTPConfig,

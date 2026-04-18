@@ -1,8 +1,6 @@
 import Configuration
 import Foundation
 
-// MARK: - HTTP Config
-
 struct HTTPConfig {
     let enabled: Bool
     let host: String

@@ -1,8 +1,6 @@
 import HTTPTypes
 import Hummingbird
 
-// MARK: - Request Routes
-
 func registerHTTPRequestRoutes(
     on router: Router<BasicRequestContext>,
     host: ServerHost,
