@@ -20,6 +20,26 @@ func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedReq
     )
 }
 
+func supportedRawValuesDescription<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> String
+where T.AllCases: Collection, T.RawValue == String {
+    T.allCases.map(\.rawValue).joined(separator: ", ")
+}
+
+func decodeStringEnum<T: RawRepresentable & CaseIterable>(
+    _ rawValue: String,
+    fieldName: String,
+    valueType: T.Type,
+) throws -> T
+where T.AllCases: Collection, T.RawValue == String {
+    guard let value = T(rawValue: rawValue) else {
+        throw MCPError.invalidParams(
+            "Tool argument '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedRawValuesDescription(T.self)).",
+        )
+    }
+
+    return value
+}
+
 // MARK: - Tool Argument Parsing
 
 func requiredString(_ key: String, in arguments: [String: Value]) throws -> String {
@@ -92,14 +112,8 @@ func requestTextFormat(in arguments: [String: Value]) throws -> TextForSpeech.Te
     guard let rawValue = optionalString("text_format", in: arguments) else {
         return nil
     }
-    guard let format = TextForSpeech.TextFormat(rawValue: rawValue) else {
-        let acceptedValues = TextForSpeech.TextFormat.allCases.map(\.rawValue).joined(separator: ", ")
-        throw MCPError.invalidParams(
-            "Tool argument 'text_format' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues).",
-        )
-    }
 
-    return format
+    return try decodeStringEnum(rawValue, fieldName: "text_format", valueType: TextForSpeech.TextFormat.self)
 }
 
 func requestSourceFormat(
@@ -109,14 +123,8 @@ func requestSourceFormat(
     guard let rawValue = optionalString(key, in: arguments) else {
         return nil
     }
-    guard let format = TextForSpeech.SourceFormat(rawValue: rawValue) else {
-        let acceptedValues = TextForSpeech.SourceFormat.allCases.map(\.rawValue).joined(separator: ", ")
-        throw MCPError.invalidParams(
-            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues).",
-        )
-    }
 
-    return format
+    return try decodeStringEnum(rawValue, fieldName: key, valueType: TextForSpeech.SourceFormat.self)
 }
 
 func requiredVibe(
@@ -124,14 +132,7 @@ func requiredVibe(
     in arguments: [String: Value],
 ) throws -> SpeakSwiftly.Vibe {
     let rawValue = try requiredString(key, in: arguments)
-    guard let vibe = SpeakSwiftly.Vibe(rawValue: rawValue) else {
-        let acceptedValues = SpeakSwiftly.Vibe.allCases.map(\.rawValue).joined(separator: ", ")
-        throw MCPError.invalidParams(
-            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues).",
-        )
-    }
-
-    return vibe
+    return try decodeStringEnum(rawValue, fieldName: key, valueType: SpeakSwiftly.Vibe.self)
 }
 
 func requiredSpeechBackend(
@@ -153,14 +154,7 @@ func requiredBuiltInTextProfileStyle(
     in arguments: [String: Value],
 ) throws -> TextForSpeech.BuiltInProfileStyle {
     let rawValue = try requiredString(key, in: arguments)
-    guard let style = TextForSpeech.BuiltInProfileStyle(rawValue: rawValue) else {
-        let acceptedValues = TextForSpeech.BuiltInProfileStyle.allCases.map(\.rawValue).joined(separator: ", ")
-        throw MCPError.invalidParams(
-            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(acceptedValues).",
-        )
-    }
-
-    return style
+    return try decodeStringEnum(rawValue, fieldName: key, valueType: TextForSpeech.BuiltInProfileStyle.self)
 }
 
 func decodeValue<T: Decodable>(_ value: Value, fieldName: String) throws -> T {

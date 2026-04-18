@@ -17,6 +17,38 @@ func legacySpeechBackendNormalizationNote() -> String {
     "The legacy value '\(SpeakSwiftly.SpeechBackend.legacyQwenCustomVoiceRawValue)' is still accepted and normalized to 'qwen3'."
 }
 
+func makeSpeechNormalizationContext(
+    cwd: String?,
+    repoRoot: String?,
+    textFormat: String?,
+    nestedSourceFormat: String?,
+) throws -> SpeechNormalizationContext? {
+    let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
+    let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
+        try resolveSourceFormat($0, fieldName: "nested_source_format")
+    }
+    let context = SpeechNormalizationContext(
+        cwd: cwd,
+        repoRoot: repoRoot,
+        textFormat: resolvedTextFormat,
+        nestedSourceFormat: resolvedNestedSourceFormat,
+    )
+    guard
+        context.cwd != nil
+        || context.repoRoot != nil
+        || context.textFormat != nil
+        || context.nestedSourceFormat != nil
+    else {
+        return nil
+    }
+
+    return context
+}
+
+func makeSpeechSourceFormat(_ rawValue: String?) throws -> TextForSpeech.SourceFormat? {
+    try rawValue.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
+}
+
 // MARK: - SpeakRequestPayload
 
 struct SpeakRequestPayload: Decodable {
@@ -41,30 +73,16 @@ struct SpeakRequestPayload: Decodable {
     let sourceFormat: String?
 
     func normalizationContext() throws -> SpeechNormalizationContext? {
-        let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
-        let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
-            try resolveSourceFormat($0, fieldName: "nested_source_format")
-        }
-        let context = SpeechNormalizationContext(
+        try makeSpeechNormalizationContext(
             cwd: cwd,
             repoRoot: repoRoot,
-            textFormat: resolvedTextFormat,
-            nestedSourceFormat: resolvedNestedSourceFormat,
+            textFormat: textFormat,
+            nestedSourceFormat: nestedSourceFormat,
         )
-        guard
-            context.cwd != nil
-            || context.repoRoot != nil
-            || context.textFormat != nil
-            || context.nestedSourceFormat != nil
-        else {
-            return nil
-        }
-
-        return context
     }
 
     func sourceFormatModel() throws -> TextForSpeech.SourceFormat? {
-        try sourceFormat.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
+        try makeSpeechSourceFormat(sourceFormat)
     }
 }
 
@@ -160,30 +178,16 @@ struct BatchItemRequestPayload: Decodable {
     }
 
     private func normalizationContext() throws -> SpeechNormalizationContext? {
-        let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
-        let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
-            try resolveSourceFormat($0, fieldName: "nested_source_format")
-        }
-        let context = SpeechNormalizationContext(
+        try makeSpeechNormalizationContext(
             cwd: cwd,
             repoRoot: repoRoot,
-            textFormat: resolvedTextFormat,
-            nestedSourceFormat: resolvedNestedSourceFormat,
+            textFormat: textFormat,
+            nestedSourceFormat: nestedSourceFormat,
         )
-        guard
-            context.cwd != nil
-            || context.repoRoot != nil
-            || context.textFormat != nil
-            || context.nestedSourceFormat != nil
-        else {
-            return nil
-        }
-
-        return context
     }
 
     private func sourceFormatModel() throws -> TextForSpeech.SourceFormat? {
-        try sourceFormat.flatMap { try resolveSourceFormat($0, fieldName: "source_format") }
+        try makeSpeechSourceFormat(sourceFormat)
     }
 }
 

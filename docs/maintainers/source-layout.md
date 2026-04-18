@@ -9,9 +9,13 @@ This document is the maintainer map for the current `SpeakSwiftly 3.x`-aligned s
 - `Sources/SpeakSwiftlyServer/EmbeddedLifecycleServices.swift`
   Holds the embedded-session readiness gates, shutdown barrier, and the explicit service-owned wrappers for host lifecycle, config watching, MCP lifecycle, and wrapped application runtime.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost.swift`
-  Holds the actor declaration, stored state, construction, lifecycle, transport watch hooks, and shared snapshot basics.
+  Holds the actor declaration, stored state, and construction-time setup.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+Lifecycle.swift`
+  Holds runtime start and shutdown, shared update streams, transport lifecycle hooks, configuration-reload handling, and the host health or readiness snapshot surface.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+Queries.swift`
-  Holds the public query surface, runtime/text-profile reads and writes, generated-artifact reads, and immediate control entrypoints.
+  Holds the public runtime query surface, generated-artifact reads, retained-request reads, and immediate control entrypoints.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+ProfileQueries.swift`
+  Holds the voice-profile cache reads, default-voice-profile ownership, text-profile queries and mutations, and profile-refresh entrypoints.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+JobSubmission.swift`
   Holds request submission, accepted-request shaping, and the handoff into retained host tracking.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+JobTracking.swift`
@@ -39,6 +43,17 @@ This document is the maintainer map for the current `SpeakSwiftly 3.x`-aligned s
   Job event payloads and retained request snapshots.
 - `Sources/SpeakSwiftlyServer/Host/HostStateModels.swift`
   Shared host-overview snapshots for app state, HTTP, and MCP resources.
+
+## Operator Sources
+
+- `Sources/SpeakSwiftlyServer/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
+  Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.
+- `Sources/SpeakSwiftlyServer/LaunchAgent/LaunchAgentCommands.swift`
+  Holds the top-level command parsing and dispatch for `serve`, `healthcheck`, and `launch-agent`.
+- `Sources/SpeakSwiftlyServer/LaunchAgent/LaunchAgentOptions.swift` and `LaunchAgentOptions+Installation.swift`
+  Keep LaunchAgent option parsing, path resolution, and repository-root discovery separate from property-list rendering, config staging, and install/bootstrap mechanics.
+- `Sources/SpeakSwiftlyServer/LaunchAgent/LaunchAgentRuntime.swift`
+  Holds LaunchAgent status inspection, uninstall flow, launchctl execution, and defaults.
 
 ## Test Sources
 

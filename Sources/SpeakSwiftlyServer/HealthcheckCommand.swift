@@ -96,35 +96,25 @@ struct SpeakSwiftlyServerHealthcheck {
     }
 
     private func fetchHealth() async throws -> HealthcheckHealthSnapshot {
-        let response = try await performJSONRequest(
+        try await performRequiredJSONRequest(
             path: "/healthz",
             method: "GET",
             body: nil,
             responseType: HealthcheckHealthSnapshot.self,
+            expectedStatus: 200,
+            failureContext: "SpeakSwiftlyServer healthcheck",
         )
-        guard response.statusCode == 200 else {
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer healthcheck reached '\(endpointURL(path: "/healthz").absoluteString)', but the service reported HTTP \(response.statusCode) instead of 200. Body: \(response.bodyPreview)",
-            )
-        }
-
-        return response.value
     }
 
     private func fetchHostStatus() async throws -> HealthcheckHostSnapshot {
-        let response = try await performJSONRequest(
+        try await performRequiredJSONRequest(
             path: "/runtime/host",
             method: "GET",
             body: nil,
             responseType: HealthcheckHostSnapshot.self,
+            expectedStatus: 200,
+            failureContext: "SpeakSwiftlyServer healthcheck",
         )
-        guard response.statusCode == 200 else {
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer healthcheck reached '\(endpointURL(path: "/runtime/host").absoluteString)', but the service reported HTTP \(response.statusCode) instead of 200. Body: \(response.bodyPreview)",
-            )
-        }
-
-        return response.value
     }
 
     private func initializeMCP() async throws -> MCPInitializeResult {
@@ -184,162 +174,6 @@ struct SpeakSwiftlyServerHealthcheck {
 
         return .init(sessionID: sessionID, protocolVersion: protocolVersion)
     }
-
-    private func extractInitializePayload(from response: RawHTTPResponse) throws -> Data {
-        if response.httpResponse.value(forHTTPHeaderField: "Content-Type")?.contains("text/event-stream") == true {
-            let bodyText = String(decoding: response.body, as: UTF8.self)
-            for line in bodyText.split(separator: "\n") {
-                let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard trimmedLine.hasPrefix("data:") else { continue }
-
-                let payload = trimmedLine.dropFirst("data:".count).trimmingCharacters(in: .whitespacesAndNewlines)
-                guard payload.isEmpty == false, payload.first == "{" else { continue }
-
-                return Data(payload.utf8)
-            }
-
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer MCP initialize returned an event stream, but the stream did not contain a JSON payload event. Body: \(response.bodyPreview)",
-            )
-        }
-
-        return response.body
-    }
-
-    private func endpointURL(path: String) -> URL {
-        let trimmedPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
-        return options.baseURL.appending(path: trimmedPath)
-    }
-
-    private func performJSONRequest<Response: Decodable>(
-        path: String,
-        method: String,
-        body: Data?,
-        responseType: Response.Type,
-    ) async throws -> DecodedHTTPResponse<Response> {
-        let response = try await performRawRequest(
-            path: path,
-            method: method,
-            body: body,
-            contentType: body == nil ? nil : "application/json",
-        )
-
-        do {
-            let value = try JSONDecoder().decode(Response.self, from: response.body)
-            return .init(
-                statusCode: response.statusCode,
-                value: value,
-                bodyPreview: response.bodyPreview,
-            )
-        } catch {
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer healthcheck could not decode the JSON response from '\(endpointURL(path: path).absoluteString)'. Likely cause: \(error.localizedDescription). Body: \(response.bodyPreview)",
-            )
-        }
-    }
-
-    private func performRawRequest(
-        path: String,
-        method: String,
-        body: Data?,
-        contentType: String?,
-        acceptHeader: String? = nil,
-    ) async throws -> RawHTTPResponse {
-        var request = URLRequest(url: endpointURL(path: path))
-        request.httpMethod = method
-        request.httpBody = body
-        request.timeoutInterval = options.timeoutSeconds
-        if let contentType {
-            request.setValue(contentType, forHTTPHeaderField: "Content-Type")
-        }
-        if let acceptHeader {
-            request.setValue(acceptHeader, forHTTPHeaderField: "Accept")
-        }
-
-        let session = URLSession(configuration: .ephemeral)
-
-        let data: Data
-        let response: URLResponse
-        do {
-            (data, response) = try await session.data(for: request)
-        } catch {
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer healthcheck could not reach '\(request.url?.absoluteString ?? path)'. Likely cause: \(error.localizedDescription)",
-            )
-        }
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw HealthcheckCommandError(
-                "SpeakSwiftlyServer healthcheck reached '\(request.url?.absoluteString ?? path)', but the response was not an HTTP response.",
-            )
-        }
-
-        return .init(httpResponse: httpResponse, body: data)
-    }
-}
-
-// MARK: - DecodedHTTPResponse
-
-private struct DecodedHTTPResponse<Response> {
-    let statusCode: Int
-    let value: Response
-    let bodyPreview: String
-}
-
-// MARK: - RawHTTPResponse
-
-private struct RawHTTPResponse {
-    let httpResponse: HTTPURLResponse
-    let body: Data
-
-    var statusCode: Int { httpResponse.statusCode }
-
-    var bodyPreview: String {
-        let text = String(decoding: body.prefix(400), as: UTF8.self)
-        return text.isEmpty ? "<empty>" : text
-    }
-}
-
-// MARK: - HealthcheckHealthSnapshot
-
-private struct HealthcheckHealthSnapshot: Decodable {
-    let status: String
-    let serverMode: String
-    let workerStage: String
-    let workerReady: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case status
-        case serverMode = "server_mode"
-        case workerStage = "worker_stage"
-        case workerReady = "worker_ready"
-    }
-}
-
-// MARK: - HealthcheckHostSnapshot
-
-private struct HealthcheckHostSnapshot: Decodable {
-    let defaultVoiceProfileName: String?
-    let transports: [HealthcheckTransportSnapshot]
-
-    enum CodingKeys: String, CodingKey {
-        case defaultVoiceProfileName = "default_voice_profile_name"
-        case transports
-    }
-}
-
-// MARK: - HealthcheckTransportSnapshot
-
-private struct HealthcheckTransportSnapshot: Decodable {
-    let name: String
-    let state: String
-}
-
-// MARK: - MCPInitializeResult
-
-private struct MCPInitializeResult {
-    let sessionID: String
-    let protocolVersion: String
 }
 
 // MARK: - HealthcheckCommandError

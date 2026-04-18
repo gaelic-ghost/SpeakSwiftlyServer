@@ -12,9 +12,6 @@ enum SpeakSwiftlyServerToolMain {
         } catch let error as SpeakSwiftlyServerToolCommandError {
             fputs("\(error.message)\n", stderr)
             exit(2)
-        } catch let error as LaunchAgentCommandError {
-            fputs("\(error.message)\n", stderr)
-            exit(2)
         } catch {
             fputs("SpeakSwiftlyServerTool failed unexpectedly. Likely cause: \(error)\n", stderr)
             exit(1)

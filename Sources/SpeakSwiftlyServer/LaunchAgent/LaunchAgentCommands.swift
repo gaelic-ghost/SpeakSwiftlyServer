@@ -126,7 +126,7 @@ package enum SpeakSwiftlyServerToolCommand {
                     )
                 }
                 throw SpeakSwiftlyServerToolCommandError(
-                    "\(speakSwiftlyServerToolName) did not recognize command '\(first)'. Supported commands are `serve` and `launch-agent`.",
+                    "\(speakSwiftlyServerToolName) did not recognize command '\(first)'. Supported commands are `serve`, `healthcheck`, and `launch-agent`.",
                 )
         }
     }
@@ -250,12 +250,4 @@ package struct LaunchAgentCommand {
 // MARK: - LaunchAgentCommandError
 
 /// Human-friendly parse or execution error for the LaunchAgent command surface.
-package struct LaunchAgentCommandError: Error, CustomStringConvertible {
-    package let message: String
-
-    package init(_ message: String) {
-        self.message = message
-    }
-
-    package var description: String { message }
-}
+package typealias LaunchAgentCommandError = SpeakSwiftlyServerToolCommandError

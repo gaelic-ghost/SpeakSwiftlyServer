@@ -90,6 +90,18 @@ import Testing
     }
 }
 
+@Test func `unknown top level command lists healthcheck in supported commands`() throws {
+    do {
+        _ = try SpeakSwiftlyServerToolCommand.parse(
+            arguments: ["wat"],
+            currentExecutablePath: "/tmp/SpeakSwiftlyServerTool",
+        )
+        Issue.record("Expected an unknown top-level command to fail parsing.")
+    } catch let error as SpeakSwiftlyServerToolCommandError {
+        #expect(error.message.contains("`serve`, `healthcheck`, and `launch-agent`"))
+    }
+}
+
 private func makeLaunchAgentCommandTestRepository() throws -> URL {
     let repositoryRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
