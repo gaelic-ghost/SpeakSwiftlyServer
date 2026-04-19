@@ -2,7 +2,7 @@ import Foundation
 import SpeakSwiftly
 import TextForSpeech
 
-typealias SpeechNormalizationContext = TextForSpeech.Context
+public typealias SpeechNormalizationContext = TextForSpeech.Context
 
 struct RuntimeRequestHandle {
     let id: String

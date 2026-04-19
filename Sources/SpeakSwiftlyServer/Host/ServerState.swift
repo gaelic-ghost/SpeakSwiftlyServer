@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SpeakSwiftly
+import TextForSpeech
 
 /// Main-actor observable app model for an embedded SpeakSwiftly server session.
 ///
@@ -37,6 +38,11 @@ public final class EmbeddedServer {
             refreshVoiceProfiles: {
                 throw EmbeddedServerActionError.unavailable(
                     "EmbeddedServer could not refresh voice profiles because no embedded host action performer is configured yet.",
+                )
+            },
+            queueLiveSpeech: { _, _, _, _, _ in
+                throw EmbeddedServerActionError.unavailable(
+                    "EmbeddedServer could not queue the live speech request because no embedded host action performer is configured yet.",
                 )
             },
             setDefaultVoiceProfileName: { profileName in
@@ -87,6 +93,13 @@ public final class EmbeddedServer {
         )
 
         let refreshVoiceProfiles: @Sendable () async throws -> [ProfileSnapshot]
+        let queueLiveSpeech: @Sendable (
+            String,
+            String?,
+            String?,
+            SpeechNormalizationContext?,
+            TextForSpeech.SourceFormat?
+        ) async throws -> String
         let setDefaultVoiceProfileName: @Sendable (String) async throws -> String
         let clearDefaultVoiceProfileName: @Sendable () async throws -> String?
         let switchSpeechBackend: @Sendable (SpeakSwiftly.SpeechBackend) async throws -> HostStateSnapshot
@@ -228,6 +241,24 @@ public final class EmbeddedServer {
         let profiles = try await actions.refreshVoiceProfiles()
         voiceProfiles = profiles
         return profiles
+    }
+
+    /// Queues one live speech request through the embedded host and returns the accepted request identifier.
+    @discardableResult
+    public func queueLiveSpeech(
+        text: String,
+        profileName: String? = nil,
+        textProfileID: String? = nil,
+        normalizationContext: SpeechNormalizationContext? = nil,
+        sourceFormat: TextForSpeech.SourceFormat? = nil,
+    ) async throws -> String {
+        try await actions.queueLiveSpeech(
+            text,
+            profileName,
+            textProfileID,
+            normalizationContext,
+            sourceFormat,
+        )
     }
 
     /// Sets the host's default voice profile name and updates the local overview snapshot.
