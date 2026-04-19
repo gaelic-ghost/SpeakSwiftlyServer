@@ -1,0 +1,15 @@
+interface:
+  display_name: "Speak Swiftly LaunchAgent"
+  short_description: "Set up and validate the Speak Swiftly background service."
+  default_prompt: "Use $speak-swiftly-launchagent-setup to install, inspect, refresh, or troubleshoot the local Speak Swiftly LaunchAgent service."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "speak_swiftly"
+      description: "Local SpeakSwiftlyServer MCP surface used after the LaunchAgent-backed service is healthy."
+      transport: "streamable_http"
+      url: "http://127.0.0.1:7337/mcp"
+
+policy:
+  allow_implicit_invocation: true

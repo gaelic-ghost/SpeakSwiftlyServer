@@ -1,7 +1,7 @@
 interface:
-  display_name: "SpeakSwiftly Text Profiles"
+  display_name: "Speak Swiftly Text Profiles"
   short_description: "Shape text normalization before speech generation."
-  default_prompt: "Use $speak-swiftly-text-profiles to inspect or edit SpeakSwiftly text normalization rules."
+  default_prompt: "Use $speak-swiftly-text-profiles to inspect or edit Speak Swiftly text normalization rules."
 
 dependencies:
   tools:

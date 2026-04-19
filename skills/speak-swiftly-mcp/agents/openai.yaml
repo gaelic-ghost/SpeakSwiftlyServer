@@ -1,7 +1,7 @@
 interface:
-  display_name: "SpeakSwiftly MCP"
-  short_description: "Orient Codex on the SpeakSwiftly MCP surface."
-  default_prompt: "Use $speak-swiftly-mcp to inspect the local SpeakSwiftly MCP surface and choose the right workflow."
+  display_name: "Speak Swiftly MCP"
+  short_description: "Orient Codex on the Speak Swiftly MCP surface."
+  default_prompt: "Use $speak-swiftly-mcp to inspect the local Speak Swiftly MCP surface and choose the right workflow."
 
 dependencies:
   tools:

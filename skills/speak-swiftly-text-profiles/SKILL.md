@@ -26,6 +26,7 @@ Use this skill for text-normalization work on the local `speak_swiftly` MCP surf
 ## Replacement Editing
 
 - Use `add_text_replacement`, `replace_text_replacement`, and `remove_text_replacement` for targeted rule edits.
+- Use the `draft_text_profile` and `draft_text_replacement` prompts when the user is still designing the normalization policy instead of applying a settled edit immediately.
 - Prefer `whole_token` for identifiers and acronyms, and `exact_phrase` for multi-word substitutions.
 - Be deliberate about whether a rule should run before or after built-in normalization.
 - Restrict `formats` when the user only wants the rule to affect source code, CLI output, or another narrow content kind.

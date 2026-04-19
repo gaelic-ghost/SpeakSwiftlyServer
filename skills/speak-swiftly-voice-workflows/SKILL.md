@@ -11,7 +11,7 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 
 - Read `list_voice_profiles` or `speak://voices` before creating, renaming, rerolling, deleting, or choosing a profile.
 - Use `speak://voices/{profile_name}` when the user is working on one specific stored voice.
-- If the user wants help designing a voice rather than executing immediately, prefer the prompt and guide flow documented in [MCPResources.swift](../../Sources/SpeakSwiftlyServer/MCP/MCPResources.swift).
+- If the user wants help designing a voice rather than executing immediately, prefer the `draft_profile_voice_description`, `draft_profile_source_text`, and `draft_voice_design_instruction` prompts plus the guide flow documented in [MCPResources.swift](../../Sources/SpeakSwiftlyServer/MCP/MCPResources.swift).
 
 ## Creation And Editing
 

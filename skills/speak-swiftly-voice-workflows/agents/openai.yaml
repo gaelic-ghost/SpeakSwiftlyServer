@@ -1,7 +1,7 @@
 interface:
-  display_name: "SpeakSwiftly Voices"
+  display_name: "Speak Swiftly Voices"
   short_description: "Create voices and generate spoken output."
-  default_prompt: "Use $speak-swiftly-voice-workflows to create or choose a SpeakSwiftly voice profile and generate speech."
+  default_prompt: "Use $speak-swiftly-voice-workflows to create or choose a Speak Swiftly voice profile and generate speech."
 
 dependencies:
   tools:
