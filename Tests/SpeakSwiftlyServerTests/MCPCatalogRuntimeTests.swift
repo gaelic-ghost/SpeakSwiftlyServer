@@ -237,6 +237,22 @@ extension ServerTests {
             #expect(setRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "marvis")
             #expect(setRuntimeConfigPayload["persisted_speech_backend"] as? String == "marvis")
 
+            let switchBackendEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "switch_speech_backend",
+                            arguments: ["speech_backend": "marvis"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let switchBackendPayload = try mcpToolPayload(from: switchBackendEnvelope)
+            let switchBackendRequestID = try #require(switchBackendPayload["request_id"] as? String)
+            #expect(switchBackendPayload["request_resource_uri"] as? String == "speak://requests/\(switchBackendRequestID)")
+            #expect(switchBackendPayload["status_resource_uri"] as? String == "speak://runtime/overview")
+
             let setChatterboxRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(

@@ -216,6 +216,12 @@ struct RequestListResponse: ResponseEncodable {
 
 struct RuntimeStatusResponse: ResponseEncodable {
     let status: SpeakSwiftly.StatusEvent
+    let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
+
+    enum CodingKeys: String, CodingKey {
+        case status
+        case runtimeBackendTransition = "runtime_backend_transition"
+    }
 }
 
 struct RuntimeBackendResponse: ResponseEncodable {

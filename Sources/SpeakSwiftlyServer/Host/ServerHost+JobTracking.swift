@@ -109,6 +109,12 @@ extension ServerHost {
                                 requestID: handle.id,
                                 expectation: mutationExpectation,
                             )
+                        } else if let backendSwitchExpectation = jobs[handle.id]?.runtimeBackendSwitch {
+                            await finalizeRuntimeBackendSwitchSuccess(
+                                success: success,
+                                requestID: handle.id,
+                                expectation: backendSwitchExpectation,
+                            )
                         } else if handle.operation == "list_voice_profiles" {
                             await applyProfileRefresh(from: success)
                             await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
@@ -128,6 +134,39 @@ extension ServerHost {
             )
             await record(.failed(failure), for: handle.id, terminal: true)
         }
+    }
+
+    func finalizeRuntimeBackendSwitchSuccess(
+        success: SpeakSwiftly.Success,
+        requestID: String,
+        expectation: RuntimeBackendSwitchExpectation,
+    ) async {
+        guard let resolvedSpeechBackend = success.speechBackend else {
+            let failure = ServerFailureEvent(
+                id: requestID,
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
+                message: "SpeakSwiftly reported a successful speech-backend switch request '\(requestID)', but it did not include the active speech_backend payload.",
+            )
+            await record(.failed(failure), for: requestID, terminal: true)
+            return
+        }
+
+        guard resolvedSpeechBackend == expectation.requestedSpeechBackend else {
+            let failure = ServerFailureEvent(
+                id: requestID,
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
+                message: "SpeakSwiftly reported speech-backend switch request '\(requestID)' as '\(resolvedSpeechBackend.rawValue)' instead of the requested '\(expectation.requestedSpeechBackend.rawValue)'.",
+            )
+            await record(.failed(failure), for: requestID, terminal: true)
+            return
+        }
+
+        activeRuntimeSpeechBackend = resolvedSpeechBackend
+        let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
+            activeRuntimeSpeechBackend: resolvedSpeechBackend,
+        )
+        emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
+        await record(mapSuccessEvent(success, acknowledged: false), for: requestID, terminal: true)
     }
 
     func finalizeMutationSuccess(

@@ -8,7 +8,7 @@ import SpeakSwiftly
 extension MockRuntime {
     func runtimeStatus() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: .qwen3)
+        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
             continuation.finish()
@@ -18,16 +18,41 @@ extension MockRuntime {
 
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
+        let request = MockRequest(
+            id: requestID,
+            operation: "switch_speech_backend",
+            profileName: nil,
+            requestedSpeechBackend: speechBackend,
+        )
+        var requestContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, speechBackend: speechBackend)))
-            continuation.finish()
+            requestContinuation = continuation
+        }
+        guard let continuation = requestContinuation else {
+            fatalError("The mock runtime could not create a backend switch continuation for request '\(requestID)'.")
+        }
+
+        continuation.yield(.acknowledged(.init(id: requestID, speechBackend: speechBackend)))
+        if activeRequest == nil {
+            startActiveRequest(request, continuation: continuation)
+        } else {
+            queuedRequests.append(.init(request: request, continuation: continuation))
+            continuation.yield(
+                .queued(
+                    .init(
+                        id: requestID,
+                        reason: .waitingForActiveRequest,
+                        queuePosition: queuedRequests.count,
+                    ),
+                ),
+            )
         }
         return RuntimeRequestHandle(id: requestID, operation: "switch_speech_backend", profileName: nil, events: events)
     }
 
     func reloadModels() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: .qwen3)
+        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
             continuation.finish()
@@ -37,7 +62,7 @@ extension MockRuntime {
 
     func unloadModels() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelsUnloaded, residentState: .unloaded, speechBackend: .qwen3)
+        let status = SpeakSwiftly.StatusEvent(stage: .residentModelsUnloaded, residentState: .unloaded, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
             continuation.finish()

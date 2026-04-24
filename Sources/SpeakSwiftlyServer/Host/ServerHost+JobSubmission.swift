@@ -112,6 +112,15 @@ extension ServerHost {
         return await enqueuePublicJob(handle, profileMutation: .delete(profileName: profileName))
     }
 
+    func submitSpeechBackendSwitch(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> String {
+        try ensureWorkerReady()
+        let handle = await runtime.switchSpeechBackend(to: speechBackend)
+        return await enqueuePublicJob(
+            handle,
+            runtimeBackendSwitch: .init(requestedSpeechBackend: speechBackend),
+        )
+    }
+
     func ensureWorkerReady() throws {
         guard workerMode == "ready" else {
             throw HTTPError(
@@ -124,12 +133,14 @@ extension ServerHost {
     func enqueuePublicJob(
         _ handle: RuntimeRequestHandle,
         profileMutation: ProfileMutationExpectation? = nil,
+        runtimeBackendSwitch: RuntimeBackendSwitchExpectation? = nil,
     ) async -> String {
         jobs[handle.id] = JobRecord(
             jobID: handle.id,
             op: handle.operation,
             profileName: handle.profileName,
             profileMutation: profileMutation,
+            runtimeBackendSwitch: runtimeBackendSwitch,
             submittedAt: Date(),
         )
 

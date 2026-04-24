@@ -11,6 +11,19 @@ actor MockRuntime: ServerRuntimeProtocol {
         let id: String
         let operation: String
         let profileName: String?
+        let requestedSpeechBackend: SpeakSwiftly.SpeechBackend?
+
+        init(
+            id: String,
+            operation: String,
+            profileName: String?,
+            requestedSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
+        ) {
+            self.id = id
+            self.operation = operation
+            self.profileName = profileName
+            self.requestedSpeechBackend = requestedSpeechBackend
+        }
     }
 
     struct QueuedSpeechInvocation: Equatable {
@@ -81,6 +94,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var renameProfileInvocations = [RenameProfileInvocation]()
     var rerollProfileInvocations = [RerollProfileInvocation]()
     var playbackState: SpeakSwiftly.PlaybackState = .idle
+    var activeSpeechBackend: SpeakSwiftly.SpeechBackend = .qwen3
     var textRuntime: TextForSpeech.Runtime
     let textRuntimePersistenceURL: URL
     var loadTextProfilesCallCount = 0

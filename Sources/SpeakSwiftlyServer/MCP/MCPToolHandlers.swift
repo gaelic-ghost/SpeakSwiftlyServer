@@ -199,10 +199,12 @@ extension MCPSurface {
                     )
 
                 case "switch_speech_backend":
-                    return try await toolResult(
-                        host.switchSpeechBackend(
-                            to: requiredSpeechBackend("speech_backend", in: arguments),
-                        ),
+                    let requestID = try await host.submitSpeechBackendSwitch(
+                        to: requiredSpeechBackend("speech_backend", in: arguments),
+                    )
+                    return try acceptedRequestToolResult(
+                        requestID: requestID,
+                        message: "SpeakSwiftlyServer accepted the speech-backend switch request. Read the returned request resource for progress or read speak://runtime/overview to observe the pending and active backend state.",
                     )
 
                 case "reload_models":

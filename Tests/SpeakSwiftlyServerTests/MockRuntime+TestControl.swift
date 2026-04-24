@@ -16,7 +16,7 @@ extension MockRuntime {
             case .residentModelFailed:
                 .failed
         }
-        statusContinuation?.yield(.init(stage: stage, residentState: residentState, speechBackend: .qwen3))
+        statusContinuation?.yield(.init(stage: stage, residentState: residentState, speechBackend: activeSpeechBackend))
     }
 
     func finishHeldSpeak(id: String) {
@@ -87,6 +87,23 @@ extension MockRuntime {
         continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation,
     ) {
         activeRequest = request
+        if request.operation == "switch_speech_backend", let requestedSpeechBackend = request.requestedSpeechBackend {
+            continuation.yield(.started(.init(id: request.id, op: request.operation)))
+            activeSpeechBackend = requestedSpeechBackend
+            continuation.yield(
+                .completed(
+                    .init(
+                        id: request.id,
+                        speechBackend: requestedSpeechBackend,
+                    ),
+                ),
+            )
+            continuation.finish()
+            activeRequest = nil
+            startNextQueuedRequestIfNeeded()
+            return
+        }
+
         playbackState = .playing
         continuation.yield(.started(.init(id: request.id, op: request.operation)))
 
@@ -155,11 +172,11 @@ extension MockRuntime {
         let status = SpeakSwiftly.StatusEvent(
             stage: .residentModelReady,
             residentState: .ready,
-            speechBackend: .qwen3,
+            speechBackend: activeSpeechBackend,
         )
         return .init(
             status: status,
-            speechBackend: .qwen3,
+            speechBackend: activeSpeechBackend,
             generationQueue: generationQueue,
             playbackQueue: playbackQueue,
             playbackState: playbackStateSummary(),

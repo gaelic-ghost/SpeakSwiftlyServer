@@ -155,7 +155,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "switch_speech_backend",
-            description: "Ask the already-running SpeakSwiftly runtime to switch to a different active speech backend immediately.",
+            description: "Queue an ordered switch for the already-running SpeakSwiftly runtime to move to a different active speech backend. The returned request can be observed while the runtime waits for active work to settle.",
             inputSchema: [
                 "type": "object",
                 "required": ["speech_backend"],

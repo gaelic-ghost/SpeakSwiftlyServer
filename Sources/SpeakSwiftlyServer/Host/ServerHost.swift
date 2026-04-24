@@ -41,11 +41,16 @@ actor ServerHost {
         case coalesced
     }
 
+    struct RuntimeBackendSwitchExpectation: Equatable {
+        let requestedSpeechBackend: SpeakSwiftly.SpeechBackend
+    }
+
     struct JobRecord {
         let jobID: String
         let op: String
         let profileName: String?
         let profileMutation: ProfileMutationExpectation?
+        let runtimeBackendSwitch: RuntimeBackendSwitchExpectation?
         let submittedAt: Date
         var startedAt: Date?
         var terminalAt: Date?

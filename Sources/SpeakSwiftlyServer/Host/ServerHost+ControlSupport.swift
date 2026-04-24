@@ -153,7 +153,7 @@ extension ServerHost {
         }
 
         await self.handle(status: status)
-        return .init(status: status)
+        return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
     }
 
     func awaitImmediateSuccess(

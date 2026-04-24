@@ -298,6 +298,73 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
+    @Test func `runtime backend switch is accepted and visible while waiting for active work`() async throws {
+        let runtime = MockRuntime(speakBehavior: .holdOpen)
+        let configuration = testConfiguration(defaultVoiceProfileName: "default")
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let speakResponse = try await client.execute(
+                uri: "/speech/live",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Keep the active lane busy"}"#),
+            )
+            let speakJSON = try jsonObject(from: speakResponse.body)
+            let speakJobID = try #require(speakJSON["request_id"] as? String)
+            #expect(speakResponse.status == .accepted)
+
+            let switchResponse = try await client.execute(
+                uri: "/runtime/backend",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"speech_backend":"marvis"}"#),
+            )
+            let switchJSON = try jsonObject(from: switchResponse.body)
+            let switchJobID = try #require(switchJSON["request_id"] as? String)
+            #expect(switchResponse.status == .accepted)
+            #expect((switchJSON["request_url"] as? String)?.contains(switchJobID) == true)
+
+            let queuedTransition: RuntimeBackendTransitionSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+                let transition = await host.statusSnapshot().runtimeBackendTransition
+                guard transition.requestID == switchJobID, transition.state == "queued" else {
+                    return nil
+                }
+                return transition
+            }
+            #expect(queuedTransition.activeSpeechBackend == "qwen3")
+            #expect(queuedTransition.requestedSpeechBackend == "marvis")
+            #expect(queuedTransition.operation == "switch_speech_backend")
+            #expect(queuedTransition.waitingReason == "waiting_for_active_request")
+
+            await runtime.finishHeldSpeak(id: speakJobID)
+            _ = try await waitForJobSnapshot(switchJobID, on: host)
+
+            let finalHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let finalHostJSON = try jsonObject(from: finalHostResponse.body)
+            let finalTransition = try #require(finalHostJSON["runtime_backend_transition"] as? [String: Any])
+            #expect(finalTransition["state"] as? String == "idle")
+            #expect(finalTransition["active_speech_backend"] as? String == "marvis")
+            let finalConfig = try #require(finalHostJSON["runtime_configuration"] as? [String: Any])
+            #expect(finalConfig["active_runtime_speech_backend"] as? String == "marvis")
+            #expect(finalConfig["next_runtime_speech_backend"] as? String == "qwen3")
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
     @Test func `speak route rejects unsupported format arguments clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()

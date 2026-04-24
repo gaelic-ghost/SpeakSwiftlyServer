@@ -171,6 +171,17 @@ public final class EmbeddedServer {
 
     /// Timing details for the most recent host refresh cycle, when one has completed.
     public internal(set) var runtimeRefresh: RuntimeRefreshSnapshot?
+    /// Live backend-switch progress for the running runtime.
+    public internal(set) var runtimeBackendTransition = RuntimeBackendTransitionSnapshot(
+        state: "idle",
+        activeSpeechBackend: "qwen3",
+        requestedSpeechBackend: nil,
+        requestID: nil,
+        operation: nil,
+        waitingReason: nil,
+        submittedAt: nil,
+        startedAt: nil,
+    )
     /// Generation jobs that are currently active in the runtime.
     public internal(set) var currentGenerationJobs = [CurrentGenerationJobSnapshot]()
     /// The active and next-start runtime configuration state.
@@ -359,6 +370,7 @@ public final class EmbeddedServer {
         generationQueue = snapshot.generationQueue
         playbackQueue = snapshot.playbackQueue
         playback = snapshot.playback
+        runtimeBackendTransition = snapshot.runtimeBackendTransition
         currentGenerationJobs = snapshot.currentGenerationJobs
         runtimeConfiguration = snapshot.runtimeConfiguration
         transports = snapshot.transports

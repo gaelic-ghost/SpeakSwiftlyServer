@@ -27,6 +27,7 @@ extension ServerHost {
             generationQueue: hostState.generationQueue,
             playbackQueue: hostState.playbackQueue,
             playback: hostState.playback,
+            runtimeBackendTransition: hostState.runtimeBackendTransition,
             currentGenerationJobs: hostState.currentGenerationJobs,
             runtimeConfiguration: hostState.runtimeConfiguration,
             transports: hostState.transports,
@@ -180,7 +181,7 @@ extension ServerHost {
             )
         }
 
-        return .init(status: status)
+        return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
     }
 
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> RuntimeBackendResponse {

@@ -141,10 +141,10 @@ The queue and playback control routes are immediate control operations rather th
 
 The runtime routes are also state-oriented.
 
-- `GET /runtime/host` returns the shared-host overview with readiness, queues, transports, cached profiles, and recent errors.
-- `GET /runtime/status` returns the underlying `SpeakSwiftly.StatusEvent`.
-- `GET /runtime/configuration` and `PUT /runtime/configuration` expose the saved next-start backend configuration.
-- `POST /runtime/backend` hot-switches the active backend.
+- `GET /runtime/host` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
+- `GET /runtime/status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
+- `GET /runtime/configuration` and `PUT /runtime/configuration` expose saved next-start backend configuration. This is startup intent, not a live transition feed.
+- `POST /runtime/backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /runtime/host`, `GET /runtime/status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
 - `POST /runtime/models/reload` and `POST /runtime/models/unload` follow the current runtime-control verbs directly.
 
 The current HTTP SSE route remains intentionally job-specific at the route boundary, but it now rides the same host-owned event backbone used by other non-UI consumers instead of keeping a separate per-job subscriber registry inside `ServerHost`.
@@ -211,6 +211,8 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 - `get_playback_state`
 - `clear_playback_queue`
 - `cancel_request`
+
+`set_staged_config` changes the persisted next-start backend. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 

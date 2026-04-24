@@ -176,6 +176,7 @@ extension ServerHost {
             generationQueue: generationQueueStatus,
             playbackQueue: playbackQueueStatus,
             playback: playbackStatus,
+            runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
             currentGenerationJobs: currentGenerationJobSnapshots(),
             runtimeConfiguration: runtimeConfigurationSnapshot(),
             transports: transportSnapshots(),

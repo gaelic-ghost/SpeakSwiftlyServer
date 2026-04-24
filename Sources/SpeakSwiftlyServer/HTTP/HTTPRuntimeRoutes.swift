@@ -32,9 +32,10 @@ func registerHTTPRuntimeRoutes(
         return try await host.saveRuntimeConfiguration(speechBackend: payload.speechBackendModel())
     }
 
-    router.post("runtime/backend") { request, context -> RuntimeBackendResponse in
+    router.post("runtime/backend") { request, context -> Response in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
-        return try await host.switchSpeechBackend(to: payload.speechBackendModel())
+        let requestID = try await host.submitSpeechBackendSwitch(to: payload.speechBackendModel())
+        return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
     router.post("runtime/models/reload") { _, _ -> RuntimeStatusResponse in
