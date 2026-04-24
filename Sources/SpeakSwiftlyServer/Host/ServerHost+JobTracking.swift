@@ -150,7 +150,6 @@ extension ServerHost {
             await record(.failed(failure), for: requestID, terminal: true)
             return
         }
-
         guard resolvedSpeechBackend == expectation.requestedSpeechBackend else {
             let failure = ServerFailureEvent(
                 id: requestID,

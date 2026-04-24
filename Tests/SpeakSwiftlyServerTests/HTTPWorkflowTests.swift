@@ -341,6 +341,7 @@ extension ServerTests {
                 guard transition.requestID == switchJobID, transition.state == "queued" else {
                     return nil
                 }
+
                 return transition
             }
             #expect(queuedTransition.activeSpeechBackend == "qwen3")

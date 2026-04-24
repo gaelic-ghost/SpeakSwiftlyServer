@@ -261,6 +261,7 @@ extension ServerHost {
         guard case let .queued(queued) = event else {
             return nil
         }
+
         return queued.reason
     }
 
