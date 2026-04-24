@@ -31,10 +31,10 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
         .package(
             url: "https://github.com/gaelic-ghost/SpeakSwiftly.git",
-            from: "4.0.3",
+            from: "4.0.5",
         ),
-        .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "2.30.6"),
-        .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.17.0"),
+        .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.3"),
+        .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.18.6"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
         .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.12.0"),
         .package(
