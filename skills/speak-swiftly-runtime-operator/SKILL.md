@@ -25,8 +25,10 @@ Use this skill for operator-style runtime work on the local `speak_swiftly` MCP 
 ## Control Operations
 
 - Use `pause_playback` or `resume_playback` only after confirming current playback state when that matters to the user.
-- Use `clear_playback_queue` only when the user wants to drop queued audible work broadly without stopping the active request.
-- Use `cancel_request` when the user wants one specific request stopped.
+- Use `clear_generation_queue` when the user wants to drop waiting generation work without stopping active generation.
+- Use `clear_playback_queue` when the user wants to drop queued audible work without stopping active playback.
+- Use `cancel_generation` or `cancel_playback` when the user wants one specific request stopped in one queue.
+- Use `cancel_request` only when the user explicitly wants the broad compatibility cancel behavior.
 - Use `switch_speech_backend` for an immediate backend flip on the running runtime.
 - Use `set_staged_config` when the user wants a different backend on the next restart without changing the current one.
 - Use `reload_models` or `unload_models` only when the user is explicitly asking about model residency or memory pressure.

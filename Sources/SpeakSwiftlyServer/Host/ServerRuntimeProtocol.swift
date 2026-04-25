@@ -127,7 +127,9 @@ protocol ServerRuntimeProtocol: Actor {
     func pausePlayback() async -> RuntimeRequestHandle
     func resumePlayback() async -> RuntimeRequestHandle
     func clearQueue() async -> RuntimeRequestHandle
+    func clearQueue(_ queueType: SpeakSwiftly.QueueType) async -> RuntimeRequestHandle
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle
+    func cancel(_ queueType: SpeakSwiftly.QueueType, requestID: String) async -> RuntimeRequestHandle
     func builtInTextProfileStyle() async -> TextForSpeech.BuiltInProfileStyle
     func setBuiltInTextProfileStyle(_ style: TextForSpeech.BuiltInProfileStyle) async throws -> TextForSpeech.BuiltInProfileStyle
     func activeTextProfile() async throws -> SpeakSwiftly.TextProfileDetails

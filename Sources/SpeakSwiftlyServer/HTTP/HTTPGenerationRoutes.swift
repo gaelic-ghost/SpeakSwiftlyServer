@@ -8,6 +8,15 @@ func registerHTTPGenerationRoutes(
         await host.generationQueueSnapshot()
     }
 
+    router.delete("generation/queue") { _, _ -> QueueClearedResponse in
+        try await host.clearQueue(.generation)
+    }
+
+    router.delete("generation/requests/:request_id") { _, context -> QueueCancellationResponse in
+        let requestID = try context.parameters.require("request_id")
+        return try await host.cancelQueuedOrActiveRequest(.generation, requestID: requestID)
+    }
+
     router.get("generation/jobs") { _, _ -> Response in
         try await encodeJSONResponse(host.listGenerationJobs(), status: .ok)
     }

@@ -363,12 +363,31 @@ extension MCPSurface {
                 case "resume_playback":
                     return try await toolResult(host.resumePlayback())
 
+                case "clear_generation_queue":
+                    return try await toolResult(host.clearQueue(.generation))
+
                 case "clear_playback_queue":
-                    return try await toolResult(host.clearQueue())
+                    return try await toolResult(host.clearQueue(.playback))
 
                 case "cancel_request":
                     return try await toolResult(
                         host.cancelQueuedOrActiveRequest(
+                            requestID: requiredString("request_id", in: arguments),
+                        ),
+                    )
+
+                case "cancel_generation":
+                    return try await toolResult(
+                        host.cancelQueuedOrActiveRequest(
+                            .generation,
+                            requestID: requiredString("request_id", in: arguments),
+                        ),
+                    )
+
+                case "cancel_playback":
+                    return try await toolResult(
+                        host.cancelQueuedOrActiveRequest(
+                            .playback,
                             requestID: requiredString("request_id", in: arguments),
                         ),
                     )

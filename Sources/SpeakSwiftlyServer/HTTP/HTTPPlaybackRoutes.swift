@@ -21,11 +21,11 @@ func registerHTTPPlaybackRoutes(
     }
 
     router.delete("playback/queue") { _, _ -> QueueClearedResponse in
-        try await host.clearQueue()
+        try await host.clearQueue(.playback)
     }
 
     router.delete("playback/requests/:request_id") { _, context -> QueueCancellationResponse in
         let requestID = try context.parameters.require("request_id")
-        return try await host.cancelQueuedOrActiveRequest(requestID: requestID)
+        return try await host.cancelQueuedOrActiveRequest(.playback, requestID: requestID)
     }
 }

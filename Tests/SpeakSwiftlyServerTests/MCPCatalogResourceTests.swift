@@ -225,6 +225,9 @@ extension ServerTests {
             let playbackGuideContents = try #require(playbackGuideResult["contents"] as? [[String: Any]])
             let playbackGuideText = try #require(playbackGuideContents.first?["text"] as? String)
             #expect(playbackGuideText.contains("cancel_request"))
+            #expect(playbackGuideText.contains("cancel_generation"))
+            #expect(playbackGuideText.contains("cancel_playback"))
+            #expect(playbackGuideText.contains("clear_generation_queue"))
             #expect(playbackGuideText.contains("clear_playback_queue"))
 
             let chooseActionPromptEnvelope = try await mcpEnvelope(

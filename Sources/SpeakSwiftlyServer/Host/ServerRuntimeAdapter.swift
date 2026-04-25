@@ -255,8 +255,16 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         await RuntimeRequestHandle(runtime.player.clearQueue())
     }
 
+    func clearQueue(_ queueType: SpeakSwiftly.QueueType) async -> RuntimeRequestHandle {
+        await RuntimeRequestHandle(runtime.clearQueue(queueType))
+    }
+
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle {
         await RuntimeRequestHandle(runtime.player.cancelRequest(requestID))
+    }
+
+    func cancel(_ queueType: SpeakSwiftly.QueueType, requestID: String) async -> RuntimeRequestHandle {
+        await RuntimeRequestHandle(runtime.cancel(queueType, requestID: requestID))
     }
 
     // MARK: - Text Profiles

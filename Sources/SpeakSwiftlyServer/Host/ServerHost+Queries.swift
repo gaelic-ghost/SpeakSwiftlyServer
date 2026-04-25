@@ -266,6 +266,15 @@ extension ServerHost {
 
     func clearQueue() async throws -> QueueClearedResponse {
         let handle = await runtime.clearQueue()
+        return try await queueClearedResponse(handle: handle)
+    }
+
+    func clearQueue(_ queueType: SpeakSwiftly.QueueType) async throws -> QueueClearedResponse {
+        let handle = await runtime.clearQueue(queueType)
+        return try await queueClearedResponse(handle: handle)
+    }
+
+    private func queueClearedResponse(handle: RuntimeRequestHandle) async throws -> QueueClearedResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
@@ -276,6 +285,18 @@ extension ServerHost {
 
     func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
         let handle = await runtime.cancelRequest(requestID)
+        return try await queueCancellationResponse(handle: handle)
+    }
+
+    func cancelQueuedOrActiveRequest(
+        _ queueType: SpeakSwiftly.QueueType,
+        requestID: String,
+    ) async throws -> QueueCancellationResponse {
+        let handle = await runtime.cancel(queueType, requestID: requestID)
+        return try await queueCancellationResponse(handle: handle)
+    }
+
+    private func queueCancellationResponse(handle: RuntimeRequestHandle) async throws -> QueueCancellationResponse {
         let success = try await awaitImmediateSuccess(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",

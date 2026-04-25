@@ -110,11 +110,11 @@ func embeddedServerLiveBootstrap(
                     )
                 },
                 clearPlaybackQueue: {
-                    let response = try await host.clearQueue()
+                    let response = try await host.clearQueue(.playback)
                     return response.clearedCount
                 },
                 cancelPlaybackRequest: { requestID in
-                    let response = try await host.cancelQueuedOrActiveRequest(requestID: requestID)
+                    let response = try await host.cancelQueuedOrActiveRequest(.playback, requestID: requestID)
                     return response.cancelledRequestID
                 },
             ),

@@ -337,6 +337,12 @@ enum MCPToolCatalog {
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
+            name: "clear_generation_queue",
+            description: "Cancel all currently queued SpeakSwiftly generation work without interrupting the active generation request.",
+            inputSchema: ["type": "object", "properties": [:]],
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
+        ),
+        Tool(
             name: "clear_playback_queue",
             description: "Cancel all currently queued SpeakSwiftly playback work without interrupting the active request.",
             inputSchema: ["type": "object", "properties": [:]],
@@ -345,6 +351,30 @@ enum MCPToolCatalog {
         Tool(
             name: "cancel_request",
             description: "Cancel one queued or active SpeakSwiftly request by request_id.",
+            inputSchema: [
+                "type": "object",
+                "required": ["request_id"],
+                "properties": [
+                    "request_id": ["type": "string"],
+                ],
+            ],
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
+        ),
+        Tool(
+            name: "cancel_generation",
+            description: "Cancel one queued or active SpeakSwiftly generation request by request_id.",
+            inputSchema: [
+                "type": "object",
+                "required": ["request_id"],
+                "properties": [
+                    "request_id": ["type": "string"],
+                ],
+            ],
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
+        ),
+        Tool(
+            name: "cancel_playback",
+            description: "Cancel one queued or active SpeakSwiftly playback request by request_id.",
             inputSchema: [
                 "type": "object",
                 "required": ["request_id"],
