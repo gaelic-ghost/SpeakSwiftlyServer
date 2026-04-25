@@ -83,7 +83,7 @@ extension ServerTests {
             #expect((playbackQueueJSON["active_requests"] as? [[String: Any]])?.first?["id"] as? String == activeJobID)
             #expect((playbackQueueJSON["queue"] as? [[String: Any]])?.isEmpty == true)
 
-            let cancelResponse = try await client.execute(uri: "/playback/requests/\(queuedJobID)", method: .delete)
+            let cancelResponse = try await client.execute(uri: "/generation/requests/\(queuedJobID)", method: .delete)
             let cancelJSON = try jsonObject(from: cancelResponse.body)
             #expect(cancelResponse.status == .ok)
             #expect(cancelJSON["cancelled_request_id"] as? String == queuedJobID)
@@ -107,7 +107,18 @@ extension ServerTests {
             let clearResponse = try await client.execute(uri: "/playback/queue", method: .delete)
             let clearJSON = try jsonObject(from: clearResponse.body)
             #expect(clearResponse.status == .ok)
-            #expect(clearJSON["cleared_count"] as? Int == 1)
+            #expect(clearJSON["cleared_count"] as? Int == 0)
+
+            let stillQueuedResponse = try await client.execute(uri: "/generation/queue", method: .get)
+            let stillQueuedJSON = try jsonObject(from: stillQueuedResponse.body)
+            let stillQueued = try #require(stillQueuedJSON["queue"] as? [[String: Any]])
+            #expect(stillQueued.count == 1)
+            #expect(stillQueued.first?["id"] as? String == anotherQueuedJobID)
+
+            let clearGenerationResponse = try await client.execute(uri: "/generation/queue", method: .delete)
+            let clearGenerationJSON = try jsonObject(from: clearGenerationResponse.body)
+            #expect(clearGenerationResponse.status == .ok)
+            #expect(clearGenerationJSON["cleared_count"] as? Int == 1)
 
             let clearedSnapshot = try await waitForJobSnapshot(anotherQueuedJobID, on: host)
             switch clearedSnapshot.terminalEvent {
