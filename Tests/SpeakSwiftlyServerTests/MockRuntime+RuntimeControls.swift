@@ -192,16 +192,8 @@ extension MockRuntime {
     }
 
     func clearQueue() async -> RuntimeRequestHandle {
-        await clearQueue(.generation, operation: "clear_queue")
-    }
-
-    func clearQueue(_ queueType: SpeakSwiftly.QueueType) async -> RuntimeRequestHandle {
-        await clearQueue(queueType, operation: "clear_\(queueType.rawValue)_queue")
-    }
-
-    private func clearQueue(_ queueType: SpeakSwiftly.QueueType, operation: String) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let clearedRequestIDs = queueType == .generation ? queuedRequests.map(\.request.id) : []
+        let clearedRequestIDs = queuedRequests.map(\.request.id)
         let clearedCount = clearedRequestIDs.count
         for queuedRequestID in clearedRequestIDs {
             cancelQueuedRequest(
@@ -213,18 +205,10 @@ extension MockRuntime {
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, clearedCount: clearedCount)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: operation, profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "clear_playback_queue", profileName: nil, events: events)
     }
 
     func cancelRequest(_ requestIDToCancel: String) async -> RuntimeRequestHandle {
-        await cancel(requestIDToCancel, operation: "cancel_request")
-    }
-
-    func cancel(_ queueType: SpeakSwiftly.QueueType, requestID requestIDToCancel: String) async -> RuntimeRequestHandle {
-        await cancel(requestIDToCancel, operation: "cancel_\(queueType.rawValue)")
-    }
-
-    private func cancel(_ requestIDToCancel: String, operation: String) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         do {
             let cancelledRequestID = try cancelRequestNow(requestIDToCancel)
@@ -240,12 +224,12 @@ extension MockRuntime {
                 )
                 continuation.finish()
             }
-            return RuntimeRequestHandle(id: requestID, operation: operation, profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "cancel_request", profileName: nil, events: events)
         } catch {
             let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.finish(throwing: error)
             }
-            return RuntimeRequestHandle(id: requestID, operation: operation, profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "cancel_request", profileName: nil, events: events)
         }
     }
 }
