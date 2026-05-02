@@ -1,7 +1,7 @@
 {
-  "name": "speak-swiftly-server",
-  "version": "2.1.3",
-  "description": "Repo-local Codex plugin for the SpeakSwiftlyServer MCP surface, focused operator skills, and shared local MCP configuration.",
+  "name": "speak-swiftly",
+  "version": "2.2.0",
+  "description": "Codex plugin for local Speak Swiftly speech, playback, runtime operation, and shared MCP access.",
   "author": {
     "name": "Gale",
     "email": "mail@galewilliams.com",
@@ -24,7 +24,7 @@
   "interface": {
     "displayName": "Speak Swiftly",
     "shortDescription": "Local speech and playback workflows for Codex.",
-    "longDescription": "Repo-local Codex plugin for the SpeakSwiftlyServer MCP surface, including focused skills for LaunchAgent setup, runtime operation, voice workflows, text-profile authoring, and plugin-managed Codex final-reply speech hooks.",
+    "longDescription": "Codex plugin for the local Speak Swiftly MCP surface, including focused skills for LaunchAgent setup, runtime operation, voice workflows, text-profile authoring, and plugin-managed Codex final-reply speech hooks.",
     "developerName": "Gale",
     "category": "Productivity",
     "capabilities": [

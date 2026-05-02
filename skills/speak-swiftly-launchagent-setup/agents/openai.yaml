@@ -7,7 +7,7 @@ dependencies:
   tools:
     - type: "mcp"
       value: "speak_swiftly"
-      description: "Local SpeakSwiftlyServer MCP surface used after the LaunchAgent-backed service is healthy."
+      description: "Local Speak Swiftly MCP surface used after the LaunchAgent-backed service is healthy."
       transport: "streamable_http"
       url: "http://127.0.0.1:7337/mcp"
 

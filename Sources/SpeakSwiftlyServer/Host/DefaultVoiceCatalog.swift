@@ -45,7 +45,7 @@ package struct DefaultVoiceCatalogError: Error, CustomStringConvertible {
     package var description: String { message }
 }
 
-package struct DefaultVoiceSeedCatalog: Codable, Sendable, Equatable {
+package struct DefaultVoiceSeedCatalog: Codable, Equatable {
     package let catalogVersion: Int
     package let voices: [DefaultVoiceSeed]
 
@@ -55,7 +55,7 @@ package struct DefaultVoiceSeedCatalog: Codable, Sendable, Equatable {
     }
 }
 
-package struct DefaultVoiceSeed: Codable, Sendable, Equatable, Identifiable {
+package struct DefaultVoiceSeed: Codable, Equatable, Identifiable {
     package let seedID: String
     package let seedVersion: String
     package let profileName: String
@@ -83,10 +83,10 @@ package struct DefaultVoiceSeed: Codable, Sendable, Equatable, Identifiable {
     }
 }
 
-package enum DefaultVoiceSeedAuthor: String, Codable, Sendable {
+package enum DefaultVoiceSeedAuthor: String, Codable {
     case system
 }
 
-package enum DefaultVoiceSeedSourceKind: String, Codable, Sendable {
+package enum DefaultVoiceSeedSourceKind: String, Codable {
     case generatedDesign = "generated_design"
 }

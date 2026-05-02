@@ -290,7 +290,7 @@ codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
 codex plugin marketplace upgrade SpeakSwiftlyServer
 ```
 
-After Codex adds or upgrades the marketplace, restart Codex, open the plugin directory in the Codex GUI, choose the `SpeakSwiftlyServer` marketplace, and install or enable the Speak Swiftly plugin there. The planned plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older installs may still appear as `speak-swiftly-server` until the migration lands. Manual local clone marketplaces and personal copied-payload entries are development, unpublished-testing, and fallback paths rather than the default user install story.
+After Codex adds or upgrades the marketplace, restart Codex, open the plugin directory in the Codex GUI, choose the `SpeakSwiftlyServer` marketplace, and install or enable the Speak Swiftly plugin there. The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older installs may still appear as `speak-swiftly-server` until they are upgraded or disabled. Manual local clone marketplaces and personal copied-payload entries are development, unpublished-testing, and fallback paths rather than the default user install story.
 
 The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Installing from the Git-backed socket marketplace is useful when you want Speak Swiftly plus Gale's other Codex plugins available from one marketplace:
 
@@ -301,7 +301,7 @@ codex plugin marketplace upgrade socket
 
 After adding `socket`, restart Codex, open the plugin directory in the Codex GUI, choose the `Socket` marketplace, and install or enable `Speak Swiftly` plus any companion plugins you want. Use an explicit ref such as `gaelic-ghost/SpeakSwiftlyServer@vX.Y.Z` only when you want a pinned reproducible install rather than the release-aligned default branch.
 
-If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor should detect duplicate enablement across both marketplaces and offer a repair path that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after reporting what it will change. During migration, the duplicate scan should account for both the new `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
+If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor detects duplicate enablement across both marketplaces and reports a dry-run repair plan that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after confirmation. During migration, the duplicate scan accounts for both the current `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
 
 End users should rely on the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The repo-local `.codex/` files are a development harness for testing hook payloads and notification behavior from this checkout.
 
@@ -311,7 +311,7 @@ To inspect the installed hook and voice surfaces, run:
 node scripts/codex-hooks-doctor.mjs
 ```
 
-The doctor checks whether the plugin manifest declares hooks, whether a legacy global `~/.codex/hooks.json` entry is still pointing at this checkout, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The planned doctor repair mode also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Its repair mode should start as a dry run that reports the intended config change before disabling or removing duplicate plugin enablement.
+The doctor checks whether the plugin manifest declares hooks, whether a legacy global `~/.codex/hooks.json` entry is still pointing at this checkout, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
 The first plugin pass ships focused skills for:
 

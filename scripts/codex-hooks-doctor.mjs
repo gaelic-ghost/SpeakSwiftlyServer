@@ -10,7 +10,13 @@ const repoRoot = path.resolve(path.dirname(scriptPath), "..");
 const codexHome = process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
 const runtimeBaseUrl = process.env.CODEX_HOOK_TTS_BASE_URL ?? "http://127.0.0.1:7337";
 const expectedProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-femme";
-const pluginName = "speak-swiftly-server";
+const canonicalPluginName = "speak-swiftly";
+const legacyPluginName = "speak-swiftly-server";
+const pluginNames = [canonicalPluginName, legacyPluginName];
+const preferredPluginKey = `${canonicalPluginName}@socket`;
+const pluginMarketplaces = ["socket", "SpeakSwiftlyServer"];
+const knownPluginKeys = pluginNames.flatMap((name) => pluginMarketplaces.map((marketplace) => `${name}@${marketplace}`));
+const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
 
 const checks = [];
 
@@ -97,13 +103,114 @@ async function findInstalledPluginManifests(root) {
         await walk(fullPath, depth + 1);
       } else if (entry.name === "plugin.json" && path.basename(path.dirname(fullPath)) === ".codex-plugin") {
         const manifest = await readJSON(fullPath);
-        if (manifest?.name === pluginName) matches.push({ manifestPath: fullPath, manifest });
+        if (pluginNames.includes(manifest?.name)) matches.push({ manifestPath: fullPath, manifest });
       }
     }
   }
 
   await walk(root, 0);
   return matches;
+}
+
+function pluginConfigEntries(configText) {
+  if (!configText) return [];
+
+  return knownPluginKeys.map((key) => {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const sectionPattern = new RegExp(`\\[plugins\\."${escapedKey}"\\]([\\s\\S]*?)(?=\\n\\[|$)`);
+    const match = configText.match(sectionPattern);
+    const body = match?.[1] ?? "";
+    const enabled = match ? /^\s*enabled\s*=\s*true\s*$/m.test(body) : false;
+    return {
+      key,
+      pluginName: key.slice(0, key.indexOf("@")),
+      marketplace: key.slice(key.indexOf("@") + 1),
+      present: Boolean(match),
+      enabled,
+    };
+  });
+}
+
+function summarizePluginConfig(configText) {
+  const entries = pluginConfigEntries(configText);
+  const presentEntries = entries.filter((entry) => entry.present);
+  const enabledEntries = entries.filter((entry) => entry.enabled);
+
+  if (presentEntries.length === 0) {
+    addCheck("warn", "No Speak Swiftly plugin config entries found in config.toml");
+    return { entries, presentEntries, enabledEntries };
+  }
+
+  addCheck(
+    "info",
+    "Speak Swiftly plugin config entries",
+    presentEntries.map((entry) => `${entry.key}${entry.enabled ? ":enabled" : ":disabled"}`).join(", "),
+  );
+
+  if (enabledEntries.some((entry) => entry.key === preferredPluginKey)) {
+    addCheck("ok", `${preferredPluginKey} appears enabled in config.toml`);
+  } else if (enabledEntries.some((entry) => entry.pluginName === canonicalPluginName)) {
+    addCheck(
+      "ok",
+      "Canonical Speak Swiftly plugin id appears enabled in config.toml",
+      enabledEntries.map((entry) => entry.key).join(", "),
+    );
+  } else if (enabledEntries.length > 0) {
+    addCheck(
+      "warn",
+      "Only legacy Speak Swiftly plugin ids appear enabled in config.toml",
+      enabledEntries.map((entry) => entry.key).join(", "),
+    );
+  } else {
+    addCheck("warn", "Speak Swiftly plugin entries exist but none appear enabled in config.toml");
+  }
+
+  if (enabledEntries.length > 1) {
+    addCheck(
+      "warn",
+      "Duplicate Speak Swiftly plugin enablement detected",
+      enabledEntries.map((entry) => entry.key).join(", "),
+    );
+  } else {
+    addCheck("ok", "No duplicate enabled Speak Swiftly plugin entries detected");
+  }
+
+  return { entries, presentEntries, enabledEntries };
+}
+
+function reportRepairPlan(pluginConfig) {
+  const { presentEntries, enabledEntries } = pluginConfig;
+  const preferredEntry = enabledEntries.find((entry) => entry.key === preferredPluginKey)
+    ?? enabledEntries.find((entry) => entry.pluginName === canonicalPluginName)
+    ?? presentEntries.find((entry) => entry.key === preferredPluginKey)
+    ?? presentEntries.find((entry) => entry.pluginName === canonicalPluginName)
+    ?? null;
+
+  if (!repairMode) {
+    addCheck("info", "Repair mode is dry-run only and was not requested", "Run with --repair-plan to print the duplicate-enable repair plan.");
+    return;
+  }
+
+  if (!preferredEntry) {
+    addCheck(
+      "warn",
+      "Dry-run repair plan could not choose a canonical Speak Swiftly entry",
+      "Install or enable speak-swiftly from the Socket or SpeakSwiftlyServer marketplace first.",
+    );
+    return;
+  }
+
+  const duplicateEntries = presentEntries.filter((entry) => entry.key !== preferredEntry.key && (entry.enabled || entry.pluginName === legacyPluginName));
+  if (duplicateEntries.length === 0) {
+    addCheck("ok", "Dry-run repair plan has nothing to disable", `keep ${preferredEntry.key}`);
+    return;
+  }
+
+  addCheck(
+    "info",
+    "Dry-run repair plan",
+    `keep ${preferredEntry.key}; disable or remove ${duplicateEntries.map((entry) => entry.key).join(", ")} after confirmation. No config was changed.`,
+  );
 }
 
 async function fetchJSON(route) {
@@ -198,18 +305,17 @@ async function main() {
   } else {
     addCheck("warn", "Could not confirm codex_hooks = true in config.toml");
   }
-  if (configText?.includes('[plugins."speak-swiftly-server@socket"]') && configText.includes("enabled = true")) {
-    addCheck("ok", "speak-swiftly-server@socket appears enabled in config.toml");
-  } else {
-    addCheck("warn", "Could not confirm speak-swiftly-server@socket is enabled in config.toml");
-  }
+  const pluginConfig = summarizePluginConfig(configText);
+  reportRepairPlan(pluginConfig);
 
   const installedManifests = await findInstalledPluginManifests(path.join(codexHome, "plugins", "cache"));
   if (installedManifests.length === 0) {
-    addCheck("warn", "No installed speak-swiftly-server plugin manifest found under the Codex plugin cache");
+    addCheck("warn", "No installed Speak Swiftly plugin manifest found under the Codex plugin cache");
   } else {
     for (const { manifestPath, manifest } of installedManifests) {
       const hookStatus = manifest.hooks === "./hooks/hooks.json" ? "ok" : "warn";
+      const identityStatus = manifest.name === canonicalPluginName ? "ok" : "warn";
+      addCheck(identityStatus, `Installed plugin identity ${manifest.name}`, manifestPath);
       addCheck(hookStatus, `Installed plugin ${manifest.version ?? "unknown"} hook manifest`, manifestPath);
     }
   }
