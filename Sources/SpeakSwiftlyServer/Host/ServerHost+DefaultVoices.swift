@@ -17,7 +17,9 @@ extension ServerHost {
                 )
                 continue
             }
-            guard currentProfiles.contains(where: { profileMatchesDefaultVoiceSeed($0, seed: seed) }) == false else {
+
+            if let targetProfile = currentProfiles.first(where: { $0.profileName == targetProfileName }),
+               profileMatchesDefaultVoiceSeed(targetProfile, seed: seed) {
                 continue
             }
 

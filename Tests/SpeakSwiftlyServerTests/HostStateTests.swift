@@ -589,6 +589,59 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `startup installs fallback default voice when unrelated profile matches seed metadata`() async throws {
+    let signalSeed = try #require(DefaultVoiceCatalog.load().first { $0.profileName == "swift-signal" })
+    let runtime = MockRuntime(
+        profiles: [
+            SpeakSwiftly.ProfileSummary(
+                profileName: "swift-signal",
+                vibe: .femme,
+                createdAt: Date(timeIntervalSince1970: 1_700_000_000),
+                voiceDescription: "User-owned signal voice",
+                sourceText: "This is a user-owned profile occupying the preferred built-in name.",
+                transcriptSource: nil,
+                transcriptResolvedAt: nil,
+                transcriptionModelRepo: nil,
+            ),
+            SpeakSwiftly.ProfileSummary(
+                profileName: "renamed-signal-copy",
+                vibe: signalSeed.vibe,
+                createdAt: Date(timeIntervalSince1970: 1_700_000_100),
+                voiceDescription: signalSeed.voiceDescription,
+                sourceText: signalSeed.sourceText,
+                transcriptSource: nil,
+                transcriptResolvedAt: nil,
+                transcriptionModelRepo: nil,
+            ),
+        ],
+    )
+    let state = await MainActor.run { EmbeddedServer() }
+    let host = ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: state,
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+
+    let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let status = await host.statusSnapshot()
+        return status.cachedProfiles.contains { $0.profileName == "swift-signal-builtin" }
+            && status.cachedProfiles.contains { $0.profileName == "swift-anchor" }
+            ? status
+            : nil
+    }
+    let invocationNames = await runtime.createProfileInvocationNames()
+    #expect(invocationNames == ["swift-signal-builtin", "swift-anchor"])
+    #expect(status.cachedProfiles.contains { $0.profileName == "renamed-signal-copy" })
+    #expect(status.recentErrors.isEmpty)
+
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
 @Test func `rerolling a voice profile refreshes cached profile metadata`() async throws {
     let originalCreatedAt = Date(timeIntervalSince1970: 1_700_000_000)
     let runtime = MockRuntime(
