@@ -3,7 +3,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(scriptPath), "..");
@@ -112,7 +112,7 @@ async function findInstalledPluginManifests(root) {
   return matches;
 }
 
-function pluginConfigEntries(configText) {
+export function pluginConfigEntries(configText) {
   if (!configText) return [];
 
   return knownPluginKeys.map((key) => {
@@ -178,7 +178,7 @@ function summarizePluginConfig(configText) {
   return { entries, presentEntries, enabledEntries };
 }
 
-function reportRepairPlan(pluginConfig) {
+export function buildRepairPlan(pluginConfig) {
   const { presentEntries, enabledEntries } = pluginConfig;
   const preferredEntry = enabledEntries.find((entry) => entry.key === preferredPluginKey)
     ?? enabledEntries.find((entry) => entry.pluginName === canonicalPluginName)
@@ -186,31 +186,48 @@ function reportRepairPlan(pluginConfig) {
     ?? presentEntries.find((entry) => entry.pluginName === canonicalPluginName)
     ?? null;
 
+  if (!preferredEntry) {
+    return {
+      status: "missing-canonical",
+      preferredEntry: null,
+      duplicateEntries: [],
+      message: "Install or enable speak-swiftly from the Socket or SpeakSwiftlyServer marketplace first.",
+    };
+  }
+
+  const duplicateEntries = presentEntries.filter((entry) => entry.key !== preferredEntry.key && (entry.enabled || entry.pluginName === legacyPluginName));
+  return {
+    status: duplicateEntries.length === 0 ? "clean" : "duplicates",
+    preferredEntry,
+    duplicateEntries,
+    message: duplicateEntries.length === 0
+      ? `keep ${preferredEntry.key}`
+      : `keep ${preferredEntry.key}; disable or remove ${duplicateEntries.map((entry) => entry.key).join(", ")} after confirmation. No config was changed.`,
+  };
+}
+
+function reportRepairPlan(pluginConfig) {
   if (!repairMode) {
     addCheck("info", "Repair mode is dry-run only and was not requested", "Run with --repair-plan to print the duplicate-enable repair plan.");
     return;
   }
 
-  if (!preferredEntry) {
+  const repairPlan = buildRepairPlan(pluginConfig);
+  if (repairPlan.status === "missing-canonical") {
     addCheck(
       "warn",
       "Dry-run repair plan could not choose a canonical Speak Swiftly entry",
-      "Install or enable speak-swiftly from the Socket or SpeakSwiftlyServer marketplace first.",
+      repairPlan.message,
     );
     return;
   }
 
-  const duplicateEntries = presentEntries.filter((entry) => entry.key !== preferredEntry.key && (entry.enabled || entry.pluginName === legacyPluginName));
-  if (duplicateEntries.length === 0) {
-    addCheck("ok", "Dry-run repair plan has nothing to disable", `keep ${preferredEntry.key}`);
+  if (repairPlan.status === "clean") {
+    addCheck("ok", "Dry-run repair plan has nothing to disable", repairPlan.message);
     return;
   }
 
-  addCheck(
-    "info",
-    "Dry-run repair plan",
-    `keep ${preferredEntry.key}; disable or remove ${duplicateEntries.map((entry) => entry.key).join(", ")} after confirmation. No config was changed.`,
-  );
+  addCheck("info", "Dry-run repair plan", repairPlan.message);
 }
 
 async function fetchJSON(route) {
@@ -360,8 +377,10 @@ async function main() {
   process.exitCode = failures > 0 ? 1 : 0;
 }
 
-main().catch((error) => {
-  console.error("SpeakSwiftlyServer hooks doctor failed before it could finish:");
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error("SpeakSwiftlyServer hooks doctor failed before it could finish:");
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+    process.exitCode = 1;
+  });
+}
