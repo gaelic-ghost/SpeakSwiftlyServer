@@ -144,7 +144,7 @@ extension MockRuntime {
         requireFixture("mock text-profile details bridge") {
             try fixtureDecode(
                 TextProfileDetailsFixture(
-                    profileID: details.profileID,
+                    profileID: details.id,
                     summary: TextProfileSummaryFixture(
                         id: details.summary.id,
                         name: details.summary.name,
