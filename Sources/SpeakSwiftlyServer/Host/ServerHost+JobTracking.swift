@@ -349,7 +349,6 @@ extension ServerHost {
                 workerStage = status.stage.rawValue
                 startupError = nil
             case .residentModelReady:
-                workerMode = "ready"
                 workerStage = status.stage.rawValue
                 startupError = nil
                 if !hasRequestedStartupProfileRefresh {
@@ -363,6 +362,7 @@ extension ServerHost {
                         emitProfileCacheChanged()
                     }
                 }
+                workerMode = "ready"
             case .residentModelsUnloaded:
                 workerMode = "starting"
                 workerStage = status.stage.rawValue

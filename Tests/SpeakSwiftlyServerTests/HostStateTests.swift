@@ -304,6 +304,37 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `startup readiness waits for default voice install to finish`() async throws {
+    let runtime = MockRuntime(profiles: [])
+    await runtime.holdNextVoiceProfileRefresh()
+    let host = ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: await MainActor.run { EmbeddedServer() },
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    await runtime.waitUntilVoiceProfileRefreshIsHeld()
+
+    let readinessWhileInstalling = await host.readinessSnapshot()
+    #expect(readinessWhileInstalling.0 == false)
+    await #expect(throws: Error.self) {
+        try await host.submitSpeak(text: "Too soon", profileName: "swift-signal")
+    }
+
+    await runtime.releaseHeldVoiceProfileRefresh()
+    try await waitUntilReady(host)
+
+    let status = await host.statusSnapshot()
+    #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal" })
+    #expect(status.cachedProfiles.contains { $0.profileName == "swift-anchor" })
+
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
 @Test func `state projects cached voice profiles and forwards playback controls`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()

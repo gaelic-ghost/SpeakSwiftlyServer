@@ -105,6 +105,10 @@ actor MockRuntime: ServerRuntimeProtocol {
     var generatedBatches = [SpeakSwiftly.GeneratedBatch]()
     var generationJobs = [SpeakSwiftly.GenerationJob]()
     var listVoiceProfilesCallCount = 0
+    var holdNextListVoiceProfiles = false
+    var listVoiceProfilesHoldContinuation: CheckedContinuation<Void, Never>?
+    var listVoiceProfilesHasReachedHold = false
+    var listVoiceProfilesHoldWaiters = [CheckedContinuation<Void, Never>]()
     var scriptedProfileRefreshSnapshots = [[SpeakSwiftly.ProfileSummary]]()
     var generationQueueRequestCount = 0
     var playbackQueueRequestCount = 0
@@ -186,6 +190,28 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     func lifecycleCounts() -> (start: Int, shutdown: Int) {
         (startCallCount, shutdownCallCount)
+    }
+
+    func holdNextVoiceProfileRefresh() {
+        holdNextListVoiceProfiles = true
+        listVoiceProfilesHasReachedHold = false
+    }
+
+    func waitUntilVoiceProfileRefreshIsHeld() async {
+        guard !listVoiceProfilesHasReachedHold else { return }
+
+        await withCheckedContinuation { continuation in
+            if listVoiceProfilesHasReachedHold {
+                continuation.resume()
+            } else {
+                listVoiceProfilesHoldWaiters.append(continuation)
+            }
+        }
+    }
+
+    func releaseHeldVoiceProfileRefresh() {
+        listVoiceProfilesHoldContinuation?.resume()
+        listVoiceProfilesHoldContinuation = nil
     }
 
     func setScriptedProfileRefreshSnapshots(_ snapshots: [[SpeakSwiftly.ProfileSummary]]) {

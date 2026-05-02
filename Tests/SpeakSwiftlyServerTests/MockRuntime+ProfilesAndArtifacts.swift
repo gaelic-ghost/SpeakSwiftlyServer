@@ -86,6 +86,18 @@ extension MockRuntime {
 
     func listVoiceProfiles() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
+        if holdNextListVoiceProfiles {
+            holdNextListVoiceProfiles = false
+            listVoiceProfilesHasReachedHold = true
+            let holdWaiters = listVoiceProfilesHoldWaiters
+            listVoiceProfilesHoldWaiters.removeAll()
+            for waiter in holdWaiters {
+                waiter.resume()
+            }
+            await withCheckedContinuation { continuation in
+                listVoiceProfilesHoldContinuation = continuation
+            }
+        }
         listVoiceProfilesCallCount += 1
         if !scriptedProfileRefreshSnapshots.isEmpty {
             profiles = scriptedProfileRefreshSnapshots.removeFirst()
