@@ -217,6 +217,7 @@ Swift package directly.
 - [x] Add migration notes for old `speak-swiftly-server` installs from either marketplace, including how to enable `speak-swiftly` and when the old entry is safe to disable or remove.
 - [x] Update `scripts/codex-hooks-doctor.mjs` so it detects legacy `speak-swiftly-server` installs, duplicate installs or enablement from both marketplaces, plugin-managed hook state, live service reachability, and expected voice-profile availability.
 - [x] Add a doctor dry-run repair plan that prefers the Socket marketplace when both catalogs are configured: keep `speak-swiftly@socket` enabled, then report duplicate standalone-marketplace or legacy enablement before any future config mutation.
+- [x] Document isolated repo-scope install testing in `docs/maintainers/plugin-install-testing.md` so local checkout and Git-backed marketplace tests do not mutate Gale's personal production Codex installs.
 - [ ] Decide whether the current `socket/plugins/SpeakSwiftlyServer` subtree should remain as a pull-only source mirror after Socket lists the remote plugin payload, or whether future `socket` releases can rely on this standalone repository plus the remote marketplace entry.
 
 Current Socket-side state:
