@@ -307,11 +307,11 @@ import Testing
 @Test func `startup readiness waits for default voice install to finish`() async throws {
     let runtime = MockRuntime(profiles: [])
     await runtime.holdNextVoiceProfileRefresh()
-    let host = ServerHost(
+    let host = await ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
         runtimeConfigurationStore: testRuntimeConfigurationStore(),
-        state: await MainActor.run { EmbeddedServer() },
+        state: MainActor.run { EmbeddedServer() },
     )
 
     await host.start()
