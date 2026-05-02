@@ -313,6 +313,8 @@ node scripts/codex-hooks-doctor.mjs
 
 The doctor checks whether the plugin manifest declares hooks, whether a legacy global `~/.codex/hooks.json` entry is still pointing at this checkout, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
+For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running local checkout and Git-backed marketplace tests with a temporary `CODEX_HOME`, removing the test marketplace before cleanup. Run detailed Speak Swiftly payload tests from this repository; run Socket catalog-reference tests from the `socket` checkout.
+
 The first plugin pass ships focused skills for:
 
 - broad MCP orientation
