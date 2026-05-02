@@ -4,7 +4,12 @@
 
 This document is the maintainer map for the current `SpeakSwiftly 4.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
-Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer maps in this directory.
+Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging
+writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer
+maps in this directory.
+Public documentation media belongs under [`docs/media`](../media/). Runtime-loaded package resources
+belong under `Sources/SpeakSwiftlyServer/Resources` instead, because SwiftPM only exposes target
+resources through the target bundle.
 
 ## Host Sources
 
