@@ -198,18 +198,40 @@ prototype.
 - [x] Re-check the repo-local Codex hook scripts against the current official Codex hooks event shapes and stable-path guidance.
 - [ ] Add a maintained repo-local "use this with Codex hooks" guide or skill so Gale can enable, understand, and validate the speech-hook workflow without reverse-engineering the prototype files.
 
-## Milestone 18: Codex Plugin Packaging Split
+## Milestone 18: Codex Plugin Catalog Split
 
 Current note: this repository now ships a working plugin-managed Codex hook
-surface, but long-term plugin distribution should not require installing the
-entire Swift package mirror as the Codex plugin payload. Most consumers will
-either use `SpeakSwiftlyServer` as a Swift package or embedded app dependency,
-or install a Codex plugin that talks to the already-running local service.
-Those are related surfaces, but they should not force one install shape.
+surface. Long-term plugin distribution should keep one canonical plugin payload
+instead of copying the same manifest, hooks, skills, guidance, and doctor into
+both this repository and `socket`. Codex users should be able to install
+`Speak Swiftly` from either the standalone `SpeakSwiftlyServer` marketplace or
+the broader `socket` marketplace, while app embedders use this repository as the
+Swift package directly.
 
-- [ ] Create a normal monorepo-owned `socket/plugins/speak-swiftly/` Codex plugin that owns the Codex-facing manifest, MCP registration, hooks, skills, user guidance, and doctor or install-check scripts.
-- [ ] Keep this repository as the Swift package, executable, LaunchAgent, embedded API, HTTP/MCP implementation, and authoritative API documentation source.
-- [ ] Add or update guidance here so Codex users install `gaelic-ghost/socket` and enable the `speak-swiftly` plugin, while app embedders use the Swift package directly.
-- [ ] Keep repo-local `.codex/` files and any standalone plugin fallback clearly scoped to development, testing, or transitional validation rather than the default end-user path.
-- [ ] Decide whether the current `socket/plugins/SpeakSwiftlyServer` subtree should remain as a pull-only source mirror after the `speak-swiftly` plugin exists, or whether `socket` can stop exposing the full server subtree as a public plugin marketplace entry.
-- [ ] Update `socket` marketplace docs and validation so the public plugin path points at `./plugins/speak-swiftly` instead of the full `./plugins/SpeakSwiftlyServer` package mirror.
+- [x] Keep this repository as the canonical source of truth for the `speak-swiftly` Codex plugin payload: `.codex-plugin/plugin.json`, `.mcp.json`, `hooks/`, `skills/`, user guidance, migration notes, and the doctor or install-check scripts.
+- [x] Rename the plugin id from `speak-swiftly-server` to `speak-swiftly` while keeping the display name `Speak Swiftly`.
+- [x] Keep this repository as the Swift package, executable, LaunchAgent, embedded API, HTTP/MCP implementation, and authoritative API documentation source.
+- [x] Keep the repo-local marketplace functional so users can run `codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer` and enable `Speak Swiftly` from this standalone catalog.
+- [x] Update `socket` marketplace docs and validation so the Socket catalog lists `speak-swiftly` by Git-backed reference to `gaelic-ghost/SpeakSwiftlyServer` instead of installing from the full local `socket/plugins/SpeakSwiftlyServer` subtree mirror.
+- [x] Keep repo-local `.codex/` files clearly scoped to development and hook-payload testing rather than the end-user install path.
+- [x] Add migration notes for old `speak-swiftly-server` installs from either marketplace, including how to enable `speak-swiftly` and when the old entry is safe to disable or remove.
+- [x] Update `scripts/codex-hooks-doctor.mjs` so it detects legacy `speak-swiftly-server` installs, duplicate installs or enablement from both marketplaces, plugin-managed hook state, live service reachability, and expected voice-profile availability.
+- [x] Add a doctor dry-run repair plan that prefers the Socket marketplace when both catalogs are configured: keep `speak-swiftly@socket` enabled, then report duplicate standalone-marketplace or legacy enablement before any future config mutation.
+- [ ] Decide whether the current `socket/plugins/SpeakSwiftlyServer` subtree should remain as a pull-only source mirror after Socket lists the remote plugin payload, or whether future `socket` releases can rely on this standalone repository plus the remote marketplace entry.
+
+Current Socket-side state:
+
+- [x] `socket/.agents/plugins/marketplace.json` lists `speak-swiftly` as a Git-backed root plugin source using `source: "url"`, `url: "https://github.com/gaelic-ghost/SpeakSwiftlyServer.git"`, and `ref: "main"`.
+- [x] `socket/scripts/validate_socket_metadata.py` accepts `local`, `url`, and `git-subdir` marketplace source kinds. Local entries still get filesystem and manifest checks; Git-backed entries get source-shape checks.
+- [x] Socket docs now describe this repository as the canonical Speak Swiftly plugin payload owner.
+
+Implementation notes for this repository:
+
+- [x] Update `.codex-plugin/plugin.json` from `name: "speak-swiftly-server"` to `name: "speak-swiftly"`. Keep `interface.displayName` as `Speak Swiftly`, and update description text only where it still implies the plugin identity is server-specific rather than user-facing.
+- [x] Update `.agents/plugins/marketplace.json` so the standalone marketplace entry is `speak-swiftly`, still pointing at `./` because this repository root is the plugin root.
+- [x] Update README, AGENTS, maintainer docs, and skills guidance where user-facing install instructions say to enable `speak-swiftly-server`. Keep migration wording for existing users who still see the old id.
+- [x] Update `scripts/codex-hooks-doctor.mjs` constants and checks that currently assume `pluginName = "speak-swiftly-server"` or config table `[plugins."speak-swiftly-server@socket"]`.
+- [x] Teach the doctor to inventory both old and new plugin ids across installed cache manifests and `~/.codex/config.toml`, including `speak-swiftly@socket`, `speak-swiftly@SpeakSwiftlyServer`, `speak-swiftly-server@socket`, and `speak-swiftly-server@SpeakSwiftlyServer`.
+- [x] Add a dry-run repair mode before any config mutation. The repair plan should report the active entries, prefer `speak-swiftly@socket` when present, and only then offer to disable duplicate standalone or legacy entries.
+- [x] Keep HTTP and MCP endpoint behavior unchanged during the plugin identity migration. The Socket-side entry targets this repository's root plugin payload; it does not change the local service URL, `.mcp.json`, hook command path, or LaunchAgent behavior.
+- [x] Validate the identity migration with `node scripts/codex-hooks-doctor.mjs --repair-plan`, focused doctor fixture tests, and the repo's normal maintainer validation path. Live LaunchAgent and E2E service operations were not needed because the implementation does not change live-service behavior.

@@ -89,7 +89,7 @@ func embeddedServerLiveBootstrap(
                 },
                 pausePlayback: {
                     let response = try await host.pausePlayback()
-                    return .init(
+                    return PlaybackStatusSnapshot(
                         state: response.playback.state,
                         activeRequest: response.playback.activeRequest,
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
@@ -100,7 +100,7 @@ func embeddedServerLiveBootstrap(
                 },
                 resumePlayback: {
                     let response = try await host.resumePlayback()
-                    return .init(
+                    return PlaybackStatusSnapshot(
                         state: response.playback.state,
                         activeRequest: response.playback.activeRequest,
                         isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,

@@ -2,7 +2,7 @@ import Foundation
 import SpeakSwiftly
 import TextForSpeech
 
-public typealias SpeechNormalizationContext = TextForSpeech.Context
+public typealias SpeechNormalizationContext = TextForSpeech.InputContext
 
 func makeInputTextContext(
     normalizationContext: SpeechNormalizationContext?,

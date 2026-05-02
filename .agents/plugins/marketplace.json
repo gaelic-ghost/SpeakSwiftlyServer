@@ -5,7 +5,7 @@
   },
   "plugins": [
     {
-      "name": "speak-swiftly-server",
+      "name": "speak-swiftly",
       "source": {
         "source": "local",
         "path": "./"

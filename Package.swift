@@ -31,7 +31,7 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
         .package(
             url: "https://github.com/gaelic-ghost/SpeakSwiftly.git",
-            from: "4.0.8",
+            from: "4.2.0",
         ),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.3"),
         .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.18.6"),
@@ -61,7 +61,8 @@ let package = Package(
             ],
             path: "Sources/SpeakSwiftlyServer",
             resources: [
-                .process("Resources"),
+                .process("Resources/default-server.yaml"),
+                .copy("Resources/DefaultVoiceProfiles"),
             ],
         ),
         .executableTarget(

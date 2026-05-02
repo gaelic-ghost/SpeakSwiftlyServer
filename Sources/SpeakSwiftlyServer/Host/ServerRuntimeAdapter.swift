@@ -405,7 +405,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     ) throws -> SpeakSwiftly.TextProfileDetails {
         try decodeTransportValue(
             DetailsBridge(
-                profileID: details.profileID,
+                profileID: details.id,
                 summary: SummaryBridge(
                     id: details.summary.id,
                     name: details.summary.name,

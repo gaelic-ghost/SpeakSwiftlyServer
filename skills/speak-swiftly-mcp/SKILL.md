@@ -1,6 +1,6 @@
 ---
 name: speak-swiftly-mcp
-description: Use when a user wants general help with the SpeakSwiftlyServer MCP surface, including broad requests to inspect runtime state, read replies aloud, manage voice or text profiles, or decide which SpeakSwiftly MCP workflow to use. This skill is the orientation layer for the local `speak_swiftly` MCP server and routes work into the narrower runtime, voice, and text-profile skills.
+description: Use when a user wants general help with the Speak Swiftly MCP surface, including broad requests to inspect runtime state, read replies aloud, manage voice or text profiles, or decide which SpeakSwiftly MCP workflow to use. This skill is the orientation layer for the local `speak_swiftly` MCP server and routes work into the narrower runtime, voice, and text-profile skills.
 ---
 
 # SpeakSwiftly MCP

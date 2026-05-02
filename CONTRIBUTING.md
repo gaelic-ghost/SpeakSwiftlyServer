@@ -107,6 +107,15 @@ Before any live end-to-end run, make sure the LaunchAgent-backed live service ha
 
 Keep user-facing lifecycle vocabulary consistent across docs, scripts, and commands. In this repo that means preferring pairs like `install` and `uninstall`, treating `install` as the normal all-in-one staged-artifact plus LaunchAgent refresh path, keeping `promote-live` as the explicit staged-to-live promotion spelling, and avoiding alternate verbs for the same operator action unless a compatibility surface already requires them.
 
+The planned built-in voice names are `swift-signal` and `swift-anchor`. Treat them as package-owned
+seed identities, not user-owned example names. If an existing user profile already owns one of those
+names, default-voice installation should fall back to a `-builtin` suffix for the package copy
+instead of overwriting or renaming the user's profile.
+
+Normal voice-profile creation flows should remain user-owned. Built-in voice work should preserve a
+clear distinction between user-authored profiles and package-authored system profiles, and should not
+add public API fields unless application consumers need those fields to make a user-visible decision.
+
 Match the current boundary language in the code:
 
 - `EmbeddedServer` is the public app-owned embedding surface

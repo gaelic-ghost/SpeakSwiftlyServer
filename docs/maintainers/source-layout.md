@@ -4,7 +4,12 @@
 
 This document is the maintainer map for the current `SpeakSwiftly 4.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
-Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer maps in this directory.
+Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging
+writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer
+maps in this directory.
+Public documentation media belongs under [`docs/media`](../media/). Runtime-loaded package resources
+belong under `Sources/SpeakSwiftlyServer/Resources` instead, because SwiftPM only exposes target
+resources through the target bundle.
 
 ## Host Sources
 
@@ -39,6 +44,8 @@ Historical release artifacts belong under [`docs/releases`](../releases/), and h
   Request payloads plus shared normalization-format helpers.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
+- `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
+  Package-owned default voice seed catalog loading and validation models.
 - `Sources/SpeakSwiftlyServer/Host/QueueStatusModels.swift`
   Queue, playback, health, readiness, and status snapshots.
 - `Sources/SpeakSwiftlyServer/Host/JobEventModels.swift`
@@ -48,6 +55,9 @@ Historical release artifacts belong under [`docs/releases`](../releases/), and h
 
 ## Operator Sources
 
+- `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/catalog.json`
+  Holds the package-owned default voice seed catalog. Keep this as bundled seed metadata, not as
+  user profile storage.
 - `Sources/SpeakSwiftlyServer/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
   Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.
 - `Sources/SpeakSwiftlyServer/LaunchAgent/LaunchAgentCommands.swift`
@@ -79,15 +89,15 @@ Historical release artifacts belong under [`docs/releases`](../releases/), and h
 ## Plugin And Skill Sources
 
 - `.codex-plugin/plugin.json`
-  Holds the repo-root Codex plugin manifest for this checkout, including the tracked skill, MCP config, and plugin-managed hook paths.
+  Holds the repo-root Codex plugin manifest for this checkout, including the tracked skill, MCP config, and plugin-managed hook paths. This repository remains the canonical payload owner for the `speak-swiftly` plugin identity, displayed as `Speak Swiftly`.
 - `.agents/plugins/marketplace.json`
-  Holds the repo-local marketplace advertisement that lets this repository surface as an installable local Codex plugin.
+  Holds the repo-local marketplace advertisement that lets this repository surface as an installable local Codex plugin. The Socket marketplace now lists this same payload by Git-backed root-plugin reference rather than carrying a copied plugin directory.
 - `hooks/`
   Holds the plugin-managed Codex lifecycle hook config and final-reply TTS script used by installed plugin users.
 - `.codex/`
   Holds repo-local development and testing config for hook payload inspection. Do not document `.codex/` as the end-user install path.
 - `scripts/codex-hooks-doctor.mjs`
-  Reports hook ownership, legacy global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment.
+  Reports hook ownership, legacy global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present. The duplicate scan accounts for `speak-swiftly@socket`, `speak-swiftly@SpeakSwiftlyServer`, `speak-swiftly-server@socket`, and `speak-swiftly-server@SpeakSwiftlyServer`.
 - `skills/speak-swiftly-mcp/`
   Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
 - `skills/speak-swiftly-runtime-operator/`
