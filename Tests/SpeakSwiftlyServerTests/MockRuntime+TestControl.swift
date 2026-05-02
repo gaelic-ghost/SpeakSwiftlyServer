@@ -53,6 +53,10 @@ extension MockRuntime {
         createProfileInvocations.last
     }
 
+    func createProfileInvocationNames() -> [String] {
+        createProfileInvocations.map(\.profileName)
+    }
+
     func latestCreateCloneInvocation() -> CreateCloneInvocation? {
         createCloneInvocations.last
     }

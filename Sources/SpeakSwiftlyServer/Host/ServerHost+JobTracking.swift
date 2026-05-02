@@ -355,10 +355,11 @@ extension ServerHost {
                 if !hasRequestedStartupProfileRefresh {
                     hasRequestedStartupProfileRefresh = true
                     do {
-                        _ = try await refreshProfiles(reason: "startup")
+                        let profiles = try await refreshProfiles(reason: "startup")
+                        _ = try await installMissingDefaultVoices(after: profiles)
                     } catch {
                         profileCacheState = "stale"
-                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache. Likely cause: \(error.localizedDescription)"
+                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache or install bundled default voices. Likely cause: \(error.localizedDescription)"
                         emitProfileCacheChanged()
                     }
                 }

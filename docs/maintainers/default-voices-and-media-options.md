@@ -38,17 +38,17 @@ The first two package-owned default voices are:
 - `swift-anchor`: a grounded, steady, warm voice with strong articulation, calm pacing, and a
   reassuring technical-narrator tone.
 
-The package should treat these as built-in seed profiles, not Gale's personal default profiles.
-They should be installed from package-owned seed metadata, then appear in the user's profile store
-as normal selectable voice names.
+The package treats these as built-in seed profiles, not Gale's personal default profiles. When the
+runtime first reports resident-model readiness, the server installs missing seeds from package-owned
+metadata into the user's profile store, then exposes them as normal selectable voice names.
 
-If an existing user profile already occupies a preferred built-in name, the installer should try a
+If an existing user profile already occupies a preferred built-in name, startup should try a
 `-builtin` fallback for the package seed. For example, if `swift-signal` already exists and is not
 recognized as the same package seed, install the package voice as `swift-signal-builtin`. If both
 names are occupied, skip that seed and print a clear message that names both occupied profile names.
 
-The installer should not change the active default voice unless the operator explicitly asks for that
-behavior.
+The startup installer should not change the active default voice unless the operator explicitly asks
+for that behavior.
 
 ## Built-In Profile Identity
 
@@ -184,8 +184,8 @@ pronunciation, pacing, and noise floor.
 
 1. Add upstream `SpeakSwiftly` support for profile author metadata, system immutability, and
    reroll-as-user-copy behavior.
-2. Add a server-owned seed manifest under `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`.
-3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior.
+2. Add a server-owned seed manifest under `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`. Done.
+3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior. Done at startup after the runtime first reports resident-model readiness.
 4. Generate short preview audio for each installed candidate and place it under
    `docs/media/default-voices/`.
 5. Add transcript and provenance notes beside the samples.

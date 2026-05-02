@@ -66,6 +66,11 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 - `PUT /voices/{profile_name}/name`
 - `DELETE /voices/{profile_name}`
 
+When the runtime first becomes ready, `SpeakSwiftlyServer` installs any missing bundled default voice
+seeds into the active profile store before exposing the refreshed profile cache. `GET /voices`
+therefore includes `swift-signal` and `swift-anchor` on a fresh store, or their `-builtin` fallback
+names when a user-owned profile already occupies a preferred seed name.
+
 ### Text Profile Endpoints
 
 - `GET /text-profiles`

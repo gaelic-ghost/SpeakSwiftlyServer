@@ -96,15 +96,16 @@ The package uses distinct default localhost ports by entrypoint:
 - LaunchAgent installs default to `127.0.0.1:7337`
 - embedded app-owned sessions default to `127.0.0.1:7339`
 
-### Planned Default Voices
+### Startup-Installed Default Voices
 
-The planned built-in default voice pair is `swift-signal` and `swift-anchor`. `swift-signal` is the
-bright, crisp, responsive default voice; `swift-anchor` is the grounded, steady, reassuring default
-voice.
+The built-in default voice pair is `swift-signal` and `swift-anchor`. `swift-signal` is the bright,
+crisp, responsive default voice; `swift-anchor` is the grounded, steady, reassuring default voice.
 
-These planned defaults are package-owned seed voices, not Gale's personal saved profiles. If a user
-already has a profile with one of those names, the installer should use a `-builtin` fallback such as
-`swift-signal-builtin` for the package-owned copy instead of overwriting the user's profile.
+These defaults are package-owned seed voices, not Gale's personal saved profiles. When the runtime
+first becomes ready, the server installs missing seed voices into the active profile store and leaves
+the active default voice selection unchanged. If a user already has a profile with one of those names,
+startup uses a `-builtin` fallback such as `swift-signal-builtin` for the package-owned copy instead
+of overwriting the user's profile.
 
 The full transport contract lives in [API.md](./API.md).
 

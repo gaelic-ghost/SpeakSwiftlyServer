@@ -107,8 +107,8 @@ extension ServerTests {
             let profilesResponse = try await client.execute(uri: "/voices", method: .get)
             let profilesJSON = try jsonObject(from: profilesResponse.body)
             let profiles = try #require(profilesJSON["profiles"] as? [[String: Any]])
-            #expect(profiles.count == 1)
-            #expect(profiles.first?["profile_name"] as? String == "default")
+            let profileNames = profiles.compactMap { $0["profile_name"] as? String }.sorted()
+            #expect(profileNames == ["default", "swift-anchor", "swift-signal"])
 
             let createTextProfileResponse = try await client.execute(
                 uri: "/text-profiles/stored",
