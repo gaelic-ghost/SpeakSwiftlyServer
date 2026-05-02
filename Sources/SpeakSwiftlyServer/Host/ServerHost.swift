@@ -140,6 +140,7 @@ actor ServerHost {
     var pendingRuntimeRefresh = true
     var jobs = [String: JobRecord]()
     var hasRequestedStartupProfileRefresh = false
+    var isRunningStartupProfileRefresh = false
 
     var serverMode: String {
         if workerMode == "ready", profileCacheState != "stale" {

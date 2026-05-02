@@ -363,6 +363,30 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `startup default voice install retries after transient refresh failure`() async {
+    let runtime = MockRuntime(profiles: [])
+    await runtime.failNextVoiceProfileRefresh(message: "temporary profile list transport failure")
+    let host = await ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: MainActor.run { EmbeddedServer() },
+    )
+
+    await host.handle(status: workerStatus(.residentModelReady))
+    let degradedStatus = await host.statusSnapshot()
+    #expect(degradedStatus.profileCacheState == "stale")
+    #expect(degradedStatus.cachedProfiles.isEmpty)
+
+    await host.handle(status: workerStatus(.residentModelReady))
+
+    let recoveredStatus = await host.statusSnapshot()
+    #expect(recoveredStatus.profileCacheState == "fresh")
+    #expect(recoveredStatus.cachedProfiles.contains { $0.profileName == "swift-signal" })
+    #expect(recoveredStatus.cachedProfiles.contains { $0.profileName == "swift-anchor" })
+}
+
+@available(macOS 14, *)
 @Test func `state projects cached voice profiles and forwards playback controls`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()

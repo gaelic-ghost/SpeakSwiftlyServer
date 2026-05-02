@@ -109,6 +109,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var listVoiceProfilesHoldContinuation: CheckedContinuation<Void, Never>?
     var listVoiceProfilesHasReachedHold = false
     var listVoiceProfilesHoldWaiters = [CheckedContinuation<Void, Never>]()
+    var listVoiceProfilesFailureMessages = [String]()
     var scriptedProfileRefreshSnapshots = [[SpeakSwiftly.ProfileSummary]]()
     var generationQueueRequestCount = 0
     var playbackQueueRequestCount = 0
@@ -212,6 +213,10 @@ actor MockRuntime: ServerRuntimeProtocol {
     func releaseHeldVoiceProfileRefresh() {
         listVoiceProfilesHoldContinuation?.resume()
         listVoiceProfilesHoldContinuation = nil
+    }
+
+    func failNextVoiceProfileRefresh(message: String) {
+        listVoiceProfilesFailureMessages.append(message)
     }
 
     func setScriptedProfileRefreshSnapshots(_ snapshots: [[SpeakSwiftly.ProfileSummary]]) {
