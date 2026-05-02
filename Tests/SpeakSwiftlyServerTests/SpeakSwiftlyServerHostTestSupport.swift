@@ -63,6 +63,21 @@ func waitForActiveRequestID(on host: ServerHost) async throws -> String {
 
 struct TimeoutError: Error {}
 
+@available(macOS 14, *)
+func workerStatus(_ stage: SpeakSwiftly.StatusStage) -> SpeakSwiftly.StatusEvent {
+    let residentState: SpeakSwiftly.ResidentModelState = switch stage {
+        case .warmingResidentModel:
+            .warming
+        case .residentModelReady:
+            .ready
+        case .residentModelsUnloaded:
+            .unloaded
+        case .residentModelFailed:
+            .failed
+    }
+    return .init(stage: stage, residentState: residentState, speechBackend: .qwen3)
+}
+
 // MARK: - Host Submission Helpers
 
 extension ServerHost {

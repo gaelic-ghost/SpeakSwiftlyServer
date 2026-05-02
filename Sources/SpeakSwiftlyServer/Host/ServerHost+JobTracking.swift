@@ -362,7 +362,9 @@ extension ServerHost {
                         emitProfileCacheChanged()
                     }
                 }
-                workerMode = "ready"
+                if workerStage == status.stage.rawValue {
+                    workerMode = "ready"
+                }
             case .residentModelsUnloaded:
                 workerMode = "starting"
                 workerStage = status.stage.rawValue

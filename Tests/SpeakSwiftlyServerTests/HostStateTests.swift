@@ -335,6 +335,34 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `stale startup readiness does not overwrite newer worker status`() async {
+    let runtime = MockRuntime(profiles: [])
+    await runtime.holdNextVoiceProfileRefresh()
+    let host = await ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: MainActor.run { EmbeddedServer() },
+    )
+
+    let readyTask = Task {
+        await host.handle(status: workerStatus(.residentModelReady))
+    }
+    await runtime.waitUntilVoiceProfileRefreshIsHeld()
+
+    await host.handle(status: workerStatus(.residentModelFailed))
+    let failedStatus = await host.statusSnapshot()
+    #expect(failedStatus.workerMode == "failed")
+
+    await runtime.releaseHeldVoiceProfileRefresh()
+    await readyTask.value
+
+    let finalStatus = await host.statusSnapshot()
+    #expect(finalStatus.workerMode == "failed")
+    #expect(finalStatus.workerStage == SpeakSwiftly.StatusStage.residentModelFailed.rawValue)
+}
+
+@available(macOS 14, *)
 @Test func `state projects cached voice profiles and forwards playback controls`() async throws {
     let runtime = MockRuntime(speakBehavior: .holdOpen)
     let configuration = testConfiguration()
