@@ -44,6 +44,8 @@ resources through the target bundle.
   Request payloads plus shared normalization-format helpers.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
+- `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
+  Package-owned default voice seed catalog loading and validation models.
 - `Sources/SpeakSwiftlyServer/Host/QueueStatusModels.swift`
   Queue, playback, health, readiness, and status snapshots.
 - `Sources/SpeakSwiftlyServer/Host/JobEventModels.swift`
@@ -53,6 +55,9 @@ resources through the target bundle.
 
 ## Operator Sources
 
+- `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/catalog.json`
+  Holds the package-owned default voice seed catalog. Keep this as bundled seed metadata, not as
+  user profile storage.
 - `Sources/SpeakSwiftlyServer/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
   Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.
 - `Sources/SpeakSwiftlyServer/LaunchAgent/LaunchAgentCommands.swift`
