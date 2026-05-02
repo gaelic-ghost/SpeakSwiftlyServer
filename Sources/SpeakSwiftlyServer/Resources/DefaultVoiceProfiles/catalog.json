@@ -3,7 +3,7 @@
   "voices": [
     {
       "seed_id": "swift.signal",
-      "seed_version": 1,
+      "seed_version": "1",
       "profile_name": "swift-signal",
       "fallback_profile_name": "swift-signal-builtin",
       "author": "system",
@@ -15,7 +15,7 @@
     },
     {
       "seed_id": "swift.anchor",
-      "seed_version": 1,
+      "seed_version": "1",
       "profile_name": "swift-anchor",
       "fallback_profile_name": "swift-anchor-builtin",
       "author": "system",

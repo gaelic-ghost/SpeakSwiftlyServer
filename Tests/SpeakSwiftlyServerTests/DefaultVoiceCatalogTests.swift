@@ -12,7 +12,7 @@ import Testing
     #expect(voices.map(\.fallbackProfileName) == ["swift-signal-builtin", "swift-anchor-builtin"])
     #expect(voices.allSatisfy { $0.author == .system })
     #expect(voices.allSatisfy { $0.sourceKind == .generatedDesign })
-    #expect(voices.allSatisfy { $0.seedVersion == 1 })
+    #expect(voices.allSatisfy { $0.seedVersion == "1" })
 }
 
 @Test func `default voice catalog keeps seed identity separate from visible profile names`() throws {

@@ -57,7 +57,7 @@ package struct DefaultVoiceSeedCatalog: Codable, Sendable, Equatable {
 
 package struct DefaultVoiceSeed: Codable, Sendable, Equatable, Identifiable {
     package let seedID: String
-    package let seedVersion: Int
+    package let seedVersion: String
     package let profileName: String
     package let fallbackProfileName: String
     package let author: DefaultVoiceSeedAuthor
