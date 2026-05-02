@@ -338,6 +338,17 @@ private func voiceProfilesGuideMarkdown() -> String {
     - Use `draft_profile_voice_description` when the user is still exploring how a synthetic profile should sound.
     - Use `draft_profile_source_text` when the user needs a good source passage for profile creation.
     - Use `draft_voice_design_instruction` when the user is shaping one spoken line rather than a reusable stored profile.
+
+    Broad-appeal example names and directions:
+
+    - `swift-lumen`: luminous, clean, gentle, and polished.
+    - `swift-arc`: compact, focused, modern, and precise.
+    - `swift-melody`: warm, expressive, friendly, and persona-ready.
+    - `swift-foundry`: grounded, maker-like, textured, and steady.
+
+    Keep `swift-signal` and `swift-anchor` available for package built-in defaults when the default
+    voice catalog is present. Built-in defaults are package-owned seed voices; ordinary user-created
+    profiles should use `.user` authorship once profile authorship metadata is available.
     """
 }
 

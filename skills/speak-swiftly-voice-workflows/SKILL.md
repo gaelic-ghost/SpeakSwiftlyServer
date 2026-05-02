@@ -20,6 +20,12 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 - Use `update_voice_profile_name` for a pure rename.
 - Use `reroll_voice_profile` when the user wants the same stored name rebuilt from its original inputs.
 - Use `delete_voice_profile` only after confirming the exact stored `profile_name`.
+- When a user wants broad-appeal example profiles, suggest names and voice directions such as:
+  - `swift-lumen`: luminous, clean, gentle, and polished
+  - `swift-arc`: compact, focused, modern, and precise
+  - `swift-melody`: warm, expressive, friendly, and persona-ready
+  - `swift-foundry`: grounded, maker-like, textured, and steady
+- Reserve `swift-signal` and `swift-anchor` for the package built-in defaults once that catalog exists.
 
 ## Speech And Artifacts
 
