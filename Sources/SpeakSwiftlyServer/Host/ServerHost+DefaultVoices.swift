@@ -44,6 +44,11 @@ extension ServerHost {
             return seed.fallbackProfileName
         }
 
+        if let fallbackProfile = profiles.first(where: { $0.profileName == seed.fallbackProfileName }),
+           profileMatchesDefaultVoiceSeed(fallbackProfile, seed: seed) {
+            return seed.fallbackProfileName
+        }
+
         return seed.profileName
     }
 

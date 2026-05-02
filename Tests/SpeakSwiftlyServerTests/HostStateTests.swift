@@ -589,6 +589,49 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `startup reuses existing fallback default voice when preferred name becomes free`() async throws {
+    let signalSeed = try #require(DefaultVoiceCatalog.load().first { $0.profileName == "swift-signal" })
+    let runtime = MockRuntime(
+        profiles: [
+            SpeakSwiftly.ProfileSummary(
+                profileName: "swift-signal-builtin",
+                vibe: signalSeed.vibe,
+                createdAt: Date(timeIntervalSince1970: 1_700_000_000),
+                voiceDescription: signalSeed.voiceDescription,
+                sourceText: signalSeed.sourceText,
+                transcriptSource: nil,
+                transcriptResolvedAt: nil,
+                transcriptionModelRepo: nil,
+            ),
+        ],
+    )
+    let state = await MainActor.run { EmbeddedServer() }
+    let host = ServerHost(
+        configuration: testConfiguration(),
+        runtime: runtime,
+        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        state: state,
+    )
+
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+
+    let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+        let status = await host.statusSnapshot()
+        return status.cachedProfiles.contains { $0.profileName == "swift-anchor" }
+            ? status
+            : nil
+    }
+    let invocationNames = await runtime.createProfileInvocationNames()
+    #expect(invocationNames == ["swift-anchor"])
+    #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal-builtin" })
+    #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal" } == false)
+    #expect(status.recentErrors.isEmpty)
+
+    await host.shutdown()
+}
+
+@available(macOS 14, *)
 @Test func `startup installs fallback default voice when unrelated profile matches seed metadata`() async throws {
     let signalSeed = try #require(DefaultVoiceCatalog.load().first { $0.profileName == "swift-signal" })
     let runtime = MockRuntime(
