@@ -282,7 +282,8 @@ In Progress
 - [x] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
 - [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
-- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, HTTP text-profile target simplification, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model while keeping the older active/stored routes as compatibility aliases.
+- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, remaining HTTP text-profile compatibility aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
 - [ ] Implement the agreed compatibility-sensitive order: HTTP text-profile target simplification first, cancellation unification second, runtime-configuration MCP renames third, generated artifact unification later, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria

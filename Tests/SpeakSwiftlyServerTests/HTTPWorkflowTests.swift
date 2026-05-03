@@ -186,6 +186,45 @@ extension ServerTests {
             let effectiveReplacements = try #require(effectiveTextProfile["replacements"] as? [[String: Any]])
             #expect(effectiveReplacements.contains { $0["id"] as? String == "replace-1" })
 
+            let addTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(
+                    #"{"profile_id":"swift-docs","replacement":{"id":"replace-2","text":"DocC","replacement":"Documentation Compiler","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":4}}"#,
+                ),
+            )
+            let addTargetedTextReplacementJSON = try jsonObject(from: addTargetedTextReplacementResponse.body)
+            let expandedTextProfile = try #require(addTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let expandedReplacements = try #require(expandedTextProfile["replacements"] as? [[String: Any]])
+            #expect(addTargetedTextReplacementResponse.status == .ok)
+            #expect(expandedReplacements.contains { $0["id"] as? String == "replace-2" })
+
+            let replaceTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements/replace-2",
+                method: .put,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(
+                    #"{"profile_id":"swift-docs","replacement":{"id":"replace-2","text":"DocC","replacement":"Swift DocC","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":5}}"#,
+                ),
+            )
+            let replaceTargetedTextReplacementJSON = try jsonObject(from: replaceTargetedTextReplacementResponse.body)
+            let updatedTextProfile = try #require(replaceTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let updatedReplacements = try #require(updatedTextProfile["replacements"] as? [[String: Any]])
+            let updatedReplacement = try #require(updatedReplacements.first { $0["id"] as? String == "replace-2" })
+            #expect(replaceTargetedTextReplacementResponse.status == .ok)
+            #expect(updatedReplacement["replacement"] as? String == "Swift DocC")
+
+            let removeTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements/replace-2?profile_id=swift-docs",
+                method: .delete,
+            )
+            let removeTargetedTextReplacementJSON = try jsonObject(from: removeTargetedTextReplacementResponse.body)
+            let reducedTextProfile = try #require(removeTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let reducedReplacements = try #require(reducedTextProfile["replacements"] as? [[String: Any]])
+            #expect(removeTargetedTextReplacementResponse.status == .ok)
+            #expect(reducedReplacements.contains { $0["id"] as? String == "replace-2" } == false)
+
             let removeTextReplacementResponse = try await client.execute(
                 uri: "/text-profiles/stored/swift-docs/replacements/replace-1",
                 method: .delete,

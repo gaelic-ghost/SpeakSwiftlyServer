@@ -93,16 +93,27 @@ voice-design prompt from ordinary read surfaces.
 - `POST /text-profiles/save`
 - `POST /text-profiles/factory-reset`
 - `POST /text-profiles/stored/{profile_id}/reset`
+- `POST /text-profiles/replacements`
 - `POST /text-profiles/active/replacements`
 - `POST /text-profiles/stored/{profile_id}/replacements`
 - `PUT /text-profiles/stored/{profile_id}/name`
 - `PUT /text-profiles/style`
 - `PUT /text-profiles/active`
+- `PUT /text-profiles/replacements/{replacement_id}`
 - `PUT /text-profiles/active/replacements/{replacement_id}`
 - `PUT /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}`
+- `DELETE /text-profiles/replacements/{replacement_id}`
 - `DELETE /text-profiles/active/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
+
+Prefer the target-model replacement routes for new HTTP clients. `POST /text-profiles/replacements`
+and `PUT /text-profiles/replacements/{replacement_id}` mutate the active custom profile when the
+JSON body omits `profile_id`, or mutate a stored profile when the body includes `profile_id`.
+`DELETE /text-profiles/replacements/{replacement_id}` follows the same target model with optional
+`?profile_id=...` for stored-profile deletion. The older `/active/replacements` and
+`/stored/{profile_id}/replacements` route families remain as compatibility aliases while the public
+API simplification work proceeds.
 
 ### Speech, Request, And Artifact Endpoints
 

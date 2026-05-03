@@ -172,6 +172,54 @@ func registerHTTPTextProfileRoutes(
         }
     }
 
+    router.post("text-profiles/replacements") { request, context -> TextProfileResponse in
+        do {
+            let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
+            return try await .init(
+                profile: host.addTextReplacement(
+                    payload.replacement.model(),
+                    toStoredTextProfileID: payload.targetProfileID,
+                ),
+            )
+        } catch {
+            throw mapTextProfileRouteError(error)
+        }
+    }
+
+    router.put("text-profiles/replacements/:replacement_id") { request, context -> TextProfileResponse in
+        do {
+            let replacementID = try context.parameters.require("replacement_id")
+            let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)
+            guard payload.replacement.id == replacementID else {
+                throw HTTPError(
+                    .badRequest,
+                    message: "Text replacement route id '\(replacementID)' did not match body replacement id '\(payload.replacement.id)'.",
+                )
+            }
+
+            return try await .init(
+                profile: host.replaceTextReplacement(
+                    payload.replacement.model(),
+                    inStoredTextProfileID: payload.targetProfileID,
+                ),
+            )
+        } catch {
+            throw mapTextProfileRouteError(error)
+        }
+    }
+
+    router.delete("text-profiles/replacements/:replacement_id") { request, context -> TextProfileResponse in
+        do {
+            let replacementID = try context.parameters.require("replacement_id")
+            let profileID = TextReplacementRequestPayload.normalizedTargetProfileID(
+                request.uri.queryParameters["profile_id"].map(String.init),
+            )
+            return try await .init(profile: host.removeTextReplacement(id: replacementID, fromStoredTextProfileID: profileID))
+        } catch {
+            throw mapTextProfileRouteError(error)
+        }
+    }
+
     router.post("text-profiles/active/replacements") { request, context -> TextProfileResponse in
         do {
             let payload = try await request.decode(as: TextReplacementRequestPayload.self, context: context)

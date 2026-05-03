@@ -109,7 +109,13 @@ The HTTP surface exposes separate active and stored text-profile mutation paths:
 - `DELETE /text-profiles/active/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
 
-The MCP tools already use a simpler shape: replacement tools target the active profile by default and target a stored profile when `profile_id` is provided. HTTP can eventually follow that target model, but doing so touches route compatibility and should wait until after the shared model cleanup and resources-first guidance.
+The MCP tools already use a simpler shape: replacement tools target the active profile by default and target a stored profile when `profile_id` is provided. HTTP now has matching target-model routes:
+
+- `POST /text-profiles/replacements`
+- `PUT /text-profiles/replacements/{replacement_id}`
+- `DELETE /text-profiles/replacements/{replacement_id}`
+
+For add and replace, `profile_id` lives in the JSON body beside `replacement`. For delete, optional `profile_id` is passed as a query parameter because the route otherwise needs no request body. The older active/stored replacement route families remain as compatibility aliases until a breaking cleanup removes or formally deprecates them.
 
 ### Snapshot Models Are Duplicated
 
@@ -199,7 +205,8 @@ Non-goals:
 
 These items should be revisited after the first two phases are reviewed and landed:
 
-- Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior, then decide whether the duplicated active/stored routes are aliases or breaking removals.
+- [x] Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior.
+- [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
 - Collapse or simplify cancellation around one general cancel operation plus optional scope, now that `SpeakSwiftly` exposes a clearer general cancel request operation.
 - Rename staged runtime configuration MCP tools to runtime-configuration wording, with any compatibility alias or breaking-change note decided explicitly.
 - Rework generated files and generated batches into a clearer artifact-family model.

@@ -356,7 +356,22 @@ struct ResetTextProfileRequestPayload: Decodable {
 }
 
 struct TextReplacementRequestPayload: Decodable {
+    let profileID: String?
     let replacement: TextReplacementSnapshot
+
+    enum CodingKeys: String, CodingKey {
+        case profileID = "profile_id"
+        case replacement
+    }
+
+    var targetProfileID: String? {
+        Self.normalizedTargetProfileID(profileID)
+    }
+
+    static func normalizedTargetProfileID(_ profileID: String?) -> String? {
+        let trimmedProfileID = profileID?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedProfileID?.isEmpty == false ? trimmedProfileID : nil
+    }
 }
 
 struct SetTextProfileStyleRequestPayload: Decodable {
