@@ -283,8 +283,9 @@ In Progress
 - [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
 - [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model while keeping the older active/stored routes as compatibility aliases.
-- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, remaining HTTP text-profile compatibility aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
-- [ ] Implement the agreed compatibility-sensitive order: HTTP text-profile target simplification first, cancellation unification second, runtime-configuration MCP renames third, generated artifact unification later, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
+- [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope, while keeping scoped route and tool aliases for compatibility.
+- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, generated artifact unification, remaining HTTP text-profile compatibility aliases, remaining cancellation aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [ ] Continue the agreed compatibility-sensitive order: runtime-configuration MCP renames next, generated artifact unification later, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria
 

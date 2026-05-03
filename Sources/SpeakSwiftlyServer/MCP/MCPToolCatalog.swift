@@ -362,19 +362,24 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "cancel_request",
-            description: "Cancel one queued or active SpeakSwiftly request by request_id.",
+            description: "Cancel one queued or active SpeakSwiftly request by request_id. Optionally set scope to generation or playback when the caller needs queue-specific protection.",
             inputSchema: [
                 "type": "object",
                 "required": ["request_id"],
                 "properties": [
                     "request_id": ["type": "string"],
+                    "scope": [
+                        "type": "string",
+                        "enum": stringEnum(RequestCancellationScope.allCases.map(\.rawValue)),
+                        "description": "Optional queue scope. Omit scope to cancel the request wherever it currently lives.",
+                    ],
                 ],
             ],
             annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
         ),
         Tool(
             name: "cancel_generation",
-            description: "Cancel one queued or active SpeakSwiftly generation request by request_id.",
+            description: "Compatibility alias for cancel_request with scope generation. Prefer cancel_request for new clients.",
             inputSchema: [
                 "type": "object",
                 "required": ["request_id"],
@@ -386,7 +391,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "cancel_playback",
-            description: "Cancel one queued or active SpeakSwiftly playback request by request_id.",
+            description: "Compatibility alias for cancel_request with scope playback. Prefer cancel_request for new clients.",
             inputSchema: [
                 "type": "object",
                 "required": ["request_id"],

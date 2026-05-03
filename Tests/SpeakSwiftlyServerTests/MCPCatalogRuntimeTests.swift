@@ -49,6 +49,23 @@ extension ServerTests {
                     ),
             )
 
+            let cancelSpeechToolEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "cancel_request",
+                            arguments: [
+                                "request_id": requestID,
+                                "scope": "generation",
+                            ],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let cancelSpeechToolPayload = try mcpToolPayload(from: cancelSpeechToolEnvelope)
+            #expect(cancelSpeechToolPayload["cancelled_request_id"] as? String == requestID)
+
             let createCloneToolEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(

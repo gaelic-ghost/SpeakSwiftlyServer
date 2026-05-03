@@ -97,6 +97,33 @@ struct QueueCancellationResponse: ResponseEncodable {
     }
 }
 
+enum RequestCancellationScope: String, CaseIterable, Decodable {
+    case generation
+    case playback
+
+    var queueType: SpeakSwiftly.QueueType {
+        switch self {
+            case .generation:
+                .generation
+            case .playback:
+                .playback
+        }
+    }
+
+    static func normalized(_ rawValue: String?) -> String? {
+        guard let rawValue else {
+            return nil
+        }
+
+        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
+    static var supportedValuesDescription: String {
+        allCases.map(\.rawValue).joined(separator: ", ")
+    }
+}
+
 struct HealthSnapshot: ResponseEncodable {
     let status: String
     let service: String

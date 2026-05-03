@@ -123,6 +123,7 @@ API simplification work proceeds.
 - `GET /requests`
 - `GET /requests/{request_id}`
 - `GET /requests/{request_id}/events`
+- `DELETE /requests/{request_id}`
 - `GET /generation/queue`
 - `DELETE /generation/queue`
 - `DELETE /generation/requests/{request_id}`
@@ -167,10 +168,11 @@ The queue and playback control routes are immediate control operations rather th
 
 - `GET /generation/queue` and `GET /playback/queue` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface.
 - `DELETE /generation/queue` clears queued generation work and returns the number of cancelled queued requests.
-- `DELETE /generation/requests/{request_id}` cancels one active or queued generation request and returns the cancelled request ID.
+- `DELETE /requests/{request_id}` cancels one active or queued request wherever it currently lives and returns the cancelled request ID. Add `?scope=generation` or `?scope=playback` only when the caller deliberately wants to constrain cancellation to one queue.
+- `DELETE /generation/requests/{request_id}` remains a compatibility alias for scoped generation cancellation.
 - `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly.
 - `DELETE /playback/queue` clears queued playback work and returns the number of cancelled queued requests.
-- `DELETE /playback/requests/{request_id}` cancels one active or queued request and returns the cancelled request ID.
+- `DELETE /playback/requests/{request_id}` remains a compatibility alias for scoped playback cancellation.
 
 The runtime routes are also state-oriented.
 
@@ -247,11 +249,11 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `get_playback_state`
 - `clear_generation_queue`
 - `clear_playback_queue`
+- `cancel_request`
 - `cancel_generation`
 - `cancel_playback`
-- `cancel_request`
 
-`generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_staged_config` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_staged_config` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 

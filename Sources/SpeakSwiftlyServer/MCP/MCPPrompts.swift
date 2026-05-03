@@ -227,7 +227,7 @@ extension MCPSurface {
                     - text profile reads: speak://text-profiles, speak://text-profiles/style, speak://text-profiles/base, speak://text-profiles/active, speak://text-profiles/effective, speak://text-profiles/guide
                     - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
                     - playback and queue reads: speak://runtime/overview, speak://requests, speak://requests/{request_id}, speak://playback/guide
-                    - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_generation, cancel_playback, cancel_request
+                    - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request, cancel_generation, cancel_playback
                     - runtime reads: speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
                     - runtime actions: set_staged_config, switch_speech_backend, reload_models, unload_models
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice

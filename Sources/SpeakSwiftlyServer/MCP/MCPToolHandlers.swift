@@ -383,6 +383,7 @@ extension MCPSurface {
                     return try await toolResult(
                         host.cancelQueuedOrActiveRequest(
                             requestID: requiredString("request_id", in: arguments),
+                            scope: optionalRequestCancellationScope("scope", in: arguments),
                         ),
                     )
 

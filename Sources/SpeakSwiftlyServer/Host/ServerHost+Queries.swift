@@ -289,6 +289,17 @@ extension ServerHost {
     }
 
     func cancelQueuedOrActiveRequest(
+        requestID: String,
+        scope: RequestCancellationScope?,
+    ) async throws -> QueueCancellationResponse {
+        if let scope {
+            return try await cancelQueuedOrActiveRequest(scope.queueType, requestID: requestID)
+        }
+
+        return try await cancelQueuedOrActiveRequest(requestID: requestID)
+    }
+
+    func cancelQueuedOrActiveRequest(
         _ queueType: SpeakSwiftly.QueueType,
         requestID: String,
     ) async throws -> QueueCancellationResponse {

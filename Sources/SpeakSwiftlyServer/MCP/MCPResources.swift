@@ -368,9 +368,10 @@ private func playbackGuideMarkdown() -> String {
     3. Use the generation queue in `speak://runtime/overview` when the question is about what is still generating.
     4. Use the playback queue in `speak://runtime/overview` when the question is about what is waiting to be heard.
     5. Read `speak://runtime/overview` before `pause_playback` or `resume_playback` if the user first needs confirmation about whether anything is currently playing.
-    6. Use `cancel_generation` or `cancel_playback` when the user wants one specific request stopped in one queue by id.
-    7. Use `cancel_request` only when the user explicitly wants the broad compatibility cancel behavior.
-    8. Use `clear_generation_queue` or `clear_playback_queue` when the user wants to drop one waiting backlog without interrupting the active request.
+    6. Use `cancel_request` when the user wants one known request stopped by id.
+    7. Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation to `generation` or `playback`.
+    8. Use `cancel_generation` or `cancel_playback` only for compatibility clients that cannot call `cancel_request` with `scope`.
+    9. Use `clear_generation_queue` or `clear_playback_queue` when the user wants to drop one waiting backlog without interrupting the active request.
 
     Safety guidance:
 

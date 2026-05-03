@@ -60,6 +60,21 @@ func optionalString(_ key: String, in arguments: [String: Value]) -> String? {
     return value
 }
 
+func optionalRequestCancellationScope(
+    _ key: String,
+    in arguments: [String: Value],
+) throws -> RequestCancellationScope? {
+    guard let rawValue = RequestCancellationScope.normalized(optionalString(key, in: arguments)) else {
+        return nil
+    }
+
+    return try decodeStringEnum(
+        rawValue,
+        fieldName: key,
+        valueType: RequestCancellationScope.self,
+    )
+}
+
 func decodeArgument<T: Decodable>(
     _ key: String,
     in arguments: [String: Value],

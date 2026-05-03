@@ -65,12 +65,13 @@ Longer term, generated files and generated batches may deserve one artifact-fami
 
 ### Cancellation Has Too Many Public Choices
 
-The MCP surface exposes `cancel_request`, `cancel_generation`, and `cancel_playback`, all keyed by `request_id`. HTTP also exposes scoped cancellation routes:
+The MCP surface exposes `cancel_request`, `cancel_generation`, and `cancel_playback`, all keyed by `request_id`. HTTP also exposes one primary cancellation route and scoped compatibility routes:
 
+- `DELETE /requests/{request_id}` with optional `?scope=generation|playback`
 - `DELETE /generation/requests/{request_id}`
 - `DELETE /playback/requests/{request_id}`
 
-The scoped operations are useful when the caller knows which queue owns the work, but they create hesitation when an operator simply wants to stop one known request. The clearest durable API is one general cancel operation with optional scope only when scope materially protects the caller from cancelling the wrong kind of work.
+The scoped operations are useful when the caller knows which queue owns the work, but they create hesitation when an operator simply wants to stop one known request. The durable API is now one general cancel operation with optional scope only when scope materially protects the caller from cancelling the wrong kind of work. The older queue-specific HTTP routes and MCP tools remain compatibility aliases until a later breaking cleanup decides whether to remove or formally deprecate them.
 
 ### Built-In Voices Need A User/Developer Boundary
 
@@ -206,8 +207,9 @@ Non-goals:
 These items should be revisited after the first two phases are reviewed and landed:
 
 - [x] Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior.
+- [x] Collapse preferred cancellation around `DELETE /requests/{request_id}` and MCP `cancel_request`, with optional `generation`/`playback` scope.
 - [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
-- Collapse or simplify cancellation around one general cancel operation plus optional scope, now that `SpeakSwiftly` exposes a clearer general cancel request operation.
+- Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
 - Rename staged runtime configuration MCP tools to runtime-configuration wording, with any compatibility alias or breaking-change note decided explicitly.
 - Rework generated files and generated batches into a clearer artifact-family model.
 - Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.

@@ -264,6 +264,8 @@ extension ServerTests {
             #expect(playbackGuideText.contains("cancel_request"))
             #expect(playbackGuideText.contains("cancel_generation"))
             #expect(playbackGuideText.contains("cancel_playback"))
+            #expect(playbackGuideText.contains("Use `cancel_request` when the user wants one known request stopped by id"))
+            #expect(playbackGuideText.contains("Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation"))
             #expect(playbackGuideText.contains("clear_generation_queue"))
             #expect(playbackGuideText.contains("clear_playback_queue"))
             #expect(playbackGuideText.contains("Read `speak://runtime/overview` first"))
