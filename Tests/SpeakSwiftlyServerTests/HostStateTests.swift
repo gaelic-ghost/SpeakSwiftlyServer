@@ -5,6 +5,114 @@ import Testing
 
 // MARK: - Host State Tests
 
+@Test func `shared playback and queue snapshots keep transport response field names`() throws {
+    let activeRequest = ActiveRequestSnapshot(id: "request-1", op: "generate_speech", profileName: "default")
+    let queuedRequest = QueuedRequestSnapshot(
+        id: "request-2",
+        op: "generate_speech",
+        profileName: "default",
+        queuePosition: 1,
+    )
+    let playback = PlaybackStatusSnapshot(
+        state: "playing",
+        activeRequest: activeRequest,
+        isStableForConcurrentGeneration: true,
+        isRebuffering: false,
+        stableBufferedAudioMS: 300,
+        stableBufferTargetMS: 250,
+    )
+    let queue = QueueStatusSnapshot(
+        queueType: "playback",
+        activeCount: 1,
+        queuedCount: 1,
+        activeRequest: activeRequest,
+        activeRequests: [activeRequest],
+        queuedRequests: [queuedRequest],
+    )
+
+    let playbackJSON = try jsonObject(from: JSONEncoder().encode(PlaybackStateResponse(playback: playback)))
+    let playbackBody = try #require(playbackJSON["playback"] as? [String: Any])
+    #expect(playbackBody["state"] as? String == "playing")
+    #expect((playbackBody["active_request"] as? [String: Any])?["id"] as? String == "request-1")
+    #expect(playbackBody["is_stable_for_concurrent_generation"] as? Bool == true)
+    #expect(playbackBody["is_rebuffering"] as? Bool == false)
+    #expect(playbackBody["stable_buffered_audio_ms"] as? Int == 300)
+    #expect(playbackBody["stable_buffer_target_ms"] as? Int == 250)
+
+    let hostStateJSON = try jsonObject(
+        from: JSONEncoder().encode(
+            HostStateSnapshot(
+                overview: .init(
+                    service: "speak-swiftly-server",
+                    environment: "test",
+                    defaultVoiceProfileName: "default",
+                    serverMode: "ready",
+                    workerMode: "ready",
+                    workerStage: "resident_model_ready",
+                    workerReady: true,
+                    startupError: nil,
+                    profileCacheState: "fresh",
+                    profileCacheWarning: nil,
+                    profileCount: 1,
+                    lastProfileRefreshAt: nil,
+                ),
+                runtimeRefresh: nil,
+                generationQueue: queue,
+                playbackQueue: queue,
+                playback: playback,
+                runtimeBackendTransition: .init(
+                    state: "idle",
+                    activeSpeechBackend: "qwen3",
+                    requestedSpeechBackend: nil,
+                    requestID: nil,
+                    operation: nil,
+                    waitingReason: nil,
+                    submittedAt: nil,
+                    startedAt: nil,
+                ),
+                currentGenerationJobs: [],
+                runtimeConfiguration: .init(
+                    activeRuntimeSpeechBackend: "qwen3",
+                    nextRuntimeSpeechBackend: "qwen3",
+                    activeQwenResidentModel: "base_0_6b_8bit",
+                    nextQwenResidentModel: "base_0_6b_8bit",
+                    activeMarvisResidentPolicy: "dual_resident_serialized",
+                    nextMarvisResidentPolicy: "dual_resident_serialized",
+                    activeDefaultVoiceProfileName: "default",
+                    nextDefaultVoiceProfileName: "default",
+                    environmentSpeechBackendOverride: nil,
+                    environmentQwenResidentModelOverride: nil,
+                    persistedSpeechBackend: nil,
+                    persistedQwenResidentModel: nil,
+                    persistedMarvisResidentPolicy: nil,
+                    persistedDefaultVoiceProfileName: nil,
+                    profileRootPath: "/tmp/profiles",
+                    persistedConfigurationPath: "/tmp/profiles/configuration.json",
+                    persistedConfigurationExists: false,
+                    persistedConfigurationState: "missing",
+                    persistedConfigurationError: nil,
+                    persistedConfigurationAppliesOnRestart: true,
+                    activeRuntimeMatchesNextRuntime: true,
+                    persistedConfigurationWillAffectNextRuntimeStart: true,
+                ),
+                transports: [],
+                recentErrors: [],
+            ),
+        ),
+    )
+    let hostPlayback = try #require(hostStateJSON["playback"] as? [String: Any])
+    #expect(hostPlayback["state"] as? String == playbackBody["state"] as? String)
+    #expect((hostPlayback["active_request"] as? [String: Any])?["id"] as? String == "request-1")
+    #expect(hostPlayback["stable_buffered_audio_ms"] as? Int == playbackBody["stable_buffered_audio_ms"] as? Int)
+
+    let queueJSON = try jsonObject(from: JSONEncoder().encode(QueueSnapshotResponse(snapshot: queue)))
+    #expect(queueJSON["queue_type"] as? String == "playback")
+    #expect((queueJSON["active_request"] as? [String: Any])?["id"] as? String == "request-1")
+    #expect((queueJSON["active_requests"] as? [[String: Any]])?.count == 1)
+    #expect((queueJSON["queue"] as? [[String: Any]])?.first?["id"] as? String == "request-2")
+    #expect(queueJSON["queued_requests"] == nil)
+}
+
 @available(macOS 14, *)
 @Test func `state completes queued speech jobs and prunes expired entries`() async throws {
     let runtime = MockRuntime()

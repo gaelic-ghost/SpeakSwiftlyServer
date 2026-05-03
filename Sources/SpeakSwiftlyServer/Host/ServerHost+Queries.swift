@@ -240,7 +240,7 @@ extension ServerHost {
 
     func playbackStateSnapshot() async -> PlaybackStateResponse {
         await refreshRuntimeDerivedStateIfNeeded()
-        return .init(playback: .init(status: playbackStatus))
+        return .init(playback: playbackStatus)
     }
 
     func pausePlayback() async throws -> PlaybackStateResponse {

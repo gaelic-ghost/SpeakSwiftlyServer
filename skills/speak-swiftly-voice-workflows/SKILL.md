@@ -9,7 +9,7 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 
 ## Start Here
 
-- Read `list_voice_profiles` or `speak://voices` before creating, renaming, rerolling, deleting, or choosing a profile.
+- Read `speak://voices` before creating, renaming, rerolling, deleting, or choosing a profile. Use `list_voice_profiles` only for compatibility clients that cannot read MCP resources cleanly.
 - Use `speak://voices/{profile_name}` when the user is working on one specific stored voice.
 - If the user wants help designing a voice rather than executing immediately, prefer the `draft_profile_voice_description`, `draft_profile_source_text`, and `draft_voice_design_instruction` prompts plus the guide flow documented in [MCPResources.swift](../../Sources/SpeakSwiftlyServer/MCP/MCPResources.swift).
 
@@ -20,12 +20,12 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 - Use `update_voice_profile_name` for a pure rename.
 - Use `reroll_voice_profile` when the user wants the same stored name rebuilt from its original inputs.
 - Use `delete_voice_profile` only after confirming the exact stored `profile_name`.
-- When a user wants broad-appeal example profiles, suggest names and voice directions such as:
+- The package-owned built-in defaults are `swift-signal` and `swift-anchor`. Treat them as system seed voices, not user-authored example names.
+- When a user wants broad-appeal user-authored example profiles, suggest names and voice directions such as:
   - `swift-lumen`: luminous, clean, gentle, and polished
   - `swift-arc`: compact, focused, modern, and precise
   - `swift-melody`: warm, expressive, friendly, and persona-ready
   - `swift-foundry`: grounded, maker-like, textured, and steady
-- Reserve `swift-signal` and `swift-anchor` for the package built-in defaults once that catalog exists.
 
 ## Speech And Artifacts
 

@@ -28,7 +28,7 @@ This project is actively available and stable enough to try.
 The package exposes three user-facing surfaces:
 
 - a localhost HTTP API for app and operator control
-- an optional MCP surface for tool, resource, and prompt access
+- an optional MCP surface where resources are the preferred read path and tools queue or mutate work
 - a small embedded Apple-platform API centered on the public `EmbeddedServer` observable model
 
 ### Motivation
@@ -107,6 +107,13 @@ the active default voice selection unchanged. If a user already has a profile wi
 startup uses a `-builtin` fallback such as `swift-signal-builtin` for the package-owned copy instead
 of overwriting the user's profile.
 
+Short generated preview clips live under [docs/media/default-voices](./docs/media/default-voices/):
+
+| Voice | Sample | Transcript |
+| --- | --- | --- |
+| `swift-signal` | [Listen to WAV](./docs/media/default-voices/swift-signal.wav) | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
+| `swift-anchor` | [Listen to WAV](./docs/media/default-voices/swift-anchor.wav) | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
+
 The full transport contract lives in [API.md](./API.md).
 
 ## Development
@@ -126,7 +133,7 @@ The short version for a fresh checkout is:
 - use `xcrun swift test` for the normal package-development loop
 - use `sh scripts/repo-maintenance/validate-all.sh` for the full maintainer and CI gate
 - use `node scripts/codex-hooks-doctor.mjs` when changing the Codex plugin or hook surface
-- use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-version-bump` for the aligned release flow
+- use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z` for the aligned release flow
 - use `scripts/repo-maintenance/config/profile.env` to confirm the active `swift-package` maintainer profile
 
 ### Setup

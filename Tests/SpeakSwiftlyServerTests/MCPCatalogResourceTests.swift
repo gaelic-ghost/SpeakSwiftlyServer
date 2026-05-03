@@ -196,6 +196,7 @@ extension ServerTests {
             let textProfilesGuideText = try #require(textProfilesGuideContents.first?["text"] as? String)
             #expect(textProfilesGuideText.contains("text_profile_id"))
             #expect(textProfilesGuideText.contains("set_text_profile_style"))
+            #expect(textProfilesGuideText.contains("Read `speak://text-profiles/style`"))
 
             let voiceProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -212,6 +213,7 @@ extension ServerTests {
             #expect(voiceProfilesGuideText.contains("update_voice_profile_name"))
             #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
+            #expect(voiceProfilesGuideText.contains("Use `list_voice_profiles` only for compatibility clients"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -229,6 +231,8 @@ extension ServerTests {
             #expect(playbackGuideText.contains("cancel_playback"))
             #expect(playbackGuideText.contains("clear_generation_queue"))
             #expect(playbackGuideText.contains("clear_playback_queue"))
+            #expect(playbackGuideText.contains("Read `speak://runtime/overview` first"))
+            #expect(playbackGuideText.contains("Playback freshness is currently host-event-driven"))
 
             let chooseActionPromptEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -250,6 +254,8 @@ extension ServerTests {
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
             #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
+            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak:// resource first"))
+            #expect(chooseActionPromptText.contains("compatibility read tools"))
 
             let storedTextProfileEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

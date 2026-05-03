@@ -18,6 +18,10 @@ The server exposes one shared localhost host process with:
 - an optional MCP surface
 - shared retained request, artifact, playback, and runtime snapshots behind both transports
 
+Maintainer planning for reducing duplicate public surface area lives in
+[`docs/maintainers/public-api-simplification-plan.md`](docs/maintainers/public-api-simplification-plan.md).
+Keep this API reference focused on the current contract, not future cleanup proposals.
+
 When the same host is embedded through `EmbeddedServerSession`, the transport process now runs
 inside one outer service-owned lifecycle group that also owns package-level host startup,
 config-watch lifetime, and optional MCP readiness and drain. The HTTP and MCP contracts described
@@ -126,11 +130,13 @@ names when a user-owned profile already occupies a preferred seed name.
 
 ### Accepted Request Semantics
 
-`POST /speech/live`, `POST /voices/from-description`, `POST /voices/from-audio`, `PUT /voices/{profile_name}/name`, `POST /voices/{profile_name}/reroll`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately.
+`POST /speech/live`, `POST /speech/files`, `POST /speech/batches`, `POST /voices/from-description`, `POST /voices/from-audio`, `PUT /voices/{profile_name}/name`, `POST /voices/{profile_name}/reroll`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately.
 
 Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first.
 
 `POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_id`, `text_format`, `nested_source_format`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, normalization-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
+
+`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/files`, `GET /generation/files/{artifact_id}`, `GET /generation/batches`, or `GET /generation/batches/{batch_id}` for the retained media records.
 
 ### Text Profile Semantics
 
@@ -166,6 +172,8 @@ The current HTTP SSE route remains intentionally job-specific at the route bound
 The MCP surface is optional and mounts on the same shared Hummingbird process at `APP_MCP_PATH` when `APP_MCP_ENABLED=true`.
 
 ### MCP Tools
+
+For read-only MCP inspection, prefer resources first. Use `speak://runtime/overview` for broad orientation, then read the most specific `speak://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
 
 #### Speech And Artifact Tools
 
@@ -266,7 +274,7 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 - `speak://generation/batches/{batch_id}`
 - `speak://playback/guide`
 
-Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`.
+Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 
@@ -286,7 +294,7 @@ The text-profile prompts and the `speak://text-profiles/guide` resource are ther
 
 ### MCP Resource Subscriptions
 
-The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates.
+The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates. Playback resource freshness is currently host-event-driven; the upstream `SpeakSwiftly` follow-up for runtime-level playback event streams will let this become more direct once it lands.
 
 Clients connected to the standalone MCP event stream can subscribe to:
 

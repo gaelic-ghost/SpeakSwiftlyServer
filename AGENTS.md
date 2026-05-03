@@ -100,10 +100,10 @@ Run repo-maintenance sync and release entrypoints:
 
 ```bash
 sh scripts/repo-maintenance/sync-shared.sh
-sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-version-bump
+sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-Use `--skip-version-bump` for releases unless this repo later adds an executable `scripts/repo-maintenance/version-bump.sh` hook for version-bearing files.
+The release flow runs `scripts/repo-maintenance/version-bump.sh` so version-bearing repo surfaces move with the release before the tag is created.
 
 ## Review and Delivery
 

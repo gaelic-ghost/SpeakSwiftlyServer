@@ -2,8 +2,8 @@
 
 ## Purpose
 
-This note frames the branch discussion for package-owned default voices and repository-hosted audio
-samples.
+This note records the package-owned default voice direction and repository-hosted audio sample
+policy.
 
 The goal is to give new `SpeakSwiftlyServer` users a couple of usable baseline voices without mixing
 those package defaults with Gale's personal saved voice profiles. The related docs goal is to keep
@@ -180,15 +180,16 @@ Recommended companion metadata for each sample:
 Keep sample files short. A public docs preview only needs enough speech to identify tone,
 pronunciation, pacing, and noise floor.
 
-## Suggested First Pass
+## Current Follow-Through
 
 1. Add upstream `SpeakSwiftly` support for profile author metadata, system immutability, and
    reroll-as-user-copy behavior.
 2. Add a server-owned seed manifest under `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`. Done.
 3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior. Done at startup after the runtime first reports resident-model readiness.
 4. Generate short preview audio for each installed candidate and place it under
-   `docs/media/default-voices/`.
-5. Add transcript and provenance notes beside the samples.
+   `docs/media/default-voices/`. Done for `swift-signal.wav` and `swift-anchor.wav`.
+5. Add transcript and provenance notes beside the samples. Done in
+   `docs/media/default-voices/README.md`.
 6. Add an explicit operator install command that copies or creates missing package defaults in the
    active runtime profile root.
 7. Add focused tests for seed discovery, no-overwrite behavior, default/user profile separation,
