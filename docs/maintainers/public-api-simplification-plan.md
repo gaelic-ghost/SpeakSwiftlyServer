@@ -25,7 +25,7 @@ The surfaces are intentionally adapters over the same `ServerHost` state, but se
 
 ### Read-Only MCP Tools Duplicate Resources
 
-The MCP surface exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_staged_runtime_config`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, `get_generation_job`, `list_generated_files`, `get_generated_file`, `list_generated_batches`, and `get_generated_batch`.
+The MCP surface exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_runtime_configuration`, `get_staged_runtime_config`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, `get_generation_job`, `list_generated_files`, `get_generated_file`, `list_generated_batches`, and `get_generated_batch`.
 
 Most of those tools mirror resources with the same read job:
 
@@ -97,7 +97,7 @@ The preferred public wording is `runtime configuration`, with field names carryi
 - `persisted_*` for the saved value on disk.
 - `environment_*_override` for process environment overrides.
 
-`get_staged_runtime_config` and `set_staged_config` should eventually move to runtime-configuration wording. Because MCP tool names are user-visible, that rename should be planned as a compatibility cleanup rather than changed casually.
+The preferred MCP tools are now `get_runtime_configuration` and `set_runtime_configuration`. `get_staged_runtime_config` and `set_staged_config` remain compatibility aliases until a later breaking cleanup decides whether to remove or formally deprecate them.
 
 ### Text Profiles Are Powerful But Heavy
 
@@ -208,9 +208,10 @@ These items should be revisited after the first two phases are reviewed and land
 
 - [x] Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior.
 - [x] Collapse preferred cancellation around `DELETE /requests/{request_id}` and MCP `cancel_request`, with optional `generation`/`playback` scope.
+- [x] Add preferred runtime-configuration MCP tool names while keeping the older staged-config names as compatibility aliases.
 - [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
 - Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- Rename staged runtime configuration MCP tools to runtime-configuration wording, with any compatibility alias or breaking-change note decided explicitly.
+- Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
 - Rework generated files and generated batches into a clearer artifact-family model.
 - Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 

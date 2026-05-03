@@ -150,14 +150,33 @@ enum MCPToolCatalog {
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
-            name: "get_staged_runtime_config",
+            name: "get_runtime_configuration",
             description: "Compatibility read tool for runtime configuration. Prefer reading speak://runtime/configuration for active and next-start backend, Qwen resident model, Marvis resident policy, and environment overrides.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
+            name: "get_staged_runtime_config",
+            description: "Compatibility alias for get_runtime_configuration. Prefer get_runtime_configuration or the speak://runtime/configuration resource for new clients.",
+            inputSchema: ["type": "object", "properties": [:]],
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
+        ),
+        Tool(
+            name: "set_runtime_configuration",
+            description: "Persist runtime startup choices for the next runtime start without hot-swapping the current worker. speech_backend stays required; qwen_resident_model and marvis_resident_policy are optional startup-only refinements.",
+            inputSchema: [
+                "type": "object",
+                "required": ["speech_backend"],
+                "properties": [
+                    "speech_backend": ["type": "string", "enum": stringEnum(exposedSpeechBackendIdentifiers())],
+                    "qwen_resident_model": ["type": "string", "enum": stringEnum(exposedQwenResidentModelIdentifiers())],
+                    "marvis_resident_policy": ["type": "string", "enum": stringEnum(exposedMarvisResidentPolicyIdentifiers())],
+                ],
+            ],
+        ),
+        Tool(
             name: "set_staged_config",
-            description: "Persist runtime startup choices for the next runtime start without hot-swapping the current worker. speech_backend stays required for compatibility; qwen_resident_model and marvis_resident_policy are optional startup-only refinements.",
+            description: "Compatibility alias for set_runtime_configuration. Prefer set_runtime_configuration for new clients.",
             inputSchema: [
                 "type": "object",
                 "required": ["speech_backend"],

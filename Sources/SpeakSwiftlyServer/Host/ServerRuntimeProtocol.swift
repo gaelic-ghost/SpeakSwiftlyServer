@@ -54,10 +54,10 @@ func canonicalOperationName(_ operation: String) -> String {
             "generate_audio_file"
         case "queue_speech_batch":
             "generate_batch"
-        case "get_runtime_configuration":
-            "get_staged_runtime_config"
-        case "set_runtime_configuration":
-            "set_staged_config"
+        case "get_staged_runtime_config":
+            "get_runtime_configuration"
+        case "set_staged_config":
+            "set_runtime_configuration"
         case "get_text_profiles_state":
             "get_text_normalizer_snapshot"
         case "list_requests":

@@ -203,10 +203,10 @@ extension MCPSurface {
                 case "get_runtime_status":
                     return try await toolResult(host.runtimeStatus())
 
-                case "get_staged_runtime_config":
+                case "get_runtime_configuration", "get_staged_runtime_config":
                     return try await toolResult(host.runtimeConfigurationSnapshot())
 
-                case "set_staged_config":
+                case "set_runtime_configuration", "set_staged_config":
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
                             speechBackend: requiredSpeechBackend("speech_backend", in: arguments),

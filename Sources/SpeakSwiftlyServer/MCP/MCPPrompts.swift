@@ -229,7 +229,7 @@ extension MCPSurface {
                     - playback and queue reads: speak://runtime/overview, speak://requests, speak://requests/{request_id}, speak://playback/guide
                     - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request, cancel_generation, cancel_playback
                     - runtime reads: speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
-                    - runtime actions: set_staged_config, switch_speech_backend, reload_models, unload_models
+                    - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models; compatibility alias: set_staged_config
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
                     Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
                     """

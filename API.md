@@ -237,8 +237,10 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 
 - `get_runtime_overview`
 - `get_runtime_status`
-- `get_staged_runtime_config`
-- `set_staged_config`
+- `get_runtime_configuration`
+- `set_runtime_configuration`
+- `get_staged_runtime_config` (compatibility alias)
+- `set_staged_config` (compatibility alias)
 - `switch_speech_backend`
 - `reload_models`
 - `unload_models`
@@ -253,7 +255,7 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `cancel_generation`
 - `cancel_playback`
 
-`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_staged_config` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`; `set_staged_config` remains a compatibility alias. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 
