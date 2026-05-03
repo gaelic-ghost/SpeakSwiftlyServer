@@ -35,7 +35,7 @@ struct MCPSurface {
             version: "0.1.0",
             title: configuration.title,
             instructions: """
-            Shared-process SpeakSwiftly MCP surface backed by the same ServerHost used by the app-facing HTTP API. Read status, job, profile, text-profile, and runtime resources for operator-visible state, use the tools to queue speech, inspect queues, control playback, and manage both voice and text profiles, and use the built-in prompts for reusable voice-design, text-normalization authoring, and operator acknowledgement workflows without starting a second runtime owner.
+            Shared-process SpeakSwiftly MCP surface backed by the same ServerHost used by the app-facing HTTP API. Prefer resources for operator-visible state, use tools to queue speech, mutate runtime/profile/text-profile state, and control or cancel work, and use the built-in prompts for reusable voice-design, text-normalization authoring, and operator acknowledgement workflows without starting a second runtime owner.
             """,
             capabilities: .init(
                 prompts: .init(listChanged: false),

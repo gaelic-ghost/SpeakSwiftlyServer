@@ -218,12 +218,17 @@ extension MCPSurface {
                     User goal: \(userGoal)
                     Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                     \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
+                    Selection rule: for read-only inspection, prefer a speak:// resource first. Use compatibility read tools only when the client cannot read resources cleanly. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
                     Available action families:
-                    - voice profile work: create_voice_profile_from_description, create_voice_profile_from_audio, list_voice_profiles, update_voice_profile_name, reroll_voice_profile, delete_voice_profile, speak://voices, speak://voices/guide
+                    - voice profile reads: speak://voices, speak://voices/{profile_name}, speak://voices/guide
+                    - voice profile actions: create_voice_profile_from_description, create_voice_profile_from_audio, update_voice_profile_name, reroll_voice_profile, delete_voice_profile
                     - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
-                    - text profile work: get_text_normalizer_snapshot, load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, speak://text-profiles, speak://text-profiles/guide
-                    - playback and queue control: list_generation_queue, list_playback_queue, get_playback_state, pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_generation, cancel_playback, cancel_request, speak://playback/guide
-                    - runtime controls: get_runtime_overview, get_runtime_status, get_staged_runtime_config, set_staged_config, switch_speech_backend, reload_models, unload_models, speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
+                    - text profile reads: speak://text-profiles, speak://text-profiles/style, speak://text-profiles/base, speak://text-profiles/active, speak://text-profiles/effective, speak://text-profiles/guide
+                    - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
+                    - playback and queue reads: speak://runtime/overview, speak://requests, speak://requests/{request_id}, speak://playback/guide
+                    - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_generation, cancel_playback, cancel_request
+                    - runtime reads: speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
+                    - runtime actions: set_staged_config, switch_speech_backend, reload_models, unload_models
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
                     Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
                     """

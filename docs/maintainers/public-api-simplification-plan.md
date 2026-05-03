@@ -144,13 +144,15 @@ Non-goals:
 
 This phase changes guidance and catalog wording before it changes compatibility-sensitive tool availability. Agents should learn to inspect resources first and use tools for mutations, queueing, and destructive operations.
 
+Status: implemented for the first guidance pass. README and API wording now describe MCP resources as the preferred read path. MCP tool descriptions call read-only tools compatibility paths. Guide resources and `choose_surface_action` tell agents to inspect `speak://...` resources first and reserve tools for actions.
+
 Tasks:
 
-- Update `API.md`, `README.md`, and MCP guide resources so first-read guidance says: read `speak://runtime/overview` for orientation, read specific resources for state, call tools for actions.
-- Update MCP tool descriptions for read-only tools to point at their matching resources when the resource is the preferred inspection path.
-- Update `choose_surface_action` prompt guidance so agents prefer resources for read-only status checks.
-- Confirm resource subscription wording explains that resources are the live-status path, including the current limitation that playback freshness depends on host events until upstream runtime-level playback event streams land.
-- Add tests for guide text or catalog descriptions when the existing catalog tests can cover the wording without becoming brittle.
+- [x] Update `API.md`, `README.md`, and MCP guide resources so first-read guidance says: read `speak://runtime/overview` for orientation, read specific resources for state, call tools for actions.
+- [x] Update MCP tool descriptions for read-only tools to point at their matching resources when the resource is the preferred inspection path.
+- [x] Update `choose_surface_action` prompt guidance so agents prefer resources for read-only status checks.
+- [x] Confirm resource subscription wording explains that resources are the live-status path, including the current limitation that playback freshness depends on host events until upstream runtime-level playback event streams land.
+- [x] Add tests for guide text or catalog descriptions when the existing catalog tests can cover the wording without becoming brittle.
 - Run MCP catalog tests and the API/roadmap/documentation checks.
 
 Non-goals:

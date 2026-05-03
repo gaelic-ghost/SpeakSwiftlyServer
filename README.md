@@ -28,7 +28,7 @@ This project is actively available and stable enough to try.
 The package exposes three user-facing surfaces:
 
 - a localhost HTTP API for app and operator control
-- an optional MCP surface for tool, resource, and prompt access
+- an optional MCP surface where resources are the preferred read path and tools queue or mutate work
 - a small embedded Apple-platform API centered on the public `EmbeddedServer` observable model
 
 ### Motivation

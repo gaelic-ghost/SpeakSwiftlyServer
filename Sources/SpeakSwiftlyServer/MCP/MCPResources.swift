@@ -299,7 +299,7 @@ private func textProfilesGuideMarkdown() -> String {
 
     1. Read `speak://text-profiles` to inspect the current built-in style plus base, active, stored, and effective state.
     2. Draft or edit rules with the `draft_text_profile` and `draft_text_replacement` prompts when a user needs help authoring replacements.
-    3. Use `get_text_profile_style`, `set_text_profile_style`, or `speak://text-profiles/style` when the operator needs to inspect or change the built-in normalization mode.
+    3. Read `speak://text-profiles/style` to inspect the built-in normalization mode, and use `set_text_profile_style` only when the operator wants to change it.
     4. Store reusable policies with `create_text_profile`, then use `rename_text_profile` if the operator wants to refine a saved profile name later.
     5. Use `set_active_text_profile` when the downstream app wants to switch the default custom profile, or pass `text_profile_id` on one speech request when the caller wants stored-profile selection without mutating the active profile.
     6. Use `save_text_profiles` when the operator wants an explicit persistence checkpoint, and `load_text_profiles` when another process changed the persistence file and the in-memory state should be refreshed from disk.
@@ -323,7 +323,7 @@ private func voiceProfilesGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak://voices` or call `list_voice_profiles` to inspect the currently cached voice profiles.
+    1. Read `speak://voices` to inspect the currently cached voice profiles. Use `list_voice_profiles` only for compatibility clients that cannot read resources cleanly.
     2. Use `create_voice_profile_from_description` when the user wants a new synthetic profile from source text plus a voice description.
     3. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
     4. Use `update_voice_profile_name` when the user wants to keep the stored voice but correct or improve its visible profile name.
@@ -362,9 +362,9 @@ private func playbackGuideMarkdown() -> String {
 
     1. Read `speak://runtime/overview` first for a broad overview of worker readiness, queues, playback state, and recent errors.
     2. Read `speak://requests` or `speak://requests/{request_id}` when the user is asking about one specific server-tracked request.
-    3. Use `list_generation_queue` when the question is about what is still generating.
-    4. Use `list_playback_queue` when the question is about what is waiting to be heard.
-    5. Use `get_playback_state` before `pause_playback` or `resume_playback` if the user first needs confirmation about whether anything is currently playing.
+    3. Use the generation queue in `speak://runtime/overview` when the question is about what is still generating.
+    4. Use the playback queue in `speak://runtime/overview` when the question is about what is waiting to be heard.
+    5. Read `speak://runtime/overview` before `pause_playback` or `resume_playback` if the user first needs confirmation about whether anything is currently playing.
     6. Use `cancel_generation` or `cancel_playback` when the user wants one specific request stopped in one queue by id.
     7. Use `cancel_request` only when the user explicitly wants the broad compatibility cancel behavior.
     8. Use `clear_generation_queue` or `clear_playback_queue` when the user wants to drop one waiting backlog without interrupting the active request.
@@ -374,6 +374,7 @@ private func playbackGuideMarkdown() -> String {
     - Prefer the least destructive control that satisfies the user’s intent.
     - Confirm the target request id before cancelling when multiple queued requests exist.
     - Distinguish generation backlog from playback backlog so the user understands whether work is waiting on model generation or audible output.
+    - Playback freshness is currently host-event-driven; until SpeakSwiftly exposes a runtime-level playback event stream, read `speak://runtime/overview` again when you need the latest state before a destructive playback action.
     """
 }
 

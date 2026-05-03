@@ -173,6 +173,8 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 
 ### MCP Tools
 
+For read-only MCP inspection, prefer resources first. Use `speak://runtime/overview` for broad orientation, then read the most specific `speak://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+
 #### Speech And Artifact Tools
 
 - `generate_speech`
@@ -272,7 +274,7 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 - `speak://generation/batches/{batch_id}`
 - `speak://playback/guide`
 
-Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`.
+Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 
@@ -292,7 +294,7 @@ The text-profile prompts and the `speak://text-profiles/guide` resource are ther
 
 ### MCP Resource Subscriptions
 
-The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates.
+The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates. Playback resource freshness is currently host-event-driven; the upstream `SpeakSwiftly` follow-up for runtime-level playback event streams will let this become more direct once it lands.
 
 Clients connected to the standalone MCP event stream can subscribe to:
 
