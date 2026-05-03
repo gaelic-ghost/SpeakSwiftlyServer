@@ -29,7 +29,7 @@ extension ServerE2E {
 
         let payload = try await client.callTool(name: "create_voice_profile_from_description", arguments: arguments)
         let jobID = try requireString("request_id", in: payload)
-        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
+        #expect(payload["request_resource_uri"] as? String == "speak-swiftly://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -69,7 +69,7 @@ extension ServerE2E {
 
         let payload = try await client.callTool(name: "create_voice_profile_from_audio", arguments: arguments)
         let jobID = try requireString("request_id", in: payload)
-        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
+        #expect(payload["request_resource_uri"] as? String == "speak-swiftly://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -110,7 +110,7 @@ extension ServerE2E {
             ],
         )
         let jobID = try requireString("request_id", in: payload)
-        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
+        #expect(payload["request_resource_uri"] as? String == "speak-swiftly://requests/\(jobID)")
 
         let snapshot = try await waitForTerminalJob(
             id: jobID,
@@ -143,7 +143,7 @@ extension ServerE2E {
             ],
         )
         let jobID = try requireString("request_id", in: payload)
-        #expect(payload["request_resource_uri"] as? String == "speak://requests/\(jobID)")
+        #expect(payload["request_resource_uri"] as? String == "speak-swiftly://requests/\(jobID)")
 
         do {
             _ = try await server.waitForStderrJSONObject(timeout: audiblePlaybackTimeout) {
@@ -181,7 +181,7 @@ extension ServerE2E {
                 server: server,
             )
         } catch is E2ETimeoutError {
-            let snapshotText = try await client.readResourceText(uri: "speak://requests/\(jobID)")
+            let snapshotText = try await client.readResourceText(uri: "speak-swiftly://requests/\(jobID)")
             throw E2ETransportError(
                 """
                 The live MCP audible speech helper timed out before request '\(jobID)' reached a terminal state.

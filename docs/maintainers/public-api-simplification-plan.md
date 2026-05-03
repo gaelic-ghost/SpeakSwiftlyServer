@@ -29,27 +29,29 @@ The MCP surface exposes read-only tools such as `get_runtime_overview`, `get_run
 
 Most of those tools mirror resources with the same read job:
 
-- `speak://runtime/overview`
-- `speak://runtime/status`
-- `speak://runtime/configuration`
-- `speak://voices`
-- `speak://text-profiles`
-- `speak://text-profiles/style`
-- `speak://requests`
-- `speak://requests/{request_id}`
-- `speak://generation/jobs`
-- `speak://generation/jobs/{job_id}`
-- `speak://generation/files`
-- `speak://generation/files/{artifact_id}`
-- `speak://generation/batches`
-- `speak://generation/batches/{batch_id}`
+- `speak-swiftly://overview`
+- `speak-swiftly://status`
+- `speak-swiftly://configuration`
+- `speak-swiftly://voices`
+- `speak-swiftly://text-profiles`
+- `speak-swiftly://text-profiles/style`
+- `speak-swiftly://requests`
+- `speak-swiftly://requests/{request_id}`
+- `speak-swiftly://generation/jobs`
+- `speak-swiftly://generation/jobs/{job_id}`
+- `speak-swiftly://generation/files`
+- `speak-swiftly://generation/files/{artifact_id}`
+- `speak-swiftly://generation/batches`
+- `speak-swiftly://generation/batches/{batch_id}`
+
+The MCP resource scheme is now `speak-swiftly://`. Because that scheme already names the product surface, the older `speak://runtime/...` route prefix added cognitive load without adding useful selection power. The next-major MCP read surface therefore keeps the runtime concepts but flattens their resource paths to `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
 
 This creates a choice burden for agents. For inspection, an agent should usually read a resource first because resources are discoverable, subscribable, and stable orientation surfaces. Tools should remain the primary path for queueing speech, changing runtime state, editing profiles, and deleting or cancelling work.
 
 For the next major generated-artifact cleanup, the file and batch resource families should not be carried forward as compatibility aliases. Replace them with one artifact family:
 
-- `speak://generation/artifacts`
-- `speak://generation/artifacts/{artifact_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
 
 Batch membership should be artifact metadata or request/job metadata, not a peer read family that agents must choose before they know what kind of retained output they are looking for.
 
@@ -71,7 +73,7 @@ Those distinctions are real, but the first-read docs should not make them feel l
 The next major target is one generated-artifact family:
 
 - HTTP: `GET /generation/artifacts` and `GET /generation/artifacts/{artifact_id}`
-- MCP resources: `speak://generation/artifacts` and `speak://generation/artifacts/{artifact_id}`
+- MCP resources: `speak-swiftly://generation/artifacts` and `speak-swiftly://generation/artifacts/{artifact_id}`
 - MCP tools: one generated-artifact read pair, if compatibility read tools are still kept at all
 
 This should be a breaking major-version cleanup, not an alias-heavy transition. Remove the older HTTP `files` and `batches` read routes, the matching MCP resources/templates, and the matching read-only MCP tools instead of keeping duplicate aliases. `POST /speech/files` and `POST /speech/batches` can remain distinct submission commands if they still represent different generation jobs; the cleanup is about the retained artifact read model.
@@ -168,7 +170,7 @@ Tasks:
 
 Non-goals:
 
-- Do not rename HTTP routes.
+- Do not rename HTTP routes in the resource-guidance slice.
 - Do not rename MCP tools.
 - Do not collapse requests, jobs, files, or batches yet.
 - Do not widen `EmbeddedServer` yet.
@@ -177,16 +179,19 @@ Non-goals:
 
 This phase changes guidance and catalog wording before it changes compatibility-sensitive tool availability. Agents should learn to inspect resources first and use tools for mutations, queueing, and destructive operations.
 
-Status: implemented for the first guidance pass. README and API wording now describe MCP resources as the preferred read path. MCP tool descriptions call read-only tools compatibility paths. Guide resources and `choose_surface_action` tell agents to inspect `speak://...` resources first and reserve tools for actions.
+Status: implemented for the first guidance pass. README and API wording now describe MCP resources as the preferred read path. MCP tool descriptions call read-only tools compatibility paths. Guide resources and `choose_surface_action` tell agents to inspect `speak-swiftly://...` resources first and reserve tools for actions. The MCP URI scheme is now `speak-swiftly://`, and the redundant MCP `runtime` path segment has been removed from overview, status, and configuration resources.
 
 Tasks:
 
-- [x] Update `API.md`, `README.md`, and MCP guide resources so first-read guidance says: read `speak://runtime/overview` for orientation, read specific resources for state, call tools for actions.
+- [x] Update `API.md`, `README.md`, and MCP guide resources so first-read guidance says: read `speak-swiftly://overview` for orientation, read specific resources for state, call tools for actions.
+- [x] Rename the MCP resource URI scheme from `speak://` to `speak-swiftly://` and flatten runtime reads from older `speak://runtime/...` resources to top-level `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
 - [x] Update MCP tool descriptions for read-only tools to point at their matching resources when the resource is the preferred inspection path.
 - [x] Update `choose_surface_action` prompt guidance so agents prefer resources for read-only status checks.
 - [x] Confirm resource subscription wording explains that resources are the live-status path, including the current limitation that playback freshness depends on host events until upstream runtime-level playback event streams land.
 - [x] Add tests for guide text or catalog descriptions when the existing catalog tests can cover the wording without becoming brittle.
 - Run MCP catalog tests and the API/roadmap/documentation checks.
+
+HTTP still has a separate route-family decision: `GET /runtime/host`, `GET /runtime/status`, `GET /runtime/configuration`, `PUT /runtime/configuration`, `POST /runtime/backend`, and model reload/unload routes currently share one namespace because HTTP does not have a product-scoped URI scheme and those routes include both reads and runtime mutations. The major-version cleanup should review that family explicitly after artifact unification, with one concrete candidate being top-level `GET /overview`, `GET /status`, and `GET`/`PUT /configuration` plus a clearer home for backend and model-control commands.
 
 Non-goals:
 
@@ -226,7 +231,7 @@ These items should be revisited after the first two phases are reviewed and land
 - [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
 - Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
 - Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak://generation/artifacts`, and `speak://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
+- Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak-swiftly://generation/artifacts`, and `speak-swiftly://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
 - Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist

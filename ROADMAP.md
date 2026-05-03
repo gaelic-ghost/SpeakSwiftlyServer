@@ -280,14 +280,16 @@ In Progress
 - [x] Deduplicate playback and queue snapshot shaping so `EmbeddedServer`, HTTP responses, and MCP resources encode shared host state from one set of primitives instead of parallel app-facing and transport-facing models.
 - [x] Add focused tests that prove playback state, queue state, and active request fields stay equivalent across Swift app state, HTTP responses, and MCP resources after the snapshot cleanup.
 - [x] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
-- [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
+- [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak-swiftly://overview` and specific `speak-swiftly://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
+- [x] Rename MCP resource URIs from the generic `speak://` scheme to `speak-swiftly://`, and flatten runtime reads to `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
 - [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model while keeping the older active/stored routes as compatibility aliases.
 - [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope, while keeping scoped route and tool aliases for compatibility.
 - [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`) while keeping the older staged-config tool names as compatibility aliases.
-- [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak://generation/artifacts` resources) without compatibility aliases.
+- [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak-swiftly://generation/artifacts` resources) without compatibility aliases.
 - [ ] Keep compatibility-sensitive cleanup separate: generated artifact unification as a breaking major-version change, remaining HTTP text-profile compatibility aliases, remaining cancellation aliases, remaining staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
 - [ ] Continue the agreed compatibility-sensitive order: generated artifact unification as the next major-version code slice, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
+- [ ] After artifact unification, review whether the HTTP runtime route family should flatten `GET /runtime/host`, `GET /runtime/status`, and `GET`/`PUT /runtime/configuration` into simpler top-level routes for the major version, and decide where backend/model-control commands belong if that namespace goes away.
 
 ### Exit Criteria
 

@@ -14,8 +14,8 @@ func toolResult(_ output: some Encodable) throws -> CallTool.Result {
 func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedRequestResult {
     .init(
         requestID: requestID,
-        requestResourceURI: "speak://requests/\(requestID)",
-        statusResourceURI: "speak://runtime/overview",
+        requestResourceURI: "speak-swiftly://requests/\(requestID)",
+        statusResourceURI: "speak-swiftly://overview",
         message: message,
     )
 }

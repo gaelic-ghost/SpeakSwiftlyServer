@@ -218,17 +218,17 @@ extension MCPSurface {
                     User goal: \(userGoal)
                     Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                     \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
-                    Selection rule: for read-only inspection, prefer a speak:// resource first. Use compatibility read tools only when the client cannot read resources cleanly. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
+                    Selection rule: for read-only inspection, prefer a speak-swiftly:// resource first. Use compatibility read tools only when the client cannot read resources cleanly. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
                     Available action families:
-                    - voice profile reads: speak://voices, speak://voices/{profile_name}, speak://voices/guide
+                    - voice profile reads: speak-swiftly://voices, speak-swiftly://voices/{profile_name}, speak-swiftly://voices/guide
                     - voice profile actions: create_voice_profile_from_description, create_voice_profile_from_audio, update_voice_profile_name, reroll_voice_profile, delete_voice_profile
                     - maintainer-only built-in voice seed inspection: inspect_builtin_voice_seed
-                    - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak://requests/{request_id}, speak://generation/jobs, speak://generation/files, speak://generation/batches
-                    - text profile reads: speak://text-profiles, speak://text-profiles/style, speak://text-profiles/base, speak://text-profiles/active, speak://text-profiles/effective, speak://text-profiles/guide
+                    - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak-swiftly://requests/{request_id}, speak-swiftly://generation/jobs, speak-swiftly://generation/files, speak-swiftly://generation/batches
+                    - text profile reads: speak-swiftly://text-profiles, speak-swiftly://text-profiles/style, speak-swiftly://text-profiles/base, speak-swiftly://text-profiles/active, speak-swiftly://text-profiles/effective, speak-swiftly://text-profiles/guide
                     - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
-                    - playback and queue reads: speak://runtime/overview, speak://requests, speak://requests/{request_id}, speak://playback/guide
+                    - playback and queue reads: speak-swiftly://overview, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
                     - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request, cancel_generation, cancel_playback
-                    - runtime reads: speak://runtime/overview, speak://runtime/status, speak://runtime/configuration
+                    - runtime reads: speak-swiftly://overview, speak-swiftly://status, speak-swiftly://configuration
                     - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models; compatibility alias: set_staged_config
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
                     Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.

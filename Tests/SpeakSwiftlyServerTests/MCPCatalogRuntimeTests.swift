@@ -23,8 +23,8 @@ extension ServerTests {
             )
             let queueSpeechToolPayload = try mcpToolPayload(from: queueSpeechToolEnvelope)
             let requestID = try #require(queueSpeechToolPayload["request_id"] as? String)
-            #expect(queueSpeechToolPayload["status_resource_uri"] as? String == "speak://runtime/overview")
-            #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak://requests/\(requestID)")
+            #expect(queueSpeechToolPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
+            #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(requestID)")
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
             #expect(
                 queuedSpeechInvocation.normalizationContext
@@ -85,7 +85,7 @@ extension ServerTests {
             )
             let createCloneToolPayload = try mcpToolPayload(from: createCloneToolEnvelope)
             let createCloneRequestID = try #require(createCloneToolPayload["request_id"] as? String)
-            #expect(createCloneToolPayload["request_resource_uri"] as? String == "speak://requests/\(createCloneRequestID)")
+            #expect(createCloneToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(createCloneRequestID)")
             let createCloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
             #expect(createCloneInvocation.profileName == "clone-from-mcp")
             #expect(createCloneInvocation.vibe == .femme)
@@ -109,7 +109,7 @@ extension ServerTests {
             )
             let renameVoiceToolPayload = try mcpToolPayload(from: renameVoiceToolEnvelope)
             let renameVoiceRequestID = try #require(renameVoiceToolPayload["request_id"] as? String)
-            #expect(renameVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(renameVoiceRequestID)")
+            #expect(renameVoiceToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(renameVoiceRequestID)")
             let renameVoiceInvocation = try #require(await runtime.latestRenameProfileInvocation())
             #expect(renameVoiceInvocation.profileName == "clone-from-mcp")
             #expect(renameVoiceInvocation.newProfileName == "clone-from-mcp-renamed")
@@ -129,7 +129,7 @@ extension ServerTests {
             )
             let rerollVoiceToolPayload = try mcpToolPayload(from: rerollVoiceToolEnvelope)
             let rerollVoiceRequestID = try #require(rerollVoiceToolPayload["request_id"] as? String)
-            #expect(rerollVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(rerollVoiceRequestID)")
+            #expect(rerollVoiceToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(rerollVoiceRequestID)")
             let rerollVoiceInvocation = try #require(await runtime.latestRerollProfileInvocation())
             #expect(rerollVoiceInvocation.profileName == "clone-from-mcp-renamed")
 
@@ -295,8 +295,8 @@ extension ServerTests {
             )
             let switchBackendPayload = try mcpToolPayload(from: switchBackendEnvelope)
             let switchBackendRequestID = try #require(switchBackendPayload["request_id"] as? String)
-            #expect(switchBackendPayload["request_resource_uri"] as? String == "speak://requests/\(switchBackendRequestID)")
-            #expect(switchBackendPayload["status_resource_uri"] as? String == "speak://runtime/overview")
+            #expect(switchBackendPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(switchBackendRequestID)")
+            #expect(switchBackendPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
 
             let setChatterboxRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

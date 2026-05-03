@@ -190,7 +190,9 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 
 ### MCP Tools
 
-For read-only MCP inspection, prefer resources first. Use `speak://runtime/overview` for broad orientation, then read the most specific `speak://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+For read-only MCP inspection, prefer resources first. Use `speak-swiftly://overview` for broad orientation, then read the most specific `speak-swiftly://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+
+The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are intentionally top-level under that scheme: `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`. The older `speak://runtime/...` shape is not carried forward in the next major API because it made read routes look nested by implementation detail instead of by user job.
 
 #### Speech And Artifact Tools
 
@@ -255,49 +257,49 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `cancel_generation`
 - `cancel_playback`
 
-`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`; `set_staged_config` remains a compatibility alias. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`; `set_staged_config` remains a compatibility alias. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 
 #### Runtime Resources
 
-- `speak://runtime/overview`
-- `speak://runtime/status`
-- `speak://runtime/configuration`
+- `speak-swiftly://overview`
+- `speak-swiftly://status`
+- `speak-swiftly://configuration`
 
 #### Voice Resources
 
-- `speak://voices`
-- `speak://voices/guide`
-- `speak://voices/{profile_name}`
+- `speak-swiftly://voices`
+- `speak-swiftly://voices/guide`
+- `speak-swiftly://voices/{profile_name}`
 
 #### Text Profile Resources
 
-- `speak://text-profiles`
-- `speak://text-profiles/style`
-- `speak://text-profiles/base`
-- `speak://text-profiles/active`
-- `speak://text-profiles/effective`
-- `speak://text-profiles/effective/{profile_id}`
-- `speak://text-profiles/stored/{profile_id}`
-- `speak://text-profiles/guide`
+- `speak-swiftly://text-profiles`
+- `speak-swiftly://text-profiles/style`
+- `speak-swiftly://text-profiles/base`
+- `speak-swiftly://text-profiles/active`
+- `speak-swiftly://text-profiles/effective`
+- `speak-swiftly://text-profiles/effective/{profile_id}`
+- `speak-swiftly://text-profiles/stored/{profile_id}`
+- `speak-swiftly://text-profiles/guide`
 
 #### Request, Artifact, And Playback Resources
 
-- `speak://requests`
-- `speak://requests/{request_id}`
-- `speak://generation/jobs`
-- `speak://generation/jobs/{job_id}`
-- `speak://generation/files`
-- `speak://generation/files/{artifact_id}`
-- `speak://generation/batches`
-- `speak://generation/batches/{batch_id}`
-- `speak://playback/guide`
+- `speak-swiftly://requests`
+- `speak-swiftly://requests/{request_id}`
+- `speak-swiftly://generation/jobs`
+- `speak-swiftly://generation/jobs/{job_id}`
+- `speak-swiftly://generation/files`
+- `speak-swiftly://generation/files/{artifact_id}`
+- `speak-swiftly://generation/batches`
+- `speak-swiftly://generation/batches/{batch_id}`
+- `speak-swiftly://playback/guide`
 
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
 
 `inspect_builtin_voice_seed` is a maintainer/development tool for package-owned built-in voice seed
-inspection. Normal agent and user workflows should read `speak://voices`, choose a profile name, and
+inspection. Normal agent and user workflows should read `speak-swiftly://voices`, choose a profile name, and
 use `generate_speech` or the default-voice configuration path instead of inspecting seed prompts.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
@@ -314,7 +316,7 @@ The embedded MCP prompt catalog currently includes:
 - `draft_text_replacement`
 - `choose_surface_action`
 
-The text-profile prompts and the `speak://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail.
+The text-profile prompts and the `speak-swiftly://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail.
 
 ### MCP Resource Subscriptions
 
@@ -322,26 +324,26 @@ The embedded MCP surface supports resource subscriptions for the live state reso
 
 Clients connected to the standalone MCP event stream can subscribe to:
 
-- `speak://runtime/overview`
-- `speak://runtime/status`
-- `speak://runtime/configuration`
-- `speak://voices`
-- `speak://voices/{profile_name}`
-- `speak://requests`
-- `speak://requests/{request_id}`
-- `speak://generation/jobs`
-- `speak://generation/jobs/{job_id}`
-- `speak://generation/files`
-- `speak://generation/files/{artifact_id}`
-- `speak://generation/batches`
-- `speak://generation/batches/{batch_id}`
-- `speak://text-profiles`
-- `speak://text-profiles/style`
-- `speak://text-profiles/base`
-- `speak://text-profiles/active`
-- `speak://text-profiles/effective`
-- `speak://text-profiles/effective/{profile_id}`
-- `speak://text-profiles/stored/{profile_id}`
+- `speak-swiftly://overview`
+- `speak-swiftly://status`
+- `speak-swiftly://configuration`
+- `speak-swiftly://voices`
+- `speak-swiftly://voices/{profile_name}`
+- `speak-swiftly://requests`
+- `speak-swiftly://requests/{request_id}`
+- `speak-swiftly://generation/jobs`
+- `speak-swiftly://generation/jobs/{job_id}`
+- `speak-swiftly://generation/files`
+- `speak-swiftly://generation/files/{artifact_id}`
+- `speak-swiftly://generation/batches`
+- `speak-swiftly://generation/batches/{batch_id}`
+- `speak-swiftly://text-profiles`
+- `speak-swiftly://text-profiles/style`
+- `speak-swiftly://text-profiles/base`
+- `speak-swiftly://text-profiles/active`
+- `speak-swiftly://text-profiles/effective`
+- `speak-swiftly://text-profiles/effective/{profile_id}`
+- `speak-swiftly://text-profiles/stored/{profile_id}`
 
 Subscribed clients receive `notifications/resources/updated` when shared host events change the underlying state.
 

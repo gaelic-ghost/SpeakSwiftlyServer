@@ -79,7 +79,7 @@ extension ServerTests {
             let runtimeResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/overview"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -98,7 +98,7 @@ extension ServerTests {
             let runtimeStatusResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/status"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://status"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -113,7 +113,7 @@ extension ServerTests {
             let runtimeConfigResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/configuration"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://configuration"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -127,7 +127,7 @@ extension ServerTests {
             let jobsResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://requests"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://requests"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -141,7 +141,7 @@ extension ServerTests {
             let profileDetailEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://voices/default"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/default"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -155,7 +155,7 @@ extension ServerTests {
             let builtInProfileEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://voices/swift-signal"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/swift-signal"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -189,7 +189,7 @@ extension ServerTests {
             let textProfilesResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -205,7 +205,7 @@ extension ServerTests {
             let textProfileStyleEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/style"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/style"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -220,7 +220,7 @@ extension ServerTests {
             let textProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -230,12 +230,12 @@ extension ServerTests {
             let textProfilesGuideText = try #require(textProfilesGuideContents.first?["text"] as? String)
             #expect(textProfilesGuideText.contains("text_profile_id"))
             #expect(textProfilesGuideText.contains("set_text_profile_style"))
-            #expect(textProfilesGuideText.contains("Read `speak://text-profiles/style`"))
+            #expect(textProfilesGuideText.contains("Read `speak-swiftly://text-profiles/style`"))
 
             let voiceProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://voices/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -253,7 +253,7 @@ extension ServerTests {
             let playbackGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://playback/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://playback/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -268,7 +268,7 @@ extension ServerTests {
             #expect(playbackGuideText.contains("Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation"))
             #expect(playbackGuideText.contains("clear_generation_queue"))
             #expect(playbackGuideText.contains("clear_playback_queue"))
-            #expect(playbackGuideText.contains("Read `speak://runtime/overview` first"))
+            #expect(playbackGuideText.contains("Read `speak-swiftly://overview` first"))
             #expect(playbackGuideText.contains("Playback freshness is currently host-event-driven"))
 
             let chooseActionPromptEnvelope = try await mcpEnvelope(
@@ -291,13 +291,13 @@ extension ServerTests {
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
             #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
-            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak:// resource first"))
+            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak-swiftly:// resource first"))
             #expect(chooseActionPromptText.contains("compatibility read tools"))
 
             let storedTextProfileEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/stored/mcp-text"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/stored/mcp-text"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -311,7 +311,7 @@ extension ServerTests {
             let jobDetailEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://requests/\(requestID)"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://requests/\(requestID)"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -384,7 +384,7 @@ extension ServerTests {
         let envelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
-                    body: mcpReadResourceRequestJSON(uri: "speak://text-profiles"),
+                    body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles"),
                     sessionID: sessionID,
                 ),
             ),

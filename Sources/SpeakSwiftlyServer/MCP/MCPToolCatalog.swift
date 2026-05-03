@@ -87,13 +87,13 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_voice_profiles",
-            description: "Compatibility read tool for cached SpeakSwiftly voice profiles. Prefer reading speak://voices when the client supports MCP resources.",
+            description: "Compatibility read tool for cached SpeakSwiftly voice profiles. Prefer reading speak-swiftly://voices when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "inspect_builtin_voice_seed",
-            description: "Developer-only read tool for inspecting package-owned built-in voice seed metadata, including source text and voice-design prompt. Normal users should read speak://voices and select a built-in by profile_name instead.",
+            description: "Developer-only read tool for inspecting package-owned built-in voice seed metadata, including source text and voice-design prompt. Normal users should read speak-swiftly://voices and select a built-in by profile_name instead.",
             inputSchema: [
                 "type": "object",
                 "required": ["seed_id"],
@@ -139,25 +139,25 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "get_runtime_overview",
-            description: "Compatibility read tool for the shared-host runtime overview. Prefer reading speak://runtime/overview for readiness, queues, playback state, transports, and recent errors.",
+            description: "Compatibility read tool for the shared-host runtime overview. Prefer reading speak-swiftly://overview for readiness, queues, playback state, transports, and recent errors.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_runtime_status",
-            description: "Compatibility read tool for the underlying SpeakSwiftly runtime status event. Prefer reading speak://runtime/status for stage, resident model state, and active speech backend.",
+            description: "Compatibility read tool for the underlying SpeakSwiftly runtime status event. Prefer reading speak-swiftly://status for stage, resident model state, and active speech backend.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_runtime_configuration",
-            description: "Compatibility read tool for runtime configuration. Prefer reading speak://runtime/configuration for active and next-start backend, Qwen resident model, Marvis resident policy, and environment overrides.",
+            description: "Compatibility read tool for runtime configuration. Prefer reading speak-swiftly://configuration for active and next-start backend, Qwen resident model, Marvis resident policy, and environment overrides.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_staged_runtime_config",
-            description: "Compatibility alias for get_runtime_configuration. Prefer get_runtime_configuration or the speak://runtime/configuration resource for new clients.",
+            description: "Compatibility alias for get_runtime_configuration. Prefer get_runtime_configuration or the speak-swiftly://configuration resource for new clients.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
@@ -210,13 +210,13 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "get_text_normalizer_snapshot",
-            description: "Compatibility read tool for the full SpeakSwiftly text-normalizer snapshot. Prefer reading speak://text-profiles for built-in style plus base, active, stored, and effective profiles.",
+            description: "Compatibility read tool for the full SpeakSwiftly text-normalizer snapshot. Prefer reading speak-swiftly://text-profiles for built-in style plus base, active, stored, and effective profiles.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_text_profile_style",
-            description: "Compatibility read tool for the current built-in SpeakSwiftly text-profile style. Prefer reading speak://text-profiles/style when the client supports MCP resources.",
+            description: "Compatibility read tool for the current built-in SpeakSwiftly text-profile style. Prefer reading speak-swiftly://text-profiles/style when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
@@ -341,19 +341,19 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_generation_queue",
-            description: "Compatibility read tool for the generation queue snapshot. Prefer reading speak://runtime/overview for queue state when the client supports MCP resources.",
+            description: "Compatibility read tool for the generation queue snapshot. Prefer reading speak-swiftly://overview for queue state when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "list_playback_queue",
-            description: "Compatibility read tool for the playback queue snapshot. Prefer reading speak://runtime/overview for queue state when the client supports MCP resources.",
+            description: "Compatibility read tool for the playback queue snapshot. Prefer reading speak-swiftly://overview for queue state when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_playback_state",
-            description: "Compatibility read tool for the current SpeakSwiftly playback state snapshot. Prefer reading speak://runtime/overview for playback state when the client supports MCP resources.",
+            description: "Compatibility read tool for the current SpeakSwiftly playback state snapshot. Prefer reading speak-swiftly://overview for playback state when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
@@ -422,19 +422,19 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_active_requests",
-            description: "Compatibility read tool for shared-host retained request snapshots. Prefer reading speak://requests for active and recently tracked live server operations.",
+            description: "Compatibility read tool for shared-host retained request snapshots. Prefer reading speak-swiftly://requests for active and recently tracked live server operations.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "list_generation_jobs",
-            description: "Compatibility read tool for retained v2 generation jobs. Prefer reading speak://generation/jobs when the client supports MCP resources.",
+            description: "Compatibility read tool for retained v2 generation jobs. Prefer reading speak-swiftly://generation/jobs when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generation_job",
-            description: "Compatibility read tool for one retained v2 generation job. Prefer reading speak://generation/jobs/{job_id} when the client supports MCP resources.",
+            description: "Compatibility read tool for one retained v2 generation job. Prefer reading speak-swiftly://generation/jobs/{job_id} when the client supports MCP resources.",
             inputSchema: [
                 "type": "object",
                 "required": ["job_id"],
@@ -457,13 +457,13 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_generated_files",
-            description: "Compatibility read tool for retained generated audio files. Prefer reading speak://generation/files when the client supports MCP resources.",
+            description: "Compatibility read tool for retained generated audio files. Prefer reading speak-swiftly://generation/files when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generated_file",
-            description: "Compatibility read tool for one retained generated audio file. Prefer reading speak://generation/files/{artifact_id} when the client supports MCP resources.",
+            description: "Compatibility read tool for one retained generated audio file. Prefer reading speak-swiftly://generation/files/{artifact_id} when the client supports MCP resources.",
             inputSchema: [
                 "type": "object",
                 "required": ["artifact_id"],
@@ -475,13 +475,13 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "list_generated_batches",
-            description: "Compatibility read tool for retained generated audio batches. Prefer reading speak://generation/batches when the client supports MCP resources.",
+            description: "Compatibility read tool for retained generated audio batches. Prefer reading speak-swiftly://generation/batches when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "get_generated_batch",
-            description: "Compatibility read tool for one retained generated audio batch. Prefer reading speak://generation/batches/{batch_id} when the client supports MCP resources.",
+            description: "Compatibility read tool for one retained generated audio batch. Prefer reading speak-swiftly://generation/batches/{batch_id} when the client supports MCP resources.",
             inputSchema: [
                 "type": "object",
                 "required": ["batch_id"],

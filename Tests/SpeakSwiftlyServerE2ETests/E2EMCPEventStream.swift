@@ -291,7 +291,7 @@ private func e2eWithTimeout<T: Sendable>(
 
     await Task.yield()
     await buffer.append(
-        Data(#"{"method":"notifications/resources/updated","params":{"uri":"speak://voices"}}"#.utf8),
+        Data(#"{"method":"notifications/resources/updated","params":{"uri":"speak-swiftly://voices"}}"#.utf8),
     )
 
     let data = try await waiter.value

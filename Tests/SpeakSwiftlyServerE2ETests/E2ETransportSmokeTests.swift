@@ -102,7 +102,7 @@ extension ServerTransportE2ETests {
         try await waitUntilWorkerReady(using: client, timeout: Self.e2eTimeout, server: server)
 
         let runtimeOverview = try await Self.requireObjectPayload(
-            from: client.readResourceJSON(uri: "speak://runtime/overview"),
+            from: client.readResourceJSON(uri: "speak-swiftly://overview"),
         )
         let transports = try requireArray("transports", in: runtimeOverview)
         #expect(transports.contains {
@@ -113,7 +113,7 @@ extension ServerTransportE2ETests {
         try await eventStream.start()
         defer { eventStream.stop() }
 
-        try await client.subscribe(to: "speak://voices")
+        try await client.subscribe(to: "speak-swiftly://voices")
 
         let profileName = "mcp-smoke-profile"
         let createPayload = try await client.callTool(
@@ -126,7 +126,7 @@ extension ServerTransportE2ETests {
             ],
         )
         let createJobID = try requireString("request_id", in: createPayload)
-        #expect(createPayload["request_resource_uri"] as? String == "speak://requests/\(createJobID)")
+        #expect(createPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(createJobID)")
 
         let profileNotification = try await eventStream.waitForNotification(timeout: .seconds(60)) {
             guard $0["method"] as? String == "notifications/resources/updated" else {
@@ -136,10 +136,10 @@ extension ServerTransportE2ETests {
                 return false
             }
 
-            return params["uri"] as? String == "speak://voices"
+            return params["uri"] as? String == "speak-swiftly://voices"
         }
         let notificationParams = try requireDictionary("params", in: profileNotification)
-        #expect(notificationParams["uri"] as? String == "speak://voices")
+        #expect(notificationParams["uri"] as? String == "speak-swiftly://voices")
 
         _ = try await waitForTerminalJob(
             id: createJobID,
@@ -152,7 +152,7 @@ extension ServerTransportE2ETests {
         #expect(profiles.contains { $0.profileName == profileName })
 
         let profileDetail = try await Self.requireObjectPayload(
-            from: client.readResourceJSON(uri: "speak://voices/\(profileName)"),
+            from: client.readResourceJSON(uri: "speak-swiftly://voices/\(profileName)"),
         )
         #expect(profileDetail["profile_name"] as? String == profileName)
 
@@ -164,7 +164,7 @@ extension ServerTransportE2ETests {
             ],
         )
         let speechJobID = try requireString("request_id", in: speechPayload)
-        #expect(speechPayload["request_resource_uri"] as? String == "speak://requests/\(speechJobID)")
+        #expect(speechPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(speechJobID)")
 
         let speechTerminal = try await waitForTerminalJob(
             id: speechJobID,
@@ -175,11 +175,11 @@ extension ServerTransportE2ETests {
         ServerE2E.assertSpeechJobCompleted(speechTerminal, expectedJobID: speechJobID)
 
         let retainedRequest = try await Self.requireObjectPayload(
-            from: client.readResourceJSON(uri: "speak://requests/\(speechJobID)"),
+            from: client.readResourceJSON(uri: "speak-swiftly://requests/\(speechJobID)"),
         )
         #expect(retainedRequest["request_id"] as? String == speechJobID)
         #expect(retainedRequest["status"] as? String == "completed")
 
-        try await client.unsubscribe(from: "speak://voices")
+        try await client.unsubscribe(from: "speak-swiftly://voices")
     }
 }

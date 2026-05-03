@@ -84,7 +84,7 @@ func waitForTerminalJob(
             )
         }
 
-        let text = try await client.readResourceText(uri: "speak://requests/\(requestID)")
+        let text = try await client.readResourceText(uri: "speak-swiftly://requests/\(requestID)")
         let snapshot = try decode(E2EJobSnapshot.self, from: Data(text.utf8))
         return snapshot.terminalEvent == nil ? nil : snapshot
     }

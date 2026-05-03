@@ -89,7 +89,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the live speech request. Read the returned request resource for progress or read speak://runtime/overview to monitor generation, playback, and transport state.",
+                        message: "SpeakSwiftlyServer accepted the live speech request. Read the returned request resource for progress or read speak-swiftly://overview to monitor generation, playback, and transport state.",
                     )
 
                 case "generate_audio_file":
@@ -109,7 +109,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak://generation/files or speak://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/files or speak-swiftly://generation/jobs.",
                     )
 
                 case "generate_batch":
@@ -126,7 +126,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak://generation/batches or speak://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/batches or speak-swiftly://generation/jobs.",
                     )
 
                 case "create_voice_profile_from_description":
@@ -140,7 +140,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "create_voice_profile_from_audio":
@@ -153,7 +153,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "list_voice_profiles":
@@ -163,7 +163,7 @@ extension MCPSurface {
                     let seedID = try requiredString("seed_id", in: arguments)
                     guard let seed = try DefaultVoiceCatalog.load().first(where: { $0.seedID == seedID }) else {
                         throw MCPError.invalidRequest(
-                            "SpeakSwiftlyServer could not inspect built-in voice seed '\(seedID)' because the package catalog does not contain that seed id. Read speak://voices to inspect installed profile names, or use one of the bundled seed ids from the default voice catalog.",
+                            "SpeakSwiftlyServer could not inspect built-in voice seed '\(seedID)' because the package catalog does not contain that seed id. Read speak-swiftly://voices to inspect installed profile names, or use one of the bundled seed ids from the default voice catalog.",
                         )
                     }
 
@@ -176,7 +176,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile rename request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile rename request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "reroll_voice_profile":
@@ -185,7 +185,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile reroll request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile reroll request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "delete_voice_profile":
@@ -194,7 +194,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "get_runtime_overview":
@@ -221,7 +221,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the speech-backend switch request. Read the returned request resource for progress or read speak://runtime/overview to observe the pending and active backend state.",
+                        message: "SpeakSwiftlyServer accepted the speech-backend switch request. Read the returned request resource for progress or read speak-swiftly://overview to observe the pending and active backend state.",
                     )
 
                 case "reload_models":
