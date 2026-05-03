@@ -364,7 +364,7 @@ extension ServerHost {
                     }
                     isRunningStartupProfileRefresh = false
                 }
-                if workerStage == status.stage.rawValue {
+                if workerStage == status.stage.rawValue, !isRunningStartupProfileRefresh {
                     workerMode = "ready"
                 }
             case .residentModelsUnloaded:

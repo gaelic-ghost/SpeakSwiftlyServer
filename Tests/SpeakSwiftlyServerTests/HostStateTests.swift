@@ -317,6 +317,7 @@ import Testing
     await host.start()
     await runtime.publishStatus(.residentModelReady)
     await runtime.waitUntilVoiceProfileRefreshIsHeld()
+    await host.handle(status: workerStatus(.residentModelReady))
 
     let readinessWhileInstalling = await host.readinessSnapshot()
     #expect(readinessWhileInstalling.0 == false)
