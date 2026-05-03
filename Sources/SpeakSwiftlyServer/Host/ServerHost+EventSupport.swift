@@ -161,12 +161,7 @@ extension ServerHost {
     }
 
     func queueSnapshotResponse(from snapshot: QueueStatusSnapshot) -> QueueSnapshotResponse {
-        .init(
-            queueType: snapshot.queueType,
-            activeRequest: snapshot.activeRequest,
-            activeRequests: snapshot.activeRequests,
-            queue: snapshot.queuedRequests,
-        )
+        .init(snapshot: snapshot)
     }
 
     func generationJobOrdering(lhs: JobRecord, rhs: JobRecord) -> Bool {
@@ -203,7 +198,7 @@ extension ServerHost {
             activeRequest: event.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
             activeRequests: event.activeRequests?.map(ActiveRequestSnapshot.init(summary:)),
             queue: event.queue?.map(QueuedRequestSnapshot.init(summary:)),
-            playbackState: event.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+            playbackState: event.playbackState.map(PlaybackStatusSnapshot.init(summary:)),
             status: event.status,
             speechBackend: event.speechBackend?.rawValue,
             clearedCount: event.clearedCount,

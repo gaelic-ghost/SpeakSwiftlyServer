@@ -122,13 +122,15 @@ That may be the right product choice: `EmbeddedServer` is a small app-facing con
 
 This phase is a durable building-block cleanup. It reduces duplicate state models and makes later public cleanup safer because every surface will encode playback and queue state from the same primitives.
 
+Status: implemented for the first cleanup pass. `PlaybackStatusSnapshot` is now the shared playback model used by `EmbeddedServer`, HTTP playback responses, and request-event payloads. Queue route responses now shape from `QueueStatusSnapshot` through a narrow response initializer, preserving the existing HTTP `queue` field while keeping queue ownership in the shared host snapshot.
+
 Tasks:
 
-- Replace the private transport-only playback snapshot with the public shared playback snapshot where possible.
-- Keep HTTP response envelopes where they help route clarity, but stop duplicating the inner playback fields.
-- Review queue response shaping and either reuse `QueueStatusSnapshot` directly or keep a single narrow conversion helper with no duplicate active-request field definitions.
-- Add or tighten tests that compare HTTP playback/queue responses, MCP runtime overview resources, and `EmbeddedServer` snapshots for matching field names and equivalent state.
-- Update `docs/maintainers/source-layout.md` if model ownership moves.
+- [x] Replace the private transport-only playback snapshot with the public shared playback snapshot where possible.
+- [x] Keep HTTP response envelopes where they help route clarity, but stop duplicating the inner playback fields.
+- [x] Review queue response shaping and either reuse `QueueStatusSnapshot` directly or keep a single narrow conversion helper with no duplicate active-request field definitions.
+- [x] Add or tighten tests that compare HTTP playback/queue responses, MCP runtime overview resources, and `EmbeddedServer` snapshots for matching field names and equivalent state.
+- [x] Update `docs/maintainers/source-layout.md` if model ownership moves.
 - Run `xcrun swift build`, focused snapshot/model tests, and the repo validation gate when the code change is ready.
 
 Non-goals:

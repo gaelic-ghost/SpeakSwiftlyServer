@@ -68,49 +68,17 @@ struct QueueSnapshotResponse: ResponseEncodable {
         case activeRequests = "active_requests"
         case queue
     }
-}
 
-/// Transport-facing playback state snapshot used by HTTP and MCP control surfaces.
-struct PlaybackStateSnapshot: Codable, Equatable {
-    let state: String
-    let activeRequest: ActiveRequestSnapshot?
-    let isStableForConcurrentGeneration: Bool
-    let isRebuffering: Bool
-    let stableBufferedAudioMS: Int?
-    let stableBufferTargetMS: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case state
-        case activeRequest = "active_request"
-        case isStableForConcurrentGeneration = "is_stable_for_concurrent_generation"
-        case isRebuffering = "is_rebuffering"
-        case stableBufferedAudioMS = "stable_buffered_audio_ms"
-        case stableBufferTargetMS = "stable_buffer_target_ms"
-    }
-
-    init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
-        state = summary.state.rawValue
-        activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
-        isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
-        isRebuffering = summary.isRebuffering
-        stableBufferedAudioMS = summary.stableBufferedAudioMS
-        stableBufferTargetMS = summary.stableBufferTargetMS
+    init(snapshot: QueueStatusSnapshot) {
+        queueType = snapshot.queueType
+        activeRequest = snapshot.activeRequest
+        activeRequests = snapshot.activeRequests
+        queue = snapshot.queuedRequests
     }
 }
 
 struct PlaybackStateResponse: ResponseEncodable {
-    let playback: PlaybackStateSnapshot
-}
-
-extension PlaybackStateSnapshot {
-    init(status: PlaybackStatusSnapshot) {
-        state = status.state
-        activeRequest = status.activeRequest
-        isStableForConcurrentGeneration = status.isStableForConcurrentGeneration
-        isRebuffering = status.isRebuffering
-        stableBufferedAudioMS = status.stableBufferedAudioMS
-        stableBufferTargetMS = status.stableBufferTargetMS
-    }
+    let playback: PlaybackStatusSnapshot
 }
 
 struct QueueClearedResponse: ResponseEncodable {

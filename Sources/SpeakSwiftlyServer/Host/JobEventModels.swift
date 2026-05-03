@@ -88,7 +88,7 @@ struct ServerSuccessEvent: Encodable, Equatable {
     let activeRequest: ActiveRequestSnapshot?
     let activeRequests: [ActiveRequestSnapshot]?
     let queue: [QueuedRequestSnapshot]?
-    let playbackState: PlaybackStateSnapshot?
+    let playbackState: PlaybackStatusSnapshot?
     let status: SpeakSwiftly.StatusEvent?
     let speechBackend: String?
     let clearedCount: Int?

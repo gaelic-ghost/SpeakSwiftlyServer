@@ -203,7 +203,7 @@ extension ServerHost {
                 activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
                 activeRequests: success.activeRequests?.map(ActiveRequestSnapshot.init(summary:)),
                 queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)),
-                playbackState: success.playbackState.map(PlaybackStateSnapshot.init(summary:)),
+                playbackState: success.playbackState.map(PlaybackStatusSnapshot.init(summary:)),
                 status: success.status,
                 speechBackend: success.speechBackend?.rawValue,
                 clearedCount: success.clearedCount,

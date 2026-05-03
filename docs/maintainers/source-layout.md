@@ -51,11 +51,11 @@ dedupe follow-through remain visible to maintainers.
 - `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
   Package-owned default voice seed catalog loading and validation models.
 - `Sources/SpeakSwiftlyServer/Host/QueueStatusModels.swift`
-  Queue, playback, health, readiness, and status snapshots.
+  Queue response envelopes plus health, readiness, and status snapshots. Keep playback state itself in `HostStateModels.swift` so app state, HTTP, and MCP event payloads do not grow parallel playback snapshot shapes.
 - `Sources/SpeakSwiftlyServer/Host/JobEventModels.swift`
   Job event payloads and retained request snapshots.
 - `Sources/SpeakSwiftlyServer/Host/HostStateModels.swift`
-  Shared host-overview snapshots for app state, HTTP, and MCP resources.
+  Shared host-overview, queue, playback, runtime, transport, and error snapshots for app state, HTTP, MCP resources, and request-event payloads.
 
 ## Operator Sources
 

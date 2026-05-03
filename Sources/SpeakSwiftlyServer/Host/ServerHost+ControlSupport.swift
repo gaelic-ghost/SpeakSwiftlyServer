@@ -93,22 +93,15 @@ extension ServerHost {
                 ? response.playback.stableBufferTargetMS
                 : nil,
         )
-        return .init(playback: .init(status: status))
+        return .init(playback: status)
     }
 
     func applyPlaybackControlSnapshot(
-        _ snapshot: PlaybackStateSnapshot,
+        _ snapshot: PlaybackStatusSnapshot,
         expectedState: SpeakSwiftly.PlaybackState,
     ) async {
         let previousPlaybackStatus = playbackStatus
-        playbackStatus = .init(
-            state: snapshot.state,
-            activeRequest: snapshot.activeRequest,
-            isStableForConcurrentGeneration: snapshot.isStableForConcurrentGeneration,
-            isRebuffering: snapshot.isRebuffering,
-            stableBufferedAudioMS: snapshot.stableBufferedAudioMS,
-            stableBufferTargetMS: snapshot.stableBufferTargetMS,
-        )
+        playbackStatus = snapshot
         if playbackStatus != previousPlaybackStatus {
             hostEventContinuation.yield(.playbackChanged(playbackStatus))
             await requestPublish(mode: .coalesced, refreshRuntimeState: false)

@@ -274,9 +274,9 @@ Planned
 
 ### Tickets
 
-- [ ] Deduplicate playback and queue snapshot shaping so `EmbeddedServer`, HTTP responses, and MCP resources encode shared host state from one set of primitives instead of parallel app-facing and transport-facing models.
-- [ ] Add focused tests that prove playback state, queue state, and active request fields stay equivalent across Swift app state, HTTP responses, and MCP resources after the snapshot cleanup.
-- [ ] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
+- [x] Deduplicate playback and queue snapshot shaping so `EmbeddedServer`, HTTP responses, and MCP resources encode shared host state from one set of primitives instead of parallel app-facing and transport-facing models.
+- [x] Add focused tests that prove playback state, queue state, and active request fields stay equivalent across Swift app state, HTTP responses, and MCP resources after the snapshot cleanup.
+- [x] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
 - [ ] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [ ] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
 - [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, HTTP text-profile target simplification, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
