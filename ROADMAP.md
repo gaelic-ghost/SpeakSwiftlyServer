@@ -215,6 +215,7 @@ In Progress
 ### Tickets
 
 - [ ] Add a maintained repo-local "use this with Codex hooks" guide or skill so operators can enable, understand, and validate the speech-hook workflow without reverse-engineering the prototype files.
+- [ ] Improve Codex Hooks setup filtering so hook guidance, doctor output, and repair plans separate actionable Speak Swiftly hook entries from unrelated Codex hooks, structured metadata skips, continuation skips, and stale development-harness noise.
 - [ ] Add package-building skills that help people's agents embed `SpeakSwiftlyServer`, choose HTTP versus MCP versus `EmbeddedServer`, configure profile roots safely, and validate the resulting app or tool against the repo's public contract.
 
 ### Exit Criteria
