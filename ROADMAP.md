@@ -18,6 +18,7 @@ Use this roadmap to track the remaining package, docs, plugin, and live-service 
 - [Milestone 17: Agent And Operator Workflows](#milestone-17-agent-and-operator-workflows)
 - [Milestone 18: Codex Plugin Catalog Split](#milestone-18-codex-plugin-catalog-split)
 - [Milestone 19: Default Voice Setup Simplification](#milestone-19-default-voice-setup-simplification)
+- [Milestone 20: Public API Simplification](#milestone-20-public-api-simplification)
 - [Backlog Candidates](#backlog-candidates)
 - [History](#history)
 
@@ -45,6 +46,7 @@ Make `SpeakSwiftlyServer` the small, dependable Apple-platform speech-service pa
 - Milestone 17: Agent And Operator Workflows - In Progress
 - Milestone 18: Codex Plugin Catalog Split - In Progress
 - Milestone 19: Default Voice Setup Simplification - Planned
+- Milestone 20: Public API Simplification - Planned
 
 ## Milestone 8: Config Reload Policy
 
@@ -260,10 +262,35 @@ Planned
 
 - [ ] A fresh install has one documented, low-friction path from first launch to choosing and verifying a default voice.
 
+## Milestone 20: Public API Simplification
+
+### Status
+
+Planned
+
+### Scope
+
+- [ ] Reduce public API confusion across Swift, HTTP, MCP, and docs by deduplicating shared state models first, then making the MCP surface resources-first for read-only inspection while preserving compatibility for existing callers.
+
+### Tickets
+
+- [ ] Deduplicate playback and queue snapshot shaping so `EmbeddedServer`, HTTP responses, and MCP resources encode shared host state from one set of primitives instead of parallel app-facing and transport-facing models.
+- [ ] Add focused tests that prove playback state, queue state, and active request fields stay equivalent across Swift app state, HTTP responses, and MCP resources after the snapshot cleanup.
+- [ ] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
+- [ ] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
+- [ ] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
+- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, HTTP text-profile target simplification, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+
+### Exit Criteria
+
+- [ ] The first public read path is clear for agents and operators, duplicate shared-state models are removed or explicitly justified, and deferred compatibility-sensitive cleanup is documented without leaving hidden transitional behavior behind.
+
 ## Backlog Candidates
 
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
 - [ ] Consider whether system-authored voice-profile immutability and reroll-as-user-copy behavior belongs upstream in `SpeakSwiftly` before adding more server-side policy.
+- [ ] Revisit generated file and generated batch resources as one artifact-family model after snapshot dedupe and MCP resources-first guidance land.
+- [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
 
 ## History
 
@@ -274,3 +301,4 @@ Planned
 - Completed the first live-service hardening passes: staged-artifact promotion diagnostics, signature refresh, operator healthcheck, transport smoke split, lifecycle shutdown accounting, persisted runtime-state hardening, and package-wide cleanup.
 - Completed the Codex plugin identity migration from `speak-swiftly-server` to `speak-swiftly`, Git-backed standalone and Socket marketplace docs, legacy duplicate detection, doctor dry-run repair planning, and isolated plugin install-testing guidance.
 - Added public built-in voice samples for `swift-signal` and `swift-anchor` under `docs/media/default-voices/` after the package-owned seed voices shipped.
+- Recorded the public API simplification audit and ordered the cleanup plan around snapshot dedupe first, MCP resources-first guidance second, and compatibility-sensitive route/tool cleanup later.

@@ -18,6 +18,10 @@ The server exposes one shared localhost host process with:
 - an optional MCP surface
 - shared retained request, artifact, playback, and runtime snapshots behind both transports
 
+Maintainer planning for reducing duplicate public surface area lives in
+[`docs/maintainers/public-api-simplification-plan.md`](docs/maintainers/public-api-simplification-plan.md).
+Keep this API reference focused on the current contract, not future cleanup proposals.
+
 When the same host is embedded through `EmbeddedServerSession`, the transport process now runs
 inside one outer service-owned lifecycle group that also owns package-level host startup,
 config-watch lifetime, and optional MCP readiness and drain. The HTTP and MCP contracts described
