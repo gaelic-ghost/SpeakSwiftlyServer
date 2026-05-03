@@ -13,10 +13,10 @@ The current release surface is aligned with the checked-in `maintain-project-rep
 Run the standard release flow from a feature branch or worktree:
 
 ```bash
-scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-version-bump
+scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-Use `--skip-version-bump` because this repository does not currently have repo-owned version-bearing files that need a scripted bump before tagging. If the repo later adds an executable `scripts/repo-maintenance/version-bump.sh`, remove that flag and let the hook update the version surfaces before the release tag is created.
+The standard flow runs `scripts/repo-maintenance/version-bump.sh` before tagging. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
 
 The standard flow is a durable repo-maintenance path. It validates the checkout, creates the annotated tag locally, pushes the branch and tag, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the GitHub release with `gh release create --verify-tag`, and cleans up merged local branches when safe.
 
@@ -27,7 +27,7 @@ The standard flow is a durable repo-maintenance path. It validates the checkout,
 Use the standard flow from a named feature branch or worktree:
 
 ```bash
-scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-version-bump
+scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
 The flow refuses to run standard mode from the protected base branch. If release-candidate commits were accidentally made directly on local `main`, branch from that tip before continuing so the release still goes through a pull request.
@@ -43,7 +43,7 @@ If another worktree owns `main`, fast-forward that checkout manually after the r
 Use submodule mode only when this repository is checked out as a submodule and the parent pointer update remains a separate follow-up:
 
 ```bash
-scripts/repo-maintenance/release.sh --mode submodule --version vX.Y.Z --skip-version-bump
+scripts/repo-maintenance/release.sh --mode submodule --version vX.Y.Z
 ```
 
 Submodule mode runs the dispatch scripts under `scripts/repo-maintenance/release/` and then leaves the parent repository pointer update to a separate commit.
@@ -86,7 +86,7 @@ Purpose:
 3. Run the standard release command:
 
 ```bash
-scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-version-bump
+scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
 4. Let the repo-maintenance validation check run.
