@@ -46,7 +46,7 @@ Make `SpeakSwiftlyServer` the small, dependable Apple-platform speech-service pa
 - Milestone 17: Agent And Operator Workflows - In Progress
 - Milestone 18: Codex Plugin Catalog Split - In Progress
 - Milestone 19: Default Voice Setup Simplification - Planned
-- Milestone 20: Public API Simplification - Planned
+- Milestone 20: Public API Simplification - In Progress
 
 ## Milestone 8: Config Reload Policy
 
@@ -266,7 +266,7 @@ Planned
 
 ### Status
 
-Planned
+In Progress
 
 ### Scope
 
