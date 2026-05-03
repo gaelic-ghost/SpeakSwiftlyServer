@@ -74,7 +74,7 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.player.state()` | Full | `GET /playback/state` | `get_playback_state` | Used directly for playback state reads and control settling. |
 | `runtime.player.pause()` / `resume()` | Full | `POST /playback/pause`, `POST /playback/resume` | `pause_playback`, `resume_playback` | The server now aligns its cached playback snapshot with these accepted control responses. |
 | `runtime.player.clearQueue()` | Full | `DELETE /playback/queue` | `clear_playback_queue` | Returns cleared queued-count information rather than forcing clients to infer it. |
-| `runtime.player.cancelRequest(_:)` | Full | `DELETE /playback/requests/{request_id}` | `cancel_request` | Cancels one active or queued playback-owned request cleanly. |
+| `runtime.cancelRequest(_:)` / queue-scoped cancellation | Full | `DELETE /requests/{request_id}` with optional `?scope=generation\|playback`; scoped generation/playback routes remain compatibility aliases | `cancel_request` with optional `scope`; `cancel_generation` and `cancel_playback` remain compatibility aliases | Cancels one active or queued request by id, with scope only when the caller deliberately needs queue-specific protection. |
 | `runtime.request(id:)` / `runtime.updates(for:)` | Adapted | `GET /requests`, `GET /requests/{request_id}`, `GET /requests/{request_id}/events` | `list_active_requests`, `speak://requests`, `speak://requests/{request_id}` | Exposed through retained host request snapshots and event history instead of raw Swift concurrency streams. |
 | `accept(line:)` | Not exposed | None | None | Correctly left as an internal line-oriented parser entrypoint. |
 
