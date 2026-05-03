@@ -46,6 +46,13 @@ Most of those tools mirror resources with the same read job:
 
 This creates a choice burden for agents. For inspection, an agent should usually read a resource first because resources are discoverable, subscribable, and stable orientation surfaces. Tools should remain the primary path for queueing speech, changing runtime state, editing profiles, and deleting or cancelling work.
 
+For the next major generated-artifact cleanup, the file and batch resource families should not be carried forward as compatibility aliases. Replace them with one artifact family:
+
+- `speak://generation/artifacts`
+- `speak://generation/artifacts/{artifact_id}`
+
+Batch membership should be artifact metadata or request/job metadata, not a peer read family that agents must choose before they know what kind of retained output they are looking for.
+
 ### Requests, Jobs, Files, And Batches Need A Clearer Mental Model
 
 The public surface currently asks consumers to understand these related concepts:
@@ -61,7 +68,13 @@ Those distinctions are real, but the first-read docs should not make them feel l
 - Job: runtime generation metadata retained for diagnosis and artifact lookup.
 - Artifact: the generated output, whether produced as one file or as part of a batch.
 
-Longer term, generated files and generated batches may deserve one artifact-family route or resource set. That is compatibility-sensitive and should happen after the lower-risk cleanup below.
+The next major target is one generated-artifact family:
+
+- HTTP: `GET /generation/artifacts` and `GET /generation/artifacts/{artifact_id}`
+- MCP resources: `speak://generation/artifacts` and `speak://generation/artifacts/{artifact_id}`
+- MCP tools: one generated-artifact read pair, if compatibility read tools are still kept at all
+
+This should be a breaking major-version cleanup, not an alias-heavy transition. Remove the older HTTP `files` and `batches` read routes, the matching MCP resources/templates, and the matching read-only MCP tools instead of keeping duplicate aliases. `POST /speech/files` and `POST /speech/batches` can remain distinct submission commands if they still represent different generation jobs; the cleanup is about the retained artifact read model.
 
 ### Cancellation Has Too Many Public Choices
 
@@ -209,10 +222,11 @@ These items should be revisited after the first two phases are reviewed and land
 - [x] Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior.
 - [x] Collapse preferred cancellation around `DELETE /requests/{request_id}` and MCP `cancel_request`, with optional `generation`/`playback` scope.
 - [x] Add preferred runtime-configuration MCP tool names while keeping the older staged-config names as compatibility aliases.
+- [x] Decide the generated-artifact target shape for the next major version: one artifact read family with no files/batches compatibility aliases.
 - [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
 - Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
 - Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- Rework generated files and generated batches into a clearer artifact-family model.
+- Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak://generation/artifacts`, and `speak://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
 - Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist

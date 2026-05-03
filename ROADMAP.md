@@ -285,8 +285,9 @@ In Progress
 - [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model while keeping the older active/stored routes as compatibility aliases.
 - [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope, while keeping scoped route and tool aliases for compatibility.
 - [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`) while keeping the older staged-config tool names as compatibility aliases.
-- [ ] Keep compatibility-sensitive cleanup separate: generated artifact unification, remaining HTTP text-profile compatibility aliases, remaining cancellation aliases, remaining staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
-- [ ] Continue the agreed compatibility-sensitive order: generated artifact unification later, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
+- [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak://generation/artifacts` resources) without compatibility aliases.
+- [ ] Keep compatibility-sensitive cleanup separate: generated artifact unification as a breaking major-version change, remaining HTTP text-profile compatibility aliases, remaining cancellation aliases, remaining staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [ ] Continue the agreed compatibility-sensitive order: generated artifact unification as the next major-version code slice, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria
 
@@ -295,7 +296,7 @@ In Progress
 ## Backlog Candidates
 
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
-- [ ] Revisit generated file and generated batch resources as one artifact-family model after snapshot dedupe and MCP resources-first guidance land.
+- [ ] Implement the next-major generated-artifact read model by removing generated file/batch read routes, tools, and resources in favor of one artifact family.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
 
 ## History
