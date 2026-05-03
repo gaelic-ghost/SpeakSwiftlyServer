@@ -70,7 +70,7 @@ In Progress
 
 ### Status
 
-Planned
+In Progress
 
 ### Scope
 
@@ -256,6 +256,9 @@ Planned
 
 - [ ] Review the relationship between `APP_DEFAULT_VOICE_PROFILE_NAME`, startup-installed built-ins, user-owned saved profiles, and fallback `-builtin` names.
 - [ ] Decide whether the server should expose a clearer operator command, config default, or MCP guidance for choosing one of the built-ins after startup seeding.
+- [x] Use upstream `SpeakSwiftly` system-authored profile metadata for startup-installed built-ins instead of creating them through the ordinary user-profile design path.
+- [x] Keep ordinary profile reads list-and-select for system built-ins by redacting seed source text and voice-design prompts from normal encoded profile JSON.
+- [x] Add an explicit maintainer/development MCP tool for inspecting built-in voice seed internals.
 - [ ] Update README, API, LaunchAgent docs, plugin skills, and tests so the default voice setup path is easy to explain and does not require users to understand seed-install internals first.
 
 ### Exit Criteria
@@ -280,6 +283,7 @@ In Progress
 - [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
 - [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, HTTP text-profile target simplification, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [ ] Implement the agreed compatibility-sensitive order: HTTP text-profile target simplification first, cancellation unification second, runtime-configuration MCP renames third, generated artifact unification later, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria
 
@@ -288,7 +292,6 @@ In Progress
 ## Backlog Candidates
 
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
-- [ ] Consider whether system-authored voice-profile immutability and reroll-as-user-copy behavior belongs upstream in `SpeakSwiftly` before adding more server-side policy.
 - [ ] Revisit generated file and generated batch resources as one artifact-family model after snapshot dedupe and MCP resources-first guidance land.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
 
@@ -301,4 +304,5 @@ In Progress
 - Completed the first live-service hardening passes: staged-artifact promotion diagnostics, signature refresh, operator healthcheck, transport smoke split, lifecycle shutdown accounting, persisted runtime-state hardening, and package-wide cleanup.
 - Completed the Codex plugin identity migration from `speak-swiftly-server` to `speak-swiftly`, Git-backed standalone and Socket marketplace docs, legacy duplicate detection, doctor dry-run repair planning, and isolated plugin install-testing guidance.
 - Added public built-in voice samples for `swift-signal` and `swift-anchor` under `docs/media/default-voices/` after the package-owned seed voices shipped.
+- Moved system-authored built-in voice handling into the upstream `SpeakSwiftly` authorship model and kept deep seed inspection behind an explicit maintainer/tool surface.
 - Recorded the public API simplification audit and ordered the cleanup plan around snapshot dedupe first, MCP resources-first guidance second, and compatibility-sensitive route/tool cleanup later.

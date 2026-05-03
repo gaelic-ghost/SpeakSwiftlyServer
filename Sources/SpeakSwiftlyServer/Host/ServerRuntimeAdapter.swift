@@ -139,6 +139,26 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "create_voice_profile_from_description", profileName: profileName, events: handle.events)
     }
 
+    func createSystemVoiceProfileFromDescription(
+        profileName: String,
+        vibe: SpeakSwiftly.Vibe,
+        from text: String,
+        voice voiceDescription: String,
+        seed: SpeakSwiftly.ProfileSeed,
+        outputPath: String?,
+        cwd: String?,
+    ) async -> RuntimeRequestHandle {
+        let handle = await runtime.voices.create(
+            systemDesign: profileName,
+            from: text,
+            vibe: vibe,
+            voice: voiceDescription,
+            seed: seed,
+            outputPath: resolvedAbsoluteFilesystemPath(outputPath, cwd: cwd),
+        )
+        return .init(id: handle.id, operation: "create_system_voice_profile_from_description", profileName: profileName, events: handle.events)
+    }
+
     func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,

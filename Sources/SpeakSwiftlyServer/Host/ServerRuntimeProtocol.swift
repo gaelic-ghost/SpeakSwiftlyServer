@@ -100,6 +100,15 @@ protocol ServerRuntimeProtocol: Actor {
         outputPath: String?,
         cwd: String?,
     ) async -> RuntimeRequestHandle
+    func createSystemVoiceProfileFromDescription(
+        profileName: String,
+        vibe: SpeakSwiftly.Vibe,
+        from text: String,
+        voice voiceDescription: String,
+        seed: SpeakSwiftly.ProfileSeed,
+        outputPath: String?,
+        cwd: String?,
+    ) async -> RuntimeRequestHandle
     func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,

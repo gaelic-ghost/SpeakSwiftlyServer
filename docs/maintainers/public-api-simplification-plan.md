@@ -72,6 +72,19 @@ The MCP surface exposes `cancel_request`, `cancel_generation`, and `cancel_playb
 
 The scoped operations are useful when the caller knows which queue owns the work, but they create hesitation when an operator simply wants to stop one known request. The clearest durable API is one general cancel operation with optional scope only when scope materially protects the caller from cancelling the wrong kind of work.
 
+### Built-In Voices Need A User/Developer Boundary
+
+`SpeakSwiftly` now owns system voice-profile authorship, seed metadata, system-profile immutability, and reroll-as-user-copy behavior. That moves the built-in voice policy out of server-local inference and into the runtime model that persists profiles.
+
+The server should use that upstream model directly:
+
+- startup-installed defaults are created as system-authored profiles with `ProfileSeed` metadata
+- ordinary users can list system profiles and choose one as the default or request voice
+- system profile source text, voice-design prompt, and seed provenance are exposed only through explicit maintainer/tool surfaces
+- ordinary create, rename, delete, and in-place reroll flows stay framed as user-owned profile operations
+
+This keeps `swift-signal` and `swift-anchor` consistent out of the box while still giving maintainers a deliberate path to inspect seed internals during package development and repair work.
+
 ### Runtime Configuration Uses Too Many Labels
 
 The runtime configuration surface currently uses overlapping words: staged, persisted, next-start, active, and runtime configuration. The response shape is already helpful because it distinguishes active values, next-start values, persisted values, and environment overrides. The confusing part is naming the same surface `staged` in MCP while docs describe persisted next-start runtime configuration.
@@ -161,14 +174,35 @@ Non-goals:
 - Do not break existing MCP callers.
 - Do not hide the read-only tools from clients until a compatibility plan is written.
 
-### Phase 3: Compatibility-Sensitive Cleanup Later
+### Phase 3: Upstream-Aligned Voice Authorship
+
+This phase adopts the `SpeakSwiftly` system-authored voice-profile model instead of continuing to infer built-in identity from profile names, source text, and voice descriptions alone.
+
+Status: in progress. Startup default voice creation now routes through the system-design runtime API with `ProfileSeed` metadata. Public profile encoding includes narrow authorship fields while redacting system seed source text and voice-design prompts from ordinary profile resources. The MCP surface has an explicit developer-only seed inspection tool for maintainer work.
+
+Tasks:
+
+- [x] Thread upstream `author`, `seed_id`, and `seed_version` metadata into cached voice-profile snapshots.
+- [x] Create bundled default voices through the upstream system-design API instead of ordinary user-profile creation.
+- [x] Redact system-authored source text and voice-design prompts from ordinary encoded profile JSON.
+- [x] Add an explicit `inspect_builtin_voice_seed` tool for maintainer/development inspection of package seed internals.
+- [x] Update README, API reference, and plugin-facing guidance so normal users understand built-ins as list-and-select default voices, not editable user profile designs.
+- [ ] Decide whether future built-in seed refresh/removal should be one maintainer tool or remain internal startup maintenance.
+
+Non-goals:
+
+- Do not add ordinary user tools for creating arbitrary system-authored profiles.
+- Do not widen `EmbeddedServer` with seed-management APIs.
+- Do not remove user-owned profile creation, clone, rename, reroll, or delete flows.
+
+### Phase 4: Compatibility-Sensitive Cleanup Later
 
 These items should be revisited after the first two phases are reviewed and landed:
 
+- Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior, then decide whether the duplicated active/stored routes are aliases or breaking removals.
+- Collapse or simplify cancellation around one general cancel operation plus optional scope, now that `SpeakSwiftly` exposes a clearer general cancel request operation.
 - Rename staged runtime configuration MCP tools to runtime-configuration wording, with any compatibility alias or breaking-change note decided explicitly.
-- Collapse or simplify cancellation around one general cancel operation plus optional scope.
 - Rework generated files and generated batches into a clearer artifact-family model.
-- Consider HTTP text-profile replacement routes that use the same optional-target model as MCP.
 - Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist

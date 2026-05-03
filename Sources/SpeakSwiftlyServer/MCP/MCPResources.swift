@@ -319,19 +319,22 @@ private func voiceProfilesGuideMarkdown() -> String {
     """
     # SpeakSwiftly Voice Profile Guide
 
-    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable speaking voices.
+    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable user-owned speaking voices. Package-owned built-ins are ordinary list-and-select choices for users, and maintainer-only seed details stay behind explicit tool calls.
 
     Recommended workflow:
 
     1. Read `speak://voices` to inspect the currently cached voice profiles. Use `list_voice_profiles` only for compatibility clients that cannot read resources cleanly.
-    2. Use `create_voice_profile_from_description` when the user wants a new synthetic profile from source text plus a voice description.
-    3. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice.
-    4. Use `update_voice_profile_name` when the user wants to keep the stored voice but correct or improve its visible profile name.
-    5. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one stored profile from its original source inputs while keeping the same profile name.
-    6. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    7. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech` when the input needs explicit format-aware normalization instead of automatic detection.
-    8. Use `generate_speech` after the user has chosen the correct voice profile, then read `speak://requests/{request_id}` or `speak://runtime/overview` for progress.
-    9. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist.
+    2. Use the runtime overview's `default_voice_profile_name` value to see which profile will be used when a speech request omits `profile_name`.
+    3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request.
+    4. Treat system-authored built-ins such as `swift-signal` and `swift-anchor` as list-and-select profiles for ordinary users. They are package-owned defaults, not user-editable profile designs.
+    5. Use `inspect_builtin_voice_seed` only for maintainer or development work that needs to examine package seed source text, prompt, or provenance.
+    6. Use `create_voice_profile_from_description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
+    7. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.
+    8. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
+    9. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
+    10. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    11. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech` when the input needs explicit format-aware normalization instead of automatic detection.
+    12. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by package seed install and refresh behavior.
 
     Drafting guidance:
 
@@ -348,7 +351,7 @@ private func voiceProfilesGuideMarkdown() -> String {
 
     Keep `swift-signal` and `swift-anchor` available for package built-in defaults when the default
     voice catalog is present. Built-in defaults are package-owned seed voices; ordinary user-created
-    profiles should use `.user` authorship once profile authorship metadata is available.
+    profiles use `.user` authorship.
     """
 }
 

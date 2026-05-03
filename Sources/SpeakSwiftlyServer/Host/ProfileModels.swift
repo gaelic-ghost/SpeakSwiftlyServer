@@ -5,18 +5,28 @@ import TextForSpeech
 
 /// Summary of one cached voice profile known to the shared runtime.
 public struct ProfileSnapshot: Codable, Sendable, Equatable {
-    public let profileName: String
-    public let vibe: String
-    public let createdAt: String
-    public let voiceDescription: String
-    public let sourceText: String
-
     enum CodingKeys: String, CodingKey {
         case profileName = "profile_name"
         case vibe
         case createdAt = "created_at"
         case voiceDescription = "voice_description"
         case sourceText = "source_text"
+        case author
+        case seedID = "seed_id"
+        case seedVersion = "seed_version"
+    }
+
+    public let profileName: String
+    public let vibe: String
+    public let createdAt: String
+    public let voiceDescription: String
+    public let sourceText: String
+    public let author: String
+    public let seedID: String?
+    public let seedVersion: String?
+
+    public var isSystemAuthored: Bool {
+        author == SpeakSwiftly.ProfileAuthor.system.rawValue
     }
 
     init(
@@ -25,12 +35,18 @@ public struct ProfileSnapshot: Codable, Sendable, Equatable {
         createdAt: String,
         voiceDescription: String,
         sourceText: String,
+        author: String = SpeakSwiftly.ProfileAuthor.user.rawValue,
+        seedID: String? = nil,
+        seedVersion: String? = nil,
     ) {
         self.profileName = profileName
         self.vibe = vibe
         self.createdAt = createdAt
         self.voiceDescription = voiceDescription
         self.sourceText = sourceText
+        self.author = author
+        self.seedID = seedID
+        self.seedVersion = seedVersion
     }
 
     init(profile: SpeakSwiftly.ProfileSummary) {
@@ -39,6 +55,33 @@ public struct ProfileSnapshot: Codable, Sendable, Equatable {
         createdAt = TimestampFormatter.string(from: profile.createdAt)
         voiceDescription = profile.voiceDescription
         sourceText = profile.sourceText
+        author = profile.author.rawValue
+        seedID = profile.seedID
+        seedVersion = profile.seedVersion
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(profileName, forKey: .profileName)
+        try container.encode(vibe, forKey: .vibe)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(author, forKey: .author)
+        try container.encodeIfPresent(seedID, forKey: .seedID)
+        try container.encodeIfPresent(seedVersion, forKey: .seedVersion)
+
+        if isSystemAuthored {
+            try container.encode(
+                "System-authored built-in voice profile. Deep seed source text is available only through maintainer/tool surfaces.",
+                forKey: .sourceText,
+            )
+            try container.encode(
+                "System-authored built-in voice profile. Deep voice-design prompt is available only through maintainer/tool surfaces.",
+                forKey: .voiceDescription,
+            )
+        } else {
+            try container.encode(sourceText, forKey: .sourceText)
+            try container.encode(voiceDescription, forKey: .voiceDescription)
+        }
     }
 }
 

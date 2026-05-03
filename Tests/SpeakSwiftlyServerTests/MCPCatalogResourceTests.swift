@@ -152,6 +152,40 @@ extension ServerTests {
             let profileDetailPayload = try jsonObject(from: Data(profileDetailText.utf8))
             #expect(profileDetailPayload["profile_name"] as? String == "default")
 
+            let builtInProfileEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpReadResourceRequestJSON(uri: "speak://voices/swift-signal"),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let builtInProfileResult = try #require(mcpResultPayload(from: builtInProfileEnvelope))
+            let builtInProfileContents = try #require(builtInProfileResult["contents"] as? [[String: Any]])
+            let builtInProfileText = try #require(builtInProfileContents.first?["text"] as? String)
+            let builtInProfilePayload = try jsonObject(from: Data(builtInProfileText.utf8))
+            #expect(builtInProfilePayload["profile_name"] as? String == "swift-signal")
+            #expect(builtInProfilePayload["author"] as? String == "system")
+            #expect(builtInProfilePayload["seed_id"] as? String == "swift.signal")
+            #expect((builtInProfilePayload["source_text"] as? String)?.contains("maintainer/tool surfaces") == true)
+            #expect((builtInProfilePayload["voice_description"] as? String)?.contains("maintainer/tool surfaces") == true)
+
+            let builtInSeedToolEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "inspect_builtin_voice_seed",
+                            arguments: ["seed_id": "swift.signal"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let builtInSeedPayload = try mcpToolPayload(from: builtInSeedToolEnvelope)
+            #expect(builtInSeedPayload["seed_id"] as? String == "swift.signal")
+            #expect(builtInSeedPayload["profile_name"] as? String == "swift-signal")
+            #expect((builtInSeedPayload["source_text"] as? String)?.contains("signal clear") == true)
+
             let textProfilesResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -214,6 +248,7 @@ extension ServerTests {
             #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
             #expect(voiceProfilesGuideText.contains("Use `list_voice_profiles` only for compatibility clients"))
+            #expect(voiceProfilesGuideText.contains("inspect_builtin_voice_seed"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

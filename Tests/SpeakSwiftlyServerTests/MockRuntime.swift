@@ -49,6 +49,9 @@ actor MockRuntime: ServerRuntimeProtocol {
         let vibe: SpeakSwiftly.Vibe
         let text: String
         let voiceDescription: String
+        let author: SpeakSwiftly.ProfileAuthor
+        let seedID: String?
+        let seedVersion: String?
         let outputPath: String?
         let cwd: String?
     }

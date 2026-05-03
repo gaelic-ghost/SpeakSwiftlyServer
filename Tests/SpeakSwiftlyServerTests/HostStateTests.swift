@@ -731,8 +731,13 @@ import Testing
             : nil
     }
     let invocationNames = await runtime.createProfileInvocationNames()
+    let latestInvocation = try #require(await runtime.latestCreateProfileInvocation())
     #expect(invocationNames == ["swift-signal", "swift-anchor"])
+    #expect(latestInvocation.author == .system)
+    #expect(latestInvocation.seedID == "swift.anchor")
+    #expect(latestInvocation.seedVersion == "1")
     #expect(status.cachedProfiles.map(\.profileName).sorted() == ["swift-anchor", "swift-signal"])
+    #expect(status.cachedProfiles.allSatisfy { $0.isSystemAuthored })
     #expect(status.recentErrors.isEmpty)
 
     await host.shutdown()

@@ -56,7 +56,12 @@ extension ServerHost {
         _ profile: ProfileSnapshot,
         seed: DefaultVoiceSeed,
     ) -> Bool {
-        profile.vibe == seed.vibe.rawValue
+        if profile.author == SpeakSwiftly.ProfileAuthor.system.rawValue,
+           profile.seedID == seed.seedID {
+            return profile.seedVersion == seed.seedVersion
+        }
+
+        return profile.vibe == seed.vibe.rawValue
             && profile.voiceDescription == seed.voiceDescription
             && profile.sourceText == seed.sourceText
     }
@@ -65,11 +70,12 @@ extension ServerHost {
         _ seed: DefaultVoiceSeed,
         profileName: String,
     ) async throws {
-        let handle = await runtime.createVoiceProfileFromDescription(
+        let handle = await runtime.createSystemVoiceProfileFromDescription(
             profileName: profileName,
             vibe: seed.vibe,
             from: seed.sourceText,
             voice: seed.voiceDescription,
+            seed: seed.profileSeed(installedProfileName: profileName),
             outputPath: nil,
             cwd: nil,
         )

@@ -69,6 +69,18 @@ package struct DefaultVoiceSeed: Codable, Equatable, Identifiable {
 
     package var id: String { seedID }
 
+    package func profileSeed(installedProfileName: String) -> SpeakSwiftly.ProfileSeed {
+        SpeakSwiftly.ProfileSeed(
+            seedID: seedID,
+            seedVersion: seedVersion,
+            intendedProfileName: profileName,
+            fallbackProfileName: installedProfileName == fallbackProfileName ? fallbackProfileName : nil,
+            sourcePackage: "SpeakSwiftlyServer",
+            sourceVersion: nil,
+            sampleMediaPath: sampleMediaPath,
+        )
+    }
+
     enum CodingKeys: String, CodingKey {
         case seedID = "seed_id"
         case seedVersion = "seed_version"

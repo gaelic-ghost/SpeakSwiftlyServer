@@ -73,7 +73,11 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 When the runtime first becomes ready, `SpeakSwiftlyServer` installs any missing bundled default voice
 seeds into the active profile store before exposing the refreshed profile cache. `GET /voices`
 therefore includes `swift-signal` and `swift-anchor` on a fresh store, or their `-builtin` fallback
-names when a user-owned profile already occupies a preferred seed name.
+names when a user-owned profile already occupies a preferred seed name. Those profiles are
+system-authored built-ins: ordinary users should list them and select one as the default or per-request
+voice, not edit their seed inputs. Encoded profile JSON exposes only narrow authorship metadata for
+system profiles (`author`, `seed_id`, and `seed_version`) and redacts the built-in source text and
+voice-design prompt from ordinary read surfaces.
 
 ### Text Profile Endpoints
 
@@ -193,6 +197,7 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 
 - `create_voice_profile_from_description`
 - `create_voice_profile_from_audio`
+- `inspect_builtin_voice_seed`
 - `update_voice_profile_name`
 - `reroll_voice_profile`
 - `list_voice_profiles`
@@ -275,6 +280,10 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `speak://playback/guide`
 
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
+
+`inspect_builtin_voice_seed` is a maintainer/development tool for package-owned built-in voice seed
+inspection. Normal agent and user workflows should read `speak://voices`, choose a profile name, and
+use `generate_speech` or the default-voice configuration path instead of inspecting seed prompts.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 
