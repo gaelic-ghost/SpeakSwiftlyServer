@@ -86,7 +86,26 @@ extension MockRuntime {
 
     func listVoiceProfiles() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
+        if holdNextListVoiceProfiles {
+            holdNextListVoiceProfiles = false
+            listVoiceProfilesHasReachedHold = true
+            let holdWaiters = listVoiceProfilesHoldWaiters
+            listVoiceProfilesHoldWaiters.removeAll()
+            for waiter in holdWaiters {
+                waiter.resume()
+            }
+            await withCheckedContinuation { continuation in
+                listVoiceProfilesHoldContinuation = continuation
+            }
+        }
         listVoiceProfilesCallCount += 1
+        if !listVoiceProfilesFailureMessages.isEmpty {
+            let message = listVoiceProfilesFailureMessages.removeFirst()
+            let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+                continuation.finish(throwing: SpeakSwiftly.Error(code: .internalError, message: message))
+            }
+            return RuntimeRequestHandle(id: requestID, operation: "list_voice_profiles", profileName: nil, events: events)
+        }
         if !scriptedProfileRefreshSnapshots.isEmpty {
             profiles = scriptedProfileRefreshSnapshots.removeFirst()
         }

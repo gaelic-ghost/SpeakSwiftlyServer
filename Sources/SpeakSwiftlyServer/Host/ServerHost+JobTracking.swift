@@ -349,18 +349,23 @@ extension ServerHost {
                 workerStage = status.stage.rawValue
                 startupError = nil
             case .residentModelReady:
-                workerMode = "ready"
                 workerStage = status.stage.rawValue
                 startupError = nil
-                if !hasRequestedStartupProfileRefresh {
-                    hasRequestedStartupProfileRefresh = true
+                if !hasRequestedStartupProfileRefresh, !isRunningStartupProfileRefresh {
+                    isRunningStartupProfileRefresh = true
                     do {
-                        _ = try await refreshProfiles(reason: "startup")
+                        let profiles = try await refreshProfiles(reason: "startup")
+                        _ = try await installMissingDefaultVoices(after: profiles)
+                        hasRequestedStartupProfileRefresh = true
                     } catch {
                         profileCacheState = "stale"
-                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache. Likely cause: \(error.localizedDescription)"
+                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache or install bundled default voices. Likely cause: \(error.localizedDescription)"
                         emitProfileCacheChanged()
                     }
+                    isRunningStartupProfileRefresh = false
+                }
+                if workerStage == status.stage.rawValue, !isRunningStartupProfileRefresh {
+                    workerMode = "ready"
                 }
             case .residentModelsUnloaded:
                 workerMode = "starting"
