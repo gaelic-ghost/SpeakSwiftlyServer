@@ -13,5 +13,7 @@ if [ "${REPO_MAINTENANCE_DRY_RUN:-false}" = "true" ]; then
 fi
 
 git -C "$REPO_ROOT" push -u origin "$branch_name"
+wait_for_remote_branch "$branch_name"
 git -C "$REPO_ROOT" push origin "$RELEASE_TAG"
+wait_for_remote_tag "$RELEASE_TAG"
 log "Pushed branch $branch_name and tag $RELEASE_TAG."

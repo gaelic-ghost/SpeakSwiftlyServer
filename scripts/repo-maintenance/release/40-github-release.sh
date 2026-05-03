@@ -27,3 +27,4 @@ fi
 
 gh release create "$RELEASE_TAG" --verify-tag --generate-notes
 log "Created GitHub release $RELEASE_TAG."
+wait_for_github_release "$RELEASE_TAG"
