@@ -126,11 +126,13 @@ names when a user-owned profile already occupies a preferred seed name.
 
 ### Accepted Request Semantics
 
-`POST /speech/live`, `POST /voices/from-description`, `POST /voices/from-audio`, `PUT /voices/{profile_name}/name`, `POST /voices/{profile_name}/reroll`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately.
+`POST /speech/live`, `POST /speech/files`, `POST /speech/batches`, `POST /voices/from-description`, `POST /voices/from-audio`, `PUT /voices/{profile_name}/name`, `POST /voices/{profile_name}/reroll`, and `DELETE /voices/{profile_name}` all return accepted-request metadata immediately.
 
 Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first.
 
 `POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_id`, `text_format`, `nested_source_format`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, normalization-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
+
+`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/files`, `GET /generation/files/{artifact_id}`, `GET /generation/batches`, or `GET /generation/batches/{batch_id}` for the retained media records.
 
 ### Text Profile Semantics
 

@@ -7,13 +7,14 @@ package behavior without running a local server. Runtime-loaded SwiftPM resource
 `Sources/SpeakSwiftlyServer/Resources` instead, because SwiftPM target resources must live under the
 target that owns them.
 
-## Planned Layout
+## Layout
 
 ```text
 docs/media/
   default-voices/
     README.md
-    <profile-name>.wav
+    swift-signal.wav
+    swift-anchor.wav
 ```
 
 Each checked-in voice sample should include:

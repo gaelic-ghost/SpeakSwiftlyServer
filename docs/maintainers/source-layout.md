@@ -100,6 +100,8 @@ resources through the target bundle.
   Reports hook ownership, legacy global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present. The duplicate scan accounts for `speak-swiftly@socket`, `speak-swiftly@SpeakSwiftlyServer`, `speak-swiftly-server@socket`, and `speak-swiftly-server@SpeakSwiftlyServer`.
 - `skills/speak-swiftly-mcp/`
   Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
+- `skills/speak-swiftly-launchagent-setup/`
+  Holds the LaunchAgent setup, refresh, status, and healthcheck skill.
 - `skills/speak-swiftly-runtime-operator/`
   Holds the runtime, queue, playback, and request-control skill.
 - `skills/speak-swiftly-voice-workflows/`

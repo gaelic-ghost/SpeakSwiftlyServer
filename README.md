@@ -107,6 +107,13 @@ the active default voice selection unchanged. If a user already has a profile wi
 startup uses a `-builtin` fallback such as `swift-signal-builtin` for the package-owned copy instead
 of overwriting the user's profile.
 
+Short generated preview clips live under [docs/media/default-voices](./docs/media/default-voices/):
+
+| Voice | Preview | Transcript |
+| --- | --- | --- |
+| `swift-signal` | <audio controls src="./docs/media/default-voices/swift-signal.wav"></audio> [Download WAV](./docs/media/default-voices/swift-signal.wav) | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
+| `swift-anchor` | <audio controls src="./docs/media/default-voices/swift-anchor.wav"></audio> [Download WAV](./docs/media/default-voices/swift-anchor.wav) | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
+
 The full transport contract lives in [API.md](./API.md).
 
 ## Development
