@@ -16,9 +16,9 @@ Run the standard release flow from a feature branch or worktree:
 scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-The standard flow runs `scripts/repo-maintenance/version-bump.sh` before tagging. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
+The standard flow runs `scripts/repo-maintenance/version-bump.sh` before the release PR is pushed. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
 
-The standard flow is a durable repo-maintenance path. It validates the checkout, creates the annotated tag locally, pushes the branch and tag, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the GitHub release with `gh release create --verify-tag`, and cleans up merged local branches when safe.
+The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, and cleans up merged local branches when safe.
 
 ## Context Rules
 
@@ -90,7 +90,7 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
 4. Let the repo-maintenance validation check run.
-5. Let the script push the branch and tag, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create the GitHub release, and clean up merged branches.
+5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, and clean up merged branches.
 6. Run any post-release live-service refresh or staged-artifact promotion only when that operation is explicitly part of the release task.
 
 ## Validation Shape
@@ -123,7 +123,8 @@ The explicit repo-maintenance profile lives in `scripts/repo-maintenance/config/
 - Standard mode requires a named feature branch or worktree.
 - Standard mode refuses to run from the configured base branch.
 - Standard mode requires a clean worktree before release work starts.
-- Standard mode creates the annotated tag before pushing the branch and tag.
+- Standard mode waits for the release PR to pass CI and review-comment checks before it creates the annotated tag.
+- Standard mode dereferences existing annotated tags before comparing them with `HEAD` so reruns do not confuse the tag object SHA for the tagged commit SHA.
 - Standard mode uses a pull request and watches CI before merge.
 - Standard mode stops on requested changes or unresolved review/discussion comments unless rerun with `--review-comments-addressed` after the comment pass is intentionally complete.
 - Standard mode creates the GitHub release from the pushed tag with `--verify-tag`.
