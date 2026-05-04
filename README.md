@@ -37,8 +37,32 @@ The goal is to give macOS and near-future Apple-platform apps one small, typed l
 
 ## Quick Start
 
-`SpeakSwiftlyServer` currently targets macOS 15.0 and Swift 6.3. Build the
-package with Xcode's selected Swift toolchain:
+`SpeakSwiftlyServer` currently targets macOS 15.0 and Swift 6.3.
+
+For Codex users, install or update the managed plugin first:
+
+```bash
+codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
+codex plugin marketplace upgrade SpeakSwiftlyServer
+```
+
+If you use Gale's broader Socket marketplace instead, install or update that catalog:
+
+```bash
+codex plugin marketplace add gaelic-ghost/socket
+codex plugin marketplace upgrade socket
+```
+
+After adding or upgrading the marketplace, restart Codex, enable `Speak Swiftly` in the Plugin Directory, then set up or refresh the native service from the installed plugin checkout:
+
+```bash
+xcrun swift run SpeakSwiftlyServerTool launch-agent install
+xcrun swift run SpeakSwiftlyServerTool healthcheck
+```
+
+Plugin install/update and native service install/update are separate. The Codex marketplace gives agents the skills, MCP registration, and hooks; the LaunchAgent command builds and refreshes the local Swift service those plugin surfaces call.
+
+For source checkouts, build the package with Xcode's selected Swift toolchain:
 
 ```bash
 xcrun swift build
@@ -67,20 +91,18 @@ Run the server directly in the foreground:
 xcrun swift run SpeakSwiftlyServerTool serve
 ```
 
-Install or refresh the per-user LaunchAgent with a config file:
+Install or refresh the per-user LaunchAgent:
 
 When the default staged tool path is used, this command first builds and stages the current checkout at `.release-artifacts/current/SpeakSwiftlyServerTool`, refreshes its bundled Metal resource, refreshes the staged ad-hoc signature, and then writes and bootstraps the LaunchAgent. Pass `--tool-executable-path /path/to/SpeakSwiftlyServerTool` only when you intentionally want to install a specific prebuilt executable instead.
 
 ```bash
-xcrun swift run SpeakSwiftlyServerTool launch-agent install \
-  --config-file ./server.yaml
+xcrun swift run SpeakSwiftlyServerTool launch-agent install
 ```
 
 Use the explicit promotion command when you want the lower-level "build, stage, then reinstall" spelling. This is mostly useful for release or operator scripts that want to name the promotion step directly; ordinary default-path refreshes can use `install`.
 
 ```bash
-xcrun swift run SpeakSwiftlyServerTool launch-agent promote-live \
-  --config-file ./server.yaml
+xcrun swift run SpeakSwiftlyServerTool launch-agent promote-live
 ```
 
 Inspect or remove the installed LaunchAgent:
@@ -137,9 +159,10 @@ The short version for a fresh checkout is:
 
 - use `xcrun swift test` for the normal package-development loop
 - use `sh scripts/repo-maintenance/validate-all.sh` for the full local maintainer gate
-- let GitHub Actions run the lighter remote CI gate from `scripts/repo-maintenance/validate-ci.sh`
+- let GitHub Actions run the `validate` check through `scripts/repo-maintenance/validate-all.sh`
 - use `node scripts/codex-hooks-doctor.mjs` when changing the Codex plugin or hook surface
-- use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z` for the aligned release flow
+- use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z` for the aligned release flow, including the post-release live-service update from synced local `main`
+- use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --remote-ci-mode defer` only when full local validation has passed and the remote CI wait should resume through a Codex wakeup instead of a long-running poll
 - use `scripts/repo-maintenance/config/profile.env` to confirm the active `swift-package` maintainer profile
 
 ### Setup
@@ -297,23 +320,11 @@ This repository is also packaged as a repo-local Codex plugin through [`.codex-p
 
 The plugin can be installed without using `socket` through Codex's Git-backed marketplace flow. The repo-local marketplace lives at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json), and its single plugin entry points at this repository root with `source.path` set to `./` because the root directory is also the plugin root.
 
-Prefer the official Git-backed install and update path:
+The plugin install and update commands are in [Quick Start](#quick-start). The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older installs may still appear as `speak-swiftly-server` until they are upgraded or disabled. Manual local clone marketplaces and personal copied-payload entries are development, unpublished-testing, and fallback paths rather than the default user install story.
 
-```bash
-codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
-codex plugin marketplace upgrade SpeakSwiftlyServer
-```
+Marketplace installation gives Codex the plugin payload: skills, MCP registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not by itself start, install, or update the native Swift service. The native service step also lives in [Quick Start](#quick-start) so users and agents see it before digging into plugin details.
 
-After Codex adds or upgrades the marketplace, restart Codex, open the plugin directory in the Codex GUI, choose the `SpeakSwiftlyServer` marketplace, and install or enable the Speak Swiftly plugin there. The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older installs may still appear as `speak-swiftly-server` until they are upgraded or disabled. Manual local clone marketplaces and personal copied-payload entries are development, unpublished-testing, and fallback paths rather than the default user install story.
-
-The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Installing from the Git-backed socket marketplace is useful when you want Speak Swiftly plus Gale's other Codex plugins available from one marketplace:
-
-```bash
-codex plugin marketplace add gaelic-ghost/socket
-codex plugin marketplace upgrade socket
-```
-
-After adding `socket`, restart Codex, open the plugin directory in the Codex GUI, choose the `Socket` marketplace, and install or enable `Speak Swiftly` plus any companion plugins you want. Use an explicit ref such as `gaelic-ghost/SpeakSwiftlyServer@vX.Y.Z` only when you want a pinned reproducible install rather than the release-aligned default branch.
+The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Use an explicit ref such as `gaelic-ghost/SpeakSwiftlyServer@vX.Y.Z` only when you want a pinned reproducible install rather than the release-aligned default branch.
 
 If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor detects duplicate enablement across both marketplaces and reports a dry-run repair plan that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after confirmation. During migration, the duplicate scan accounts for both the current `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
 

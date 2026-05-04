@@ -18,7 +18,15 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 
 The standard flow runs `scripts/repo-maintenance/version-bump.sh` before the release PR is pushed. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
 
-The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, and cleans up merged local branches when safe.
+The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, updates the local LaunchAgent-backed live service from the synced `main` checkout, healthchecks HTTP and MCP, and cleans up merged local branches when safe.
+
+When full local validation has already run and the remote CI wait is expected to be long, use deferred remote CI mode:
+
+```bash
+scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --remote-ci-mode defer
+```
+
+Deferred mode still validates locally, pushes the branch, opens or updates the release PR, and waits until GitHub reports initial checks. It then pauses so Codex can use a native thread Timer/Wakeup or heartbeat automation and resume in the same thread after CI settles instead of leaving a shell process open to poll GitHub.
 
 ## Context Rules
 
@@ -67,7 +75,9 @@ Key flags:
 - `--skip-validate`
 - `--skip-version-bump`
 - `--skip-gh-release`
+- `--skip-live-service-update`
 - `--review-comments-addressed`
+- `--remote-ci-mode <full|defer>`
 - `--skip-branch-cleanup`
 - `--dry-run`
 
@@ -82,9 +92,9 @@ Purpose:
 
 Purpose:
 
-- one remote CI validation entrypoint
-- the command CI calls through `.github/workflows/validate-repo-maintenance.yml`
-- a lighter remote gate covering repo-maintenance structure, plugin metadata, CI wiring, package build, and package tests
+- local compatibility wrapper for checking CI-oriented repo-maintenance wiring
+- useful when maintainers want a narrower CI-shape check without running the full local maintainer gate
+- not the current GitHub Actions entrypoint
 
 ## Expected Flow
 
@@ -97,8 +107,16 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
 4. Let the repo-maintenance validation check run.
-5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, and clean up merged branches.
-6. Run any post-release live-service refresh or staged-artifact promotion only when that operation is explicitly part of the release task.
+5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, update the live LaunchAgent-backed service from synced local `main`, run `SpeakSwiftlyServerTool healthcheck`, and clean up merged branches.
+6. Use `--skip-live-service-update` only when the release is intentionally metadata-only for this machine or when a maintainer will refresh the live service from a different checkout.
+
+For deferred remote CI:
+
+1. Run full local validation before the release command.
+2. Run the standard release command with `--remote-ci-mode defer`.
+3. Let the script stop after branch push, PR creation, and initial check discovery.
+4. Use a native Codex thread Timer/Wakeup or heartbeat automation to resume after CI settles.
+5. Rerun the standard release command without `--remote-ci-mode defer` to finish review checks, merge, tag, GitHub release creation, live-service update, and cleanup.
 
 ## Validation Shape
 
@@ -107,14 +125,12 @@ The repository uses one authoritative GitHub validation workflow: `.github/workf
 That workflow runs:
 
 ```bash
-bash scripts/repo-maintenance/validate-ci.sh
+bash scripts/repo-maintenance/validate-all.sh
 ```
 
-The remote CI dispatcher covers the managed toolkit checks plus the Swift package build and test lane. It intentionally skips DocC, CLI smoke, SwiftFormat, and SwiftLint so pull requests do not need Homebrew tool installation or the full local release gate on every remote run.
+The GitHub workflow uses the same full maintainer gate as local release validation. It installs the SwiftFormat and SwiftLint tools before running the gate, then executes the managed toolkit checks and repo-specific package checks under `scripts/repo-maintenance/validations/`, including build, test, DocC, CLI smoke, SwiftFormat, and SwiftLint.
 
-The local validation dispatcher remains the full maintainer gate. It covers the managed toolkit checks and the repo-specific Swift package checks under `scripts/repo-maintenance/validations/`, including build, test, DocC, CLI smoke, SwiftFormat, and SwiftLint.
-
-Keep new required local validation inside `validate-all.sh` unless it belongs specifically to the lighter GitHub gate.
+Keep new required validation inside `validate-all.sh` unless it belongs specifically to a local CI-wrapper compatibility check.
 
 ## Defaults
 
@@ -124,6 +140,7 @@ Current defaults:
 
 - default release mode: `standard`
 - release branch: `main`
+- remote CI mode: `full`
 
 The explicit repo-maintenance profile lives in `scripts/repo-maintenance/config/profile.env` and is currently `swift-package`.
 
@@ -132,9 +149,12 @@ The explicit repo-maintenance profile lives in `scripts/repo-maintenance/config/
 - Standard mode requires a named feature branch or worktree.
 - Standard mode refuses to run from the configured base branch.
 - Standard mode requires a clean worktree before release work starts.
+- Standard mode can defer remote CI after initial check discovery with `--remote-ci-mode defer`; deferred mode is a pause point, not a completed release.
 - Standard mode waits for the release PR to pass CI and review-comment checks before it creates the annotated tag.
 - Standard mode dereferences existing annotated tags before comparing them with `HEAD` so reruns do not confuse the tag object SHA for the tagged commit SHA.
 - Standard mode uses a pull request and watches CI before merge.
 - Standard mode stops on requested changes or unresolved review/discussion comments unless rerun with `--review-comments-addressed` after the comment pass is intentionally complete.
 - Standard mode creates the GitHub release from the pushed tag with `--verify-tag`.
+- Standard mode updates the LaunchAgent-backed live service only after local `main` has been fast-forwarded and the versioned GitHub release exists.
+- Standard mode immediately runs the server healthcheck after the live-service update so HTTP and MCP startup failures block the release handoff.
 - Submodule mode leaves parent repository pointer updates to a separate follow-up commit.

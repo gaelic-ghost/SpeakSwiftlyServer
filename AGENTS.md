@@ -35,6 +35,9 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Keep HTTP, MCP, LaunchAgent, and release workflow changes paired with operator-facing docs in the same change.
 - Keep source files small and role-focused; split shared support into explicit helper or extension files instead of growing mixed-responsibility entry points.
 - Use feature branches for normal repo work. Treat `main` as the protected release branch unless Gale explicitly says to work there for a specific task.
+- Treat a feature branch as a local isolation and checkpoint surface, not automatic permission to publish, open a pull request, or start watching remote CI.
+- Do not push a branch, open a pull request, enable auto-merge, or begin GitHub CI watch just because a local change exists. Do those remote handoff steps only when Gale asks for a PR/push/release, when the repo-owned release script is intentionally running a release, or when Gale explicitly asks for review handoff.
+- For ordinary implementation and docs changes, finish the local pass first: inspect the diff, run the relevant local validation, explain the result, and wait for a remote handoff request unless the active task already asked for one.
 
 ### Source of Truth
 
@@ -74,11 +77,13 @@ Use the repo-owned maintainer gate for complete validation:
 sh scripts/repo-maintenance/validate-all.sh
 ```
 
-Use the lighter remote CI lane when checking the GitHub workflow path locally:
+Use the remote CI wrapper lane when checking the GitHub workflow path locally:
 
 ```bash
 sh scripts/repo-maintenance/validate-ci.sh
 ```
+
+The GitHub Actions workflow itself runs the full maintainer gate through `sh scripts/repo-maintenance/validate-all.sh`; `validate-ci.sh` remains a local compatibility wrapper for checking CI-oriented repo-maintenance wiring.
 
 Use the default SwiftPM package lane for ordinary source work:
 
@@ -107,9 +112,11 @@ Run repo-maintenance sync and release entrypoints:
 ```bash
 sh scripts/repo-maintenance/sync-shared.sh
 sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
+sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --remote-ci-mode defer
 ```
 
 The release flow runs `scripts/repo-maintenance/version-bump.sh` so version-bearing repo surfaces move with the release before the tag is created.
+Use `--remote-ci-mode defer` when full local validation has already run and the remote CI wait is long enough that Codex should resume from a thread wakeup instead of holding a shell process open just to poll GitHub.
 
 ## Review and Delivery
 
@@ -118,6 +125,7 @@ The release flow runs `scripts/repo-maintenance/version-bump.sh` so version-bear
 - Summarize what changed, which repo surfaces moved, and why those surfaces needed to move together.
 - Call out whether validation used the full maintainer gate or a narrower SwiftPM check.
 - Mention docs updates when behavior changed for HTTP, MCP, LaunchAgent, embedding, release, or plugin consumers.
+- Do not describe local work as PR-ready unless the branch has actually reached a requested review or release handoff point.
 - For release work, make sure `scripts/repo-maintenance/release.sh` is the documented entrypoint unless a historical release note is intentionally describing an older flow.
 
 ### Definition of Done
