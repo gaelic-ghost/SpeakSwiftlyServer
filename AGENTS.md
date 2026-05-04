@@ -74,6 +74,12 @@ Use the repo-owned maintainer gate for complete validation:
 sh scripts/repo-maintenance/validate-all.sh
 ```
 
+Use the lighter remote CI lane when checking the GitHub workflow path locally:
+
+```bash
+sh scripts/repo-maintenance/validate-ci.sh
+```
+
 Use the default SwiftPM package lane for ordinary source work:
 
 ```bash

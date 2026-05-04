@@ -303,9 +303,6 @@ function speechRequestBody(message, payload, profileName) {
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
       source: "codex-stop-hook",
-      app: "Codex",
-      agent: model,
-      project: typeof cwd === "string" && cwd.length > 0 ? path.basename(cwd) : undefined,
       topic: "assistant-final-reply",
       attributes,
     },

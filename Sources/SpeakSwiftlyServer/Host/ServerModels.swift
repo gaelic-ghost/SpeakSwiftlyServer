@@ -33,9 +33,6 @@ func supportedMarvisResidentPolicyDescription() -> String {
 
 struct SpeechRequestContextDefaults {
     var source: String?
-    var app: String?
-    var agent: String?
-    var project: String?
     var topic: String?
     var cwd: String?
     var repoRoot: String?
@@ -43,18 +40,12 @@ struct SpeechRequestContextDefaults {
 
     init(
         source: String? = nil,
-        app: String? = nil,
-        agent: String? = nil,
-        project: String? = nil,
         topic: String? = nil,
         cwd: String? = nil,
         repoRoot: String? = nil,
         attributes: [String: String] = [:],
     ) {
         self.source = source
-        self.app = app
-        self.agent = agent
-        self.project = project
         self.topic = topic
         self.cwd = cwd
         self.repoRoot = repoRoot
@@ -70,9 +61,6 @@ func makeSpeechRequestContext(
 ) -> SpeakSwiftly.RequestContext? {
     let merged = SpeakSwiftly.RequestContext(
         source: requestContext?.source ?? defaults.source,
-        app: requestContext?.app ?? defaults.app,
-        agent: requestContext?.agent ?? defaults.agent,
-        project: requestContext?.project ?? defaults.project,
         topic: requestContext?.topic ?? defaults.topic,
         cwd: cwd ?? requestContext?.cwd ?? defaults.cwd,
         repoRoot: repoRoot ?? requestContext?.repoRoot ?? defaults.repoRoot,
@@ -83,9 +71,6 @@ func makeSpeechRequestContext(
     )
     guard
         merged.source != nil
-        || merged.app != nil
-        || merged.agent != nil
-        || merged.project != nil
         || merged.topic != nil
         || merged.cwd != nil
         || merged.repoRoot != nil

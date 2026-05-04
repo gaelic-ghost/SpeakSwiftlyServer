@@ -35,7 +35,7 @@ The skill-referenced MCP tool names, prompt names, and `speak-swiftly://` resour
 
 The skills now match the resources-first MCP guidance: use `speak-swiftly://overview`, `speak-swiftly://voices`, `speak-swiftly://text-profiles`, and focused detail resources for read-only inspection, and reserve tools for queueing speech, runtime changes, profile/text-profile mutations, cancellation, clearing, playback control, and compatibility clients that cannot read resources cleanly.
 
-The public HTTP and MCP guidance now treats request-context metadata as transport-owned by default. Callers can omit `request_context` for ordinary speech calls; they only need to provide it when they know richer app, project, topic, path, or caller attributes than the server can infer.
+The public HTTP and MCP guidance now treats request-context metadata as transport-owned by default. Callers can omit `request_context` for ordinary speech calls; they only need to provide it when they know richer source, topic, path, or caller attributes than the server can infer.
 
 ## Drift Fixed In This Pass
 
