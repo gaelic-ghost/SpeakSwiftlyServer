@@ -306,6 +306,13 @@ After Codex adds or upgrades the marketplace, restart Codex, open the plugin dir
 
 Marketplace installation gives Codex the plugin payload: skills, MCP registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not by itself start the native Swift service. For a first run, ask Codex to set up Speak Swiftly on the machine, or run the LaunchAgent install command above from the installed plugin checkout. The install command builds and stages the current plugin checkout, seeds `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` when it is missing, bootstraps the per-user LaunchAgent, and then `healthcheck` verifies HTTP plus MCP.
 
+That means there are two install/update surfaces:
+
+- Codex plugin install or update: `codex plugin marketplace add ...` and `codex plugin marketplace upgrade ...` refresh the Codex-managed plugin checkout, skills, MCP registration, and hooks.
+- Native service install or update: `xcrun swift run SpeakSwiftlyServerTool launch-agent install` refreshes the per-user LaunchAgent-backed Swift service that the plugin talks to.
+
+After a marketplace upgrade, the safest explicit update path is to ask Codex to "refresh the Speak Swiftly live service" or run the LaunchAgent install command from the upgraded plugin checkout. The hook scripts intentionally log unreachable-service failures instead of silently installing or changing `launchd` during a final-reply hook.
+
 The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Installing from the Git-backed socket marketplace is useful when you want Speak Swiftly plus Gale's other Codex plugins available from one marketplace:
 
 ```bash

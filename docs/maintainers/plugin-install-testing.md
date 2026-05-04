@@ -111,3 +111,30 @@ These commands prove the marketplace and cached plugin files. They do not prove
 that an already-running Codex session has refreshed its visible plugin tools and
 skills. For that final check, start a fresh Codex session after the add or
 upgrade and inspect the Plugin Directory or the model-visible tool list.
+
+## End-User First Run
+
+Marketplace installation and native service installation are separate by design.
+The marketplace gives Codex the `speak-swiftly` plugin payload: skills, MCP
+registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not
+silently install, restart, or update the per-user LaunchAgent-backed Swift
+service.
+
+The expected first-run path is:
+
+1. Add or upgrade the `SpeakSwiftlyServer` marketplace, or add or upgrade the
+   broader `socket` marketplace and enable `Speak Swiftly` from there.
+2. Start a fresh Codex session so the managed plugin payload is visible.
+3. Ask Codex to "set up Speak Swiftly on this machine" or run the LaunchAgent
+   install command from the installed plugin checkout:
+
+```bash
+xcrun swift run SpeakSwiftlyServerTool launch-agent install
+xcrun swift run SpeakSwiftlyServerTool healthcheck
+```
+
+For updates, `codex plugin marketplace upgrade ...` refreshes the Codex-managed
+plugin checkout and metadata. The native service should then be refreshed from
+that upgraded checkout with the same LaunchAgent install command. Hook scripts
+must log unreachable-service failures instead of silently mutating launchd from a
+final-reply hook.

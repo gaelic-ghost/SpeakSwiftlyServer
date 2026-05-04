@@ -12,6 +12,7 @@ Use this skill when the user wants the standalone `SpeakSwiftlyServer` to run as
 - Use the supported `SpeakSwiftlyServerTool launch-agent ...` commands instead of hand-editing property lists or calling `launchctl` directly.
 - Read the repo operator guidance in [README.md](../../README.md) first, then [LaunchAgent-Workflow.md](../../Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.docc/Articles/LaunchAgent-Workflow.md) when the user needs the full setup model.
 - If the user is asking about Codex access to the running service, remember that the installed plugin already handles the Codex-side MCP registration through [`.mcp.json`](../../.mcp.json). The setup work here is about getting the live server healthy at `http://127.0.0.1:7337/mcp`, not about hand-editing Codex config files.
+- If the user installed Speak Swiftly through the `SpeakSwiftlyServer` or `socket` marketplace, treat the installed plugin cache as the source checkout for first-run setup and service refresh. Marketplace install or upgrade refreshes the Codex-managed plugin payload, but it does not silently install or restart the native LaunchAgent-backed service.
 - Phrase the setup outcome in user terms like "set up SpeakSwiftly on this machine," "install the background service," "make the local service reachable from Codex," or "fix the LaunchAgent install," because those are the kinds of requests this skill should trigger on.
 
 ## Normal Setup Flow
@@ -41,6 +42,7 @@ Use this skill when the user wants the standalone `SpeakSwiftlyServer` to run as
 
 - Treat `healthcheck` as the primary verification path because it probes `GET /healthz`, reads `GET /overview`, and sends a real MCP `initialize` request to `/mcp`.
 - If the HTTP process is healthy but Codex still cannot use the MCP surface, do not jump straight to telling the user to edit Codex config. First check whether the server is actually exposing `/mcp`. The plugin install should already handle the Codex-side connection; the remaining failure is usually that MCP is disabled in the server config or environment. The MCP endpoint exists only when `APP_MCP_ENABLED=true` or the config file enables MCP.
+- If a marketplace user says the plugin is installed but Speak Swiftly still does not speak, check whether the LaunchAgent-backed service is installed and healthy before changing plugin config. The hook path records `speech-route-unreachable` when the plugin is present but the native service is not running.
 - If the user wants to understand whether the live background service is using the staged artifact or a different executable, rely on `launch-agent status`, install output, and the printed plist rather than inferring from filesystem timestamps alone.
 - If the user needs queue, playback, or backend control after the service is already installed, switch to `$speak-swiftly-runtime-operator` instead of stretching this skill into runtime operations.
 - If the question is about using the live MCP surface from Codex after setup, switch to `$speak-swiftly-mcp`.
