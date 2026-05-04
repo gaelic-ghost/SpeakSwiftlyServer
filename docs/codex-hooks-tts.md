@@ -19,7 +19,8 @@ testing harness for this checkout.
   `PermissionRequest` probe.
 - `hooks/stop-tts.mjs`
   Reads the Codex `Stop` payload from `stdin`, skips empty or duplicate turns,
-  ignores continuation passes by default, and queues speech through the local
+  ignores continuation passes by default, optionally projects sectioned final
+  replies into a shorter spoken form, and queues speech through the local
   `SpeakSwiftlyServer` HTTP route at `POST /speech/live`.
 - `hooks/permission-request-log.mjs`
   Reads the Codex `PermissionRequest` payload from `stdin` and records a local
@@ -139,6 +140,18 @@ The `Stop` hook script also accepts:
   Defaults to `true`. Skips compact structured assistant payloads such as
   `{"title":"..."}`, `{"suggestions":[...]}`, and `{"exclude":[...]}` because
   those are UI or automation metadata rather than speakable final prose.
+- `CODEX_HOOK_TTS_SKIP_SECTIONS`
+  Comma-separated list of final-reply sections to omit from spoken playback.
+  The hook recognizes top-level `Answer`, `Meaning`, `Evidence`, `Details`,
+  and `Risk` headings written as Markdown headings, bold headings, or plain
+  heading lines. For example, `Evidence,Details` keeps those sections in the
+  written reply while omitting their bodies from the text sent to
+  `POST /speech/live`.
+- `CODEX_HOOK_TTS_SECTION_NOTICE`
+  Controls how skipped section presence is announced in speech. Supported
+  values are `brief`, `verbose`, and `none`; invalid values fall back to
+  `brief`. The default `brief` mode says which configured sections were
+  present but skipped.
 - `CODEX_HOOK_TTS_MAX_SEEN_TURNS`
   Controls how many dedupe keys are retained in the local state file.
 - `CODEX_HOOK_TTS_STATE_LOCK_TIMEOUT_MS`
@@ -189,8 +202,18 @@ failure.
 - Duplicate `Stop` invocations can happen for the same `session_id + turn_id`
   when multiple hook sources match. The hook reserves a turn before posting to
   the speech route so duplicate processes do not queue duplicate audio jobs.
+- In this repository, duplicate `Stop` invocations are especially easy to see
+  because the installed plugin hook, the supported global fallback hook, and the
+  repo-local `.codex/hooks.json` development harness can all point at the same
+  script. Ordinary users usually only need the plugin-managed hook and, when
+  plugin dispatch is not reliable from every working directory, the single
+  global fallback hook. The repo-local `.codex/hooks.json` entry is for
+  checkout-scoped hook development and writes its own logs under `.codex/`.
 - Some assistant messages are compact JSON metadata used by Codex UI or
   automation flows. Those should be logged and skipped, not spoken aloud.
+- Section projection happens before the speech request is submitted. Hook logs
+  include the known sections found in the written reply, which sections were
+  spoken, and which configured sections were skipped.
 - The speech route distinguishes a reachable-but-not-ready runtime from an
   unreachable runtime:
   - HTTP `503` with `SpeakSwiftly is not ready yet...` means the server is up

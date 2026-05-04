@@ -21,10 +21,13 @@ const defaultProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-f
 const skipContinuedTurns = (process.env.CODEX_HOOK_TTS_SKIP_CONTINUATIONS ?? "true") !== "false";
 const skipStructuredMessages = (process.env.CODEX_HOOK_TTS_SKIP_STRUCTURED_MESSAGES ?? "true") !== "false";
 const logFullPayload = (process.env.CODEX_HOOK_TTS_LOG_FULL_PAYLOAD ?? "false") === "true";
+const skippedSectionNames = sectionNameSet(process.env.CODEX_HOOK_TTS_SKIP_SECTIONS ?? "");
+const sectionNoticeMode = normalizeSectionNoticeMode(process.env.CODEX_HOOK_TTS_SECTION_NOTICE ?? "brief");
 const maxSeenTurns = Number.parseInt(process.env.CODEX_HOOK_TTS_MAX_SEEN_TURNS ?? "200", 10);
 const stateLockDir = path.join(stateDir, "stop-tts-seen-turns.lock");
 const stateLockTimeoutMs = Number.parseInt(process.env.CODEX_HOOK_TTS_STATE_LOCK_TIMEOUT_MS ?? "3000", 10);
 const stateLockPollMs = Number.parseInt(process.env.CODEX_HOOK_TTS_STATE_LOCK_POLL_MS ?? "50", 10);
+const knownReplySections = ["Answer", "Meaning", "Evidence", "Details", "Risk"];
 
 async function readStdin() {
   const chunks = [];
@@ -135,6 +138,133 @@ function structuredMessageReason(message) {
   }
 
   return null;
+}
+
+function sectionNameSet(value) {
+  return new Set(
+    String(value)
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter((item) => item.length > 0),
+  );
+}
+
+function normalizeSectionNoticeMode(value) {
+  const normalized = String(value).trim().toLowerCase();
+  return new Set(["none", "brief", "verbose"]).has(normalized) ? normalized : "brief";
+}
+
+function displaySectionList(sectionNames) {
+  if (sectionNames.length === 0) return "";
+  if (sectionNames.length === 1) return sectionNames[0];
+  if (sectionNames.length === 2) return `${sectionNames[0]} and ${sectionNames[1]}`;
+  return `${sectionNames.slice(0, -1).join(", ")}, and ${sectionNames.at(-1)}`;
+}
+
+function replySectionName(line) {
+  const escapedNames = knownReplySections.join("|");
+  const patterns = [
+    new RegExp(`^\\s{0,3}#{1,6}\\s+(${escapedNames})\\s*#*\\s*$`, "i"),
+    new RegExp(`^\\s{0,3}\\*\\*\\s*(${escapedNames})\\s*\\*\\*\\s*$`, "i"),
+    new RegExp(`^\\s{0,3}(${escapedNames})\\s*$`, "i"),
+  ];
+
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const matched = match[1].toLowerCase();
+      return knownReplySections.find((section) => section.toLowerCase() === matched) ?? null;
+    }
+  }
+
+  return null;
+}
+
+function parseReplySections(message) {
+  const lines = message.split(/\r?\n/);
+  const parts = [];
+  let current = { kind: "preamble", name: null, heading: null, lines: [] };
+  let foundSection = false;
+
+  for (const line of lines) {
+    const sectionName = replySectionName(line);
+    if (sectionName) {
+      if (current.lines.some((item) => item.trim().length > 0)) {
+        parts.push(current);
+      }
+      current = { kind: "section", name: sectionName, heading: line.trim(), lines: [] };
+      foundSection = true;
+      continue;
+    }
+
+    current.lines.push(line);
+  }
+
+  if (current.lines.some((item) => item.trim().length > 0)) {
+    parts.push(current);
+  }
+
+  return foundSection ? parts : null;
+}
+
+function sectionNotice(skippedSections, mode) {
+  if (mode === "none" || skippedSections.length === 0) return null;
+  const sectionList = displaySectionList(skippedSections);
+  if (mode === "verbose") {
+    return `${sectionList} ${skippedSections.length === 1 ? "section is" : "sections are"} present in the written reply but skipped for speech.`;
+  }
+  return `Skipped sections present: ${sectionList}.`;
+}
+
+export function speakableMessageProjection(message, options = {}) {
+  const skippedNames = options.skippedSectionNames ?? skippedSectionNames;
+  const noticeMode = options.sectionNoticeMode ?? sectionNoticeMode;
+  const sections = parseReplySections(message);
+
+  if (!sections) {
+    return {
+      text: message,
+      presentSections: [],
+      spokenSections: [],
+      skippedSections: [],
+    };
+  }
+
+  const spokenSections = [];
+  const skippedSections = [];
+  const chunks = [];
+
+  for (const section of sections) {
+    const body = section.lines.join("\n").trim();
+    if (section.kind !== "section") {
+      if (body.length > 0) chunks.push(body);
+      continue;
+    }
+
+    if (skippedNames.has(section.name.toLowerCase())) {
+      skippedSections.push(section.name);
+      continue;
+    }
+
+    spokenSections.push(section.name);
+    if (body.length > 0) {
+      chunks.push(`${section.heading}\n\n${body}`);
+    } else {
+      chunks.push(section.heading);
+    }
+  }
+
+  const notice = sectionNotice(skippedSections, noticeMode);
+  if (notice) chunks.push(notice);
+
+  return {
+    text: chunks.join("\n\n").trim(),
+    presentSections: sections
+      .filter((section) => section.kind === "section")
+      .map((section) => section.name),
+    spokenSections,
+    skippedSections,
+  };
 }
 
 function stringAttribute(value) {
@@ -289,6 +419,25 @@ async function main() {
     }
   }
 
+  const speechProjection = speakableMessageProjection(message);
+  const speechMessage = normalizeMessage(speechProjection.text);
+  if (!speechMessage) {
+    await appendLog({
+      outcome: "skipped",
+      reason: "empty-section-projection",
+      sessionId,
+      turnId,
+      stopHookActive,
+      transcriptPath,
+      cwd,
+      model,
+      presentSections: speechProjection.presentSections,
+      skippedSections: speechProjection.skippedSections,
+      ...fullPayloadLog,
+    });
+    return;
+  }
+
   let response = null;
   try {
     response = await fetch(liveSpeechEndpoint, {
@@ -296,7 +445,7 @@ async function main() {
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(speechRequestBody(message, payload, defaultProfileName)),
+      body: JSON.stringify(speechRequestBody(speechMessage, payload, defaultProfileName)),
     });
   } catch (error) {
     await appendLog({
@@ -310,7 +459,10 @@ async function main() {
       model,
       profileName: defaultProfileName,
       endpoint: liveSpeechEndpoint,
-      preview: message.slice(0, 160),
+      preview: speechMessage.slice(0, 160),
+      presentSections: speechProjection.presentSections,
+      spokenSections: speechProjection.spokenSections,
+      skippedSections: speechProjection.skippedSections,
       error: error instanceof Error ? { message: error.message, cause: String(error.cause ?? "") } : String(error),
       ...fullPayloadLog,
     });
@@ -333,7 +485,10 @@ async function main() {
       responseBody,
       profileName: defaultProfileName,
       endpoint: liveSpeechEndpoint,
-      preview: message.slice(0, 160),
+      preview: speechMessage.slice(0, 160),
+      presentSections: speechProjection.presentSections,
+      spokenSections: speechProjection.spokenSections,
+      skippedSections: speechProjection.skippedSections,
       ...fullPayloadLog,
     });
     return;
@@ -357,19 +512,24 @@ async function main() {
     endpoint: liveSpeechEndpoint,
     profileName: defaultProfileName,
     request: parsedResponse,
-    preview: message.slice(0, 160),
+    preview: speechMessage.slice(0, 160),
+    presentSections: speechProjection.presentSections,
+    spokenSections: speechProjection.spokenSections,
+    skippedSections: speechProjection.skippedSections,
     ...fullPayloadLog,
   });
 }
 
-main().catch(async (error) => {
-  try {
-    await ensureRuntimePaths();
-    await appendLog({
-      outcome: "error",
-      reason: "unexpected-hook-failure",
-      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
-    });
-  } catch {}
-  process.exitCode = 0;
-});
+if (path.resolve(process.argv[1] ?? "") === scriptPath) {
+  main().catch(async (error) => {
+    try {
+      await ensureRuntimePaths();
+      await appendLog({
+        outcome: "error",
+        reason: "unexpected-hook-failure",
+        error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
+      });
+    } catch {}
+    process.exitCode = 0;
+  });
+}
