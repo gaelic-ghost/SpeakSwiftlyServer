@@ -107,12 +107,17 @@ the active default voice selection unchanged. If a user already has a profile wi
 startup uses a `-builtin` fallback such as `swift-signal-builtin` for the package-owned copy instead
 of overwriting the user's profile.
 
+For ordinary users and app consumers, built-ins are list-and-select voices: they show up in the
+profile list and can be selected as the default or passed as `profile_name` on one request. Their seed
+source text, voice-design prompt, and provenance stay behind the explicit maintainer/tool surface so
+the built-ins remain consistent out of the box instead of becoming another editable profile template.
+
 Short generated preview clips live under [docs/media/default-voices](./docs/media/default-voices/):
 
-| Voice | Sample | Transcript |
-| --- | --- | --- |
-| `swift-signal` | [Listen to WAV](./docs/media/default-voices/swift-signal.wav) | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
-| `swift-anchor` | [Listen to WAV](./docs/media/default-voices/swift-anchor.wav) | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
+| Voice | Demo Audio | Format | Transcript |
+| --- | --- | --- | --- |
+| `swift-signal` | [Listen to `swift-signal.wav`](./docs/media/default-voices/swift-signal.wav) | WAV, mono, 24 kHz, ~6.72s | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
+| `swift-anchor` | [Listen to `swift-anchor.wav`](./docs/media/default-voices/swift-anchor.wav) | WAV, mono, 24 kHz, ~8.00s | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
 
 The full transport contract lives in [API.md](./API.md).
 

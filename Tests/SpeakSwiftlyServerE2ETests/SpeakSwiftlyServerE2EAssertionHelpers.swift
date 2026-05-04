@@ -16,7 +16,7 @@ extension ServerE2E {
                 from: client.request(path: "/requests", method: "GET").data,
             )
             let hostState = try await jsonObject(
-                from: client.request(path: "/runtime/host", method: "GET").data,
+                from: client.request(path: "/overview", method: "GET").data,
             )
 
             let retainedRequests = requestList.requests

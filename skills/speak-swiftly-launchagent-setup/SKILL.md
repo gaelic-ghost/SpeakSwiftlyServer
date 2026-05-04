@@ -39,7 +39,7 @@ Use this skill when the user wants the standalone `SpeakSwiftlyServer` to run as
 
 ## Validation And Troubleshooting
 
-- Treat `healthcheck` as the primary verification path because it probes `GET /healthz`, reads `GET /runtime/host`, and sends a real MCP `initialize` request to `/mcp`.
+- Treat `healthcheck` as the primary verification path because it probes `GET /healthz`, reads `GET /overview`, and sends a real MCP `initialize` request to `/mcp`.
 - If the HTTP process is healthy but Codex still cannot use the MCP surface, do not jump straight to telling the user to edit Codex config. First check whether the server is actually exposing `/mcp`. The plugin install should already handle the Codex-side connection; the remaining failure is usually that MCP is disabled in the server config or environment. The MCP endpoint exists only when `APP_MCP_ENABLED=true` or the config file enables MCP.
 - If the user wants to understand whether the live background service is using the staged artifact or a different executable, rely on `launch-agent status`, install output, and the printed plist rather than inferring from filesystem timestamps alone.
 - If the user needs queue, playback, or backend control after the service is already installed, switch to `$speak-swiftly-runtime-operator` instead of stretching this skill into runtime operations.

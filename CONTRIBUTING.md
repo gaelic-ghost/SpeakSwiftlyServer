@@ -157,9 +157,9 @@ swiftlint lint --config .swiftlint.yml
 The live end-to-end gate is intentionally small and should still be run in one foreground process at a time:
 
 ```bash
-curl -X POST http://127.0.0.1:7337/runtime/models/unload
+curl -X POST http://127.0.0.1:7337/models/unload
 SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter ServerTransportE2ETests
-curl -X POST http://127.0.0.1:7337/runtime/models/reload
+curl -X POST http://127.0.0.1:7337/models/reload
 ```
 
 This suite is a transport-owned smoke pass, not a second copy of SpeakSwiftly's broader worker end-to-end coverage. Keep this repo's live E2E focused on proving the shipped server can boot the published runtime, answer over HTTP and MCP, deliver MCP resource updates, and retain completed request state.

@@ -15,19 +15,19 @@ func registerHTTPRuntimeRoutes(
         return try encodeJSONResponse(snapshot, status: status)
     }
 
-    router.get("runtime/host") { _, _ -> StatusSnapshot in
+    router.get("overview") { _, _ -> StatusSnapshot in
         await host.statusSnapshot()
     }
 
-    router.get("runtime/status") { _, _ -> RuntimeStatusResponse in
+    router.get("status") { _, _ -> RuntimeStatusResponse in
         try await host.runtimeStatus()
     }
 
-    router.get("runtime/configuration") { _, _ -> RuntimeConfigurationSnapshot in
+    router.get("configuration") { _, _ -> RuntimeConfigurationSnapshot in
         await host.runtimeConfigurationSnapshot()
     }
 
-    router.put("runtime/configuration") { request, context -> RuntimeConfigurationSnapshot in
+    router.put("configuration") { request, context -> RuntimeConfigurationSnapshot in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
         return try await host.saveRuntimeConfiguration(
             speechBackend: payload.speechBackendModel(),
@@ -36,17 +36,17 @@ func registerHTTPRuntimeRoutes(
         )
     }
 
-    router.post("runtime/backend") { request, context -> Response in
+    router.post("backend") { request, context -> Response in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
         let requestID = try await host.submitSpeechBackendSwitch(to: payload.speechBackendModel())
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
 
-    router.post("runtime/models/reload") { _, _ -> RuntimeStatusResponse in
+    router.post("models/reload") { _, _ -> RuntimeStatusResponse in
         try await host.reloadModels()
     }
 
-    router.post("runtime/models/unload") { _, _ -> RuntimeStatusResponse in
+    router.post("models/unload") { _, _ -> RuntimeStatusResponse in
         try await host.unloadModels()
     }
 }

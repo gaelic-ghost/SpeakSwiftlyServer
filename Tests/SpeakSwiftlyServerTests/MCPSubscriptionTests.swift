@@ -72,7 +72,7 @@ extension ServerTests {
         let subscribeEnvelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
-                    body: mcpSubscribeResourceRequestJSON(uri: "speak://runtime/overview"),
+                    body: mcpSubscribeResourceRequestJSON(uri: "speak-swiftly://overview"),
                     sessionID: sessionID,
                 ),
             ),
@@ -87,7 +87,7 @@ extension ServerTests {
         let updatedNotification = try await nextMCPStreamEnvelope(from: &streamIterator)
         #expect(updatedNotification["method"] as? String == "notifications/resources/updated")
         let notificationParams = try #require(updatedNotification["params"] as? [String: Any])
-        #expect(notificationParams["uri"] as? String == "speak://runtime/overview")
+        #expect(notificationParams["uri"] as? String == "speak-swiftly://overview")
 
         await mcpSurface.stop()
         await host.shutdown()

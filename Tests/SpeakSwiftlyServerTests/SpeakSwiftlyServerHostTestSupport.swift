@@ -85,14 +85,12 @@ extension ServerHost {
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        normalizationContext: SpeechNormalizationContext? = nil,
         sourceFormat: TextForSpeech.SourceFormat? = nil,
     ) async throws -> String {
         try await queueSpeechLive(
             text: text,
             profileName: profileName,
             textProfileID: textProfileID,
-            normalizationContext: normalizationContext,
             sourceFormat: sourceFormat,
         )
     }

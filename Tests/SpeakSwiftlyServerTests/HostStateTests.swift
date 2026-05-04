@@ -195,18 +195,20 @@ import Testing
         pollInterval: .milliseconds(10),
     ) {
         let snapshot = try await host.jobSnapshot(id: jobID)
-        return snapshot.history.count >= 2 ? snapshot : nil
+        return snapshot.history.contains { event in
+            guard case .started = event else { return false }
+
+            return true
+        } ? snapshot : nil
     }
 
     let stream = try await host.sseStream(for: jobID)
     var iterator = stream.makeAsyncIterator()
     let first = try #require(await iterator.next())
     let second = try #require(await iterator.next())
-    let third = try #require(await iterator.next())
 
     #expect(string(from: first).contains("event: worker_status"))
-    #expect(string(from: second).contains("event: message"))
-    #expect(string(from: third).contains("event: started"))
+    #expect(string(from: second).contains("event: started"))
 
     var heartbeat: String?
     for _ in 0..<20 {
@@ -367,7 +369,11 @@ import Testing
         pollInterval: .milliseconds(10),
     ) {
         let snapshot = try await host.jobSnapshot(id: jobID)
-        return snapshot.history.count >= 2 ? snapshot : nil
+        return snapshot.history.contains { event in
+            guard case .started = event else { return false }
+
+            return true
+        } ? snapshot : nil
     }
 
     try await Task.sleep(for: .milliseconds(50))
@@ -513,7 +519,7 @@ import Testing
                 refreshVoiceProfiles: {
                     try await host.refreshVoiceProfiles()
                 },
-                queueLiveSpeech: { text, profileName, textProfileID, normalizationContext, sourceFormat, requestContext, qwenPreModelTextChunking in
+                queueLiveSpeech: { text, profileName, textProfileID, sourceFormat, requestContext, qwenPreModelTextChunking in
                     guard let resolvedProfileName = await host.resolvedRequestedVoiceProfileName(profileName) else {
                         let errorMessage = await host.missingVoiceProfileNameMessage(for: "the live speech request")
                         throw ServerConfigurationError(errorMessage)
@@ -523,7 +529,6 @@ import Testing
                         text: text,
                         profileName: resolvedProfileName,
                         textProfileID: textProfileID,
-                        normalizationContext: normalizationContext,
                         sourceFormat: sourceFormat,
                         requestContext: requestContext,
                         qwenPreModelTextChunking: qwenPreModelTextChunking,
@@ -598,18 +603,14 @@ import Testing
         text: "Read this aloud",
         profileName: "default",
         textProfileID: "swift-docs",
-        normalizationContext: .init(
-            cwd: "./Sources",
-            repoRoot: ".",
-            textFormat: .markdown,
-            nestedSourceFormat: .swift,
-        ),
         sourceFormat: .python,
         requestContext: .init(
             source: "embedded-session",
             app: "SpeakSwiftlyServerTests",
             project: "SpeakSwiftlyServer",
             topic: "state-actions",
+            cwd: "./Sources",
+            repoRoot: ".",
             attributes: ["surface": "embedded"],
         ),
     )
@@ -618,13 +619,6 @@ import Testing
     #expect(firstQueuedSpeechInvocation.text == "Read this aloud")
     #expect(firstQueuedSpeechInvocation.profileName == "default")
     #expect(firstQueuedSpeechInvocation.textProfileID == "swift-docs")
-    let expectedNormalizationContext = SpeechNormalizationContext(
-        cwd: "./Sources",
-        repoRoot: ".",
-        textFormat: .markdown,
-        nestedSourceFormat: .swift,
-    )
-    #expect(firstQueuedSpeechInvocation.normalizationContext == expectedNormalizationContext)
     #expect(firstQueuedSpeechInvocation.sourceFormat == .python)
     #expect(
         firstQueuedSpeechInvocation.requestContext
@@ -633,6 +627,8 @@ import Testing
                 app: "SpeakSwiftlyServerTests",
                 project: "SpeakSwiftlyServer",
                 topic: "state-actions",
+                cwd: "./Sources",
+                repoRoot: ".",
                 attributes: ["surface": "embedded"],
             ),
     )
@@ -731,8 +727,13 @@ import Testing
             : nil
     }
     let invocationNames = await runtime.createProfileInvocationNames()
+    let latestInvocation = try #require(await runtime.latestCreateProfileInvocation())
     #expect(invocationNames == ["swift-signal", "swift-anchor"])
+    #expect(latestInvocation.author == .system)
+    #expect(latestInvocation.seedID == "swift.anchor")
+    #expect(latestInvocation.seedVersion == "1")
     #expect(status.cachedProfiles.map(\.profileName).sorted() == ["swift-anchor", "swift-signal"])
+    #expect(status.cachedProfiles.allSatisfy { $0.isSystemAuthored })
     #expect(status.recentErrors.isEmpty)
 
     await host.shutdown()
@@ -1062,7 +1063,7 @@ import Testing
                 refreshVoiceProfiles: {
                     try await host.refreshVoiceProfiles()
                 },
-                queueLiveSpeech: { text, profileName, textProfileID, normalizationContext, sourceFormat, requestContext, qwenPreModelTextChunking in
+                queueLiveSpeech: { text, profileName, textProfileID, sourceFormat, requestContext, qwenPreModelTextChunking in
                     guard let resolvedProfileName = await host.resolvedRequestedVoiceProfileName(profileName) else {
                         let errorMessage = await host.missingVoiceProfileNameMessage(for: "the live speech request")
                         throw ServerConfigurationError(errorMessage)
@@ -1072,7 +1073,6 @@ import Testing
                         text: text,
                         profileName: resolvedProfileName,
                         textProfileID: textProfileID,
-                        normalizationContext: normalizationContext,
                         sourceFormat: sourceFormat,
                         requestContext: requestContext,
                         qwenPreModelTextChunking: qwenPreModelTextChunking,

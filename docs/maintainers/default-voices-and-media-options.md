@@ -71,8 +71,11 @@ profiles should default to `.user`. Package-owned defaults should be `.system`. 
 should be immutable to ordinary user mutation wherever the runtime can enforce that cleanly.
 
 The server should not add extra public HTTP, MCP, or embedded fields unless application consumers
-need them to make good decisions. Contributor-facing docs can describe the seed catalog and
-immutability policy without forcing those details into every end-user response payload.
+need them to make good decisions. Ordinary user-facing profile reads should expose enough metadata to
+list and choose a built-in, such as author and seed identity, while redacting system seed source text
+and voice-design prompts. Contributor-facing docs and maintainer-only tools can describe or expose
+the seed catalog and immutability policy without forcing those details into every end-user response
+payload.
 
 ## System Voice Mutation Policy
 
@@ -183,15 +186,18 @@ pronunciation, pacing, and noise floor.
 ## Current Follow-Through
 
 1. Add upstream `SpeakSwiftly` support for profile author metadata, system immutability, and
-   reroll-as-user-copy behavior.
+   reroll-as-user-copy behavior. Done in `SpeakSwiftly` `v4.2.0`.
 2. Add a server-owned seed manifest under `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`. Done.
-3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior. Done at startup after the runtime first reports resident-model readiness.
+3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior. Done at startup after the runtime first reports resident-model readiness, using the upstream system-authored profile creation API.
 4. Generate short preview audio for each installed candidate and place it under
    `docs/media/default-voices/`. Done for `swift-signal.wav` and `swift-anchor.wav`.
 5. Add transcript and provenance notes beside the samples. Done in
    `docs/media/default-voices/README.md`.
-6. Add an explicit operator install command that copies or creates missing package defaults in the
-   active runtime profile root.
+6. Redact system seed source text and voice-design prompts from ordinary encoded profile JSON while
+   exposing an explicit maintainer/development MCP tool for deep seed inspection. Done with
+   `inspect_builtin_voice_seed`.
+7. Decide whether an explicit operator install or refresh command should exist beyond startup
+   maintenance.
 7. Add focused tests for seed discovery, no-overwrite behavior, default/user profile separation,
    and system-profile mutation behavior.
 

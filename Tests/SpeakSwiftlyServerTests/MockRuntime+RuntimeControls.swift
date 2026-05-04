@@ -10,7 +10,7 @@ extension MockRuntime {
         let requestID = UUID().uuidString
         let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
+            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "get_runtime_status", profileName: nil, events: events)
@@ -32,7 +32,6 @@ extension MockRuntime {
             fatalError("The mock runtime could not create a backend switch continuation for request '\(requestID)'.")
         }
 
-        continuation.yield(.acknowledged(.init(id: requestID, speechBackend: speechBackend)))
         if activeRequest == nil {
             startActiveRequest(request, continuation: continuation)
         } else {
@@ -54,7 +53,7 @@ extension MockRuntime {
         let requestID = UUID().uuidString
         let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
+            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "reload_models", profileName: nil, events: events)
@@ -64,7 +63,7 @@ extension MockRuntime {
         let requestID = UUID().uuidString
         let status = SpeakSwiftly.StatusEvent(stage: .residentModelsUnloaded, residentState: .unloaded, speechBackend: activeSpeechBackend)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, status: status)))
+            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "unload_models", profileName: nil, events: events)
@@ -79,11 +78,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequests: nil,
-                        runtimeOverview: overview,
-                    ),
+                    .runtimeOverview(overview),
                 ),
             )
             continuation.finish()
@@ -99,11 +94,9 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequest: activeRequest,
-                        activeRequests: nil,
-                        queue: queue,
+                    .queue(
+                        activeRequests: activeRequest.map { [$0] } ?? [],
+                        queuedRequests: queue,
                     ),
                 ),
             )
@@ -119,11 +112,9 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequest: activeRequest,
-                        activeRequests: nil,
-                        queue: [],
+                    .queue(
+                        activeRequests: activeRequest.map { [$0] } ?? [],
+                        queuedRequests: [],
                     ),
                 ),
             )
@@ -139,11 +130,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequests: nil,
-                        playbackState: playbackState,
-                    ),
+                    .playbackState(playbackState),
                 ),
             )
             continuation.finish()
@@ -159,11 +146,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequests: nil,
-                        playbackState: self.playbackStateSummary(),
-                    ),
+                    .playbackState(self.playbackStateSummary()),
                 ),
             )
             continuation.finish()
@@ -179,11 +162,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    SpeakSwiftly.Success(
-                        id: requestID,
-                        activeRequests: nil,
-                        playbackState: self.playbackStateSummary(),
-                    ),
+                    .playbackState(self.playbackStateSummary()),
                 ),
             )
             continuation.finish()
@@ -210,7 +189,7 @@ extension MockRuntime {
             )
         }
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, activeRequests: nil, clearedCount: clearedCount)))
+            continuation.yield(.completed(.queueCleared(count: clearedCount)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: operation, profileName: nil, events: events)
@@ -231,11 +210,7 @@ extension MockRuntime {
             let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.yield(
                     .completed(
-                        SpeakSwiftly.Success(
-                            id: requestID,
-                            activeRequests: nil,
-                            cancelledRequestID: cancelledRequestID,
-                        ),
+                        .requestCancelled(id: cancelledRequestID),
                     ),
                 )
                 continuation.finish()

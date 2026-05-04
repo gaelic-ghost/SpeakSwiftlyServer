@@ -85,37 +85,37 @@ actor MCPSubscriptionBroker {
     private func resourceURIsToNotify(for event: HostEvent) -> [String] {
         let candidateURIs: Set<String> = switch event {
             case .transportChanged, .playbackChanged, .recentErrorRecorded:
-                ["speak://runtime/overview"]
+                ["speak-swiftly://overview"]
             case .jobEvent:
                 []
             case let .jobChanged(snapshot):
                 [
-                    "speak://runtime/overview",
-                    "speak://requests",
-                    "speak://requests/\(snapshot.requestID)",
+                    "speak-swiftly://overview",
+                    "speak-swiftly://requests",
+                    "speak-swiftly://requests/\(snapshot.requestID)",
                 ]
             case .profileCacheChanged:
                 Set(
                     [
-                        "speak://runtime/overview",
-                        "speak://voices",
+                        "speak-swiftly://overview",
+                        "speak-swiftly://voices",
                     ] + subscribedResourceURIs.filter(isVoiceProfileURI),
                 )
             case .textProfilesChanged:
                 Set(
                     [
-                        "speak://text-profiles",
-                        "speak://text-profiles/style",
-                        "speak://text-profiles/base",
-                        "speak://text-profiles/active",
-                        "speak://text-profiles/effective",
+                        "speak-swiftly://text-profiles",
+                        "speak-swiftly://text-profiles/style",
+                        "speak-swiftly://text-profiles/base",
+                        "speak-swiftly://text-profiles/active",
+                        "speak-swiftly://text-profiles/effective",
                     ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
                         + subscribedResourceURIs.filter(isEffectiveTextProfileURI),
                 )
             case .runtimeConfigurationChanged:
                 [
-                    "speak://runtime/overview",
-                    "speak://runtime/configuration",
+                    "speak-swiftly://overview",
+                    "speak-swiftly://configuration",
                 ]
         }
         return candidateURIs
@@ -128,23 +128,23 @@ actor MCPSubscriptionBroker {
             case .textProfiles:
                 Set(
                     [
-                        "speak://text-profiles",
-                        "speak://text-profiles/style",
-                        "speak://text-profiles/base",
-                        "speak://text-profiles/active",
-                        "speak://text-profiles/effective",
+                        "speak-swiftly://text-profiles",
+                        "speak-swiftly://text-profiles/style",
+                        "speak-swiftly://text-profiles/base",
+                        "speak-swiftly://text-profiles/active",
+                        "speak-swiftly://text-profiles/effective",
                     ] + subscribedResourceURIs.filter(isStoredTextProfileURI)
                         + subscribedResourceURIs.filter(isEffectiveTextProfileURI),
                 )
             case .voices:
                 Set(
                     [
-                        "speak://voices",
-                        "speak://runtime/overview",
+                        "speak-swiftly://voices",
+                        "speak-swiftly://overview",
                     ] + subscribedResourceURIs.filter(isVoiceProfileURI),
                 )
             case .runtimeOverview:
-                ["speak://runtime/overview"]
+                ["speak-swiftly://overview"]
         }
         return candidateURIs.intersection(subscribedResourceURIs).sorted()
     }

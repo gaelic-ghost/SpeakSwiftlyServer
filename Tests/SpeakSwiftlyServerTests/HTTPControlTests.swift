@@ -83,7 +83,7 @@ extension ServerTests {
             #expect((playbackQueueJSON["active_requests"] as? [[String: Any]])?.first?["id"] as? String == activeJobID)
             #expect((playbackQueueJSON["queue"] as? [[String: Any]])?.isEmpty == true)
 
-            let cancelResponse = try await client.execute(uri: "/generation/requests/\(queuedJobID)", method: .delete)
+            let cancelResponse = try await client.execute(uri: "/requests/\(queuedJobID)", method: .delete)
             let cancelJSON = try jsonObject(from: cancelResponse.body)
             #expect(cancelResponse.status == .ok)
             #expect(cancelJSON["cancelled_request_id"] as? String == queuedJobID)
@@ -94,6 +94,30 @@ extension ServerTests {
                     #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
                 default:
                     Issue.record("Expected the cancelled queued request to terminate with a request_cancelled failure.")
+            }
+
+            let scopedQueuedResponse = try await client.execute(
+                uri: "/speech/live",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Queue scoped cancellation","profile_name":"default"}"#),
+            )
+            let scopedQueuedJobID = try #require(try jsonObject(from: scopedQueuedResponse.body)["request_id"] as? String)
+
+            let scopedCancelResponse = try await client.execute(
+                uri: "/requests/\(scopedQueuedJobID)?scope=generation",
+                method: .delete,
+            )
+            let scopedCancelJSON = try jsonObject(from: scopedCancelResponse.body)
+            #expect(scopedCancelResponse.status == .ok)
+            #expect(scopedCancelJSON["cancelled_request_id"] as? String == scopedQueuedJobID)
+
+            let scopedCancelledSnapshot = try await waitForJobSnapshot(scopedQueuedJobID, on: host)
+            switch scopedCancelledSnapshot.terminalEvent {
+                case let .failed(failure):
+                    #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
+                default:
+                    Issue.record("Expected the scoped cancelled queued request to terminate with a request_cancelled failure.")
             }
 
             let anotherQueuedResponse = try await client.execute(
@@ -128,6 +152,15 @@ extension ServerTests {
                     Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
             }
 
+            let _: Bool = try await waitUntil(
+                timeout: .seconds(1),
+                pollInterval: .milliseconds(10),
+            ) {
+                let emptyQueueResponse = try await client.execute(uri: "/generation/queue", method: .get)
+                let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
+                let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])
+                return remainingQueue.isEmpty ? true : nil
+            }
             let emptyQueueResponse = try await client.execute(uri: "/generation/queue", method: .get)
             let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
             let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])
@@ -183,6 +216,12 @@ extension ServerTests {
             #expect(missingEvents.status == .notFound)
             let missingEventsError = try #require(missingEventsJSON["error"] as? [String: Any])
             #expect((missingEventsError["message"] as? String)?.contains("expired from in-memory retention") == true)
+
+            let invalidScope = try await client.execute(uri: "/requests/some-job?scope=storage", method: .delete)
+            let invalidScopeJSON = try jsonObject(from: invalidScope.body)
+            #expect(invalidScope.status == .badRequest)
+            let invalidScopeError = try #require(invalidScopeJSON["error"] as? [String: Any])
+            #expect((invalidScopeError["message"] as? String)?.contains("Expected one of: generation, playback") == true)
         }
 
         await host.shutdown()
@@ -212,7 +251,7 @@ extension ServerTests {
             #expect(readyJSON["worker_mode"] as? String == "failed")
             #expect((readyJSON["startup_error"] as? String)?.contains("startup failure") == true)
 
-            let statusResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let statusResponse = try await client.execute(uri: "/overview", method: .get)
             let statusJSON = try jsonObject(from: statusResponse.body)
             #expect(statusResponse.status == .ok)
             #expect(statusJSON["worker_mode"] as? String == "failed")

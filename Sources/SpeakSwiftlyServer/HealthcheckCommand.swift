@@ -108,7 +108,7 @@ struct SpeakSwiftlyServerHealthcheck {
 
     private func fetchHostStatus() async throws -> HealthcheckHostSnapshot {
         try await performRequiredJSONRequest(
-            path: "/runtime/host",
+            path: "/overview",
             method: "GET",
             body: nil,
             responseType: HealthcheckHostSnapshot.self,

@@ -56,7 +56,12 @@ extension ServerHost {
         _ profile: ProfileSnapshot,
         seed: DefaultVoiceSeed,
     ) -> Bool {
-        profile.vibe == seed.vibe.rawValue
+        if profile.author == SpeakSwiftly.ProfileAuthor.system.rawValue,
+           profile.seedID == seed.seedID {
+            return profile.seedVersion == seed.seedVersion
+        }
+
+        return profile.vibe == seed.vibe.rawValue
             && profile.voiceDescription == seed.voiceDescription
             && profile.sourceText == seed.sourceText
     }
@@ -65,23 +70,24 @@ extension ServerHost {
         _ seed: DefaultVoiceSeed,
         profileName: String,
     ) async throws {
-        let handle = await runtime.createVoiceProfileFromDescription(
+        let handle = await runtime.createSystemVoiceProfileFromDescription(
             profileName: profileName,
             vibe: seed.vibe,
             from: seed.sourceText,
             voice: seed.voiceDescription,
+            seed: seed.profileSeed(installedProfileName: profileName),
             outputPath: nil,
             cwd: nil,
         )
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the built-in default voice install request for '\(profileName)' without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while installing built-in default voice '\(profileName)'.",
         )
-        guard success.profileName == profileName else {
+        guard case let .voiceProfile(name: name?, path: _) = completion, name == profileName else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly installed built-in default voice '\(profileName)', but the success payload reported '\(success.profileName ?? "<missing>")' instead.",
+                message: "SpeakSwiftly installed built-in default voice '\(profileName)', but the completion payload reported a different or missing profile name.",
             )
         }
     }

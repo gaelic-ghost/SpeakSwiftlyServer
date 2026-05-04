@@ -205,11 +205,11 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `text profile routes surface bridge failures as typed server errors`() async throws {
+    @Test func `text profile routes surface transport failures as typed server errors`() async throws {
         let runtime = MockRuntime(
             textProfileTransportError: SpeakSwiftly.Error(
                 code: .internalError,
-                message: "Configured text-profile bridge failure for tests.",
+                message: "Configured text-profile transport failure for tests.",
             ),
         )
         let state = await MainActor.run { EmbeddedServer() }
@@ -232,7 +232,7 @@ extension ServerTests {
             let message = try #require(error["message"] as? String)
 
             #expect(response.status == .internalServerError)
-            #expect(message.contains("Configured text-profile bridge failure for tests"))
+            #expect(message.contains("Configured text-profile transport failure for tests"))
         }
 
         await host.shutdown()

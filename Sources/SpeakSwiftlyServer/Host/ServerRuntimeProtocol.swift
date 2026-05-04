@@ -2,22 +2,6 @@ import Foundation
 import SpeakSwiftly
 import TextForSpeech
 
-public typealias SpeechNormalizationContext = TextForSpeech.InputContext
-
-func makeInputTextContext(
-    normalizationContext: SpeechNormalizationContext?,
-    sourceFormat: TextForSpeech.SourceFormat?,
-) -> SpeakSwiftly.InputTextContext? {
-    guard normalizationContext != nil || sourceFormat != nil else {
-        return nil
-    }
-
-    return SpeakSwiftly.InputTextContext(
-        context: normalizationContext,
-        sourceFormat: sourceFormat,
-    )
-}
-
 struct RuntimeRequestHandle {
     let id: String
     let operation: String
@@ -40,7 +24,7 @@ struct RuntimeRequestHandle {
 
     init(_ handle: SpeakSwiftly.RequestHandle) {
         id = handle.id
-        operation = canonicalOperationName(handle.operation)
+        operation = canonicalOperationName(handle.kind.rawValue)
         profileName = handle.voiceProfile
         events = handle.events
     }
@@ -54,10 +38,6 @@ func canonicalOperationName(_ operation: String) -> String {
             "generate_audio_file"
         case "queue_speech_batch":
             "generate_batch"
-        case "get_runtime_configuration":
-            "get_staged_runtime_config"
-        case "set_runtime_configuration":
-            "set_staged_config"
         case "get_text_profiles_state":
             "get_text_normalizer_snapshot"
         case "list_requests":
@@ -75,7 +55,6 @@ protocol ServerRuntimeProtocol: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
@@ -84,7 +63,6 @@ protocol ServerRuntimeProtocol: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle
@@ -97,6 +75,15 @@ protocol ServerRuntimeProtocol: Actor {
         vibe: SpeakSwiftly.Vibe,
         from text: String,
         voice voiceDescription: String,
+        outputPath: String?,
+        cwd: String?,
+    ) async -> RuntimeRequestHandle
+    func createSystemVoiceProfileFromDescription(
+        profileName: String,
+        vibe: SpeakSwiftly.Vibe,
+        from text: String,
+        voice voiceDescription: String,
+        seed: SpeakSwiftly.ProfileSeed,
         outputPath: String?,
         cwd: String?,
     ) async -> RuntimeRequestHandle
@@ -114,10 +101,8 @@ protocol ServerRuntimeProtocol: Actor {
     func generationJob(id jobID: String) async -> RuntimeRequestHandle
     func listGenerationJobs() async -> RuntimeRequestHandle
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle
-    func generatedFile(id artifactID: String) async -> RuntimeRequestHandle
-    func listGeneratedFiles() async -> RuntimeRequestHandle
-    func generatedBatch(id batchID: String) async -> RuntimeRequestHandle
-    func listGeneratedBatches() async -> RuntimeRequestHandle
+    func generationArtifact(id artifactID: String) async -> RuntimeRequestHandle
+    func listGenerationArtifacts() async -> RuntimeRequestHandle
     func runtimeStatus() async -> RuntimeRequestHandle
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle
     func reloadModels() async -> RuntimeRequestHandle

@@ -79,7 +79,7 @@ extension ServerTests {
             let runtimeResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/overview"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -98,7 +98,7 @@ extension ServerTests {
             let runtimeStatusResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/status"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://status"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -113,7 +113,7 @@ extension ServerTests {
             let runtimeConfigResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://runtime/configuration"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://configuration"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -127,7 +127,7 @@ extension ServerTests {
             let jobsResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://requests"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://requests"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -141,7 +141,7 @@ extension ServerTests {
             let profileDetailEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://voices/default"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/default"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -152,10 +152,44 @@ extension ServerTests {
             let profileDetailPayload = try jsonObject(from: Data(profileDetailText.utf8))
             #expect(profileDetailPayload["profile_name"] as? String == "default")
 
+            let builtInProfileEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/swift-signal"),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let builtInProfileResult = try #require(mcpResultPayload(from: builtInProfileEnvelope))
+            let builtInProfileContents = try #require(builtInProfileResult["contents"] as? [[String: Any]])
+            let builtInProfileText = try #require(builtInProfileContents.first?["text"] as? String)
+            let builtInProfilePayload = try jsonObject(from: Data(builtInProfileText.utf8))
+            #expect(builtInProfilePayload["profile_name"] as? String == "swift-signal")
+            #expect(builtInProfilePayload["author"] as? String == "system")
+            #expect(builtInProfilePayload["seed_id"] as? String == "swift.signal")
+            #expect((builtInProfilePayload["source_text"] as? String)?.contains("maintainer/tool surfaces") == true)
+            #expect((builtInProfilePayload["voice_description"] as? String)?.contains("maintainer/tool surfaces") == true)
+
+            let builtInSeedToolEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "inspect_builtin_voice_seed",
+                            arguments: ["seed_id": "swift.signal"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let builtInSeedPayload = try mcpToolPayload(from: builtInSeedToolEnvelope)
+            #expect(builtInSeedPayload["seed_id"] as? String == "swift.signal")
+            #expect(builtInSeedPayload["profile_name"] as? String == "swift-signal")
+            #expect((builtInSeedPayload["source_text"] as? String)?.contains("signal clear") == true)
+
             let textProfilesResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -171,7 +205,7 @@ extension ServerTests {
             let textProfileStyleEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/style"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/style"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -186,7 +220,7 @@ extension ServerTests {
             let textProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -196,12 +230,12 @@ extension ServerTests {
             let textProfilesGuideText = try #require(textProfilesGuideContents.first?["text"] as? String)
             #expect(textProfilesGuideText.contains("text_profile_id"))
             #expect(textProfilesGuideText.contains("set_text_profile_style"))
-            #expect(textProfilesGuideText.contains("Read `speak://text-profiles/style`"))
+            #expect(textProfilesGuideText.contains("Read `speak-swiftly://text-profiles/style`"))
 
             let voiceProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://voices/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -214,11 +248,12 @@ extension ServerTests {
             #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
             #expect(voiceProfilesGuideText.contains("Use `list_voice_profiles` only for compatibility clients"))
+            #expect(voiceProfilesGuideText.contains("inspect_builtin_voice_seed"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://playback/guide"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://playback/guide"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -227,11 +262,13 @@ extension ServerTests {
             let playbackGuideContents = try #require(playbackGuideResult["contents"] as? [[String: Any]])
             let playbackGuideText = try #require(playbackGuideContents.first?["text"] as? String)
             #expect(playbackGuideText.contains("cancel_request"))
-            #expect(playbackGuideText.contains("cancel_generation"))
-            #expect(playbackGuideText.contains("cancel_playback"))
+            #expect(playbackGuideText.contains("cancel_generation") == false)
+            #expect(playbackGuideText.contains("cancel_playback") == false)
+            #expect(playbackGuideText.contains("Use `cancel_request` when the user wants one known request stopped by id"))
+            #expect(playbackGuideText.contains("Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation"))
             #expect(playbackGuideText.contains("clear_generation_queue"))
             #expect(playbackGuideText.contains("clear_playback_queue"))
-            #expect(playbackGuideText.contains("Read `speak://runtime/overview` first"))
+            #expect(playbackGuideText.contains("Read `speak-swiftly://overview` first"))
             #expect(playbackGuideText.contains("Playback freshness is currently host-event-driven"))
 
             let chooseActionPromptEnvelope = try await mcpEnvelope(
@@ -254,13 +291,13 @@ extension ServerTests {
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
             #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
-            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak:// resource first"))
+            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak-swiftly:// resource first"))
             #expect(chooseActionPromptText.contains("compatibility read tools"))
 
             let storedTextProfileEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://text-profiles/stored/mcp-text"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/stored/mcp-text"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -274,7 +311,7 @@ extension ServerTests {
             let jobDetailEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak://requests/\(requestID)"),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://requests/\(requestID)"),
                         sessionID: sessionID,
                     ),
                 ),
@@ -288,12 +325,12 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `embedded MCP text profile resources surface bridge failures as explicit jsonrpc errors`() async throws {
+    @Test func `embedded MCP text profile resources surface transport failures as explicit jsonrpc errors`() async throws {
         let runtime = MockRuntime(
             speakBehavior: .holdOpen,
             textProfileTransportError: SpeakSwiftly.Error(
                 code: .internalError,
-                message: "Configured MCP text-profile bridge failure for tests.",
+                message: "Configured MCP text-profile transport failure for tests.",
             ),
         )
         let configuration = testConfiguration()
@@ -347,7 +384,7 @@ extension ServerTests {
         let envelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
-                    body: mcpReadResourceRequestJSON(uri: "speak://text-profiles"),
+                    body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles"),
                     sessionID: sessionID,
                 ),
             ),
@@ -355,6 +392,6 @@ extension ServerTests {
         let error = try #require(envelope["error"] as? [String: Any])
         let message = try #require(error["message"] as? String)
         #expect((error["code"] as? Int) == -32603)
-        #expect(message.contains("Configured MCP text-profile bridge failure for tests."))
+        #expect(message.contains("Configured MCP text-profile transport failure for tests."))
     }
 }

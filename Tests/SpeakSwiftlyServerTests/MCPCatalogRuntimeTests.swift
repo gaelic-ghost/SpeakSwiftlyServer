@@ -15,7 +15,7 @@ extension ServerTests {
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
-                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"catalog-runtime","attributes":{"surface":"mcp"}},"cwd":"./Tests","repo_root":".","text_format":"cli_output","nested_source_format":"rust_source","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
+                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"catalog-runtime","attributes":{"surface":"mcp"}},"cwd":"./Tests","repo_root":".","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
                         ),
                         sessionID: sessionID,
                     ),
@@ -23,18 +23,9 @@ extension ServerTests {
             )
             let queueSpeechToolPayload = try mcpToolPayload(from: queueSpeechToolEnvelope)
             let requestID = try #require(queueSpeechToolPayload["request_id"] as? String)
-            #expect(queueSpeechToolPayload["status_resource_uri"] as? String == "speak://runtime/overview")
-            #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak://requests/\(requestID)")
+            #expect(queueSpeechToolPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
+            #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(requestID)")
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
-            #expect(
-                queuedSpeechInvocation.normalizationContext
-                    == SpeechNormalizationContext(
-                        cwd: "./Tests",
-                        repoRoot: ".",
-                        textFormat: .cli,
-                        nestedSourceFormat: .rust,
-                    ),
-            )
             #expect(queuedSpeechInvocation.textProfileID == "mcp-text")
             #expect(queuedSpeechInvocation.sourceFormat == .generic)
             #expect(queuedSpeechInvocation.qwenPreModelTextChunking == true)
@@ -45,9 +36,28 @@ extension ServerTests {
                         app: "SpeakSwiftlyServerTests",
                         project: "SpeakSwiftlyServer",
                         topic: "catalog-runtime",
+                        cwd: "./Tests",
+                        repoRoot: ".",
                         attributes: ["surface": "mcp"],
                     ),
             )
+
+            let cancelSpeechToolEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "cancel_request",
+                            arguments: [
+                                "request_id": requestID,
+                                "scope": "generation",
+                            ],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let cancelSpeechToolPayload = try mcpToolPayload(from: cancelSpeechToolEnvelope)
+            #expect(cancelSpeechToolPayload["cancelled_request_id"] as? String == requestID)
 
             let createCloneToolEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -68,7 +78,7 @@ extension ServerTests {
             )
             let createCloneToolPayload = try mcpToolPayload(from: createCloneToolEnvelope)
             let createCloneRequestID = try #require(createCloneToolPayload["request_id"] as? String)
-            #expect(createCloneToolPayload["request_resource_uri"] as? String == "speak://requests/\(createCloneRequestID)")
+            #expect(createCloneToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(createCloneRequestID)")
             let createCloneInvocation = try #require(await runtime.latestCreateCloneInvocation())
             #expect(createCloneInvocation.profileName == "clone-from-mcp")
             #expect(createCloneInvocation.vibe == .femme)
@@ -92,7 +102,7 @@ extension ServerTests {
             )
             let renameVoiceToolPayload = try mcpToolPayload(from: renameVoiceToolEnvelope)
             let renameVoiceRequestID = try #require(renameVoiceToolPayload["request_id"] as? String)
-            #expect(renameVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(renameVoiceRequestID)")
+            #expect(renameVoiceToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(renameVoiceRequestID)")
             let renameVoiceInvocation = try #require(await runtime.latestRenameProfileInvocation())
             #expect(renameVoiceInvocation.profileName == "clone-from-mcp")
             #expect(renameVoiceInvocation.newProfileName == "clone-from-mcp-renamed")
@@ -112,7 +122,7 @@ extension ServerTests {
             )
             let rerollVoiceToolPayload = try mcpToolPayload(from: rerollVoiceToolEnvelope)
             let rerollVoiceRequestID = try #require(rerollVoiceToolPayload["request_id"] as? String)
-            #expect(rerollVoiceToolPayload["request_resource_uri"] as? String == "speak://requests/\(rerollVoiceRequestID)")
+            #expect(rerollVoiceToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(rerollVoiceRequestID)")
             let rerollVoiceInvocation = try #require(await runtime.latestRerollProfileInvocation())
             #expect(rerollVoiceInvocation.profileName == "clone-from-mcp-renamed")
 
@@ -215,7 +225,7 @@ extension ServerTests {
             let getRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(name: "get_staged_runtime_config", arguments: [:]),
+                        body: mcpCallToolRequestJSON(name: "get_runtime_configuration", arguments: [:]),
                         sessionID: sessionID,
                     ),
                 ),
@@ -232,7 +242,7 @@ extension ServerTests {
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
-                            name: "set_staged_config",
+                            name: "set_runtime_configuration",
                             arguments: [
                                 "speech_backend": "marvis",
                                 "qwen_resident_model": "base_1_7b_8bit",
@@ -267,14 +277,14 @@ extension ServerTests {
             )
             let switchBackendPayload = try mcpToolPayload(from: switchBackendEnvelope)
             let switchBackendRequestID = try #require(switchBackendPayload["request_id"] as? String)
-            #expect(switchBackendPayload["request_resource_uri"] as? String == "speak://requests/\(switchBackendRequestID)")
-            #expect(switchBackendPayload["status_resource_uri"] as? String == "speak://runtime/overview")
+            #expect(switchBackendPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(switchBackendRequestID)")
+            #expect(switchBackendPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
 
             let setChatterboxRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
-                            name: "set_staged_config",
+                            name: "set_runtime_configuration",
                             arguments: ["speech_backend": "chatterbox_turbo"],
                         ),
                         sessionID: sessionID,
@@ -289,7 +299,7 @@ extension ServerTests {
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
-                            name: "set_staged_config",
+                            name: "set_runtime_configuration",
                             arguments: ["speech_backend": "qwen3_custom_voice"],
                         ),
                         sessionID: sessionID,

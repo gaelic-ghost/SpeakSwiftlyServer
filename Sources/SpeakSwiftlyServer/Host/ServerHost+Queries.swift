@@ -79,22 +79,26 @@ extension ServerHost {
 
     func listGenerationJobs() async throws -> [SpeakSwiftly.GenerationJob] {
         let handle = await runtime.listGenerationJobs()
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-jobs request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation jobs.",
         )
-        return success.generationJobs ?? []
+        guard case let .generationJobs(jobs) = completion else {
+            return []
+        }
+
+        return jobs
     }
 
     func generationJob(id jobID: String) async throws -> SpeakSwiftly.GenerationJob {
         let handle = await runtime.generationJob(id: jobID)
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-job request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation job '\(jobID)'.",
         )
-        guard let generationJob = success.generationJob else {
+        guard case let .generationJob(generationJob) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the generation-job request for '\(jobID)', but it did not return a generation_job payload.",
@@ -106,12 +110,12 @@ extension ServerHost {
 
     func expireGenerationJob(id jobID: String) async throws -> SpeakSwiftly.GenerationJob {
         let handle = await runtime.expireGenerationJob(id: jobID)
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the generation-job expiry request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while expiring retained generation job '\(jobID)'.",
         )
-        guard let generationJob = success.generationJob else {
+        guard case let .generationJob(generationJob) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the generation-job expiry request for '\(jobID)', but it did not return a generation_job payload.",
@@ -121,68 +125,45 @@ extension ServerHost {
         return generationJob
     }
 
-    func listGeneratedFiles() async throws -> [SpeakSwiftly.GeneratedFile] {
-        let handle = await runtime.listGeneratedFiles()
-        let success = try await awaitImmediateSuccess(
+    func listGenerationArtifacts() async throws -> [SpeakSwiftly.GenerationArtifact] {
+        let handle = await runtime.listGenerationArtifacts()
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-files request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio files.",
+            missingTerminalMessage: "SpeakSwiftly finished the generation-artifacts request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation artifacts.",
         )
-        return success.generatedFiles ?? []
+        guard case let .artifacts(artifacts) = completion else {
+            return []
+        }
+
+        return artifacts
     }
 
-    func generatedFile(id artifactID: String) async throws -> SpeakSwiftly.GeneratedFile {
-        let handle = await runtime.generatedFile(id: artifactID)
-        let success = try await awaitImmediateSuccess(
+    func generationArtifact(id artifactID: String) async throws -> SpeakSwiftly.GenerationArtifact {
+        let handle = await runtime.generationArtifact(id: artifactID)
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-file request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio file '\(artifactID)'.",
+            missingTerminalMessage: "SpeakSwiftly finished the generation-artifact request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation artifact '\(artifactID)'.",
         )
-        guard let generatedFile = success.generatedFile else {
+        guard case let .artifact(artifact) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generated-file request for '\(artifactID)', but it did not return a generated_file payload.",
+                message: "SpeakSwiftly accepted the generation-artifact request for '\(artifactID)', but it did not return an artifact payload.",
             )
         }
 
-        return generatedFile
-    }
-
-    func listGeneratedBatches() async throws -> [SpeakSwiftly.GeneratedBatch] {
-        let handle = await runtime.listGeneratedBatches()
-        let success = try await awaitImmediateSuccess(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-batches request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio batches.",
-        )
-        return success.generatedBatches ?? []
-    }
-
-    func generatedBatch(id batchID: String) async throws -> SpeakSwiftly.GeneratedBatch {
-        let handle = await runtime.generatedBatch(id: batchID)
-        let success = try await awaitImmediateSuccess(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-batch request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio batch '\(batchID)'.",
-        )
-        guard let generatedBatch = success.generatedBatch else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the generated-batch request for '\(batchID)', but it did not return a generated_batch payload.",
-            )
-        }
-
-        return generatedBatch
+        return artifact
     }
 
     func runtimeStatus() async throws -> RuntimeStatusResponse {
         let handle = await runtime.runtimeStatus()
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the runtime-status request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading runtime status.",
         )
-        guard let status = success.status else {
+        guard case let .runtimeStatus(status: status?, speechBackend: _) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the runtime-status request, but it did not return a status payload.",
@@ -194,12 +175,12 @@ extension ServerHost {
 
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> RuntimeBackendResponse {
         let handle = await runtime.switchSpeechBackend(to: speechBackend)
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the speech-backend switch request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while switching the active speech backend.",
         )
-        guard let resolvedSpeechBackend = success.speechBackend else {
+        guard case let .runtimeStatus(status: _, speechBackend: resolvedSpeechBackend?) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a speech_backend payload.",
@@ -275,17 +256,32 @@ extension ServerHost {
     }
 
     private func queueClearedResponse(handle: RuntimeRequestHandle) async throws -> QueueClearedResponse {
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        return .init(clearedCount: success.clearedCount ?? 0)
+        guard case let .queueCleared(count) = completion else {
+            return .init(clearedCount: 0)
+        }
+
+        return .init(clearedCount: count)
     }
 
     func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
         let handle = await runtime.cancelRequest(requestID)
         return try await queueCancellationResponse(handle: handle)
+    }
+
+    func cancelQueuedOrActiveRequest(
+        requestID: String,
+        scope: RequestCancellationScope?,
+    ) async throws -> QueueCancellationResponse {
+        if let scope {
+            return try await cancelQueuedOrActiveRequest(scope.queueType, requestID: requestID)
+        }
+
+        return try await cancelQueuedOrActiveRequest(requestID: requestID)
     }
 
     func cancelQueuedOrActiveRequest(
@@ -297,12 +293,12 @@ extension ServerHost {
     }
 
     private func queueCancellationResponse(handle: RuntimeRequestHandle) async throws -> QueueCancellationResponse {
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        guard let cancelledRequestID = success.cancelledRequestID, !cancelledRequestID.isEmpty else {
+        guard case let .requestCancelled(cancelledRequestID) = completion, !cancelledRequestID.isEmpty else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the cancel-request control operation, but it did not report which request was cancelled.",

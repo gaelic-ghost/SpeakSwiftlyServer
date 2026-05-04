@@ -1,5 +1,5 @@
 {
-  "originHash" : "8368da15ca8ae54b032fbb12993482667d3111405c552e5f711a29461adae274",
+  "originHash" : "101e1dae3479b1da9a82aab78fb452eba276e008691fe62d560fbbe6bfc4ae2b",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/gaelic-ghost/SpeakSwiftly.git",
       "state" : {
-        "revision" : "8c17dda26c11cc0e778b4f943020ca72750216e4",
-        "version" : "4.2.0"
+        "revision" : "e4b97e2ec9d16eb05e56268f3998c50832140941",
+        "version" : "5.0.0-rc.1"
       }
     },
     {
@@ -107,6 +107,15 @@
       "state" : {
         "revision" : "24ccdeeeed4dfaae7955fcac9dbf5489ed4f1a25",
         "version" : "1.18.0"
+      }
+    },
+    {
+      "identity" : "swift-cmark",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-cmark.git",
+      "state" : {
+        "revision" : "5d9bdaa4228b381639fff09403e39a04926e2dbe",
+        "version" : "0.7.1"
       }
     },
     {
@@ -206,6 +215,15 @@
       "state" : {
         "revision" : "8c0f217f01000dd30f60d6e536569ad4e74291f9",
         "version" : "1.11.0"
+      }
+    },
+    {
+      "identity" : "swift-markdown",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-markdown.git",
+      "state" : {
+        "revision" : "7d9a5ce307528578dfa777d505496bd5f544ad94",
+        "version" : "0.7.3"
       }
     },
     {
@@ -326,12 +344,21 @@
       }
     },
     {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup.git",
+      "state" : {
+        "revision" : "6c7915e16f729857aec3e99068c361e58a00ed68",
+        "version" : "2.13.4"
+      }
+    },
+    {
       "identity" : "textforspeech",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/gaelic-ghost/TextForSpeech.git",
       "state" : {
-        "revision" : "2f3c8c095eaef151cc28f5f977f4e4daae28c474",
-        "version" : "0.18.9"
+        "revision" : "ceaeb442e06cbbe7b583a71b41d05429fe7fe71e",
+        "version" : "0.19.0"
       }
     },
     {

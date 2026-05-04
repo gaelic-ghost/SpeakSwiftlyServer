@@ -78,7 +78,6 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        normalizationContext: normalizationContext(in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(in: arguments),
                         qwenPreModelTextChunking: decodeOptionalArgument(
@@ -89,7 +88,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the live speech request. Read the returned request resource for progress or read speak://runtime/overview to monitor generation, playback, and transport state.",
+                        message: "SpeakSwiftlyServer accepted the live speech request. Read the returned request resource for progress or read speak-swiftly://overview to monitor generation, playback, and transport state.",
                     )
 
                 case "generate_audio_file":
@@ -103,13 +102,12 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        normalizationContext: normalizationContext(in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(in: arguments),
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak://generation/files or speak://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/artifacts or speak-swiftly://generation/jobs.",
                     )
 
                 case "generate_batch":
@@ -126,7 +124,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak://generation/batches or speak://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/artifacts or speak-swiftly://generation/jobs.",
                     )
 
                 case "create_voice_profile_from_description":
@@ -140,7 +138,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "create_voice_profile_from_audio":
@@ -153,11 +151,21 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "list_voice_profiles":
                     return try await toolResult(host.cachedProfiles())
+
+                case "inspect_builtin_voice_seed":
+                    let seedID = try requiredString("seed_id", in: arguments)
+                    guard let seed = try DefaultVoiceCatalog.load().first(where: { $0.seedID == seedID }) else {
+                        throw MCPError.invalidRequest(
+                            "SpeakSwiftlyServer could not inspect built-in voice seed '\(seedID)' because the package catalog does not contain that seed id. Read speak-swiftly://voices to inspect installed profile names, or use one of the bundled seed ids from the default voice catalog.",
+                        )
+                    }
+
+                    return try toolResult(seed)
 
                 case "update_voice_profile_name":
                     let requestID = try await host.submitRenameVoiceProfile(
@@ -166,7 +174,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile rename request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile rename request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "reroll_voice_profile":
@@ -175,7 +183,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile reroll request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile reroll request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "delete_voice_profile":
@@ -184,7 +192,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak://voices to monitor the refreshed cache.",
+                        message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
                 case "get_runtime_overview":
@@ -193,10 +201,10 @@ extension MCPSurface {
                 case "get_runtime_status":
                     return try await toolResult(host.runtimeStatus())
 
-                case "get_staged_runtime_config":
+                case "get_runtime_configuration":
                     return try await toolResult(host.runtimeConfigurationSnapshot())
 
-                case "set_staged_config":
+                case "set_runtime_configuration":
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
                             speechBackend: requiredSpeechBackend("speech_backend", in: arguments),
@@ -211,7 +219,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the speech-backend switch request. Read the returned request resource for progress or read speak://runtime/overview to observe the pending and active backend state.",
+                        message: "SpeakSwiftlyServer accepted the speech-backend switch request. Read the returned request resource for progress or read speak-swiftly://overview to observe the pending and active backend state.",
                     )
 
                 case "reload_models":
@@ -373,22 +381,7 @@ extension MCPSurface {
                     return try await toolResult(
                         host.cancelQueuedOrActiveRequest(
                             requestID: requiredString("request_id", in: arguments),
-                        ),
-                    )
-
-                case "cancel_generation":
-                    return try await toolResult(
-                        host.cancelQueuedOrActiveRequest(
-                            .generation,
-                            requestID: requiredString("request_id", in: arguments),
-                        ),
-                    )
-
-                case "cancel_playback":
-                    return try await toolResult(
-                        host.cancelQueuedOrActiveRequest(
-                            .playback,
-                            requestID: requiredString("request_id", in: arguments),
+                            scope: optionalRequestCancellationScope("scope", in: arguments),
                         ),
                     )
 
@@ -403,18 +396,6 @@ extension MCPSurface {
 
                 case "expire_generation_job":
                     return try await toolResult(host.expireGenerationJob(id: requiredString("job_id", in: arguments)))
-
-                case "list_generated_files":
-                    return try await toolResult(host.listGeneratedFiles())
-
-                case "get_generated_file":
-                    return try await toolResult(host.generatedFile(id: requiredString("artifact_id", in: arguments)))
-
-                case "list_generated_batches":
-                    return try await toolResult(host.listGeneratedBatches())
-
-                case "get_generated_batch":
-                    return try await toolResult(host.generatedBatch(id: requiredString("batch_id", in: arguments)))
 
                 default:
                     throw MCPError.methodNotFound(

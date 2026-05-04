@@ -77,30 +77,6 @@ func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     )
 }
 
-// MARK: - GeneratedFileFixture
-
-struct GeneratedFileFixture: Codable {
-    let artifactID: String
-    let createdAt: Date
-    let voiceProfile: String
-    let textProfile: String?
-    let inputTextContext: SpeakSwiftly.InputTextContext?
-    let requestContext: TextForSpeech.RequestContext?
-    let sampleRate: Int
-    let filePath: String
-
-    enum CodingKeys: String, CodingKey {
-        case artifactID = "artifact_id"
-        case createdAt = "created_at"
-        case voiceProfile = "voice_profile"
-        case textProfile = "text_profile"
-        case inputTextContext = "input_text_context"
-        case requestContext = "request_context"
-        case sampleRate = "sample_rate"
-        case filePath = "file_path"
-    }
-}
-
 // MARK: - GenerationArtifactFixture
 
 struct GenerationArtifactFixture: Codable {
@@ -111,7 +87,7 @@ struct GenerationArtifactFixture: Codable {
     let sampleRate: Int
     let voiceProfile: String
     let textProfile: String?
-    let inputTextContext: SpeakSwiftly.InputTextContext?
+    let sourceFormat: TextForSpeech.SourceFormat?
     let requestContext: TextForSpeech.RequestContext?
 
     enum CodingKeys: String, CodingKey {
@@ -122,7 +98,7 @@ struct GenerationArtifactFixture: Codable {
         case sampleRate = "sample_rate"
         case voiceProfile = "voice_profile"
         case textProfile = "text_profile"
-        case inputTextContext = "input_text_context"
+        case sourceFormat = "source_format"
         case requestContext = "request_context"
     }
 }
@@ -133,14 +109,14 @@ struct GenerationJobItemFixture: Codable {
     let artifactID: String
     let text: String
     let textProfile: String?
-    let inputTextContext: SpeakSwiftly.InputTextContext?
+    let sourceFormat: TextForSpeech.SourceFormat?
     let requestContext: TextForSpeech.RequestContext?
 
     enum CodingKeys: String, CodingKey {
         case artifactID = "artifact_id"
         case text
         case textProfile = "text_profile"
-        case inputTextContext = "input_text_context"
+        case sourceFormat = "source_format"
         case requestContext = "request_context"
     }
 }
@@ -192,44 +168,6 @@ struct GenerationJobFixture: Codable {
     }
 }
 
-// MARK: - GeneratedBatchFixture
-
-struct GeneratedBatchFixture: Codable {
-    let batchID: String
-    let voiceProfile: String
-    let textProfile: String?
-    let speechBackend: String
-    let state: String
-    let items: [GenerationJobItemFixture]
-    let artifacts: [GeneratedFileFixture]
-    let failure: GenerationJobFailureFixture?
-    let createdAt: Date
-    let updatedAt: Date
-    let startedAt: Date?
-    let completedAt: Date?
-    let failedAt: Date?
-    let expiresAt: Date?
-    let retentionPolicy: String
-
-    enum CodingKeys: String, CodingKey {
-        case batchID = "batch_id"
-        case voiceProfile = "voice_profile"
-        case textProfile = "text_profile"
-        case speechBackend = "speech_backend"
-        case state
-        case items
-        case artifacts
-        case failure
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case startedAt = "started_at"
-        case completedAt = "completed_at"
-        case failedAt = "failed_at"
-        case expiresAt = "expires_at"
-        case retentionPolicy = "retention_policy"
-    }
-}
-
 func fixtureDecode<T: Decodable>(_ payload: some Encodable, as type: T.Type) throws -> T {
     let encoder = JSONEncoder()
     let decoder = JSONDecoder()
@@ -247,28 +185,29 @@ func requireFixture<T>(
     }
 }
 
-func makeGeneratedFile(
+func makeGenerationArtifact(
     artifactID: String,
     createdAt: Date,
     voiceProfile: String,
     textProfile: String?,
-    inputTextContext: SpeakSwiftly.InputTextContext? = nil,
+    sourceFormat: TextForSpeech.SourceFormat? = nil,
     requestContext: TextForSpeech.RequestContext? = nil,
     sampleRate: Int,
     filePath: String,
-) throws -> SpeakSwiftly.GeneratedFile {
+) throws -> SpeakSwiftly.GenerationArtifact {
     try fixtureDecode(
-        GeneratedFileFixture(
+        GenerationArtifactFixture(
             artifactID: artifactID,
+            kind: "audio_wav",
             createdAt: createdAt,
+            filePath: filePath,
+            sampleRate: sampleRate,
             voiceProfile: voiceProfile,
             textProfile: textProfile,
-            inputTextContext: inputTextContext,
+            sourceFormat: sourceFormat,
             requestContext: requestContext,
-            sampleRate: sampleRate,
-            filePath: filePath,
         ),
-        as: SpeakSwiftly.GeneratedFile.self,
+        as: SpeakSwiftly.GenerationArtifact.self,
     )
 }
 
@@ -310,44 +249,5 @@ func makeGenerationJob(
             retentionPolicy: retentionPolicy,
         ),
         as: SpeakSwiftly.GenerationJob.self,
-    )
-}
-
-func makeGeneratedBatch(
-    batchID: String,
-    voiceProfile: String,
-    textProfile: String?,
-    speechBackend: String,
-    state: String,
-    items: [GenerationJobItemFixture],
-    artifacts: [GeneratedFileFixture],
-    failure: GenerationJobFailureFixture? = nil,
-    createdAt: Date,
-    updatedAt: Date,
-    startedAt: Date?,
-    completedAt: Date?,
-    failedAt: Date?,
-    expiresAt: Date?,
-    retentionPolicy: String,
-) throws -> SpeakSwiftly.GeneratedBatch {
-    try fixtureDecode(
-        GeneratedBatchFixture(
-            batchID: batchID,
-            voiceProfile: voiceProfile,
-            textProfile: textProfile,
-            speechBackend: speechBackend,
-            state: state,
-            items: items,
-            artifacts: artifacts,
-            failure: failure,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            startedAt: startedAt,
-            completedAt: completedAt,
-            failedAt: failedAt,
-            expiresAt: expiresAt,
-            retentionPolicy: retentionPolicy,
-        ),
-        as: SpeakSwiftly.GeneratedBatch.self,
     )
 }

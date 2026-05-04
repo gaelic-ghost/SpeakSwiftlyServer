@@ -49,10 +49,8 @@ struct ServerSuccessEvent: Encodable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id
         case ok
-        case generatedFile = "generated_file"
-        case generatedFiles = "generated_files"
-        case generatedBatch = "generated_batch"
-        case generatedBatches = "generated_batches"
+        case artifact
+        case artifacts
         case generationJob = "generation_job"
         case generationJobs = "generation_jobs"
         case profileName = "profile_name"
@@ -73,10 +71,8 @@ struct ServerSuccessEvent: Encodable, Equatable {
 
     let id: String
     let ok = true
-    let generatedFile: SpeakSwiftly.GeneratedFile?
-    let generatedFiles: [SpeakSwiftly.GeneratedFile]?
-    let generatedBatch: SpeakSwiftly.GeneratedBatch?
-    let generatedBatches: [SpeakSwiftly.GeneratedBatch]?
+    let artifact: SpeakSwiftly.GenerationArtifact?
+    let artifacts: [SpeakSwiftly.GenerationArtifact]?
     let generationJob: SpeakSwiftly.GenerationJob?
     let generationJobs: [SpeakSwiftly.GenerationJob]?
     let profileName: String?
@@ -93,6 +89,48 @@ struct ServerSuccessEvent: Encodable, Equatable {
     let speechBackend: String?
     let clearedCount: Int?
     let cancelledRequestID: String?
+
+    init(
+        id: String,
+        artifact: SpeakSwiftly.GenerationArtifact? = nil,
+        artifacts: [SpeakSwiftly.GenerationArtifact]? = nil,
+        generationJob: SpeakSwiftly.GenerationJob? = nil,
+        generationJobs: [SpeakSwiftly.GenerationJob]? = nil,
+        profileName: String? = nil,
+        profilePath: String? = nil,
+        profiles: [ProfileSnapshot]? = nil,
+        textProfile: TextProfileSnapshot? = nil,
+        textProfiles: [TextProfileSnapshot]? = nil,
+        textProfilePath: String? = nil,
+        activeRequest: ActiveRequestSnapshot? = nil,
+        activeRequests: [ActiveRequestSnapshot]? = nil,
+        queue: [QueuedRequestSnapshot]? = nil,
+        playbackState: PlaybackStatusSnapshot? = nil,
+        status: SpeakSwiftly.StatusEvent? = nil,
+        speechBackend: String? = nil,
+        clearedCount: Int? = nil,
+        cancelledRequestID: String? = nil,
+    ) {
+        self.id = id
+        self.artifact = artifact
+        self.artifacts = artifacts
+        self.generationJob = generationJob
+        self.generationJobs = generationJobs
+        self.profileName = profileName
+        self.profilePath = profilePath
+        self.profiles = profiles
+        self.textProfile = textProfile
+        self.textProfiles = textProfiles
+        self.textProfilePath = textProfilePath
+        self.activeRequest = activeRequest
+        self.activeRequests = activeRequests
+        self.queue = queue
+        self.playbackState = playbackState
+        self.status = status
+        self.speechBackend = speechBackend
+        self.clearedCount = clearedCount
+        self.cancelledRequestID = cancelledRequestID
+    }
 }
 
 /// Failure-shaped event payload emitted when a request cannot complete successfully.

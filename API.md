@@ -53,13 +53,13 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 
 - `GET /healthz`
 - `GET /readyz`
-- `GET /runtime/host`
-- `GET /runtime/status`
-- `GET /runtime/configuration`
-- `POST /runtime/backend`
-- `POST /runtime/models/reload`
-- `POST /runtime/models/unload`
-- `PUT /runtime/configuration`
+- `GET /overview`
+- `GET /status`
+- `GET /configuration`
+- `PUT /configuration`
+- `POST /backend`
+- `POST /models/reload`
+- `POST /models/unload`
 
 ### Voice Endpoints
 
@@ -73,7 +73,11 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 When the runtime first becomes ready, `SpeakSwiftlyServer` installs any missing bundled default voice
 seeds into the active profile store before exposing the refreshed profile cache. `GET /voices`
 therefore includes `swift-signal` and `swift-anchor` on a fresh store, or their `-builtin` fallback
-names when a user-owned profile already occupies a preferred seed name.
+names when a user-owned profile already occupies a preferred seed name. Those profiles are
+system-authored built-ins: ordinary users should list them and select one as the default or per-request
+voice, not edit their seed inputs. Encoded profile JSON exposes only narrow authorship metadata for
+system profiles (`author`, `seed_id`, and `seed_version`) and redacts the built-in source text and
+voice-design prompt from ordinary read surfaces.
 
 ### Text Profile Endpoints
 
@@ -89,16 +93,19 @@ names when a user-owned profile already occupies a preferred seed name.
 - `POST /text-profiles/save`
 - `POST /text-profiles/factory-reset`
 - `POST /text-profiles/stored/{profile_id}/reset`
-- `POST /text-profiles/active/replacements`
-- `POST /text-profiles/stored/{profile_id}/replacements`
+- `POST /text-profiles/replacements`
 - `PUT /text-profiles/stored/{profile_id}/name`
 - `PUT /text-profiles/style`
 - `PUT /text-profiles/active`
-- `PUT /text-profiles/active/replacements/{replacement_id}`
-- `PUT /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
+- `PUT /text-profiles/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}`
-- `DELETE /text-profiles/active/replacements/{replacement_id}`
-- `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
+- `DELETE /text-profiles/replacements/{replacement_id}`
+
+`POST /text-profiles/replacements`
+and `PUT /text-profiles/replacements/{replacement_id}` mutate the active custom profile when the
+JSON body omits `profile_id`, or mutate a stored profile when the body includes `profile_id`.
+`DELETE /text-profiles/replacements/{replacement_id}` follows the same target model with optional
+`?profile_id=...` for stored-profile deletion.
 
 ### Speech, Request, And Artifact Endpoints
 
@@ -108,16 +115,14 @@ names when a user-owned profile already occupies a preferred seed name.
 - `GET /requests`
 - `GET /requests/{request_id}`
 - `GET /requests/{request_id}/events`
+- `DELETE /requests/{request_id}`
 - `GET /generation/queue`
 - `DELETE /generation/queue`
-- `DELETE /generation/requests/{request_id}`
 - `GET /generation/jobs`
 - `GET /generation/jobs/{job_id}`
 - `DELETE /generation/jobs/{job_id}`
-- `GET /generation/files`
-- `GET /generation/files/{artifact_id}`
-- `GET /generation/batches`
-- `GET /generation/batches/{batch_id}`
+- `GET /generation/artifacts`
+- `GET /generation/artifacts/{artifact_id}`
 
 ### Playback Endpoints
 
@@ -126,7 +131,6 @@ names when a user-owned profile already occupies a preferred seed name.
 - `POST /playback/pause`
 - `POST /playback/resume`
 - `DELETE /playback/queue`
-- `DELETE /playback/requests/{request_id}`
 
 ### Accepted Request Semantics
 
@@ -134,9 +138,9 @@ names when a user-owned profile already occupies a preferred seed name.
 
 Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first.
 
-`POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_id`, `text_format`, `nested_source_format`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, normalization-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
+`POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `request_context`, `text_profile_id`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, source-format-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
 
-`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/files`, `GET /generation/files/{artifact_id}`, `GET /generation/batches`, or `GET /generation/batches/{batch_id}` for the retained media records.
+`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `GET /generation/jobs`, or `GET /generation/jobs/{job_id}` for retained media records and their originating jobs.
 
 ### Text Profile Semantics
 
@@ -152,18 +156,17 @@ The queue and playback control routes are immediate control operations rather th
 
 - `GET /generation/queue` and `GET /playback/queue` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface.
 - `DELETE /generation/queue` clears queued generation work and returns the number of cancelled queued requests.
-- `DELETE /generation/requests/{request_id}` cancels one active or queued generation request and returns the cancelled request ID.
+- `DELETE /requests/{request_id}` cancels one active or queued request wherever it currently lives and returns the cancelled request ID. Add `?scope=generation` or `?scope=playback` only when the caller deliberately wants to constrain cancellation to one queue.
 - `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly.
 - `DELETE /playback/queue` clears queued playback work and returns the number of cancelled queued requests.
-- `DELETE /playback/requests/{request_id}` cancels one active or queued request and returns the cancelled request ID.
 
 The runtime routes are also state-oriented.
 
-- `GET /runtime/host` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
-- `GET /runtime/status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
-- `GET /runtime/configuration` and `PUT /runtime/configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /runtime/backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
-- `POST /runtime/backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /runtime/host`, `GET /runtime/status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
-- `POST /runtime/models/reload` and `POST /runtime/models/unload` follow the current runtime-control verbs directly.
+- `GET /overview` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
+- `GET /status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
+- `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
+- `POST /backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /overview`, `GET /status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
+- `POST /models/reload` and `POST /models/unload` follow the current runtime-control verbs directly.
 
 The current HTTP SSE route remains intentionally job-specific at the route boundary, but it now rides the same host-owned event backbone used by other non-UI consumers instead of keeping a separate per-job subscriber registry inside `ServerHost`.
 
@@ -173,7 +176,9 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 
 ### MCP Tools
 
-For read-only MCP inspection, prefer resources first. Use `speak://runtime/overview` for broad orientation, then read the most specific `speak://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+For read-only MCP inspection, prefer resources first. Use `speak-swiftly://overview` for broad orientation, then read the most specific `speak-swiftly://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+
+The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are intentionally top-level under that scheme: `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`. The older `speak://runtime/...` shape is not carried forward in the next major API because it made read routes look nested by implementation detail instead of by user job.
 
 #### Speech And Artifact Tools
 
@@ -184,15 +189,12 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `list_generation_jobs`
 - `get_generation_job`
 - `expire_generation_job`
-- `list_generated_files`
-- `get_generated_file`
-- `list_generated_batches`
-- `get_generated_batch`
 
 #### Voice Tools
 
 - `create_voice_profile_from_description`
 - `create_voice_profile_from_audio`
+- `inspect_builtin_voice_seed`
 - `update_voice_profile_name`
 - `reroll_voice_profile`
 - `list_voice_profiles`
@@ -219,8 +221,8 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 
 - `get_runtime_overview`
 - `get_runtime_status`
-- `get_staged_runtime_config`
-- `set_staged_config`
+- `get_runtime_configuration`
+- `set_runtime_configuration`
 - `switch_speech_backend`
 - `reload_models`
 - `unload_models`
@@ -231,50 +233,50 @@ For read-only MCP inspection, prefer resources first. Use `speak://runtime/overv
 - `get_playback_state`
 - `clear_generation_queue`
 - `clear_playback_queue`
-- `cancel_generation`
-- `cancel_playback`
 - `cancel_request`
 
-`generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_staged_config` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak://runtime/overview`, `speak://runtime/status`, or `speak://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 
 #### Runtime Resources
 
-- `speak://runtime/overview`
-- `speak://runtime/status`
-- `speak://runtime/configuration`
+- `speak-swiftly://overview`
+- `speak-swiftly://status`
+- `speak-swiftly://configuration`
 
 #### Voice Resources
 
-- `speak://voices`
-- `speak://voices/guide`
-- `speak://voices/{profile_name}`
+- `speak-swiftly://voices`
+- `speak-swiftly://voices/guide`
+- `speak-swiftly://voices/{profile_name}`
 
 #### Text Profile Resources
 
-- `speak://text-profiles`
-- `speak://text-profiles/style`
-- `speak://text-profiles/base`
-- `speak://text-profiles/active`
-- `speak://text-profiles/effective`
-- `speak://text-profiles/effective/{profile_id}`
-- `speak://text-profiles/stored/{profile_id}`
-- `speak://text-profiles/guide`
+- `speak-swiftly://text-profiles`
+- `speak-swiftly://text-profiles/style`
+- `speak-swiftly://text-profiles/base`
+- `speak-swiftly://text-profiles/active`
+- `speak-swiftly://text-profiles/effective`
+- `speak-swiftly://text-profiles/effective/{profile_id}`
+- `speak-swiftly://text-profiles/stored/{profile_id}`
+- `speak-swiftly://text-profiles/guide`
 
 #### Request, Artifact, And Playback Resources
 
-- `speak://requests`
-- `speak://requests/{request_id}`
-- `speak://generation/jobs`
-- `speak://generation/jobs/{job_id}`
-- `speak://generation/files`
-- `speak://generation/files/{artifact_id}`
-- `speak://generation/batches`
-- `speak://generation/batches/{batch_id}`
-- `speak://playback/guide`
+- `speak-swiftly://requests`
+- `speak-swiftly://requests/{request_id}`
+- `speak-swiftly://generation/jobs`
+- `speak-swiftly://generation/jobs/{job_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
+- `speak-swiftly://playback/guide`
 
-Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
+Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; generated artifact reads are resources-only in the next major surface so clients do not have two names for the same retained media records.
+
+`inspect_builtin_voice_seed` is a maintainer/development tool for package-owned built-in voice seed
+inspection. Normal agent and user workflows should read `speak-swiftly://voices`, choose a profile name, and
+use `generate_speech` or the default-voice configuration path instead of inspecting seed prompts.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 
@@ -290,7 +292,7 @@ The embedded MCP prompt catalog currently includes:
 - `draft_text_replacement`
 - `choose_surface_action`
 
-The text-profile prompts and the `speak://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail.
+The text-profile prompts and the `speak-swiftly://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail.
 
 ### MCP Resource Subscriptions
 
@@ -298,26 +300,24 @@ The embedded MCP surface supports resource subscriptions for the live state reso
 
 Clients connected to the standalone MCP event stream can subscribe to:
 
-- `speak://runtime/overview`
-- `speak://runtime/status`
-- `speak://runtime/configuration`
-- `speak://voices`
-- `speak://voices/{profile_name}`
-- `speak://requests`
-- `speak://requests/{request_id}`
-- `speak://generation/jobs`
-- `speak://generation/jobs/{job_id}`
-- `speak://generation/files`
-- `speak://generation/files/{artifact_id}`
-- `speak://generation/batches`
-- `speak://generation/batches/{batch_id}`
-- `speak://text-profiles`
-- `speak://text-profiles/style`
-- `speak://text-profiles/base`
-- `speak://text-profiles/active`
-- `speak://text-profiles/effective`
-- `speak://text-profiles/effective/{profile_id}`
-- `speak://text-profiles/stored/{profile_id}`
+- `speak-swiftly://overview`
+- `speak-swiftly://status`
+- `speak-swiftly://configuration`
+- `speak-swiftly://voices`
+- `speak-swiftly://voices/{profile_name}`
+- `speak-swiftly://requests`
+- `speak-swiftly://requests/{request_id}`
+- `speak-swiftly://generation/jobs`
+- `speak-swiftly://generation/jobs/{job_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
+- `speak-swiftly://text-profiles`
+- `speak-swiftly://text-profiles/style`
+- `speak-swiftly://text-profiles/base`
+- `speak-swiftly://text-profiles/active`
+- `speak-swiftly://text-profiles/effective`
+- `speak-swiftly://text-profiles/effective/{profile_id}`
+- `speak-swiftly://text-profiles/stored/{profile_id}`
 
 Subscribed clients receive `notifications/resources/updated` when shared host events change the underlying state.
 

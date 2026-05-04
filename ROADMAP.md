@@ -70,7 +70,7 @@ In Progress
 
 ### Status
 
-Planned
+In Progress
 
 ### Scope
 
@@ -156,7 +156,7 @@ In Progress
 
 ### Tickets
 
-- [ ] Add an app-managed LaunchAgent smoke test that starts from a canonical config path with spaces and verifies both `GET /runtime/host` and MCP `initialize`.
+- [ ] Add an app-managed LaunchAgent smoke test that starts from a canonical config path with spaces and verifies both `GET /overview` and MCP `initialize`.
 - [ ] Add explicit startup logging for canonical config paths, LaunchAgent alias staging, and the exact config file path the runtime loader opened.
 - [ ] Decide whether LaunchAgent-owned startup config should keep using a reloading provider or move to a simpler startup-open path with reload support layered on intentionally later.
 - [ ] Promote the existing MCP E2E client utilities into a reusable repo-owned smoke helper for local checks, CI, and release verification.
@@ -256,6 +256,9 @@ Planned
 
 - [ ] Review the relationship between `APP_DEFAULT_VOICE_PROFILE_NAME`, startup-installed built-ins, user-owned saved profiles, and fallback `-builtin` names.
 - [ ] Decide whether the server should expose a clearer operator command, config default, or MCP guidance for choosing one of the built-ins after startup seeding.
+- [x] Use upstream `SpeakSwiftly` system-authored profile metadata for startup-installed built-ins instead of creating them through the ordinary user-profile design path.
+- [x] Keep ordinary profile reads list-and-select for system built-ins by redacting seed source text and voice-design prompts from normal encoded profile JSON.
+- [x] Add an explicit maintainer/development MCP tool for inspecting built-in voice seed internals.
 - [ ] Update README, API, LaunchAgent docs, plugin skills, and tests so the default voice setup path is easy to explain and does not require users to understand seed-install internals first.
 
 ### Exit Criteria
@@ -277,9 +280,17 @@ In Progress
 - [x] Deduplicate playback and queue snapshot shaping so `EmbeddedServer`, HTTP responses, and MCP resources encode shared host state from one set of primitives instead of parallel app-facing and transport-facing models.
 - [x] Add focused tests that prove playback state, queue state, and active request fields stay equivalent across Swift app state, HTTP responses, and MCP resources after the snapshot cleanup.
 - [x] Update `docs/maintainers/source-layout.md` and the public API simplification plan when model ownership moves.
-- [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak://runtime/overview` and specific `speak://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
+- [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak-swiftly://overview` and specific `speak-swiftly://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
-- [ ] Keep compatibility-sensitive cleanup separate: runtime-configuration tool renames, cancellation unification, generated artifact unification, HTTP text-profile target simplification, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [x] Rename MCP resource URIs from the generic `speak://` scheme to `speak-swiftly://`, and flatten runtime reads to `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
+- [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model.
+- [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope.
+- [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`).
+- [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak-swiftly://generation/artifacts` resources) without compatibility aliases.
+- [x] Implement generated artifact unification as a breaking major-version change by replacing generated file/batch read routes, tools, and resources with one artifact read family.
+- [x] Remove remaining next-major compatibility aliases: older active/stored text-profile replacement routes, scoped HTTP cancel routes, scoped MCP cancel tools, staged runtime-configuration MCP tools, and nested `/runtime/...` HTTP routes.
+- [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request and text-profile model directly: remove server-local speech normalization context shaping, keep `source_format` as the one explicit request format field, merge `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and delete the text-profile JSON bridge adapter.
+- [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria
 
@@ -288,17 +299,18 @@ In Progress
 ## Backlog Candidates
 
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
-- [ ] Consider whether system-authored voice-profile immutability and reroll-as-user-copy behavior belongs upstream in `SpeakSwiftly` before adding more server-side policy.
-- [ ] Revisit generated file and generated batch resources as one artifact-family model after snapshot dedupe and MCP resources-first guidance land.
+- [ ] Turn upstream `SpeakSwiftly` into a clearer product-level package surface so `SpeakSwiftlyServer` can depend on stable, ergonomic runtime concepts instead of carrying extra server-side explanation, translation, or compatibility planning for package-owned behavior.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
+- [ ] Add a focused Codex Hooks setup skill for `SpeakSwiftlyServer` after stop-hook text filtering is improved, likely in `TextForSpeech`, so hook-triggered TTS can be set up safely without teaching agents to speak tables, metadata, or stale stop-hook payloads.
 
 ## History
 
 - Completed the bootstrap, HTTP server, direct `SpeakSwiftly` integration, core testing, library integration, app/LaunchAgent handoff, live-update convergence, formatting/linting, initial DocC, and plugin-catalog split setup milestones.
 - Completed the config reload foundation: YAML reload providers, malformed-reload survival, live host-safe subset application, and restart-required diagnostics.
-- Completed the `SpeakSwiftly` runtime adoption passes for explicit `vibe`, runtime configuration exposure, Marvis/Qwen E2E realignment, source/test splitting, voice rename and reroll, generated files, generation jobs, batch generation, and README/API/E2E coverage.
+- Completed the `SpeakSwiftly` runtime adoption passes for explicit `vibe`, runtime configuration exposure, Marvis/Qwen E2E realignment, source/test splitting, voice rename and reroll, retained generation artifacts, generation jobs, batch generation, and README/API/E2E coverage.
 - Completed the embedded lifecycle refactor around explicit service ownership.
 - Completed the first live-service hardening passes: staged-artifact promotion diagnostics, signature refresh, operator healthcheck, transport smoke split, lifecycle shutdown accounting, persisted runtime-state hardening, and package-wide cleanup.
 - Completed the Codex plugin identity migration from `speak-swiftly-server` to `speak-swiftly`, Git-backed standalone and Socket marketplace docs, legacy duplicate detection, doctor dry-run repair planning, and isolated plugin install-testing guidance.
 - Added public built-in voice samples for `swift-signal` and `swift-anchor` under `docs/media/default-voices/` after the package-owned seed voices shipped.
+- Moved system-authored built-in voice handling into the upstream `SpeakSwiftly` authorship model and kept deep seed inspection behind an explicit maintainer/tool surface.
 - Recorded the public API simplification audit and ordered the cleanup plan around snapshot dedupe first, MCP resources-first guidance second, and compatibility-sensitive route/tool cleanup later.

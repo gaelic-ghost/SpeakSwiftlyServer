@@ -16,7 +16,7 @@ public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
 
     init(summary: SpeakSwiftly.ActiveRequest) {
         id = summary.id
-        op = canonicalOperationName(summary.op)
+        op = canonicalOperationName(summary.kind.rawValue)
         profileName = summary.voiceProfile
     }
 
@@ -43,7 +43,7 @@ public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
 
     init(summary: SpeakSwiftly.QueuedRequest) {
         id = summary.id
-        op = canonicalOperationName(summary.op)
+        op = canonicalOperationName(summary.kind.rawValue)
         profileName = summary.voiceProfile
         queuePosition = summary.queuePosition
     }
@@ -94,6 +94,33 @@ struct QueueCancellationResponse: ResponseEncodable {
 
     enum CodingKeys: String, CodingKey {
         case cancelledRequestID = "cancelled_request_id"
+    }
+}
+
+enum RequestCancellationScope: String, CaseIterable, Decodable {
+    case generation
+    case playback
+
+    var queueType: SpeakSwiftly.QueueType {
+        switch self {
+            case .generation:
+                .generation
+            case .playback:
+                .playback
+        }
+    }
+
+    static func normalized(_ rawValue: String?) -> String? {
+        guard let rawValue else {
+            return nil
+        }
+
+        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
+    static var supportedValuesDescription: String {
+        allCases.map(\.rawValue).joined(separator: ", ")
     }
 }
 

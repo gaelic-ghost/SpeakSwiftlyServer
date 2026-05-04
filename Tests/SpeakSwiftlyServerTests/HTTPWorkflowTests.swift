@@ -40,7 +40,7 @@ extension ServerTests {
             #expect(healthJSON["status"] as? String == "ok")
             #expect(healthJSON["worker_ready"] as? Bool == true)
 
-            let runtimeHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let runtimeHostResponse = try await client.execute(uri: "/overview", method: .get)
             let runtimeHostJSON = try jsonObject(from: runtimeHostResponse.body)
             #expect(runtimeHostJSON["default_voice_profile_name"] as? String == "default")
             let runtimeRefresh = try #require(runtimeHostJSON["runtime_refresh"] as? [String: Any])
@@ -52,7 +52,7 @@ extension ServerTests {
             #expect((runtimeRefresh["playback_state_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["completed_at"] as? String)?.isEmpty == false)
 
-            let runtimeConfigResponse = try await client.execute(uri: "/runtime/configuration", method: .get)
+            let runtimeConfigResponse = try await client.execute(uri: "/configuration", method: .get)
             let runtimeConfigJSON = try jsonObject(from: runtimeConfigResponse.body)
             #expect(runtimeConfigResponse.status == .ok)
             #expect(runtimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3")
@@ -64,7 +64,7 @@ extension ServerTests {
             #expect(runtimeConfigJSON["persisted_configuration_state"] as? String == "missing")
 
             let updateRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"marvis","qwen_resident_model":"base_1_7b_8bit","marvis_resident_policy":"single_resident_dynamic"}"#),
@@ -83,7 +83,7 @@ extension ServerTests {
             #expect(updateRuntimeConfigJSON["persisted_configuration_state"] as? String == "loaded")
 
             let updateChatterboxRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"chatterbox_turbo"}"#),
@@ -94,7 +94,7 @@ extension ServerTests {
             #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
 
             let updateLegacyQwenRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"qwen3_custom_voice"}"#),
@@ -186,8 +186,47 @@ extension ServerTests {
             let effectiveReplacements = try #require(effectiveTextProfile["replacements"] as? [[String: Any]])
             #expect(effectiveReplacements.contains { $0["id"] as? String == "replace-1" })
 
+            let addTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(
+                    #"{"profile_id":"swift-docs","replacement":{"id":"replace-2","text":"DocC","replacement":"Documentation Compiler","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":4}}"#,
+                ),
+            )
+            let addTargetedTextReplacementJSON = try jsonObject(from: addTargetedTextReplacementResponse.body)
+            let expandedTextProfile = try #require(addTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let expandedReplacements = try #require(expandedTextProfile["replacements"] as? [[String: Any]])
+            #expect(addTargetedTextReplacementResponse.status == .ok)
+            #expect(expandedReplacements.contains { $0["id"] as? String == "replace-2" })
+
+            let replaceTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements/replace-2",
+                method: .put,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(
+                    #"{"profile_id":"swift-docs","replacement":{"id":"replace-2","text":"DocC","replacement":"Swift DocC","match":"whole_token","phase":"before_built_ins","is_case_sensitive":false,"formats":["swift_source"],"priority":5}}"#,
+                ),
+            )
+            let replaceTargetedTextReplacementJSON = try jsonObject(from: replaceTargetedTextReplacementResponse.body)
+            let updatedTextProfile = try #require(replaceTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let updatedReplacements = try #require(updatedTextProfile["replacements"] as? [[String: Any]])
+            let updatedReplacement = try #require(updatedReplacements.first { $0["id"] as? String == "replace-2" })
+            #expect(replaceTargetedTextReplacementResponse.status == .ok)
+            #expect(updatedReplacement["replacement"] as? String == "Swift DocC")
+
+            let removeTargetedTextReplacementResponse = try await client.execute(
+                uri: "/text-profiles/replacements/replace-2?profile_id=swift-docs",
+                method: .delete,
+            )
+            let removeTargetedTextReplacementJSON = try jsonObject(from: removeTargetedTextReplacementResponse.body)
+            let reducedTextProfile = try #require(removeTargetedTextReplacementJSON["profile"] as? [String: Any])
+            let reducedReplacements = try #require(reducedTextProfile["replacements"] as? [[String: Any]])
+            #expect(removeTargetedTextReplacementResponse.status == .ok)
+            #expect(reducedReplacements.contains { $0["id"] as? String == "replace-2" } == false)
+
             let removeTextReplacementResponse = try await client.execute(
-                uri: "/text-profiles/stored/swift-docs/replacements/replace-1",
+                uri: "/text-profiles/replacements/replace-1?profile_id=swift-docs",
                 method: .delete,
             )
             let removeTextReplacementJSON = try jsonObject(from: removeTextReplacementResponse.body)
@@ -254,7 +293,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"route-coverage","attributes":{"surface":"http"}},"cwd":"./Sources","repo_root":".","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
+                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"route-coverage","attributes":{"surface":"http"}},"cwd":"./Sources","repo_root":".","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -263,15 +302,6 @@ extension ServerTests {
             #expect((speakJSON["events_url"] as? String)?.contains(speakJobID) == true)
             #expect((speakJSON["request_url"] as? String)?.hasPrefix("http://") == true)
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
-            #expect(
-                queuedSpeechInvocation.normalizationContext
-                    == SpeechNormalizationContext(
-                        cwd: "./Sources",
-                        repoRoot: ".",
-                        textFormat: .markdown,
-                        nestedSourceFormat: .swift,
-                    ),
-            )
             #expect(queuedSpeechInvocation.textProfileID == "swift-docs")
             #expect(queuedSpeechInvocation.sourceFormat == .python)
             #expect(queuedSpeechInvocation.qwenPreModelTextChunking == true)
@@ -282,6 +312,8 @@ extension ServerTests {
                         app: "SpeakSwiftlyServerTests",
                         project: "SpeakSwiftlyServer",
                         topic: "route-coverage",
+                        cwd: "./Sources",
+                        repoRoot: ".",
                         attributes: ["surface": "http"],
                     ),
             )
@@ -302,7 +334,7 @@ extension ServerTests {
             #expect(foregroundJobJSON["status"] as? String == "completed")
             let foregroundHistory = try #require(foregroundJobJSON["history"] as? [[String: Any]])
             #expect(foregroundHistory.contains { $0["event"] as? String == "started" })
-            #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 2)
+            #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 1)
         }
 
         await host.shutdown()
@@ -337,7 +369,7 @@ extension ServerTests {
             #expect(speakResponse.status == .accepted)
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"marvis"}"#),
@@ -363,7 +395,7 @@ extension ServerTests {
             await runtime.finishHeldSpeak(id: speakJobID)
             _ = try await waitForJobSnapshot(switchJobID, on: host)
 
-            let finalHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let finalHostResponse = try await client.execute(uri: "/overview", method: .get)
             let finalHostJSON = try jsonObject(from: finalHostResponse.body)
             let finalTransition = try #require(finalHostJSON["runtime_backend_transition"] as? [String: Any])
             #expect(finalTransition["state"] as? String == "idle")
@@ -399,7 +431,7 @@ extension ServerTests {
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"text":"Bad format","profile_name":"default","text_format":"totally_invalid","source_format":"not_a_real_source"}"#,
+                    #"{"text":"Bad format","profile_name":"default","source_format":"not_a_real_source"}"#,
                 ),
             )
             let responseJSON = try jsonObject(from: response.body)
@@ -407,9 +439,9 @@ extension ServerTests {
             let message = try #require(error["message"] as? String)
 
             #expect(response.status == .badRequest)
-            #expect(message.contains("text_format"))
-            #expect(message.contains("totally_invalid"))
-            #expect(message.contains("plain"))
+            #expect(message.contains("source_format"))
+            #expect(message.contains("not_a_real_source"))
+            #expect(message.contains("source_code"))
         }
 
         await host.shutdown()
@@ -467,7 +499,7 @@ extension ServerTests {
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
@@ -484,7 +516,7 @@ extension ServerTests {
             #expect(persistMessage.contains("qwen3_custom_voice"))
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
@@ -523,7 +555,7 @@ extension ServerTests {
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{}"#),
@@ -533,7 +565,7 @@ extension ServerTests {
             #expect(persistBody.contains("speech_backend"))
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{}"#),

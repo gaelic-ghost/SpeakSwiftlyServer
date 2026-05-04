@@ -126,7 +126,7 @@ extension MockRuntime {
     private func transportSummary(
         _ summary: TextForSpeech.Runtime.Profiles.Summary,
     ) -> SpeakSwiftly.TextProfileSummary {
-        requireFixture("mock text-profile summary bridge") {
+        requireFixture("mock text-profile summary transport fixture") {
             try fixtureDecode(
                 TextProfileSummaryFixture(
                     id: summary.id,
@@ -141,7 +141,7 @@ extension MockRuntime {
     private func transportDetails(
         _ details: TextForSpeech.Runtime.Profiles.Details,
     ) -> SpeakSwiftly.TextProfileDetails {
-        requireFixture("mock text-profile details bridge") {
+        requireFixture("mock text-profile details transport fixture") {
             try fixtureDecode(
                 TextProfileDetailsFixture(
                     profileID: details.id,

@@ -14,8 +14,8 @@ func toolResult(_ output: some Encodable) throws -> CallTool.Result {
 func acceptedRequestResult(requestID: String, message: String) -> MCPAcceptedRequestResult {
     .init(
         requestID: requestID,
-        requestResourceURI: "speak://requests/\(requestID)",
-        statusResourceURI: "speak://runtime/overview",
+        requestResourceURI: "speak-swiftly://requests/\(requestID)",
+        statusResourceURI: "speak-swiftly://overview",
         message: message,
     )
 }
@@ -60,6 +60,21 @@ func optionalString(_ key: String, in arguments: [String: Value]) -> String? {
     return value
 }
 
+func optionalRequestCancellationScope(
+    _ key: String,
+    in arguments: [String: Value],
+) throws -> RequestCancellationScope? {
+    guard let rawValue = RequestCancellationScope.normalized(optionalString(key, in: arguments)) else {
+        return nil
+    }
+
+    return try decodeStringEnum(
+        rawValue,
+        fieldName: key,
+        valueType: RequestCancellationScope.self,
+    )
+}
+
 func decodeArgument<T: Decodable>(
     _ key: String,
     in arguments: [String: Value],
@@ -85,43 +100,21 @@ func decodeOptionalArgument<T: Decodable>(
     return try decodeValue(value, fieldName: key)
 }
 
-func normalizationContext(in arguments: [String: Value]) throws -> SpeechNormalizationContext? {
-    let context = try SpeechNormalizationContext(
-        cwd: optionalString("cwd", in: arguments),
-        repoRoot: optionalString("repo_root", in: arguments),
-        textFormat: requestTextFormat(in: arguments),
-        nestedSourceFormat: requestSourceFormat("nested_source_format", in: arguments),
-    )
-    guard
-        context.cwd != nil
-        || context.repoRoot != nil
-        || context.textFormat != nil
-        || context.nestedSourceFormat != nil
-    else {
-        return nil
-    }
-
-    return context
-}
-
 func sourceFormat(in arguments: [String: Value]) throws -> TextForSpeech.SourceFormat? {
     try requestSourceFormat("source_format", in: arguments)
 }
 
 func requestContext(in arguments: [String: Value]) throws -> SpeakSwiftly.RequestContext? {
-    guard let value = arguments["request_context"] else {
-        return nil
+    let decodedContext: SpeakSwiftly.RequestContext? = if let value = arguments["request_context"] {
+        try decodeValue(value, fieldName: "request_context")
+    } else {
+        nil
     }
-
-    return try decodeValue(value, fieldName: "request_context")
-}
-
-func requestTextFormat(in arguments: [String: Value]) throws -> TextForSpeech.TextFormat? {
-    guard let rawValue = optionalString("text_format", in: arguments) else {
-        return nil
-    }
-
-    return try decodeStringEnum(rawValue, fieldName: "text_format", valueType: TextForSpeech.TextFormat.self)
+    return makeSpeechRequestContext(
+        cwd: optionalString("cwd", in: arguments),
+        repoRoot: optionalString("repo_root", in: arguments),
+        requestContext: decodedContext,
+    )
 }
 
 func requestSourceFormat(
