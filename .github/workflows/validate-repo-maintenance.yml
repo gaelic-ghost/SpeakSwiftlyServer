@@ -17,6 +17,14 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - name: Report selected Xcode
         run: xcode-select --print-path
+      - name: Install project Swift toolchain
+        run: |
+          curl -O https://download.swift.org/swiftly/darwin/swiftly.pkg
+          installer -pkg swiftly.pkg -target CurrentUserHomeDirectory
+          ~/.swiftly/bin/swiftly init --quiet-shell-followup
+          . "${SWIFTLY_HOME_DIR:-$HOME/.swiftly}/env.sh"
+          swiftly install --use "$(cat .swift-version)"
+          echo "TOOLCHAINS=swift" >> "$GITHUB_ENV"
       - name: Report Swift toolchain
         run: xcrun swift --version
       - name: Install Swift repo-maintenance tools
