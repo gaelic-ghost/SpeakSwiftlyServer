@@ -93,9 +93,9 @@ dedupe follow-through remain visible to maintainers.
 ## Transport Sources
 
 - `Sources/SpeakSwiftlyServer/HTTP/HTTPSpeechRoutes.swift`
-  Owns HTTP speech submission and the HTTP default request-context provenance for route, method, server app, and speech topic.
+  Owns HTTP speech submission and the HTTP default request-context provenance for route, method, server identity attributes, and speech topic.
 - `Sources/SpeakSwiftlyServer/MCP/MCPClientIdentity.swift`
-  Captures MCP `clientInfo` from session initialization and converts it into speech request-context defaults such as `Codex via SpeakSwiftlyServer`.
+  Captures MCP `clientInfo` from session initialization and converts it into speech request-context attributes such as `mcp.client.display_name`.
 - `Sources/SpeakSwiftlyServer/MCP/MCPToolHandlers.swift` and `MCPToolSupport.swift`
   Own MCP tool execution and merge MCP tool/client defaults with caller-provided `request_context`, `cwd`, and `repo_root`.
 

@@ -84,7 +84,6 @@ private func httpSpeechRequestContextDefaults(
 ) -> SpeechRequestContextDefaults {
     .init(
         source: "http",
-        app: "SpeakSwiftlyServer",
         topic: topic,
         attributes: [
             "surface": "http",

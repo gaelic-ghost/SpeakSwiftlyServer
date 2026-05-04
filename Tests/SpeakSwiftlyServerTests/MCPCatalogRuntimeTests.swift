@@ -15,7 +15,7 @@ extension ServerTests {
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
-                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"catalog-runtime","attributes":{"surface":"mcp"}},"cwd":"./Tests","repo_root":".","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
+                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","topic":"catalog-runtime","attributes":{"caller.app":"SpeakSwiftlyServerTests","caller.project":"SpeakSwiftlyServer","surface":"mcp"}},"cwd":"./Tests","repo_root":".","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
                         ),
                         sessionID: sessionID,
                     ),
@@ -33,12 +33,13 @@ extension ServerTests {
                 queuedSpeechInvocation.requestContext
                     == SpeakSwiftly.RequestContext(
                         source: "mcp",
-                        app: "SpeakSwiftlyServerTests",
-                        project: "SpeakSwiftlyServer",
                         topic: "catalog-runtime",
                         cwd: "./Tests",
                         repoRoot: ".",
                         attributes: [
+                            "caller.app": "SpeakSwiftlyServerTests",
+                            "caller.project": "SpeakSwiftlyServer",
+                            "mcp.client.display_name": "ServerTests via SpeakSwiftlyServer",
                             "mcp.client.name": "ServerTests",
                             "mcp.client.version": "1.0",
                             "mcp.tool": "generate_speech",
@@ -85,9 +86,9 @@ extension ServerTests {
                 retainedAudioArtifact.requestContext
                     == SpeakSwiftly.RequestContext(
                         source: "mcp",
-                        app: "ServerTests via SpeakSwiftlyServer",
                         topic: "generate_audio_file",
                         attributes: [
+                            "mcp.client.display_name": "ServerTests via SpeakSwiftlyServer",
                             "mcp.client.name": "ServerTests",
                             "mcp.client.version": "1.0",
                             "mcp.tool": "generate_audio_file",

@@ -136,7 +136,8 @@ Use that guide for:
 The short version for a fresh checkout is:
 
 - use `xcrun swift test` for the normal package-development loop
-- use `sh scripts/repo-maintenance/validate-all.sh` for the full maintainer and CI gate
+- use `sh scripts/repo-maintenance/validate-all.sh` for the full local maintainer gate
+- let GitHub Actions run the lighter remote CI gate from `scripts/repo-maintenance/validate-ci.sh`
 - use `node scripts/codex-hooks-doctor.mjs` when changing the Codex plugin or hook surface
 - use `scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z` for the aligned release flow
 - use `scripts/repo-maintenance/config/profile.env` to confirm the active `swift-package` maintainer profile

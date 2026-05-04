@@ -606,12 +606,14 @@ import Testing
         sourceFormat: .python,
         requestContext: .init(
             source: "embedded-session",
-            app: "SpeakSwiftlyServerTests",
-            project: "SpeakSwiftlyServer",
             topic: "state-actions",
             cwd: "./Sources",
             repoRoot: ".",
-            attributes: ["surface": "embedded"],
+            attributes: [
+                "caller.app": "SpeakSwiftlyServerTests",
+                "caller.project": "SpeakSwiftlyServer",
+                "surface": "embedded",
+            ],
         ),
     )
     let firstQueuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
@@ -624,12 +626,14 @@ import Testing
         firstQueuedSpeechInvocation.requestContext
             == SpeakSwiftly.RequestContext(
                 source: "embedded-session",
-                app: "SpeakSwiftlyServerTests",
-                project: "SpeakSwiftlyServer",
                 topic: "state-actions",
                 cwd: "./Sources",
                 repoRoot: ".",
-                attributes: ["surface": "embedded"],
+                attributes: [
+                    "caller.app": "SpeakSwiftlyServerTests",
+                    "caller.project": "SpeakSwiftlyServer",
+                    "surface": "embedded",
+                ],
             ),
     )
     await runtime.finishHeldSpeak(id: firstQueuedRequestID)

@@ -35,6 +35,7 @@ func mcpSpeechRequestContextDefaults(
     if let clientInfo {
         attributes["mcp.client.name"] = clientInfo.name
         attributes["mcp.client.version"] = clientInfo.version
+        attributes["mcp.client.display_name"] = mcpClientDisplayName(from: clientInfo)
         if let title = clientInfo.title, !title.isEmpty {
             attributes["mcp.client.title"] = title
         }
@@ -42,17 +43,12 @@ func mcpSpeechRequestContextDefaults(
 
     return .init(
         source: "mcp",
-        app: mcpAppName(from: clientInfo),
         topic: toolName,
         attributes: attributes,
     )
 }
 
-private func mcpAppName(from clientInfo: MCPClientInfoSnapshot?) -> String {
-    guard let clientInfo else {
-        return "MCP client via SpeakSwiftlyServer"
-    }
-
+private func mcpClientDisplayName(from clientInfo: MCPClientInfoSnapshot) -> String {
     let displayName = if let title = clientInfo.title, !title.isEmpty {
         title
     } else {

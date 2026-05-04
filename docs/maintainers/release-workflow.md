@@ -76,8 +76,15 @@ Key flags:
 Purpose:
 
 - one local maintainer validation entrypoint
-- the command CI calls through `.github/workflows/validate-repo-maintenance.yml`
 - dispatch of repo-maintenance validation scripts under `scripts/repo-maintenance/validations/`
+
+### `scripts/repo-maintenance/validate-ci.sh`
+
+Purpose:
+
+- one remote CI validation entrypoint
+- the command CI calls through `.github/workflows/validate-repo-maintenance.yml`
+- a lighter remote gate covering repo-maintenance structure, plugin metadata, CI wiring, package build, and package tests
 
 ## Expected Flow
 
@@ -97,15 +104,17 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 
 The repository uses one authoritative GitHub validation workflow: `.github/workflows/validate-repo-maintenance.yml`.
 
-That workflow installs the local formatting and linting tools and then runs:
+That workflow runs:
 
 ```bash
-bash scripts/repo-maintenance/validate-all.sh
+bash scripts/repo-maintenance/validate-ci.sh
 ```
 
-The local validation dispatcher covers the managed toolkit checks and the repo-specific Swift package checks that remain under `scripts/repo-maintenance/validations/`, including build, test, DocC, CLI smoke, SwiftFormat, and SwiftLint.
+The remote CI dispatcher covers the managed toolkit checks plus the Swift package build and test lane. It intentionally skips DocC, CLI smoke, SwiftFormat, and SwiftLint so pull requests do not need Homebrew tool installation or the full local release gate on every remote run.
 
-Keep new required validation inside `validate-all.sh` unless there is a clear reason a separate GitHub-only workflow must own it.
+The local validation dispatcher remains the full maintainer gate. It covers the managed toolkit checks and the repo-specific Swift package checks under `scripts/repo-maintenance/validations/`, including build, test, DocC, CLI smoke, SwiftFormat, and SwiftLint.
+
+Keep new required local validation inside `validate-all.sh` unless it belongs specifically to the lighter GitHub gate.
 
 ## Defaults
 
