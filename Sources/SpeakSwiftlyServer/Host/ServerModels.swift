@@ -31,20 +31,55 @@ func supportedMarvisResidentPolicyDescription() -> String {
     exposedMarvisResidentPolicyIdentifiers().joined(separator: ", ")
 }
 
+struct SpeechRequestContextDefaults {
+    var source: String?
+    var app: String?
+    var agent: String?
+    var project: String?
+    var topic: String?
+    var cwd: String?
+    var repoRoot: String?
+    var attributes: [String: String]
+
+    init(
+        source: String? = nil,
+        app: String? = nil,
+        agent: String? = nil,
+        project: String? = nil,
+        topic: String? = nil,
+        cwd: String? = nil,
+        repoRoot: String? = nil,
+        attributes: [String: String] = [:],
+    ) {
+        self.source = source
+        self.app = app
+        self.agent = agent
+        self.project = project
+        self.topic = topic
+        self.cwd = cwd
+        self.repoRoot = repoRoot
+        self.attributes = attributes
+    }
+}
+
 func makeSpeechRequestContext(
     cwd: String?,
     repoRoot: String?,
     requestContext: SpeakSwiftly.RequestContext?,
+    defaults: SpeechRequestContextDefaults = .init(),
 ) -> SpeakSwiftly.RequestContext? {
     let merged = SpeakSwiftly.RequestContext(
-        source: requestContext?.source,
-        app: requestContext?.app,
-        agent: requestContext?.agent,
-        project: requestContext?.project,
-        topic: requestContext?.topic,
-        cwd: cwd ?? requestContext?.cwd,
-        repoRoot: repoRoot ?? requestContext?.repoRoot,
-        attributes: requestContext?.attributes ?? [:],
+        source: requestContext?.source ?? defaults.source,
+        app: requestContext?.app ?? defaults.app,
+        agent: requestContext?.agent ?? defaults.agent,
+        project: requestContext?.project ?? defaults.project,
+        topic: requestContext?.topic ?? defaults.topic,
+        cwd: cwd ?? requestContext?.cwd ?? defaults.cwd,
+        repoRoot: repoRoot ?? requestContext?.repoRoot ?? defaults.repoRoot,
+        attributes: mergedRequestContextAttributes(
+            defaults: defaults.attributes,
+            request: requestContext?.attributes ?? [:],
+        ),
     )
     guard
         merged.source != nil
@@ -60,6 +95,17 @@ func makeSpeechRequestContext(
     }
 
     return merged
+}
+
+private func mergedRequestContextAttributes(
+    defaults: [String: String],
+    request: [String: String],
+) -> [String: String] {
+    var attributes = defaults.filter { !$0.key.isEmpty && !$0.value.isEmpty }
+    for (key, value) in request where !key.isEmpty && !value.isEmpty {
+        attributes[key] = value
+    }
+    return attributes
 }
 
 func makeSpeechSourceFormat(_ rawValue: String?) throws -> TextForSpeech.SourceFormat? {
@@ -87,11 +133,12 @@ struct SpeakRequestPayload: Decodable {
     let requestContext: SpeakSwiftly.RequestContext?
     let qwenPreModelTextChunking: Bool?
 
-    func resolvedRequestContext() -> SpeakSwiftly.RequestContext? {
+    func resolvedRequestContext(defaults: SpeechRequestContextDefaults = .init()) -> SpeakSwiftly.RequestContext? {
         makeSpeechRequestContext(
             cwd: cwd,
             repoRoot: repoRoot,
             requestContext: requestContext,
+            defaults: defaults,
         )
     }
 
@@ -171,21 +218,22 @@ struct BatchItemRequestPayload: Decodable {
     let sourceFormat: String?
     let requestContext: SpeakSwiftly.RequestContext?
 
-    func model() throws -> SpeakSwiftly.BatchItem {
+    func model(requestContextDefaults: SpeechRequestContextDefaults = .init()) throws -> SpeakSwiftly.BatchItem {
         try .init(
             artifactID: artifactID,
             text: text,
             textProfile: textProfileID,
             sourceFormat: sourceFormatModel(),
-            requestContext: resolvedRequestContext(),
+            requestContext: resolvedRequestContext(defaults: requestContextDefaults),
         )
     }
 
-    private func resolvedRequestContext() -> SpeakSwiftly.RequestContext? {
+    private func resolvedRequestContext(defaults: SpeechRequestContextDefaults = .init()) -> SpeakSwiftly.RequestContext? {
         makeSpeechRequestContext(
             cwd: cwd,
             repoRoot: repoRoot,
             requestContext: requestContext,
+            defaults: defaults,
         )
     }
 

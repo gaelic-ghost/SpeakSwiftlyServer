@@ -209,7 +209,7 @@ See [LICENSE](./LICENSE).
 
 ## Embedding
 
-The supported public embedding surface is `EmbeddedServer`, defined in [Sources/SpeakSwiftlyServer/Host/ServerState.swift](./Sources/SpeakSwiftlyServer/Host/ServerState.swift). App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`, including the shared `SpeakSwiftly.RequestContext` metadata model when one request needs caller-origin details.
+The supported public embedding surface is `EmbeddedServer`, defined in [Sources/SpeakSwiftlyServer/Host/ServerState.swift](./Sources/SpeakSwiftlyServer/Host/ServerState.swift). App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`, including the shared `SpeakSwiftly.RequestContext` metadata model when one request needs caller-origin details. HTTP and MCP speech surfaces add transport defaults for this context automatically; embedded app callers should still pass `RequestContext` directly when the app has richer caller or project metadata than the server can infer.
 
 ```swift
 import SpeakSwiftlyServer

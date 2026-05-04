@@ -29,6 +29,7 @@ struct MCPSurface {
         configuration: MCPConfig,
         host: ServerHost,
         subscriptionBroker: MCPSubscriptionBroker,
+        clientIdentity: MCPClientIdentity,
     ) async -> Server {
         let server = Server(
             name: configuration.serverName,
@@ -48,6 +49,7 @@ struct MCPSurface {
             on: server,
             host: host,
             subscriptionBroker: subscriptionBroker,
+            clientIdentity: clientIdentity,
         )
         await registerResourceHandlers(
             on: server,

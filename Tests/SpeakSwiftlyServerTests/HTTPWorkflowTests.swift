@@ -314,12 +314,43 @@ extension ServerTests {
                         topic: "route-coverage",
                         cwd: "./Sources",
                         repoRoot: ".",
-                        attributes: ["surface": "http"],
+                        attributes: [
+                            "http.method": "POST",
+                            "http.route": "/speech/live",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "http",
+                        ],
                     ),
             )
             #expect(queuedSpeechInvocation.profileName == "default")
 
             _ = try await waitForJobSnapshot(speakJobID, on: host)
+
+            let speakFileResponse = try await client.execute(
+                uri: "/speech/files",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Default HTTP context","profile_name":"default"}"#),
+            )
+            let speakFileJSON = try jsonObject(from: speakFileResponse.body)
+            let speakFileJobID = try #require(speakFileJSON["request_id"] as? String)
+            #expect(speakFileResponse.status == .accepted)
+            let queuedSpeechFileArtifact = try #require(await runtime.generationArtifacts.last)
+            #expect(
+                queuedSpeechFileArtifact.requestContext
+                    == SpeakSwiftly.RequestContext(
+                        source: "http",
+                        app: "SpeakSwiftlyServer",
+                        topic: "retained-audio-file",
+                        attributes: [
+                            "http.method": "POST",
+                            "http.route": "/speech/files",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "http",
+                        ],
+                    ),
+            )
+            _ = try await waitForJobSnapshot(speakFileJobID, on: host)
 
             let jobsResponse = try await client.execute(uri: "/requests", method: .get)
             let jobsJSON = try jsonObject(from: jobsResponse.body)
