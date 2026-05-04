@@ -58,6 +58,7 @@ extension MCPSurface {
         on server: Server,
         host: ServerHost,
         subscriptionBroker: MCPSubscriptionBroker,
+        clientIdentity: MCPClientIdentity,
     ) async {
         await server.withMethodHandler(ListTools.self) { _ in
             .init(tools: MCPToolCatalog.definitions)
@@ -65,6 +66,10 @@ extension MCPSurface {
 
         await server.withMethodHandler(CallTool.self) { params in
             let arguments = params.arguments ?? [:]
+            let requestContextDefaults = await mcpSpeechRequestContextDefaults(
+                toolName: params.name,
+                clientInfo: clientIdentity.snapshot(),
+            )
 
             switch params.name {
                 case "generate_speech":
@@ -79,7 +84,10 @@ extension MCPSurface {
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
-                        requestContext: requestContext(in: arguments),
+                        requestContext: requestContext(
+                            in: arguments,
+                            defaults: requestContextDefaults,
+                        ),
                         qwenPreModelTextChunking: decodeOptionalArgument(
                             "qwen_pre_model_text_chunking",
                             in: arguments,
@@ -103,7 +111,10 @@ extension MCPSurface {
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
-                        requestContext: requestContext(in: arguments),
+                        requestContext: requestContext(
+                            in: arguments,
+                            defaults: requestContextDefaults,
+                        ),
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
@@ -119,7 +130,9 @@ extension MCPSurface {
                     }
 
                     let requestID = try await host.queueSpeechBatch(
-                        items: items.map { try $0.model() },
+                        items: items.map {
+                            try $0.model(requestContextDefaults: requestContextDefaults)
+                        },
                         profileName: profileName,
                     )
                     return try acceptedRequestToolResult(

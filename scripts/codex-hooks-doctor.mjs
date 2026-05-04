@@ -61,26 +61,70 @@ async function readJSON(filePath) {
   }
 }
 
-function stopHookCommands(hooksJSON) {
-  const stopGroups = hooksJSON?.hooks?.Stop;
-  if (!Array.isArray(stopGroups)) return [];
-  return stopGroups.flatMap((group) => Array.isArray(group.hooks) ? group.hooks : [])
+function eventHookCommands(hooksJSON, eventName) {
+  const eventGroups = hooksJSON?.hooks?.[eventName];
+  if (!Array.isArray(eventGroups)) return [];
+  return eventGroups.flatMap((group) => Array.isArray(group.hooks) ? group.hooks : [])
     .filter((hook) => hook?.type === "command")
     .map((hook) => String(hook.command ?? ""));
 }
 
-async function inspectHookFile(label, filePath) {
+function isSpeakSwiftlyHookCommand(command) {
+  return command.includes("SpeakSwiftlyServer") || command.includes("stop-tts.mjs");
+}
+
+function isCentralizedGlobalHookCommand(command) {
+  return command.includes("hooks/stop-tts.mjs")
+    && !command.includes("CODEX_HOOK_TTS_DATA_DIR")
+    && !command.includes(".codex/hooks/stop-tts.mjs");
+}
+
+export function classifyGlobalHookCommands(commands) {
+  const speakSwiftlyCommands = commands.filter(isSpeakSwiftlyHookCommand);
+  const supportedFallbackCommands = speakSwiftlyCommands.filter(isCentralizedGlobalHookCommand);
+  const legacyOrDevCommands = speakSwiftlyCommands.filter((command) => !isCentralizedGlobalHookCommand(command));
+
+  if (speakSwiftlyCommands.length === 0) {
+    return {
+      status: "absent",
+      speakSwiftlyCommands,
+      supportedFallbackCommands,
+      legacyOrDevCommands,
+      message: "Plugin-bundled hooks may still provide TTS when Codex dispatches installed plugin lifecycle config.",
+    };
+  }
+
+  if (legacyOrDevCommands.length === 0) {
+    return {
+      status: "supported-fallback",
+      speakSwiftlyCommands,
+      supportedFallbackCommands,
+      legacyOrDevCommands,
+      message: "User-level Speak Swiftly hook is a supported fallback and keeps state/logs under ~/.codex/speak-swiftly-server/hooks by default.",
+    };
+  }
+
+  return {
+    status: "legacy-or-dev",
+    speakSwiftlyCommands,
+    supportedFallbackCommands,
+    legacyOrDevCommands,
+    message: `Replace legacy or dev-only global hook commands with a single user-level fallback that calls hooks/stop-tts.mjs without CODEX_HOOK_TTS_DATA_DIR: ${legacyOrDevCommands.join(" | ")}`,
+  };
+}
+
+async function inspectHookFile(label, filePath, eventName) {
   const hooksJSON = await readJSON(filePath);
   if (!hooksJSON) {
     addCheck("warn", `${label} hooks file is not present`, filePath);
     return [];
   }
 
-  const commands = stopHookCommands(hooksJSON);
+  const commands = eventHookCommands(hooksJSON, eventName);
   if (commands.length === 0) {
-    addCheck("warn", `${label} hooks file has no Stop command hook`, filePath);
+    addCheck("warn", `${label} hooks file has no ${eventName} command hook`, filePath);
   } else {
-    addCheck("ok", `${label} Stop hook command count: ${commands.length}`, commands.join(" | "));
+    addCheck("ok", `${label} ${eventName} hook command count: ${commands.length}`, commands.join(" | "));
   }
   return commands;
 }
@@ -294,26 +338,48 @@ async function main() {
     addCheck("fail", "Repo plugin manifest does not declare ./hooks/hooks.json", pluginManifestPath);
   }
 
-  const pluginHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"));
-  if (pluginHookCommands.some((command) => command.includes("./hooks/stop-tts.mjs"))) {
+  const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
+  if (pluginStopHookCommands.some((command) => command.includes("./hooks/stop-tts.mjs"))) {
     addCheck("ok", "Repo plugin Stop hook points at the plugin hook script");
   } else {
     addCheck("fail", "Repo plugin Stop hook does not point at ./hooks/stop-tts.mjs");
   }
+  const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
+  if (pluginPermissionHookCommands.some((command) => command.includes("./hooks/permission-request-log.mjs"))) {
+    addCheck("ok", "Repo plugin PermissionRequest hook points at the logging probe");
+  } else {
+    addCheck("warn", "Repo plugin PermissionRequest hook is not wired to the logging probe");
+  }
 
-  const devHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"));
-  if (devHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-tts.mjs"))) {
+  const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
+  if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-tts.mjs"))) {
     addCheck("ok", "Repo dev-only hook keeps state under .codex and reuses the plugin hook script");
   } else {
     addCheck("warn", "Repo dev-only hook is not wired as the expected local test harness");
   }
-
-  const globalHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"));
-  const legacyGlobalCommands = globalHookCommands.filter((command) => command.includes("SpeakSwiftlyServer") || command.includes("stop-tts.mjs"));
-  if (legacyGlobalCommands.length > 0) {
-    addCheck("warn", "Global user hooks still include SpeakSwiftly TTS", "Remove the global hook after the plugin-managed hook is installed and verified.");
+  const devPermissionHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "PermissionRequest");
+  if (devPermissionHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/permission-request-log.mjs"))) {
+    addCheck("ok", "Repo dev-only PermissionRequest hook keeps probe logs under .codex");
   } else {
-    addCheck("ok", "Global user hooks do not include a legacy SpeakSwiftly TTS command");
+    addCheck("warn", "Repo dev-only PermissionRequest hook is not wired as the expected local probe harness");
+  }
+
+  const globalStopHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "Stop");
+  const globalHookClassification = classifyGlobalHookCommands(globalStopHookCommands);
+  if (globalHookClassification.status === "supported-fallback") {
+    addCheck("ok", "Global user Speak Swiftly hook is a supported fallback", globalHookClassification.message);
+  } else if (globalHookClassification.status === "legacy-or-dev") {
+    addCheck("warn", "Global user hooks include legacy or dev-only SpeakSwiftly TTS", globalHookClassification.message);
+  } else {
+    addCheck("info", "Global user Speak Swiftly fallback hook is not configured", globalHookClassification.message);
+  }
+  const globalPermissionHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "PermissionRequest");
+  if (globalPermissionHookCommands.some((command) => command.includes("hooks/permission-request-log.mjs") && !command.includes("CODEX_HOOK_TTS_DATA_DIR"))) {
+    addCheck("ok", "Global user PermissionRequest logging probe is centralized", "Logs default to ~/.codex/speak-swiftly-server/hooks/logs/permission-request.jsonl.");
+  } else if (globalPermissionHookCommands.length > 0) {
+    addCheck("warn", "Global user PermissionRequest hook is not the centralized logging probe", globalPermissionHookCommands.join(" | "));
+  } else {
+    addCheck("info", "Global user PermissionRequest logging probe is not configured");
   }
 
   const configText = await readText(path.join(codexHome, "config.toml"));
@@ -364,8 +430,10 @@ async function main() {
     addCheck("warn", "Voice profile endpoint is not reachable", voices.error ?? `${voices.status}: ${voices.text}`);
   }
 
-  await summarizeHookLog("Plugin-managed", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
+  await summarizeHookLog("Centralized user/plugin", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
   await summarizeHookLog("Repo dev-only", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-tts.jsonl")));
+  await summarizeHookLog("Centralized permission-request", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "permission-request.jsonl")));
+  await summarizeHookLog("Repo dev-only permission-request", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "permission-request.jsonl")));
 
   console.log("Checks:");
   for (const check of checks) {

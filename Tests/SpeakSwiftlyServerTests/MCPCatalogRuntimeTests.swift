@@ -38,7 +38,13 @@ extension ServerTests {
                         topic: "catalog-runtime",
                         cwd: "./Tests",
                         repoRoot: ".",
-                        attributes: ["surface": "mcp"],
+                        attributes: [
+                            "mcp.client.name": "ServerTests",
+                            "mcp.client.version": "1.0",
+                            "mcp.tool": "generate_speech",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "mcp",
+                        ],
                     ),
             )
 
@@ -58,6 +64,38 @@ extension ServerTests {
             )
             let cancelSpeechToolPayload = try mcpToolPayload(from: cancelSpeechToolEnvelope)
             #expect(cancelSpeechToolPayload["cancelled_request_id"] as? String == requestID)
+
+            let retainedAudioToolEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "generate_audio_file",
+                            argumentsJSON: #"{"text":"Default MCP context","profile_name":"default"}"#,
+                            id: "tool-retained-audio-1",
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let retainedAudioPayload = try mcpToolPayload(from: retainedAudioToolEnvelope)
+            let retainedAudioRequestID = try #require(retainedAudioPayload["request_id"] as? String)
+            #expect(retainedAudioPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(retainedAudioRequestID)")
+            let retainedAudioArtifact = try #require(await runtime.generationArtifacts.last)
+            #expect(
+                retainedAudioArtifact.requestContext
+                    == SpeakSwiftly.RequestContext(
+                        source: "mcp",
+                        app: "ServerTests via SpeakSwiftlyServer",
+                        topic: "generate_audio_file",
+                        attributes: [
+                            "mcp.client.name": "ServerTests",
+                            "mcp.client.version": "1.0",
+                            "mcp.tool": "generate_audio_file",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "mcp",
+                        ],
+                    ),
+            )
 
             let createCloneToolEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

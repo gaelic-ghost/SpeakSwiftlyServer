@@ -5,7 +5,7 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "generate_speech",
-            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, repo_root, and source_format when the input should not rely on automatic source-format detection.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now. The server fills MCP client and tool provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, repo_root, and source_format when the input needs richer caller metadata or should not rely on automatic source-format detection.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -23,7 +23,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_audio_file",
-            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later, and optionally provide profile_name to override the server's configured default voice profile plus request_context when the downstream artifact should retain caller metadata.",
+            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later. The server fills MCP client and tool provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus request_context when the downstream artifact should retain richer caller metadata.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -40,7 +40,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_batch",
-            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together, and optionally provide profile_name to override the server's configured default voice profile. Each item may carry its own request_context payload.",
+            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together. The server fills MCP client and tool provenance in each item request_context by default; optionally provide profile_name to override the server's configured default voice profile. Each item may carry its own request_context payload.",
             inputSchema: [
                 "type": "object",
                 "required": ["items"],

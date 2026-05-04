@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the maintainer map for the current `SpeakSwiftly 4.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
+This document is the maintainer map for the current `SpeakSwiftly 5.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
 Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging
 writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer
@@ -45,7 +45,7 @@ dedupe follow-through remain visible to maintainers.
 ## Model Sources
 
 - `Sources/SpeakSwiftlyServer/Host/ServerModels.swift`
-  Request payloads plus shared normalization-format helpers.
+  Request payloads, shared normalization-format helpers, and transport-owned `SpeakSwiftly.RequestContext` default merging for HTTP and MCP speech requests.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
 - `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
@@ -90,6 +90,15 @@ dedupe follow-through remain visible to maintainers.
 - `Tests/SpeakSwiftlyServerE2ETests/E2EPayloadHelpers.swift` and `E2ETransportWaiters.swift`
   Keep JSON or JSON-RPC decoding, polling waiters, and stored-profile manifest loading split by responsibility instead of mixing transport and payload utilities.
 
+## Transport Sources
+
+- `Sources/SpeakSwiftlyServer/HTTP/HTTPSpeechRoutes.swift`
+  Owns HTTP speech submission and the HTTP default request-context provenance for route, method, server app, and speech topic.
+- `Sources/SpeakSwiftlyServer/MCP/MCPClientIdentity.swift`
+  Captures MCP `clientInfo` from session initialization and converts it into speech request-context defaults such as `Codex via SpeakSwiftlyServer`.
+- `Sources/SpeakSwiftlyServer/MCP/MCPToolHandlers.swift` and `MCPToolSupport.swift`
+  Own MCP tool execution and merge MCP tool/client defaults with caller-provided `request_context`, `cwd`, and `repo_root`.
+
 ## Plugin And Skill Sources
 
 - `.codex-plugin/plugin.json`
@@ -97,15 +106,17 @@ dedupe follow-through remain visible to maintainers.
 - `.agents/plugins/marketplace.json`
   Holds the repo-local marketplace advertisement that lets this repository surface as an installable local Codex plugin. The Socket marketplace now lists this same payload by Git-backed root-plugin reference rather than carrying a copied plugin directory.
 - `hooks/`
-  Holds the plugin-managed Codex lifecycle hook config and final-reply TTS script used by installed plugin users.
+  Holds the Codex lifecycle hook config, final-reply TTS script, and logging-only permission-request probe used by installed plugin users and by supported user-level fallback hooks.
 - `.codex/`
   Holds repo-local development and testing config for hook payload inspection. Do not document `.codex/` as the end-user install path.
 - `scripts/codex-hooks-doctor.mjs`
-  Reports hook ownership, legacy global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present. The duplicate scan accounts for `speak-swiftly@socket`, `speak-swiftly@SpeakSwiftlyServer`, `speak-swiftly-server@socket`, and `speak-swiftly-server@SpeakSwiftlyServer`.
+  Reports hook ownership, supported user-level fallback entries, permission-request probe wiring, legacy or dev-only global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present. The duplicate scan accounts for `speak-swiftly@socket`, `speak-swiftly@SpeakSwiftlyServer`, `speak-swiftly-server@socket`, and `speak-swiftly-server@SpeakSwiftlyServer`.
 - `skills/speak-swiftly-mcp/`
   Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
 - `skills/speak-swiftly-launchagent-setup/`
   Holds the LaunchAgent setup, refresh, status, and healthcheck skill.
+- `skills/speak-swiftly-codex-hooks/`
+  Holds the Codex lifecycle hook setup, global fallback, permission-request probe, doctor interpretation, and hook-log troubleshooting skill.
 - `skills/speak-swiftly-runtime-operator/`
   Holds the runtime, queue, playback, and request-control skill.
 - `skills/speak-swiftly-voice-workflows/`

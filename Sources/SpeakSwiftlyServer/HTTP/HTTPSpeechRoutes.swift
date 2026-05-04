@@ -19,7 +19,12 @@ func registerHTTPSpeechRoutes(
             profileName: profileName,
             textProfileID: payload.textProfileID,
             sourceFormat: payload.sourceFormatModel(),
-            requestContext: payload.resolvedRequestContext(),
+            requestContext: payload.resolvedRequestContext(
+                defaults: httpSpeechRequestContextDefaults(
+                    route: "/speech/live",
+                    topic: "live-speech",
+                ),
+            ),
             qwenPreModelTextChunking: payload.qwenPreModelTextChunking ?? false,
         )
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
@@ -39,7 +44,12 @@ func registerHTTPSpeechRoutes(
             profileName: profileName,
             textProfileID: payload.textProfileID,
             sourceFormat: payload.sourceFormatModel(),
-            requestContext: payload.resolvedRequestContext(),
+            requestContext: payload.resolvedRequestContext(
+                defaults: httpSpeechRequestContextDefaults(
+                    route: "/speech/files",
+                    topic: "retained-audio-file",
+                ),
+            ),
         )
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
@@ -54,9 +64,33 @@ func registerHTTPSpeechRoutes(
         }
 
         let requestID = try await host.queueSpeechBatch(
-            items: payload.items.map { try $0.model() },
+            items: payload.items.map {
+                try $0.model(
+                    requestContextDefaults: httpSpeechRequestContextDefaults(
+                        route: "/speech/batches",
+                        topic: "retained-audio-batch",
+                    ),
+                )
+            },
             profileName: profileName,
         )
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }
+}
+
+private func httpSpeechRequestContextDefaults(
+    route: String,
+    topic: String,
+) -> SpeechRequestContextDefaults {
+    .init(
+        source: "http",
+        app: "SpeakSwiftlyServer",
+        topic: topic,
+        attributes: [
+            "surface": "http",
+            "http.method": "POST",
+            "http.route": route,
+            "server.app": "SpeakSwiftlyServer",
+        ],
+    )
 }

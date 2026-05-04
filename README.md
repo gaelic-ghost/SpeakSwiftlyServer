@@ -209,7 +209,7 @@ See [LICENSE](./LICENSE).
 
 ## Embedding
 
-The supported public embedding surface is `EmbeddedServer`, defined in [Sources/SpeakSwiftlyServer/Host/ServerState.swift](./Sources/SpeakSwiftlyServer/Host/ServerState.swift). App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`, including the shared `SpeakSwiftly.RequestContext` metadata model when one request needs caller-origin details.
+The supported public embedding surface is `EmbeddedServer`, defined in [Sources/SpeakSwiftlyServer/Host/ServerState.swift](./Sources/SpeakSwiftlyServer/Host/ServerState.swift). App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`, including the shared `SpeakSwiftly.RequestContext` metadata model when one request needs caller-origin details. HTTP and MCP speech surfaces add transport defaults for this context automatically; embedded app callers should still pass `RequestContext` directly when the app has richer caller or project metadata than the server can infer.
 
 ```swift
 import SpeakSwiftlyServer
@@ -316,7 +316,7 @@ After adding `socket`, restart Codex, open the plugin directory in the Codex GUI
 
 If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor detects duplicate enablement across both marketplaces and reports a dry-run repair plan that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after confirmation. During migration, the duplicate scan accounts for both the current `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
 
-End users should rely on the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The repo-local `.codex/` files are a development harness for testing hook payloads and notification behavior from this checkout.
+End users should start with the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. OpenAI's Codex hooks documentation also treats user-level `~/.codex/hooks.json` as a first-class hook location, so a minimal user-level fallback that calls `hooks/stop-tts.mjs` directly is supported when the current Codex surface recognizes the plugin but does not dispatch plugin-bundled lifecycle hooks from every working directory. The plugin and supported fallback can also register the logging-only `PermissionRequest` probe at `hooks/permission-request-log.mjs`; it records approval-prompt payloads for investigation without approving, rejecting, printing, or queueing speech. The repo-local `.codex/` files remain a development harness for testing hook payloads and notification behavior from this checkout.
 
 To inspect the installed hook and voice surfaces, run:
 
@@ -324,7 +324,7 @@ To inspect the installed hook and voice surfaces, run:
 node scripts/codex-hooks-doctor.mjs
 ```
 
-The doctor checks whether the plugin manifest declares hooks, whether a legacy global `~/.codex/hooks.json` entry is still pointing at this checkout, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
+The doctor checks whether the plugin manifest declares hooks, whether a user-level `~/.codex/hooks.json` fallback is present, whether the permission-request probe is centralized, whether any global hook still uses the repo-local development harness, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
 For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running local checkout and Git-backed marketplace tests with a temporary `CODEX_HOME`, removing the test marketplace before cleanup. Run detailed Speak Swiftly payload tests from this repository; run Socket catalog-reference tests from the `socket` checkout.
 
@@ -332,6 +332,7 @@ The first plugin pass ships focused skills for:
 
 - broad MCP orientation
 - LaunchAgent setup and maintenance
+- Codex hook setup, permission-request probing, and final-reply TTS troubleshooting
 - runtime, playback, and queue control
 - voice workflows
 - text-profile workflows

@@ -1,0 +1,15 @@
+interface:
+  display_name: "Speak Swiftly Codex Hooks"
+  short_description: "Set up and validate automatic TTS for Codex replies."
+  default_prompt: "Use $speak-swiftly-codex-hooks to install, validate, or troubleshoot automatic Speak Swiftly TTS for Codex replies."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "speak_swiftly"
+      description: "Local Speak Swiftly MCP surface used to verify runtime readiness before hook setup."
+      transport: "streamable_http"
+      url: "http://127.0.0.1:7337/mcp"
+
+policy:
+  allow_implicit_invocation: true
