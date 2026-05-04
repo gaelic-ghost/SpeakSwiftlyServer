@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CODEX_HOOK_TTS_DATA_DIR=\"$(git rev-parse --show-toplevel)/.codex\" node \"$(git rev-parse --show-toplevel)/hooks/stop-tts.mjs\"",
+            "command": "CODEX_HOOK_TTS_DATA_DIR=\"$(git rev-parse --show-toplevel)/.codex\" node \"$(git rev-parse --show-toplevel)/hooks/stop-log.mjs\"",
             "timeout": 15
           }
         ]

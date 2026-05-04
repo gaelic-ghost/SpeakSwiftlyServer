@@ -113,16 +113,16 @@ export function classifyGlobalHookCommands(commands) {
   };
 }
 
-async function inspectHookFile(label, filePath, eventName) {
+async function inspectHookFile(label, filePath, eventName, options = {}) {
   const hooksJSON = await readJSON(filePath);
   if (!hooksJSON) {
-    addCheck("warn", `${label} hooks file is not present`, filePath);
+    addCheck(options.missingSeverity ?? "warn", `${label} hooks file is not present`, filePath);
     return [];
   }
 
   const commands = eventHookCommands(hooksJSON, eventName);
   if (commands.length === 0) {
-    addCheck("warn", `${label} hooks file has no ${eventName} command hook`, filePath);
+    addCheck(options.missingEventSeverity ?? "warn", `${label} hooks file has no ${eventName} command hook`, filePath);
   } else {
     addCheck("ok", `${label} ${eventName} hook command count: ${commands.length}`, commands.join(" | "));
   }
@@ -352,10 +352,10 @@ async function main() {
   }
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
-  if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-tts.mjs"))) {
-    addCheck("ok", "Repo dev-only hook keeps state under .codex and reuses the plugin hook script");
+  if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-log.mjs"))) {
+    addCheck("ok", "Repo dev-only Stop hook logs payloads under .codex without queueing speech");
   } else {
-    addCheck("warn", "Repo dev-only hook is not wired as the expected local test harness");
+    addCheck("warn", "Repo dev-only Stop hook is not wired as the expected logging-only local harness");
   }
   const devPermissionHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "PermissionRequest");
   if (devPermissionHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/permission-request-log.mjs"))) {
@@ -364,7 +364,10 @@ async function main() {
     addCheck("warn", "Repo dev-only PermissionRequest hook is not wired as the expected local probe harness");
   }
 
-  const globalStopHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "Stop");
+  const globalStopHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "Stop", {
+    missingSeverity: "info",
+    missingEventSeverity: "info",
+  });
   const globalHookClassification = classifyGlobalHookCommands(globalStopHookCommands);
   if (globalHookClassification.status === "supported-fallback") {
     addCheck("ok", "Global user Speak Swiftly hook is a supported fallback", globalHookClassification.message);
@@ -431,7 +434,8 @@ async function main() {
   }
 
   await summarizeHookLog("Centralized user/plugin", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
-  await summarizeHookLog("Repo dev-only", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-tts.jsonl")));
+  await summarizeHookLog("Repo dev-only speech", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-tts.jsonl")));
+  await summarizeHookLog("Repo dev-only Stop probe", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-log.jsonl")));
   await summarizeHookLog("Centralized permission-request", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "permission-request.jsonl")));
   await summarizeHookLog("Repo dev-only permission-request", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "permission-request.jsonl")));
 

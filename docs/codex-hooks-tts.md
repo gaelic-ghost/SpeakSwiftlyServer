@@ -95,15 +95,25 @@ back into the checkout.
 - `.codex/hooks.json`
   Registers the same `Stop` hook script and `PermissionRequest` logging probe
   for local testing, with `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's
-  `.codex/` directory.
+  `.codex/` directory. The development `Stop` hook is logging-only so this
+  trusted checkout can inspect payloads without queueing duplicate speech
+  through the live service.
 - `.codex/hooks/stop-tts.mjs`
   Dev-only forwarding entrypoint for local harness configs that need checkout
   scoped state and logs while testing hook payload behavior.
+- `hooks/stop-log.mjs`
+  Logging-only `Stop` probe used by the repo-local `.codex/hooks.json`
+  development harness. It records Stop payload summaries under
+  `.codex/logs/stop-log.jsonl` and never calls `POST /speech/live`.
 - `.codex/hooks/notify-dump.mjs`
   Records whatever Codex passes to the `notify` command so maintainers can
   inspect the real payload shape.
 - `.codex/logs/stop-tts.jsonl`
   Runtime log for queued, skipped, and failed development-harness TTS attempts.
+  This file is historical for the current repo-local harness because the
+  checked-in development `Stop` hook no longer queues speech.
+- `.codex/logs/stop-log.jsonl`
+  Runtime log for repo-local development-harness `Stop` payload inspection.
 - `.codex/logs/permission-request.jsonl`
   Runtime log for development-harness permission-request payload inspection.
 - `.codex/logs/notify-events.jsonl`
@@ -187,7 +197,8 @@ The doctor reports:
 Warnings are expected if a global hook points at the repo-local development
 harness or sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`. A user-level hook that
 calls `hooks/stop-tts.mjs` directly is a supported fallback, not a migration
-failure.
+failure. A missing global `Stop` hook is also healthy when the installed
+plugin-managed hook is the intended live speech path.
 
 ## Runtime Insights
 
@@ -204,11 +215,13 @@ failure.
   the speech route so duplicate processes do not queue duplicate audio jobs.
 - In this repository, duplicate `Stop` invocations are especially easy to see
   because the installed plugin hook, the supported global fallback hook, and the
-  repo-local `.codex/hooks.json` development harness can all point at the same
-  script. Ordinary users usually only need the plugin-managed hook and, when
+  repo-local `.codex/hooks.json` development harness can all run for the same
+  turn. Ordinary users usually only need the plugin-managed hook and, when
   plugin dispatch is not reliable from every working directory, the single
   global fallback hook. The repo-local `.codex/hooks.json` entry is for
-  checkout-scoped hook development and writes its own logs under `.codex/`.
+  checkout-scoped hook development and now uses `hooks/stop-log.mjs` so it
+  writes Stop payload summaries under `.codex/` without calling the live speech
+  route.
 - Some assistant messages are compact JSON metadata used by Codex UI or
   automation flows. Those should be logged and skipped, not spoken aloud.
 - Section projection happens before the speech request is submitted. Hook logs
