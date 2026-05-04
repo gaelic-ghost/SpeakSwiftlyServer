@@ -1,6 +1,6 @@
 ---
 name: speak-swiftly-codex-hooks
-description: Use when a user wants Speak Swiftly to read Codex replies aloud automatically through Codex lifecycle hooks, including plugin-managed hook setup, user-level ~/.codex/hooks.json fallback wiring, hook doctor interpretation, duplicate-hook diagnosis, centralized hook logs, final-reply TTS troubleshooting, or validation from another working directory.
+description: Use when a user wants Speak Swiftly to read Codex replies aloud automatically through Codex lifecycle hooks, including plugin-managed hook setup, user-level ~/.codex/hooks.json fallback wiring, hook doctor interpretation, duplicate-hook diagnosis, centralized hook logs, permission-request payload probes, final-reply TTS troubleshooting, or validation from another working directory.
 ---
 
 # Speak Swiftly Codex Hooks
@@ -17,9 +17,10 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 ## Setup Model
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
-- Supported fallback: a minimal user-level `~/.codex/hooks.json` entry can call the source `hooks/stop-tts.mjs` script directly when plugin-bundled hook dispatch is not reliable across all working directories.
+- Supported fallback: a minimal user-level `~/.codex/hooks.json` entry can call the source `hooks/stop-tts.mjs` script directly when plugin-bundled hook dispatch is not reliable across all working directories. If permission prompt payloads need investigation, it can also call `hooks/permission-request-log.mjs` for `PermissionRequest`.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state.
 - Leave `CODEX_HOOK_TTS_DATA_DIR` unset for the user-level fallback so state and logs stay centralized under `~/.codex/speak-swiftly-server/hooks/`.
+- Treat `PermissionRequest` as logging-only unless the user explicitly asks to make approval prompts speakable. The probe must not approve, reject, or print text to `stdout`.
 
 ## Doctor Interpretation
 
@@ -31,7 +32,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 ## Validation
 
 - Validate syntax and focused fixtures with `sh scripts/repo-maintenance/validations/25-codex-plugin.sh`.
-- Run `node scripts/codex-hooks-doctor.mjs --repair-plan` and inspect both centralized and repo-local recent hook log summaries.
+- Run `node scripts/codex-hooks-doctor.mjs --repair-plan` and inspect both centralized and repo-local recent hook log summaries, including `permission-request.jsonl` when approval-prompt behavior is under investigation.
 - To prove all-directory coverage, run a tiny Codex CLI turn from a different working directory and then tail `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`.
 - Treat a queued log entry with the probe `cwd`, `sessionId`, `turnId`, and `request.request_id` as the proof that the hook fired and the service accepted the speech request.
 
@@ -41,4 +42,5 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 - HTTP `503` from `/speech/live` means the service is reachable but not ready for speech work yet.
 - `duplicate-turn` means shared dedupe blocked a repeated `session_id + turn_id`; that is expected when more than one matching hook source starts.
 - `structured-assistant-metadata` means Codex produced compact UI or automation metadata instead of speakable final prose.
+- Permission-request probe entries with `outcome=logged` mean Codex fired the approval hook and the payload was recorded for later inspection.
 - If the live service itself is unhealthy, switch to `$speak-swiftly-launchagent-setup` for service setup or `$speak-swiftly-runtime-operator` for runtime readiness, queue, playback, or backend state.

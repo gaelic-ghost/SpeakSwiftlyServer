@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CODEX_HOOK_TTS_DATA_DIR=\"$(git rev-parse --show-toplevel)/.codex\" node \"$(git rev-parse --show-toplevel)/hooks/permission-request-log.mjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

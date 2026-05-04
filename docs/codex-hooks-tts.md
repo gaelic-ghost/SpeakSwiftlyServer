@@ -15,15 +15,23 @@ testing harness for this checkout.
   Declares `hooks: "./hooks/hooks.json"` so installed plugin users get the
   lifecycle config from the plugin.
 - `hooks/hooks.json`
-  Registers one `Stop` hook handler.
+  Registers the speech `Stop` hook handler and a logging-only
+  `PermissionRequest` probe.
 - `hooks/stop-tts.mjs`
   Reads the Codex `Stop` payload from `stdin`, skips empty or duplicate turns,
   ignores continuation passes by default, and queues speech through the local
   `SpeakSwiftlyServer` HTTP route at `POST /speech/live`.
+- `hooks/permission-request-log.mjs`
+  Reads the Codex `PermissionRequest` payload from `stdin` and records a local
+  JSONL entry without approving, rejecting, printing, or queueing speech. This
+  is an observability probe for learning what approval prompts expose before
+  deciding whether they should become speakable events.
 
 The plugin-managed hook stores state and logs under
 `~/.codex/speak-swiftly-server/hooks/` by default, or under `CODEX_HOME` when
 that environment variable points Codex at a different home directory.
+The `Stop` hook writes `logs/stop-tts.jsonl`; the permission-request probe
+writes `logs/permission-request.jsonl`.
 
 OpenAI's [Codex hooks documentation](https://developers.openai.com/codex/hooks#where-codex-looks-for-hooks)
 lists `~/.codex/hooks.json` as one of the main hook locations and says
@@ -48,6 +56,17 @@ Example shape:
 ```json
 {
   "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /absolute/path/to/SpeakSwiftlyServer/hooks/permission-request-log.mjs",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -73,8 +92,9 @@ back into the checkout.
   Enables `features.codex_hooks = true` for this trusted project and wires a
   `notify` probe command.
 - `.codex/hooks.json`
-  Registers the same `Stop` hook script for local testing, with
-  `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's `.codex/` directory.
+  Registers the same `Stop` hook script and `PermissionRequest` logging probe
+  for local testing, with `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's
+  `.codex/` directory.
 - `.codex/hooks/stop-tts.mjs`
   Dev-only forwarding entrypoint for local harness configs that need checkout
   scoped state and logs while testing hook payload behavior.
@@ -83,6 +103,8 @@ back into the checkout.
   inspect the real payload shape.
 - `.codex/logs/stop-tts.jsonl`
   Runtime log for queued, skipped, and failed development-harness TTS attempts.
+- `.codex/logs/permission-request.jsonl`
+  Runtime log for development-harness permission-request payload inspection.
 - `.codex/logs/notify-events.jsonl`
   Runtime log for `notify` payload inspection.
 - `.codex/state/stop-tts-seen-turns.json`
@@ -144,6 +166,7 @@ The doctor reports:
 - runtime default voice profile versus the hook's configured profile
 - cached voice profiles
 - recent centralized user/plugin and repo-local hook log outcomes
+- recent centralized and repo-local permission-request probe outcomes
 
 Warnings are expected if a global hook points at the repo-local development
 harness or sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`. A user-level hook that
@@ -154,6 +177,9 @@ failure.
 
 - `Stop` is the right TTS trigger because it carries the final assistant text
   in `last_assistant_message`.
+- `PermissionRequest` is currently logging-only. It is useful for discovering
+  whether approval prompts expose enough text to speak later, but it should not
+  approve, reject, or emit text on `stdout`.
 - `notify` is a useful payload probe, but observed Desktop notify commands can
   run with process `cwd` as `/`; use the event's own `cwd` field when
   interpreting where the turn happened.
