@@ -1,6 +1,6 @@
 # Skills Surface Audit
 
-Last audited: 2026-05-03
+Last audited: 2026-05-04
 
 This note records the repo-local Codex skill surface audit against the current `SpeakSwiftlyServer` package, HTTP API, MCP catalog, plugin metadata, and operator documentation.
 
@@ -36,6 +36,7 @@ The skills now match the resources-first MCP guidance: use `speak-swiftly://over
 
 ## Drift Fixed In This Pass
 
+- The skills now use the `speak-swiftly://...` MCP resource scheme, scoped `cancel_request`, `set_runtime_configuration`, and retained generation-job/artifact wording after the next-major API cleanup.
 - `API.md` did not list the current generation-side HTTP clear route even though `HTTPGenerationRoutes.swift` exposes `DELETE /generation/queue`.
 - `API.md` did not list `DELETE /generation/jobs/{job_id}` even though the route backs retained job expiry.
 - `API.md` did not list the current MCP `clear_generation_queue`, `clear_playback_queue`, and scoped `cancel_request` tools even though the MCP catalog and runtime skill already use them.

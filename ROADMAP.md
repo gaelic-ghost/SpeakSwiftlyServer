@@ -301,12 +301,13 @@ In Progress
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
 - [ ] Turn upstream `SpeakSwiftly` into a clearer product-level package surface so `SpeakSwiftlyServer` can depend on stable, ergonomic runtime concepts instead of carrying extra server-side explanation, translation, or compatibility planning for package-owned behavior.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
+- [ ] Add a focused Codex Hooks setup skill for `SpeakSwiftlyServer` after stop-hook text filtering is improved, likely in `TextForSpeech`, so hook-triggered TTS can be set up safely without teaching agents to speak tables, metadata, or stale stop-hook payloads.
 
 ## History
 
 - Completed the bootstrap, HTTP server, direct `SpeakSwiftly` integration, core testing, library integration, app/LaunchAgent handoff, live-update convergence, formatting/linting, initial DocC, and plugin-catalog split setup milestones.
 - Completed the config reload foundation: YAML reload providers, malformed-reload survival, live host-safe subset application, and restart-required diagnostics.
-- Completed the `SpeakSwiftly` runtime adoption passes for explicit `vibe`, runtime configuration exposure, Marvis/Qwen E2E realignment, source/test splitting, voice rename and reroll, generated files, generation jobs, batch generation, and README/API/E2E coverage.
+- Completed the `SpeakSwiftly` runtime adoption passes for explicit `vibe`, runtime configuration exposure, Marvis/Qwen E2E realignment, source/test splitting, voice rename and reroll, retained generation artifacts, generation jobs, batch generation, and README/API/E2E coverage.
 - Completed the embedded lifecycle refactor around explicit service ownership.
 - Completed the first live-service hardening passes: staged-artifact promotion diagnostics, signature refresh, operator healthcheck, transport smoke split, lifecycle shutdown accounting, persisted runtime-state hardening, and package-wide cleanup.
 - Completed the Codex plugin identity migration from `speak-swiftly-server` to `speak-swiftly`, Git-backed standalone and Socket marketplace docs, legacy duplicate detection, doctor dry-run repair planning, and isolated plugin install-testing guidance.

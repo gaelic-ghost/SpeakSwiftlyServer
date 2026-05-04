@@ -114,10 +114,10 @@ the built-ins remain consistent out of the box instead of becoming another edita
 
 Short generated preview clips live under [docs/media/default-voices](./docs/media/default-voices/):
 
-| Voice | Sample | Transcript |
-| --- | --- | --- |
-| `swift-signal` | [Listen to WAV](./docs/media/default-voices/swift-signal.wav) | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
-| `swift-anchor` | [Listen to WAV](./docs/media/default-voices/swift-anchor.wav) | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
+| Voice | Demo Audio | Format | Transcript |
+| --- | --- | --- | --- |
+| `swift-signal` | [Listen to `swift-signal.wav`](./docs/media/default-voices/swift-signal.wav) | WAV, mono, 24 kHz, ~6.72s | Swift Signal demo. A bright built-in voice for clear technical guidance, quick checks, and confident next steps. |
+| `swift-anchor` | [Listen to `swift-anchor.wav`](./docs/media/default-voices/swift-anchor.wav) | WAV, mono, 24 kHz, ~8.00s | Swift Anchor demo. A grounded built-in voice for longer explanations, calm reviews, and steady operator guidance. |
 
 The full transport contract lives in [API.md](./API.md).
 
