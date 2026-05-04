@@ -10,7 +10,7 @@ The checked-in plugin exposes five focused skills under `skills/`:
 
 - `speak-swiftly-mcp`: orientation and routing for the local `speak_swiftly` MCP server.
 - `speak-swiftly-runtime-operator`: runtime, queue, playback, request, backend, and model-residency operations.
-- `speak-swiftly-voice-workflows`: voice-profile creation and editing, live speech, retained files, retained batches, and artifact inspection.
+- `speak-swiftly-voice-workflows`: voice-profile creation and editing, live speech, retained artifact generation, and artifact inspection.
 - `speak-swiftly-text-profiles`: text-normalization style, stored profile, replacement, and persistence workflows.
 - `speak-swiftly-launchagent-setup`: supported LaunchAgent setup, promotion, inspection, uninstall, and healthcheck flow.
 

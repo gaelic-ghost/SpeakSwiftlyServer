@@ -8,12 +8,12 @@ extension ServerHost {
         handle: RuntimeRequestHandle,
         requestName: String,
     ) async throws -> PlaybackStateResponse {
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        guard let playbackState = success.playbackState else {
+        guard case let .playbackState(playbackState) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload.",
@@ -28,12 +28,12 @@ extension ServerHost {
         requestName: String,
         expectedState: SpeakSwiftly.PlaybackState,
     ) async throws -> PlaybackStateResponse {
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        if let playbackState = success.playbackState, playbackState.state == expectedState {
+        if case let .playbackState(playbackState) = completion, playbackState.state == expectedState {
             let response = PlaybackStateResponse(playback: .init(summary: playbackState))
             await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
             return response
@@ -133,12 +133,12 @@ extension ServerHost {
         handle: RuntimeRequestHandle,
         requestName: String,
     ) async throws -> RuntimeStatusResponse {
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the \(requestName) request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request.",
         )
-        guard let status = success.status else {
+        guard case let .runtimeStatus(status: status?, speechBackend: _) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload.",
@@ -149,15 +149,15 @@ extension ServerHost {
         return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
     }
 
-    func awaitImmediateSuccess(
+    func awaitImmediateCompletion(
         handle: RuntimeRequestHandle,
         missingTerminalMessage: String,
         unexpectedFailureMessagePrefix: String,
-    ) async throws -> SpeakSwiftly.Success {
+    ) async throws -> SpeakSwiftly.RequestCompletion {
         do {
             for try await event in handle.events {
-                if case let .completed(success) = event {
-                    return success
+                if case let .completed(completion) = event {
+                    return completion
                 }
             }
             throw SpeakSwiftly.Error(

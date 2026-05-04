@@ -78,7 +78,6 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        normalizationContext: normalizationContext(in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(in: arguments),
                         qwenPreModelTextChunking: decodeOptionalArgument(
@@ -103,7 +102,6 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        normalizationContext: normalizationContext(in: arguments),
                         sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(in: arguments),
                     )

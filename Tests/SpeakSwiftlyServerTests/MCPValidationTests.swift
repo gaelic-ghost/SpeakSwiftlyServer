@@ -63,7 +63,7 @@ extension ServerTests {
                         arguments: [
                             "text": "Bad format",
                             "profile_name": "default",
-                            "text_format": "totally_invalid",
+                            "source_format": "not_a_real_source",
                         ],
                     ),
                     sessionID: initializeSessionID,
@@ -72,9 +72,9 @@ extension ServerTests {
         )
         let error = try #require(errorEnvelope["error"] as? [String: Any])
         let message = try #require(error["message"] as? String)
-        #expect(message.contains("text_format"))
-        #expect(message.contains("totally_invalid"))
-        #expect(message.contains("plain"))
+        #expect(message.contains("source_format"))
+        #expect(message.contains("not_a_real_source"))
+        #expect(message.contains("source_code"))
 
         await mcpSurface.stop()
         await host.shutdown()

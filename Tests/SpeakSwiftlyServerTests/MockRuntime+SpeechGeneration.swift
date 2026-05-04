@@ -11,7 +11,6 @@ extension MockRuntime {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
@@ -23,7 +22,6 @@ extension MockRuntime {
                 text: text,
                 profileName: profileName,
                 textProfileID: textProfileID,
-                normalizationContext: normalizationContext,
                 sourceFormat: sourceFormat,
                 requestContext: requestContext,
                 qwenPreModelTextChunking: qwenPreModelTextChunking,
@@ -36,8 +34,6 @@ extension MockRuntime {
         guard let continuation = requestContinuation else {
             fatalError("The mock runtime could not create a speech request continuation for request '\(requestID)'.")
         }
-
-        continuation.yield(.acknowledged(.init(id: requestID)))
 
         if activeRequest == nil {
             startActiveRequest(request, continuation: continuation)
@@ -61,38 +57,31 @@ extension MockRuntime {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let artifactID = "\(requestID)-artifact-1"
         let createdAt = Date()
-        let generatedFile = requireFixture("single generated file artifact '\(artifactID)'") {
-            try makeGeneratedFile(
+        let artifact = requireFixture("single generation artifact '\(artifactID)'") {
+            try makeGenerationArtifact(
                 artifactID: artifactID,
                 createdAt: createdAt,
                 voiceProfile: profileName,
                 textProfile: textProfileID,
-                inputTextContext: makeInputTextContext(
-                    normalizationContext: normalizationContext,
-                    sourceFormat: sourceFormat,
-                ),
+                sourceFormat: sourceFormat,
                 requestContext: requestContext,
                 sampleRate: 24000,
                 filePath: mockArtifactPath("\(artifactID).wav"),
             )
         }
-        generatedFiles.append(generatedFile)
+        generationArtifacts.append(artifact)
         let items = [
             GenerationJobItemFixture(
                 artifactID: artifactID,
                 text: text,
                 textProfile: textProfileID,
-                inputTextContext: makeInputTextContext(
-                    normalizationContext: normalizationContext,
-                    sourceFormat: sourceFormat,
-                ),
+                sourceFormat: sourceFormat,
                 requestContext: requestContext,
             ),
         ]
@@ -101,14 +90,11 @@ extension MockRuntime {
                 artifactID: artifactID,
                 kind: "audio_wav",
                 createdAt: createdAt,
-                filePath: generatedFile.filePath,
-                sampleRate: generatedFile.sampleRate,
+                filePath: artifact.filePath,
+                sampleRate: artifact.sampleRate,
                 voiceProfile: profileName,
                 textProfile: textProfileID,
-                inputTextContext: makeInputTextContext(
-                    normalizationContext: normalizationContext,
-                    sourceFormat: sourceFormat,
-                ),
+                sourceFormat: sourceFormat,
                 requestContext: requestContext,
             ),
         ]
@@ -134,7 +120,7 @@ extension MockRuntime {
             },
         )
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedFile: generatedFile, activeRequests: nil)))
+            continuation.yield(.completed(.artifact(artifact)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "generate_audio_file", profileName: profileName, events: events)
@@ -147,50 +133,53 @@ extension MockRuntime {
         let requestID = UUID().uuidString
         let createdAt = Date()
         let artifacts = items.enumerated().map { index, item in
-            requireFixture("batch generated file artifact '\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)")'") {
-                try makeGeneratedFile(
+            requireFixture("batch generation artifact '\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)")'") {
+                try makeGenerationArtifact(
                     artifactID: item.artifactID ?? "\(requestID)-artifact-\(index + 1)",
                     createdAt: createdAt,
                     voiceProfile: profileName,
                     textProfile: item.textProfile,
-                    inputTextContext: item.inputTextContext,
+                    sourceFormat: item.sourceFormat,
+                    requestContext: item.requestContext,
                     sampleRate: 24000,
                     filePath: mockArtifactPath("\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)").wav"),
                 )
             }
         }
-        generatedFiles.append(contentsOf: artifacts)
+        generationArtifacts.append(contentsOf: artifacts)
         let batchItems = items.enumerated().map { index, item in
             GenerationJobItemFixture(
                 artifactID: item.artifactID ?? "\(requestID)-artifact-\(index + 1)",
                 text: item.text,
                 textProfile: item.textProfile,
-                inputTextContext: item.inputTextContext,
+                sourceFormat: item.sourceFormat,
                 requestContext: item.requestContext,
             )
         }
-        let generatedBatch = requireFixture("generated batch '\(requestID)'") {
-            try makeGeneratedBatch(
-                batchID: requestID,
+        let generationJob = requireFixture("batch generation job '\(requestID)'") {
+            try makeGenerationJob(
+                jobID: requestID,
+                jobKind: "batch",
+                createdAt: createdAt,
+                updatedAt: createdAt,
                 voiceProfile: profileName,
                 textProfile: items.first?.textProfile,
                 speechBackend: "qwen3",
                 state: "completed",
                 items: batchItems,
                 artifacts: artifacts.map {
-                    GeneratedFileFixture(
+                    GenerationArtifactFixture(
                         artifactID: $0.artifactID,
+                        kind: $0.kind.rawValue,
                         createdAt: $0.createdAt,
+                        filePath: $0.filePath,
+                        sampleRate: $0.sampleRate,
                         voiceProfile: $0.voiceProfile,
                         textProfile: $0.textProfile,
-                        inputTextContext: $0.inputTextContext,
+                        sourceFormat: $0.sourceFormat,
                         requestContext: $0.requestContext,
-                        sampleRate: $0.sampleRate,
-                        filePath: $0.filePath,
                     )
                 },
-                createdAt: createdAt,
-                updatedAt: createdAt,
                 startedAt: createdAt,
                 completedAt: createdAt,
                 failedAt: nil,
@@ -198,42 +187,9 @@ extension MockRuntime {
                 retentionPolicy: "manual",
             )
         }
-        generatedBatches.append(generatedBatch)
-        generationJobs.append(
-            requireFixture("batch generation job '\(requestID)'") {
-                try makeGenerationJob(
-                    jobID: requestID,
-                    jobKind: "batch",
-                    createdAt: createdAt,
-                    updatedAt: createdAt,
-                    voiceProfile: profileName,
-                    textProfile: items.first?.textProfile,
-                    speechBackend: "qwen3",
-                    state: "completed",
-                    items: batchItems,
-                    artifacts: generatedBatch.artifacts.map {
-                        GenerationArtifactFixture(
-                            artifactID: $0.artifactID,
-                            kind: "audio_wav",
-                            createdAt: $0.createdAt,
-                            filePath: $0.filePath,
-                            sampleRate: $0.sampleRate,
-                            voiceProfile: $0.voiceProfile,
-                            textProfile: $0.textProfile,
-                            inputTextContext: $0.inputTextContext,
-                            requestContext: $0.requestContext,
-                        )
-                    },
-                    startedAt: generatedBatch.startedAt,
-                    completedAt: generatedBatch.completedAt,
-                    failedAt: nil,
-                    expiresAt: nil,
-                    retentionPolicy: "manual",
-                )
-            },
-        )
+        generationJobs.append(generationJob)
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedBatch: generatedBatch, activeRequests: nil)))
+            continuation.yield(.completed(.generationJob(generationJob)))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "generate_batch", profileName: profileName, events: events)

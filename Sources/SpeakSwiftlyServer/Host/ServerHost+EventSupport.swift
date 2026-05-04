@@ -139,7 +139,7 @@ extension ServerHost {
     }
 
     func mapStartedEvent(_ event: SpeakSwiftly.StartedEvent) -> ServerJobEvent {
-        .started(.init(id: event.id, op: canonicalOperationName(event.op)))
+        .started(.init(id: event.id, op: canonicalOperationName(event.kind.rawValue)))
     }
 
     func mapProgressEvent(_ event: SpeakSwiftly.ProgressEvent) -> ServerJobEvent {
@@ -147,11 +147,9 @@ extension ServerHost {
     }
 
     func queueStatusSnapshot(from summary: SpeakSwiftly.QueueSnapshot) -> QueueStatusSnapshot {
-        let activeRequests = summary.activeRequests?.map(ActiveRequestSnapshot.init(summary:))
-            ?? summary.activeRequest.map { [ActiveRequestSnapshot(summary: $0)] }
-            ?? []
+        let activeRequests = summary.activeRequests.map(ActiveRequestSnapshot.init(summary:))
         return .init(
-            queueType: summary.queueType,
+            queueType: summary.queueType.rawValue,
             activeCount: activeRequests.count,
             queuedCount: summary.queue.count,
             activeRequest: activeRequests.first,
@@ -180,30 +178,63 @@ extension ServerHost {
         return lhs.submittedAt > rhs.submittedAt
     }
 
-    func mapSuccessEvent(_ event: SpeakSwiftly.Success, acknowledged: Bool) -> ServerJobEvent {
-        let success = ServerSuccessEvent(
-            id: event.id,
-            generatedFile: event.generatedFile,
-            generatedFiles: event.generatedFiles,
-            generatedBatch: event.generatedBatch,
-            generatedBatches: event.generatedBatches,
-            generationJob: event.generationJob,
-            generationJobs: event.generationJobs,
-            profileName: event.profileName,
-            profilePath: event.profilePath,
-            profiles: event.profiles?.map(ProfileSnapshot.init(profile:)),
-            textProfile: event.textProfile.map(TextProfileSnapshot.init(details:)),
-            textProfiles: event.textProfiles?.map(TextProfileSnapshot.init(summary:)),
-            textProfilePath: event.textProfilePath,
-            activeRequest: event.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
-            activeRequests: event.activeRequests?.map(ActiveRequestSnapshot.init(summary:)),
-            queue: event.queue?.map(QueuedRequestSnapshot.init(summary:)),
-            playbackState: event.playbackState.map(PlaybackStatusSnapshot.init(summary:)),
-            status: event.status,
-            speechBackend: event.speechBackend?.rawValue,
-            clearedCount: event.clearedCount,
-            cancelledRequestID: event.cancelledRequestID,
-        )
+    func mapAcknowledgementEvent(_ event: SpeakSwiftly.RequestAcknowledgement) -> ServerJobEvent {
+        .acknowledged(.init(id: event.id, generationJob: event.generationJob))
+    }
+
+    func mapCompletionEvent(
+        id: String,
+        _ completion: SpeakSwiftly.RequestCompletion,
+        acknowledged: Bool = false,
+    ) -> ServerJobEvent {
+        let success: ServerSuccessEvent = switch completion {
+            case let .artifact(value):
+                .init(id: id, artifact: value)
+            case let .artifacts(values):
+                .init(id: id, artifacts: values)
+            case let .generationJob(value):
+                .init(id: id, generationJob: value)
+            case let .generationJobs(values):
+                .init(id: id, generationJobs: values)
+            case let .voiceProfile(name: name, path: path):
+                .init(id: id, profileName: name, profilePath: path)
+            case let .voiceProfiles(values):
+                .init(id: id, profiles: values.map(ProfileSnapshot.init(profile:)))
+            case let .textProfile(
+            profile: profile,
+            profiles: profileList,
+            styleOptions: _,
+            activeStyle: _,
+            persistencePath: persistencePath,
+        ):
+                .init(
+                    id: id,
+                    textProfile: profile.map(TextProfileSnapshot.init(details:)),
+                    textProfiles: profileList?.map(TextProfileSnapshot.init(summary:)),
+                    textProfilePath: persistencePath,
+                )
+            case let .queue(activeRequests: active, queuedRequests: queued):
+                ServerSuccessEvent(
+                    id: id,
+                    activeRequest: active.map(ActiveRequestSnapshot.init(summary:)).first,
+                    activeRequests: active.map(ActiveRequestSnapshot.init(summary:)),
+                    queue: queued.map(QueuedRequestSnapshot.init(summary:)),
+                )
+            case let .playbackState(value):
+                .init(id: id, playbackState: PlaybackStatusSnapshot(summary: value))
+            case .runtimeOverview:
+                .init(id: id)
+            case let .runtimeStatus(status: value, speechBackend: backend):
+                .init(id: id, status: value, speechBackend: backend?.rawValue)
+            case let .defaultVoiceProfile(name):
+                .init(id: id, profileName: name)
+            case let .queueCleared(count: count):
+                .init(id: id, clearedCount: count)
+            case let .requestCancelled(id: cancelledID):
+                .init(id: id, cancelledRequestID: cancelledID)
+            case .empty:
+                .init(id: id)
+        }
         return acknowledged ? .acknowledged(success) : .completed(success)
     }
 

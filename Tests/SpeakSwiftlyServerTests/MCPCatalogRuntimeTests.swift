@@ -15,7 +15,7 @@ extension ServerTests {
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
-                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"catalog-runtime","attributes":{"surface":"mcp"}},"cwd":"./Tests","repo_root":".","text_format":"cli_output","nested_source_format":"rust_source","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
+                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"catalog-runtime","attributes":{"surface":"mcp"}},"cwd":"./Tests","repo_root":".","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
                         ),
                         sessionID: sessionID,
                     ),
@@ -26,15 +26,6 @@ extension ServerTests {
             #expect(queueSpeechToolPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
             #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(requestID)")
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
-            #expect(
-                queuedSpeechInvocation.normalizationContext
-                    == SpeechNormalizationContext(
-                        cwd: "./Tests",
-                        repoRoot: ".",
-                        textFormat: .cli,
-                        nestedSourceFormat: .rust,
-                    ),
-            )
             #expect(queuedSpeechInvocation.textProfileID == "mcp-text")
             #expect(queuedSpeechInvocation.sourceFormat == .generic)
             #expect(queuedSpeechInvocation.qwenPreModelTextChunking == true)
@@ -45,6 +36,8 @@ extension ServerTests {
                         app: "SpeakSwiftlyServerTests",
                         project: "SpeakSwiftlyServer",
                         topic: "catalog-runtime",
+                        cwd: "./Tests",
+                        repoRoot: ".",
                         attributes: ["surface": "mcp"],
                     ),
             )

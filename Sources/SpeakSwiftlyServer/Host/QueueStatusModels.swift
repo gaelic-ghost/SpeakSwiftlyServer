@@ -16,7 +16,7 @@ public struct ActiveRequestSnapshot: Codable, Sendable, Equatable {
 
     init(summary: SpeakSwiftly.ActiveRequest) {
         id = summary.id
-        op = canonicalOperationName(summary.op)
+        op = canonicalOperationName(summary.kind.rawValue)
         profileName = summary.voiceProfile
     }
 
@@ -43,7 +43,7 @@ public struct QueuedRequestSnapshot: Codable, Sendable, Equatable {
 
     init(summary: SpeakSwiftly.QueuedRequest) {
         id = summary.id
-        op = canonicalOperationName(summary.op)
+        op = canonicalOperationName(summary.kind.rawValue)
         profileName = summary.voiceProfile
         queuePosition = summary.queuePosition
     }

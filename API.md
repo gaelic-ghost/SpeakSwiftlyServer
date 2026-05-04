@@ -138,7 +138,7 @@ JSON body omits `profile_id`, or mutate a stored profile when the body includes 
 
 Those responses use `request_id`, `request_url`, and `events_url` so ordinary HTTP clients can follow one tracked request cleanly without having to learn the MCP resource model first.
 
-`POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_id`, `text_format`, `nested_source_format`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, normalization-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
+`POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `request_context`, `text_profile_id`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, source-format-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
 
 `POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `GET /generation/jobs`, or `GET /generation/jobs/{job_id}` for retained media records and their originating jobs.
 

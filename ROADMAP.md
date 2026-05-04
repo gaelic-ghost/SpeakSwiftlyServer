@@ -289,6 +289,7 @@ In Progress
 - [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak-swiftly://generation/artifacts` resources) without compatibility aliases.
 - [x] Implement generated artifact unification as a breaking major-version change by replacing generated file/batch read routes, tools, and resources with one artifact read family.
 - [x] Remove remaining next-major compatibility aliases: older active/stored text-profile replacement routes, scoped HTTP cancel routes, scoped MCP cancel tools, staged runtime-configuration MCP tools, and nested `/runtime/...` HTTP routes.
+- [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request and text-profile model directly: remove server-local speech normalization context shaping, keep `source_format` as the one explicit request format field, merge `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and delete the text-profile JSON bridge adapter.
 - [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria

@@ -31,32 +31,35 @@ func supportedMarvisResidentPolicyDescription() -> String {
     exposedMarvisResidentPolicyIdentifiers().joined(separator: ", ")
 }
 
-func makeSpeechNormalizationContext(
+func makeSpeechRequestContext(
     cwd: String?,
     repoRoot: String?,
-    textFormat: String?,
-    nestedSourceFormat: String?,
-) throws -> SpeechNormalizationContext? {
-    let resolvedTextFormat = try textFormat.flatMap(resolveRequestTextFormat(_:))
-    let resolvedNestedSourceFormat = try nestedSourceFormat.flatMap {
-        try resolveSourceFormat($0, fieldName: "nested_source_format")
-    }
-    let context = SpeechNormalizationContext(
-        cwd: cwd,
-        repoRoot: repoRoot,
-        textFormat: resolvedTextFormat,
-        nestedSourceFormat: resolvedNestedSourceFormat,
+    requestContext: SpeakSwiftly.RequestContext?,
+) -> SpeakSwiftly.RequestContext? {
+    let merged = SpeakSwiftly.RequestContext(
+        source: requestContext?.source,
+        app: requestContext?.app,
+        agent: requestContext?.agent,
+        project: requestContext?.project,
+        topic: requestContext?.topic,
+        cwd: cwd ?? requestContext?.cwd,
+        repoRoot: repoRoot ?? requestContext?.repoRoot,
+        attributes: requestContext?.attributes ?? [:],
     )
     guard
-        context.cwd != nil
-        || context.repoRoot != nil
-        || context.textFormat != nil
-        || context.nestedSourceFormat != nil
+        merged.source != nil
+        || merged.app != nil
+        || merged.agent != nil
+        || merged.project != nil
+        || merged.topic != nil
+        || merged.cwd != nil
+        || merged.repoRoot != nil
+        || !merged.attributes.isEmpty
     else {
         return nil
     }
 
-    return context
+    return merged
 }
 
 func makeSpeechSourceFormat(_ rawValue: String?) throws -> TextForSpeech.SourceFormat? {
@@ -70,8 +73,6 @@ struct SpeakRequestPayload: Decodable {
         case textProfileID = "text_profile_id"
         case cwd
         case repoRoot = "repo_root"
-        case textFormat = "text_format"
-        case nestedSourceFormat = "nested_source_format"
         case sourceFormat = "source_format"
         case requestContext = "request_context"
         case qwenPreModelTextChunking = "qwen_pre_model_text_chunking"
@@ -82,18 +83,15 @@ struct SpeakRequestPayload: Decodable {
     let textProfileID: String?
     let cwd: String?
     let repoRoot: String?
-    let textFormat: String?
-    let nestedSourceFormat: String?
     let sourceFormat: String?
     let requestContext: SpeakSwiftly.RequestContext?
     let qwenPreModelTextChunking: Bool?
 
-    func normalizationContext() throws -> SpeechNormalizationContext? {
-        try makeSpeechNormalizationContext(
+    func resolvedRequestContext() -> SpeakSwiftly.RequestContext? {
+        makeSpeechRequestContext(
             cwd: cwd,
             repoRoot: repoRoot,
-            textFormat: textFormat,
-            nestedSourceFormat: nestedSourceFormat,
+            requestContext: requestContext,
         )
     }
 
@@ -161,8 +159,6 @@ struct BatchItemRequestPayload: Decodable {
         case textProfileID = "text_profile_id"
         case cwd
         case repoRoot = "repo_root"
-        case textFormat = "text_format"
-        case nestedSourceFormat = "nested_source_format"
         case sourceFormat = "source_format"
         case requestContext = "request_context"
     }
@@ -172,8 +168,6 @@ struct BatchItemRequestPayload: Decodable {
     let textProfileID: String?
     let cwd: String?
     let repoRoot: String?
-    let textFormat: String?
-    let nestedSourceFormat: String?
     let sourceFormat: String?
     let requestContext: SpeakSwiftly.RequestContext?
 
@@ -182,20 +176,16 @@ struct BatchItemRequestPayload: Decodable {
             artifactID: artifactID,
             text: text,
             textProfile: textProfileID,
-            inputTextContext: makeInputTextContext(
-                normalizationContext: normalizationContext(),
-                sourceFormat: sourceFormatModel(),
-            ),
-            requestContext: requestContext,
+            sourceFormat: sourceFormatModel(),
+            requestContext: resolvedRequestContext(),
         )
     }
 
-    private func normalizationContext() throws -> SpeechNormalizationContext? {
-        try makeSpeechNormalizationContext(
+    private func resolvedRequestContext() -> SpeakSwiftly.RequestContext? {
+        makeSpeechRequestContext(
             cwd: cwd,
             repoRoot: repoRoot,
-            textFormat: textFormat,
-            nestedSourceFormat: nestedSourceFormat,
+            requestContext: requestContext,
         )
     }
 
@@ -294,18 +284,6 @@ func resolveNormalizationFormat(_ rawValue: String) throws -> NormalizationForma
         .badRequest,
         message: "Text replacement format '\(rawValue)' is not supported. Expected one of: \(supportedFormats).",
     )
-}
-
-private func resolveRequestTextFormat(_ rawValue: String) throws -> TextForSpeech.TextFormat {
-    guard let format = TextForSpeech.TextFormat(rawValue: rawValue) else {
-        let supportedFormats = TextForSpeech.TextFormat.allCases.map(\.rawValue)
-        throw HTTPError(
-            .badRequest,
-            message: "Speech request text_format '\(rawValue)' is not supported. Expected one of: \(supportedFormats.joined(separator: ", ")).",
-        )
-    }
-
-    return format
 }
 
 private func resolveSourceFormat(

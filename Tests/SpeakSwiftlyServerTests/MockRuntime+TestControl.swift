@@ -29,7 +29,7 @@ extension MockRuntime {
         )
         continuation.yield(
             SpeakSwiftly.RequestEvent.completed(
-                .init(id: id),
+                .empty,
             ),
         )
         continuation.finish()
@@ -92,14 +92,11 @@ extension MockRuntime {
     ) {
         activeRequest = request
         if request.operation == "switch_speech_backend", let requestedSpeechBackend = request.requestedSpeechBackend {
-            continuation.yield(.started(.init(id: request.id, op: request.operation)))
+            continuation.yield(.started(.init(id: request.id, kind: SpeakSwiftly.RequestKind(rawValue: request.operation))))
             activeSpeechBackend = requestedSpeechBackend
             continuation.yield(
                 .completed(
-                    .init(
-                        id: request.id,
-                        speechBackend: requestedSpeechBackend,
-                    ),
+                    .runtimeStatus(status: nil, speechBackend: requestedSpeechBackend),
                 ),
             )
             continuation.finish()
@@ -109,11 +106,11 @@ extension MockRuntime {
         }
 
         playbackState = .playing
-        continuation.yield(.started(.init(id: request.id, op: request.operation)))
+        continuation.yield(.started(.init(id: request.id, kind: SpeakSwiftly.RequestKind(rawValue: request.operation))))
 
         if speakBehavior == .completeImmediately {
             continuation.yield(.progress(.init(id: request.id, stage: .startingPlayback)))
-            continuation.yield(.completed(.init(id: request.id)))
+            continuation.yield(.completed(.empty))
             continuation.finish()
             playbackState = .idle
             activeRequest = nil
@@ -132,14 +129,19 @@ extension MockRuntime {
     }
 
     func activeSummary(for request: MockRequest) -> SpeakSwiftly.ActiveRequest {
-        .init(id: request.id, op: request.operation, voiceProfile: request.profileName, requestContext: nil)
+        .init(
+            id: request.id,
+            kind: SpeakSwiftly.RequestKind(rawValue: request.operation),
+            voiceProfile: request.profileName,
+            requestContext: nil,
+        )
     }
 
     func queuedSummaries() -> [SpeakSwiftly.QueuedRequest] {
         queuedRequests.enumerated().map { offset, queued in
             .init(
                 id: queued.request.id,
-                op: queued.request.operation,
+                kind: SpeakSwiftly.RequestKind(rawValue: queued.request.operation),
                 voiceProfile: queued.request.profileName,
                 requestContext: nil,
                 queuePosition: offset + 1,
@@ -161,16 +163,14 @@ extension MockRuntime {
     func runtimeOverviewSummary() -> SpeakSwiftly.RuntimeOverview {
         let generationActiveRequest = activeRequest.map { activeSummary(for: $0) }
         let generationQueue = SpeakSwiftly.QueueSnapshot(
-            queueType: "generation",
-            activeRequest: generationActiveRequest,
-            activeRequests: generationActiveRequest.map { [$0] },
+            queueType: .generation,
+            activeRequests: generationActiveRequest.map { [$0] } ?? [],
             queue: queuedSummaries(),
         )
         let playbackActiveRequest = playbackState == .idle ? nil : activeRequest.map { activeSummary(for: $0) }
         let playbackQueue = SpeakSwiftly.QueueSnapshot(
-            queueType: "playback",
-            activeRequest: playbackActiveRequest,
-            activeRequests: playbackActiveRequest.map { [$0] },
+            queueType: .playback,
+            activeRequests: playbackActiveRequest.map { [$0] } ?? [],
             queue: [],
         )
         let status = SpeakSwiftly.StatusEvent(
@@ -181,9 +181,18 @@ extension MockRuntime {
         return .init(
             status: status,
             speechBackend: activeSpeechBackend,
+            storage: .init(
+                stateRootPath: NSTemporaryDirectory(),
+                profileStoreRootPath: NSTemporaryDirectory(),
+                configurationPath: NSTemporaryDirectory(),
+                textProfilesPath: NSTemporaryDirectory(),
+                generatedFilesRootPath: NSTemporaryDirectory(),
+                generationJobsRootPath: NSTemporaryDirectory(),
+            ),
             generationQueue: generationQueue,
             playbackQueue: playbackQueue,
             playbackState: playbackStateSummary(),
+            defaultVoiceProfile: "default",
         )
     }
 

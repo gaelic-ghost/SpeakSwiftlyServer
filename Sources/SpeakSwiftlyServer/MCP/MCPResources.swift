@@ -322,7 +322,7 @@ private func voiceProfilesGuideMarkdown() -> String {
     8. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
     9. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
     10. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    11. Pass `text_format`, `nested_source_format`, or `source_format` to `generate_speech` when the input needs explicit format-aware normalization instead of automatic detection.
+    11. Pass `source_format` to `generate_speech` when source-like input needs explicit format-aware normalization instead of automatic detection. Pass path and caller metadata through `cwd`, `repo_root`, or `request_context`.
     12. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by package seed install and refresh behavior.
 
     Drafting guidance:

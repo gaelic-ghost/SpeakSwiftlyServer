@@ -30,7 +30,6 @@ actor MockRuntime: ServerRuntimeProtocol {
         let text: String
         let profileName: String
         let textProfileID: String?
-        let normalizationContext: SpeechNormalizationContext?
         let sourceFormat: TextForSpeech.SourceFormat?
         let requestContext: SpeakSwiftly.RequestContext?
         let qwenPreModelTextChunking: Bool
@@ -104,8 +103,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var loadTextProfilesCallCount = 0
     var saveTextProfilesCallCount = 0
     var textProfileTransportError: SpeakSwiftly.Error?
-    var generatedFiles = [SpeakSwiftly.GeneratedFile]()
-    var generatedBatches = [SpeakSwiftly.GeneratedBatch]()
+    var generationArtifacts = [SpeakSwiftly.GenerationArtifact]()
     var generationJobs = [SpeakSwiftly.GenerationJob]()
     var listVoiceProfilesCallCount = 0
     var holdNextListVoiceProfiles = false

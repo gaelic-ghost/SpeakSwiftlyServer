@@ -79,15 +79,15 @@ extension ServerHost {
             outputPath: nil,
             cwd: nil,
         )
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the built-in default voice install request for '\(profileName)' without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while installing built-in default voice '\(profileName)'.",
         )
-        guard success.profileName == profileName else {
+        guard case let .voiceProfile(name: name?, path: _) = completion, name == profileName else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly installed built-in default voice '\(profileName)', but the success payload reported '\(success.profileName ?? "<missing>")' instead.",
+                message: "SpeakSwiftly installed built-in default voice '\(profileName)', but the completion payload reported a different or missing profile name.",
             )
         }
     }

@@ -166,12 +166,12 @@ extension ServerHost {
 
     func applyRuntimeOverviewSnapshot() async throws {
         let handle = await runtime.runtimeOverview()
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the runtime overview request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing the atomic runtime overview snapshot.",
         )
-        guard let overview = success.runtimeOverview else {
+        guard case let .runtimeOverview(overview) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
                 message: "SpeakSwiftly accepted the runtime overview request, but it did not return a runtime_overview payload.",

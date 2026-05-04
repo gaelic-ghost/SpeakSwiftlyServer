@@ -152,6 +152,15 @@ extension ServerTests {
                     Issue.record("Expected the cleared queued request to terminate with a request_cancelled failure.")
             }
 
+            let _: Bool = try await waitUntil(
+                timeout: .seconds(1),
+                pollInterval: .milliseconds(10),
+            ) {
+                let emptyQueueResponse = try await client.execute(uri: "/generation/queue", method: .get)
+                let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
+                let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])
+                return remainingQueue.isEmpty ? true : nil
+            }
             let emptyQueueResponse = try await client.execute(uri: "/generation/queue", method: .get)
             let emptyQueueJSON = try jsonObject(from: emptyQueueResponse.body)
             let remainingQueue = try #require(emptyQueueJSON["queue"] as? [[String: Any]])

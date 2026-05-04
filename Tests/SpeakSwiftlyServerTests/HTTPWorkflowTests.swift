@@ -293,7 +293,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"route-coverage","attributes":{"surface":"http"}},"cwd":"./Sources","repo_root":".","text_format":"markdown","nested_source_format":"swift_source","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
+                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","app":"SpeakSwiftlyServerTests","project":"SpeakSwiftlyServer","topic":"route-coverage","attributes":{"surface":"http"}},"cwd":"./Sources","repo_root":".","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -302,15 +302,6 @@ extension ServerTests {
             #expect((speakJSON["events_url"] as? String)?.contains(speakJobID) == true)
             #expect((speakJSON["request_url"] as? String)?.hasPrefix("http://") == true)
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
-            #expect(
-                queuedSpeechInvocation.normalizationContext
-                    == SpeechNormalizationContext(
-                        cwd: "./Sources",
-                        repoRoot: ".",
-                        textFormat: .markdown,
-                        nestedSourceFormat: .swift,
-                    ),
-            )
             #expect(queuedSpeechInvocation.textProfileID == "swift-docs")
             #expect(queuedSpeechInvocation.sourceFormat == .python)
             #expect(queuedSpeechInvocation.qwenPreModelTextChunking == true)
@@ -321,6 +312,8 @@ extension ServerTests {
                         app: "SpeakSwiftlyServerTests",
                         project: "SpeakSwiftlyServer",
                         topic: "route-coverage",
+                        cwd: "./Sources",
+                        repoRoot: ".",
                         attributes: ["surface": "http"],
                     ),
             )
@@ -341,7 +334,7 @@ extension ServerTests {
             #expect(foregroundJobJSON["status"] as? String == "completed")
             let foregroundHistory = try #require(foregroundJobJSON["history"] as? [[String: Any]])
             #expect(foregroundHistory.contains { $0["event"] as? String == "started" })
-            #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 2)
+            #expect(foregroundHistory.filter { $0["ok"] as? Bool == true }.count == 1)
         }
 
         await host.shutdown()
@@ -438,7 +431,7 @@ extension ServerTests {
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(
-                    #"{"text":"Bad format","profile_name":"default","text_format":"totally_invalid","source_format":"not_a_real_source"}"#,
+                    #"{"text":"Bad format","profile_name":"default","source_format":"not_a_real_source"}"#,
                 ),
             )
             let responseJSON = try jsonObject(from: response.body)
@@ -446,9 +439,9 @@ extension ServerTests {
             let message = try #require(error["message"] as? String)
 
             #expect(response.status == .badRequest)
-            #expect(message.contains("text_format"))
-            #expect(message.contains("totally_invalid"))
-            #expect(message.contains("plain"))
+            #expect(message.contains("source_format"))
+            #expect(message.contains("not_a_real_source"))
+            #expect(message.contains("source_code"))
         }
 
         await host.shutdown()

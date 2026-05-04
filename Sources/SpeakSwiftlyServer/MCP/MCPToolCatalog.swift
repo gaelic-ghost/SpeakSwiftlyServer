@@ -5,7 +5,7 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "generate_speech",
-            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, and explicit normalization-format arguments when the input should not rely on automatic format detection.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now, and optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, repo_root, and source_format when the input should not rely on automatic source-format detection.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -16,8 +16,6 @@ enum MCPToolCatalog {
                     "request_context": ["type": "object"],
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
-                    "text_format": ["type": "string"],
-                    "nested_source_format": ["type": "string"],
                     "source_format": ["type": "string"],
                     "qwen_pre_model_text_chunking": ["type": "boolean"],
                 ],
@@ -36,8 +34,6 @@ enum MCPToolCatalog {
                     "request_context": ["type": "object"],
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
-                    "text_format": ["type": "string"],
-                    "nested_source_format": ["type": "string"],
                     "source_format": ["type": "string"],
                 ],
             ],

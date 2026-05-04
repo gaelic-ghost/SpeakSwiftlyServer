@@ -325,12 +325,12 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `embedded MCP text profile resources surface bridge failures as explicit jsonrpc errors`() async throws {
+    @Test func `embedded MCP text profile resources surface transport failures as explicit jsonrpc errors`() async throws {
         let runtime = MockRuntime(
             speakBehavior: .holdOpen,
             textProfileTransportError: SpeakSwiftly.Error(
                 code: .internalError,
-                message: "Configured MCP text-profile bridge failure for tests.",
+                message: "Configured MCP text-profile transport failure for tests.",
             ),
         )
         let configuration = testConfiguration()
@@ -392,6 +392,6 @@ extension ServerTests {
         let error = try #require(envelope["error"] as? [String: Any])
         let message = try #require(error["message"] as? String)
         #expect((error["code"] as? Int) == -32603)
-        #expect(message.contains("Configured MCP text-profile bridge failure for tests."))
+        #expect(message.contains("Configured MCP text-profile transport failure for tests."))
     }
 }

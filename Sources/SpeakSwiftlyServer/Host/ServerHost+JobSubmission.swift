@@ -8,7 +8,6 @@ extension ServerHost {
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        normalizationContext: SpeechNormalizationContext? = nil,
         sourceFormat: TextForSpeech.SourceFormat? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
         qwenPreModelTextChunking: Bool = false,
@@ -18,7 +17,6 @@ extension ServerHost {
             text: text,
             with: profileName,
             textProfileID: textProfileID,
-            normalizationContext: normalizationContext,
             sourceFormat: sourceFormat,
             requestContext: requestContext,
             qwenPreModelTextChunking: qwenPreModelTextChunking,
@@ -30,7 +28,6 @@ extension ServerHost {
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        normalizationContext: SpeechNormalizationContext? = nil,
         sourceFormat: TextForSpeech.SourceFormat? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
     ) async throws -> String {
@@ -39,7 +36,6 @@ extension ServerHost {
             text: text,
             with: profileName,
             textProfileID: textProfileID,
-            normalizationContext: normalizationContext,
             sourceFormat: sourceFormat,
             requestContext: requestContext,
         )

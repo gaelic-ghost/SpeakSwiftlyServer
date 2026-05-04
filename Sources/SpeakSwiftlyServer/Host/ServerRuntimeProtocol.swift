@@ -2,22 +2,6 @@ import Foundation
 import SpeakSwiftly
 import TextForSpeech
 
-public typealias SpeechNormalizationContext = TextForSpeech.InputContext
-
-func makeInputTextContext(
-    normalizationContext: SpeechNormalizationContext?,
-    sourceFormat: TextForSpeech.SourceFormat?,
-) -> SpeakSwiftly.InputTextContext? {
-    guard normalizationContext != nil || sourceFormat != nil else {
-        return nil
-    }
-
-    return SpeakSwiftly.InputTextContext(
-        context: normalizationContext,
-        sourceFormat: sourceFormat,
-    )
-}
-
 struct RuntimeRequestHandle {
     let id: String
     let operation: String
@@ -40,7 +24,7 @@ struct RuntimeRequestHandle {
 
     init(_ handle: SpeakSwiftly.RequestHandle) {
         id = handle.id
-        operation = canonicalOperationName(handle.operation)
+        operation = canonicalOperationName(handle.kind.rawValue)
         profileName = handle.voiceProfile
         events = handle.events
     }
@@ -71,7 +55,6 @@ protocol ServerRuntimeProtocol: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
@@ -80,7 +63,6 @@ protocol ServerRuntimeProtocol: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        normalizationContext: SpeechNormalizationContext?,
         sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle

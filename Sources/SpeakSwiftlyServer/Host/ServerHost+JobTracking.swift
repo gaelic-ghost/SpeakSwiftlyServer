@@ -96,30 +96,30 @@ extension ServerHost {
                 switch event {
                     case let .queued(queued):
                         await record(mapQueuedEvent(queued), for: handle.id, terminal: false)
-                    case let .acknowledged(success):
-                        await record(mapSuccessEvent(success, acknowledged: true), for: handle.id, terminal: false)
+                    case let .acknowledged(acknowledgement):
+                        await record(mapAcknowledgementEvent(acknowledgement), for: handle.id, terminal: false)
                     case let .started(started):
                         await record(mapStartedEvent(started), for: handle.id, terminal: false)
                     case let .progress(progress):
                         await record(mapProgressEvent(progress), for: handle.id, terminal: false)
-                    case let .completed(success):
+                    case let .completed(completion):
                         if let mutationExpectation = jobs[handle.id]?.profileMutation {
                             await finalizeMutationSuccess(
-                                success: success,
+                                completion: completion,
                                 requestID: handle.id,
                                 expectation: mutationExpectation,
                             )
                         } else if let backendSwitchExpectation = jobs[handle.id]?.runtimeBackendSwitch {
                             await finalizeRuntimeBackendSwitchSuccess(
-                                success: success,
+                                completion: completion,
                                 requestID: handle.id,
                                 expectation: backendSwitchExpectation,
                             )
                         } else if handle.operation == "list_voice_profiles" {
-                            await applyProfileRefresh(from: success)
-                            await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
+                            await applyProfileRefresh(from: completion)
+                            await record(mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
                         } else {
-                            await record(mapSuccessEvent(success, acknowledged: false), for: handle.id, terminal: true)
+                            await record(mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
                         }
                 }
             }
@@ -137,11 +137,11 @@ extension ServerHost {
     }
 
     func finalizeRuntimeBackendSwitchSuccess(
-        success: SpeakSwiftly.Success,
+        completion: SpeakSwiftly.RequestCompletion,
         requestID: String,
         expectation: RuntimeBackendSwitchExpectation,
     ) async {
-        guard let resolvedSpeechBackend = success.speechBackend else {
+        guard case let .runtimeStatus(status: _, speechBackend: resolvedSpeechBackend?) = completion else {
             let failure = ServerFailureEvent(
                 id: requestID,
                 code: SpeakSwiftly.ErrorCode.internalError.rawValue,
@@ -167,47 +167,55 @@ extension ServerHost {
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
-        await record(mapSuccessEvent(success, acknowledged: false), for: requestID, terminal: true)
+        await record(mapCompletionEvent(id: requestID, completion), for: requestID, terminal: true)
     }
 
     func finalizeMutationSuccess(
-        success: SpeakSwiftly.Success,
+        completion: SpeakSwiftly.RequestCompletion,
         requestID: String,
         expectation: ProfileMutationExpectation,
     ) async {
+        guard case let .voiceProfile(name: reportedProfileName?, path: _) = completion else {
+            let failure = ServerFailureEvent(
+                id: requestID,
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
+                message: "SpeakSwiftly reported a successful \(expectation.operationName) mutation, but it did not include a usable profile name for cache reconciliation.",
+            )
+            await record(.failed(failure), for: requestID, terminal: true)
+            return
+        }
+
         do {
             let previousProfiles = profileCache
             let profiles = try await reconcileProfilesAfterMutation(
                 expectation: expectation,
                 requestID: requestID,
-                success: success,
+                reportedProfileName: reportedProfileName,
                 previousProfiles: previousProfiles,
             )
             profileCache = profiles
             profileCacheState = "fresh"
             profileCacheWarning = nil
             let finalSuccess = ServerSuccessEvent(
-                id: success.id,
-                generatedFile: success.generatedFile,
-                generatedFiles: success.generatedFiles,
-                generatedBatch: success.generatedBatch,
-                generatedBatches: success.generatedBatches,
-                generationJob: success.generationJob,
-                generationJobs: success.generationJobs,
-                profileName: success.profileName,
-                profilePath: success.profilePath,
+                id: requestID,
+                artifact: nil,
+                artifacts: nil,
+                generationJob: nil,
+                generationJobs: nil,
+                profileName: reportedProfileName,
+                profilePath: nil,
                 profiles: nil,
-                textProfile: success.textProfile.map(TextProfileSnapshot.init(details:)),
-                textProfiles: success.textProfiles?.map(TextProfileSnapshot.init(summary:)),
-                textProfilePath: success.textProfilePath,
-                activeRequest: success.activeRequest.map(ActiveRequestSnapshot.init(summary:)),
-                activeRequests: success.activeRequests?.map(ActiveRequestSnapshot.init(summary:)),
-                queue: success.queue?.map(QueuedRequestSnapshot.init(summary:)),
-                playbackState: success.playbackState.map(PlaybackStatusSnapshot.init(summary:)),
-                status: success.status,
-                speechBackend: success.speechBackend?.rawValue,
-                clearedCount: success.clearedCount,
-                cancelledRequestID: success.cancelledRequestID,
+                textProfile: nil,
+                textProfiles: nil,
+                textProfilePath: nil,
+                activeRequest: nil,
+                activeRequests: nil,
+                queue: nil,
+                playbackState: nil,
+                status: nil,
+                speechBackend: nil,
+                clearedCount: nil,
+                cancelledRequestID: nil,
             )
             await record(.completed(finalSuccess), for: requestID, terminal: true)
         } catch {
@@ -231,15 +239,9 @@ extension ServerHost {
     func reconcileProfilesAfterMutation(
         expectation: ProfileMutationExpectation,
         requestID: String,
-        success: SpeakSwiftly.Success,
+        reportedProfileName: String,
         previousProfiles: [ProfileSnapshot],
     ) async throws -> [ProfileSnapshot] {
-        guard let reportedProfileName = success.profileName, !reportedProfileName.isEmpty else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly returned a successful \(expectation.operationName) payload for request '\(requestID)', but it did not include a usable profile name for cache reconciliation.",
-            )
-        }
         guard reportedProfileName == expectation.expectedSuccessProfileName else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
@@ -271,12 +273,19 @@ extension ServerHost {
 
     func refreshProfiles(reason: String) async throws -> [ProfileSnapshot] {
         let handle = await runtime.listVoiceProfiles()
-        let success = try await awaitImmediateSuccess(
+        let completion = try await awaitImmediateCompletion(
             handle: handle,
             missingTerminalMessage: "SpeakSwiftly finished the internal list_voice_profiles request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles.",
         )
-        let profiles = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
+        guard case let .voiceProfiles(profileSummaries) = completion else {
+            throw SpeakSwiftly.Error(
+                code: .internalError,
+                message: "SpeakSwiftly accepted the internal list_voice_profiles request, but it did not return a profiles payload.",
+            )
+        }
+
+        let profiles = profileSummaries.map(ProfileSnapshot.init(profile:))
         profileCache = profiles
         lastProfileRefreshAt = Date()
         profileCacheState = "fresh"
@@ -287,8 +296,12 @@ extension ServerHost {
         return profiles
     }
 
-    func applyProfileRefresh(from success: SpeakSwiftly.Success) async {
-        profileCache = success.profiles?.map(ProfileSnapshot.init(profile:)) ?? []
+    func applyProfileRefresh(from completion: SpeakSwiftly.RequestCompletion) async {
+        guard case let .voiceProfiles(profileSummaries) = completion else {
+            return
+        }
+
+        profileCache = profileSummaries.map(ProfileSnapshot.init(profile:))
         lastProfileRefreshAt = Date()
         profileCacheState = "fresh"
         profileCacheWarning = nil
