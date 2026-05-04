@@ -106,6 +106,8 @@ dedupe follow-through remain visible to maintainers.
   Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
 - `skills/speak-swiftly-launchagent-setup/`
   Holds the LaunchAgent setup, refresh, status, and healthcheck skill.
+- `skills/speak-swiftly-codex-hooks/`
+  Holds the Codex lifecycle hook setup, global fallback, doctor interpretation, and hook-log troubleshooting skill.
 - `skills/speak-swiftly-runtime-operator/`
   Holds the runtime, queue, playback, and request-control skill.
 - `skills/speak-swiftly-voice-workflows/`

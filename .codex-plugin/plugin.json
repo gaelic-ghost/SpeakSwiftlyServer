@@ -24,7 +24,7 @@
   "interface": {
     "displayName": "Speak Swiftly",
     "shortDescription": "Local speech and playback workflows for Codex.",
-    "longDescription": "Codex plugin for the local Speak Swiftly MCP surface, including focused skills for LaunchAgent setup, runtime operation, voice workflows, text-profile authoring, and plugin-managed Codex final-reply speech hooks.",
+    "longDescription": "Codex plugin for the local Speak Swiftly MCP surface, including focused skills for LaunchAgent setup, Codex hook setup, runtime operation, voice workflows, text-profile authoring, and automatic final-reply speech.",
     "developerName": "Gale",
     "category": "Productivity",
     "capabilities": [
@@ -35,9 +35,7 @@
     "defaultPrompt": [
       "Use Speak Swiftly to read this reply aloud.",
       "Set up Speak Swiftly on this machine as a background service.",
-      "Help me install or validate the Speak Swiftly LaunchAgent service.",
-      "Inspect the local Speak Swiftly runtime and queue state.",
-      "Create or edit a Speak Swiftly text profile."
+      "Set up automatic Speak Swiftly TTS for Codex replies."
     ]
   }
 }

@@ -332,6 +332,7 @@ The first plugin pass ships focused skills for:
 
 - broad MCP orientation
 - LaunchAgent setup and maintenance
+- Codex hook setup and final-reply TTS troubleshooting
 - runtime, playback, and queue control
 - voice workflows
 - text-profile workflows
