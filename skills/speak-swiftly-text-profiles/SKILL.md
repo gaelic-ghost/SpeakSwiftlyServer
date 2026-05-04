@@ -9,9 +9,9 @@ Use this skill for text-normalization work on the local `speak_swiftly` MCP surf
 
 ## Orientation
 
-- Start with `speak://text-profiles` for any broad question. Use `get_text_normalizer_snapshot` only for compatibility clients that cannot read MCP resources cleanly.
-- Read `speak://text-profiles/style` when the user is really asking about the built-in normalization mode.
-- Use `speak://text-profiles/effective/{profile_id}` before speech generation when the user wants to verify what will actually be applied after profile merging.
+- Start with `speak-swiftly://text-profiles` for any broad question. Use `get_text_normalizer_snapshot` only for compatibility clients that cannot read MCP resources cleanly.
+- Read `speak-swiftly://text-profiles/style` when the user is really asking about the built-in normalization mode.
+- Use `speak-swiftly://text-profiles/effective/{profile_id}` before speech generation when the user wants to verify what will actually be applied after profile merging.
 
 ## Mutation Workflow
 
