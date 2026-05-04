@@ -40,7 +40,7 @@ extension ServerTests {
             #expect(healthJSON["status"] as? String == "ok")
             #expect(healthJSON["worker_ready"] as? Bool == true)
 
-            let runtimeHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let runtimeHostResponse = try await client.execute(uri: "/overview", method: .get)
             let runtimeHostJSON = try jsonObject(from: runtimeHostResponse.body)
             #expect(runtimeHostJSON["default_voice_profile_name"] as? String == "default")
             let runtimeRefresh = try #require(runtimeHostJSON["runtime_refresh"] as? [String: Any])
@@ -52,7 +52,7 @@ extension ServerTests {
             #expect((runtimeRefresh["playback_state_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["completed_at"] as? String)?.isEmpty == false)
 
-            let runtimeConfigResponse = try await client.execute(uri: "/runtime/configuration", method: .get)
+            let runtimeConfigResponse = try await client.execute(uri: "/configuration", method: .get)
             let runtimeConfigJSON = try jsonObject(from: runtimeConfigResponse.body)
             #expect(runtimeConfigResponse.status == .ok)
             #expect(runtimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3")
@@ -64,7 +64,7 @@ extension ServerTests {
             #expect(runtimeConfigJSON["persisted_configuration_state"] as? String == "missing")
 
             let updateRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"marvis","qwen_resident_model":"base_1_7b_8bit","marvis_resident_policy":"single_resident_dynamic"}"#),
@@ -83,7 +83,7 @@ extension ServerTests {
             #expect(updateRuntimeConfigJSON["persisted_configuration_state"] as? String == "loaded")
 
             let updateChatterboxRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"chatterbox_turbo"}"#),
@@ -94,7 +94,7 @@ extension ServerTests {
             #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
 
             let updateLegacyQwenRuntimeConfigResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"qwen3_custom_voice"}"#),
@@ -226,7 +226,7 @@ extension ServerTests {
             #expect(reducedReplacements.contains { $0["id"] as? String == "replace-2" } == false)
 
             let removeTextReplacementResponse = try await client.execute(
-                uri: "/text-profiles/stored/swift-docs/replacements/replace-1",
+                uri: "/text-profiles/replacements/replace-1?profile_id=swift-docs",
                 method: .delete,
             )
             let removeTextReplacementJSON = try jsonObject(from: removeTextReplacementResponse.body)
@@ -376,7 +376,7 @@ extension ServerTests {
             #expect(speakResponse.status == .accepted)
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"marvis"}"#),
@@ -402,7 +402,7 @@ extension ServerTests {
             await runtime.finishHeldSpeak(id: speakJobID)
             _ = try await waitForJobSnapshot(switchJobID, on: host)
 
-            let finalHostResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let finalHostResponse = try await client.execute(uri: "/overview", method: .get)
             let finalHostJSON = try jsonObject(from: finalHostResponse.body)
             let finalTransition = try #require(finalHostJSON["runtime_backend_transition"] as? [String: Any])
             #expect(finalTransition["state"] as? String == "idle")
@@ -506,7 +506,7 @@ extension ServerTests {
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
@@ -523,7 +523,7 @@ extension ServerTests {
             #expect(persistMessage.contains("qwen3_custom_voice"))
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"speech_backend":"totally_invalid"}"#),
@@ -562,7 +562,7 @@ extension ServerTests {
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
-                uri: "/runtime/configuration",
+                uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{}"#),
@@ -572,7 +572,7 @@ extension ServerTests {
             #expect(persistBody.contains("speech_backend"))
 
             let switchResponse = try await client.execute(
-                uri: "/runtime/backend",
+                uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{}"#),

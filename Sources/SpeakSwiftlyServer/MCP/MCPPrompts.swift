@@ -227,9 +227,9 @@ extension MCPSurface {
                     - text profile reads: speak-swiftly://text-profiles, speak-swiftly://text-profiles/style, speak-swiftly://text-profiles/base, speak-swiftly://text-profiles/active, speak-swiftly://text-profiles/effective, speak-swiftly://text-profiles/guide
                     - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
                     - playback and queue reads: speak-swiftly://overview, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
-                    - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request, cancel_generation, cancel_playback
+                    - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request
                     - runtime reads: speak-swiftly://overview, speak-swiftly://status, speak-swiftly://configuration
-                    - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models; compatibility alias: set_staged_config
+                    - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
                     Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
                     """

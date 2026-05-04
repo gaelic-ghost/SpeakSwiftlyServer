@@ -156,27 +156,8 @@ enum MCPToolCatalog {
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
-            name: "get_staged_runtime_config",
-            description: "Compatibility alias for get_runtime_configuration. Prefer get_runtime_configuration or the speak-swiftly://configuration resource for new clients.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
             name: "set_runtime_configuration",
             description: "Persist runtime startup choices for the next runtime start without hot-swapping the current worker. speech_backend stays required; qwen_resident_model and marvis_resident_policy are optional startup-only refinements.",
-            inputSchema: [
-                "type": "object",
-                "required": ["speech_backend"],
-                "properties": [
-                    "speech_backend": ["type": "string", "enum": stringEnum(exposedSpeechBackendIdentifiers())],
-                    "qwen_resident_model": ["type": "string", "enum": stringEnum(exposedQwenResidentModelIdentifiers())],
-                    "marvis_resident_policy": ["type": "string", "enum": stringEnum(exposedMarvisResidentPolicyIdentifiers())],
-                ],
-            ],
-        ),
-        Tool(
-            name: "set_staged_config",
-            description: "Compatibility alias for set_runtime_configuration. Prefer set_runtime_configuration for new clients.",
             inputSchema: [
                 "type": "object",
                 "required": ["speech_backend"],
@@ -392,30 +373,6 @@ enum MCPToolCatalog {
                         "enum": stringEnum(RequestCancellationScope.allCases.map(\.rawValue)),
                         "description": "Optional queue scope. Omit scope to cancel the request wherever it currently lives.",
                     ],
-                ],
-            ],
-            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
-        ),
-        Tool(
-            name: "cancel_generation",
-            description: "Compatibility alias for cancel_request with scope generation. Prefer cancel_request for new clients.",
-            inputSchema: [
-                "type": "object",
-                "required": ["request_id"],
-                "properties": [
-                    "request_id": ["type": "string"],
-                ],
-            ],
-            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
-        ),
-        Tool(
-            name: "cancel_playback",
-            description: "Compatibility alias for cancel_request with scope playback. Prefer cancel_request for new clients.",
-            inputSchema: [
-                "type": "object",
-                "required": ["request_id"],
-                "properties": [
-                    "request_id": ["type": "string"],
                 ],
             ],
             annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),

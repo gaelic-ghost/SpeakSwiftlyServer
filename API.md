@@ -53,13 +53,13 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 
 - `GET /healthz`
 - `GET /readyz`
-- `GET /runtime/host`
-- `GET /runtime/status`
-- `GET /runtime/configuration`
-- `POST /runtime/backend`
-- `POST /runtime/models/reload`
-- `POST /runtime/models/unload`
-- `PUT /runtime/configuration`
+- `GET /overview`
+- `GET /status`
+- `GET /configuration`
+- `PUT /configuration`
+- `POST /backend`
+- `POST /models/reload`
+- `POST /models/unload`
 
 ### Voice Endpoints
 
@@ -94,26 +94,18 @@ voice-design prompt from ordinary read surfaces.
 - `POST /text-profiles/factory-reset`
 - `POST /text-profiles/stored/{profile_id}/reset`
 - `POST /text-profiles/replacements`
-- `POST /text-profiles/active/replacements`
-- `POST /text-profiles/stored/{profile_id}/replacements`
 - `PUT /text-profiles/stored/{profile_id}/name`
 - `PUT /text-profiles/style`
 - `PUT /text-profiles/active`
 - `PUT /text-profiles/replacements/{replacement_id}`
-- `PUT /text-profiles/active/replacements/{replacement_id}`
-- `PUT /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
 - `DELETE /text-profiles/stored/{profile_id}`
 - `DELETE /text-profiles/replacements/{replacement_id}`
-- `DELETE /text-profiles/active/replacements/{replacement_id}`
-- `DELETE /text-profiles/stored/{profile_id}/replacements/{replacement_id}`
 
-Prefer the target-model replacement routes for new HTTP clients. `POST /text-profiles/replacements`
+`POST /text-profiles/replacements`
 and `PUT /text-profiles/replacements/{replacement_id}` mutate the active custom profile when the
 JSON body omits `profile_id`, or mutate a stored profile when the body includes `profile_id`.
 `DELETE /text-profiles/replacements/{replacement_id}` follows the same target model with optional
-`?profile_id=...` for stored-profile deletion. The older `/active/replacements` and
-`/stored/{profile_id}/replacements` route families remain as compatibility aliases while the public
-API simplification work proceeds.
+`?profile_id=...` for stored-profile deletion.
 
 ### Speech, Request, And Artifact Endpoints
 
@@ -126,7 +118,6 @@ API simplification work proceeds.
 - `DELETE /requests/{request_id}`
 - `GET /generation/queue`
 - `DELETE /generation/queue`
-- `DELETE /generation/requests/{request_id}`
 - `GET /generation/jobs`
 - `GET /generation/jobs/{job_id}`
 - `DELETE /generation/jobs/{job_id}`
@@ -140,7 +131,6 @@ API simplification work proceeds.
 - `POST /playback/pause`
 - `POST /playback/resume`
 - `DELETE /playback/queue`
-- `DELETE /playback/requests/{request_id}`
 
 ### Accepted Request Semantics
 
@@ -167,18 +157,16 @@ The queue and playback control routes are immediate control operations rather th
 - `GET /generation/queue` and `GET /playback/queue` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface.
 - `DELETE /generation/queue` clears queued generation work and returns the number of cancelled queued requests.
 - `DELETE /requests/{request_id}` cancels one active or queued request wherever it currently lives and returns the cancelled request ID. Add `?scope=generation` or `?scope=playback` only when the caller deliberately wants to constrain cancellation to one queue.
-- `DELETE /generation/requests/{request_id}` remains a compatibility alias for scoped generation cancellation.
 - `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly.
 - `DELETE /playback/queue` clears queued playback work and returns the number of cancelled queued requests.
-- `DELETE /playback/requests/{request_id}` remains a compatibility alias for scoped playback cancellation.
 
 The runtime routes are also state-oriented.
 
-- `GET /runtime/host` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
-- `GET /runtime/status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
-- `GET /runtime/configuration` and `PUT /runtime/configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /runtime/backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
-- `POST /runtime/backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /runtime/host`, `GET /runtime/status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
-- `POST /runtime/models/reload` and `POST /runtime/models/unload` follow the current runtime-control verbs directly.
+- `GET /overview` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
+- `GET /status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
+- `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
+- `POST /backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /overview`, `GET /status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
+- `POST /models/reload` and `POST /models/unload` follow the current runtime-control verbs directly.
 
 The current HTTP SSE route remains intentionally job-specific at the route boundary, but it now rides the same host-owned event backbone used by other non-UI consumers instead of keeping a separate per-job subscriber registry inside `ServerHost`.
 
@@ -235,8 +223,6 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `get_runtime_status`
 - `get_runtime_configuration`
 - `set_runtime_configuration`
-- `get_staged_runtime_config` (compatibility alias)
-- `set_staged_config` (compatibility alias)
 - `switch_speech_backend`
 - `reload_models`
 - `unload_models`
@@ -248,10 +234,8 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `clear_generation_queue`
 - `clear_playback_queue`
 - `cancel_request`
-- `cancel_generation`
-- `cancel_playback`
 
-`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path; use `cancel_generation` and `cancel_playback` only as compatibility aliases for older clients. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`; `set_staged_config` remains a compatibility alias. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 

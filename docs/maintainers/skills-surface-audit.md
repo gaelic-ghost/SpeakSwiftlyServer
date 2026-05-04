@@ -30,15 +30,15 @@ The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `
 
 The skill set is conceptually aligned with the current project shape. The five-skill split still maps cleanly onto the real product surfaces: broad MCP orientation, LaunchAgent service setup, runtime operation, voice workflows, and text-profile authoring.
 
-The skill-referenced MCP tool names, prompt names, and `speak-swiftly://` resource families are present in the current source catalog. The runtime skill already names the current generation/playback split controls, including `clear_generation_queue`, `cancel_generation`, and `cancel_playback`. The voice skill names the retained generation job, file, and batch inspection tools now exposed by the MCP catalog.
+The skill-referenced MCP tool names, prompt names, and `speak-swiftly://` resource families are present in the current source catalog. The runtime skill names the current generation/playback split controls, including `clear_generation_queue`, `clear_playback_queue`, and scoped `cancel_request`. The voice skill names the retained generation jobs and artifact resources now exposed by the MCP catalog.
 
 The skills now match the resources-first MCP guidance: use `speak-swiftly://overview`, `speak-swiftly://voices`, `speak-swiftly://text-profiles`, and focused detail resources for read-only inspection, and reserve tools for queueing speech, runtime changes, profile/text-profile mutations, cancellation, clearing, playback control, and compatibility clients that cannot read resources cleanly.
 
 ## Drift Fixed In This Pass
 
-- `API.md` did not list the current generation-side HTTP clear/cancel routes even though `HTTPGenerationRoutes.swift` exposes `DELETE /generation/queue` and `DELETE /generation/requests/{request_id}`.
+- `API.md` did not list the current generation-side HTTP clear route even though `HTTPGenerationRoutes.swift` exposes `DELETE /generation/queue`.
 - `API.md` did not list `DELETE /generation/jobs/{job_id}` even though the route backs retained job expiry.
-- `API.md` did not list the current MCP `clear_generation_queue`, `cancel_generation`, and `cancel_playback` tools even though the MCP catalog and runtime skill already use them.
+- `API.md` did not list the current MCP `clear_generation_queue`, `clear_playback_queue`, and scoped `cancel_request` tools even though the MCP catalog and runtime skill already use them.
 - `speak-swiftly-voice-workflows` mentioned explicit text-format fields but did not call out the current `qwen_pre_model_text_chunking` live-speech option from the MCP catalog and API notes.
 - The MCP, runtime, voice, and text-profile skills still treated read-only MCP tools as normal first reads. They now point agents at `speak-swiftly://...` resources first and describe read-only tools as compatibility paths.
 - The voice workflow skill still described `swift-signal` and `swift-anchor` as planned/reserved names. It now treats them as package-owned built-in defaults.

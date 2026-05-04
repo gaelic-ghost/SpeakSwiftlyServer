@@ -25,7 +25,7 @@ The surfaces are intentionally adapters over the same `ServerHost` state, but se
 
 ### Read-Only MCP Tools Duplicate Resources
 
-The MCP surface still exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_runtime_configuration`, `get_staged_runtime_config`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, and `get_generation_job`.
+The MCP surface still exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_runtime_configuration`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, and `get_generation_job`.
 
 Most of those tools mirror resources with the same read job:
 
@@ -76,15 +76,13 @@ The next major target is one generated-artifact family:
 
 This should be a breaking major-version cleanup, not an alias-heavy transition. Remove the older HTTP `files` and `batches` read routes, the matching MCP resources/templates, and the matching read-only MCP tools instead of keeping duplicate aliases. `POST /speech/files` and `POST /speech/batches` can remain distinct submission commands if they still represent different generation jobs; the cleanup is about the retained artifact read model.
 
-### Cancellation Has Too Many Public Choices
+### Cancellation Used To Have Too Many Public Choices
 
-The MCP surface exposes `cancel_request`, `cancel_generation`, and `cancel_playback`, all keyed by `request_id`. HTTP also exposes one primary cancellation route and scoped compatibility routes:
+The MCP surface now exposes one cancellation tool, `cancel_request`, keyed by `request_id` with optional `scope`. HTTP exposes the same model:
 
 - `DELETE /requests/{request_id}` with optional `?scope=generation|playback`
-- `DELETE /generation/requests/{request_id}`
-- `DELETE /playback/requests/{request_id}`
 
-The scoped operations are useful when the caller knows which queue owns the work, but they create hesitation when an operator simply wants to stop one known request. The durable API is now one general cancel operation with optional scope only when scope materially protects the caller from cancelling the wrong kind of work. The older queue-specific HTTP routes and MCP tools remain compatibility aliases until a later breaking cleanup decides whether to remove or formally deprecate them.
+Scope is only present as an optional field on the primary request cancellation path, which keeps the common "stop this request id" operation obvious while still allowing queue-specific protection when the caller needs it.
 
 ### Built-In Voices Need A User/Developer Boundary
 
@@ -110,11 +108,11 @@ The preferred public wording is `runtime configuration`, with field names carryi
 - `persisted_*` for the saved value on disk.
 - `environment_*_override` for process environment overrides.
 
-The preferred MCP tools are now `get_runtime_configuration` and `set_runtime_configuration`. `get_staged_runtime_config` and `set_staged_config` remain compatibility aliases until a later breaking cleanup decides whether to remove or formally deprecate them.
+The public MCP tools are now `get_runtime_configuration` and `set_runtime_configuration`. The older staged-config tool names were removed in the next-major cleanup.
 
 ### Text Profiles Are Powerful But Heavy
 
-The HTTP surface exposes separate active and stored text-profile mutation paths:
+The HTTP surface used to expose separate active and stored text-profile mutation paths:
 
 - `POST /text-profiles/active/replacements`
 - `POST /text-profiles/stored/{profile_id}/replacements`
@@ -128,6 +126,8 @@ The MCP tools already use a simpler shape: replacement tools target the active p
 - `POST /text-profiles/replacements`
 - `PUT /text-profiles/replacements/{replacement_id}`
 - `DELETE /text-profiles/replacements/{replacement_id}`
+
+The older active/stored route families were removed in the next-major cleanup so HTTP has the same targeting model as MCP.
 
 For add and replace, `profile_id` lives in the JSON body beside `replacement`. For delete, optional `profile_id` is passed as a query parameter because the route otherwise needs no request body. The older active/stored replacement route families remain as compatibility aliases until a breaking cleanup removes or formally deprecates them.
 
@@ -189,12 +189,12 @@ Tasks:
 - [x] Add tests for guide text or catalog descriptions when the existing catalog tests can cover the wording without becoming brittle.
 - Run MCP catalog tests and the API/roadmap/documentation checks.
 
-HTTP still has a separate route-family decision: `GET /runtime/host`, `GET /runtime/status`, `GET /runtime/configuration`, `PUT /runtime/configuration`, `POST /runtime/backend`, and model reload/unload routes currently share one namespace because HTTP does not have a product-scoped URI scheme and those routes include both reads and runtime mutations. The major-version cleanup should review that family explicitly after artifact unification, with one concrete candidate being top-level `GET /overview`, `GET /status`, and `GET`/`PUT /configuration` plus a clearer home for backend and model-control commands.
+HTTP runtime routes were flattened in the next-major cleanup: `GET /overview`, `GET /status`, `GET`/`PUT /configuration`, `POST /backend`, and `POST /models/reload` or `/models/unload`. The old `/runtime/...` route family is not carried forward.
 
 Non-goals:
 
 - Do not remove read-only tools yet.
-- Do not break existing MCP callers.
+- Do not remove remaining read-only MCP tools without a separate review.
 - Do not hide the read-only tools from clients until a compatibility plan is written.
 
 ### Phase 3: Upstream-Aligned Voice Authorship
@@ -224,12 +224,13 @@ These items should be revisited after the first two phases are reviewed and land
 
 - [x] Add target-model HTTP text-profile replacement routes that match MCP's optional `profile_id` behavior.
 - [x] Collapse preferred cancellation around `DELETE /requests/{request_id}` and MCP `cancel_request`, with optional `generation`/`playback` scope.
-- [x] Add preferred runtime-configuration MCP tool names while keeping the older staged-config names as compatibility aliases.
+- [x] Add preferred runtime-configuration MCP tool names.
 - [x] Decide the generated-artifact target shape for the next major version: one artifact read family with no files/batches compatibility aliases.
-- [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
-- [ ] Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- [ ] Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
+- [x] Remove duplicated active/stored HTTP replacement route families as breaking removals in the next-major cleanup.
+- [x] Remove duplicated scoped cancellation HTTP routes and MCP tools as breaking removals in the next-major cleanup.
+- [x] Remove duplicated staged runtime-configuration MCP tools as breaking removals in the next-major cleanup.
 - [x] Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak-swiftly://generation/artifacts`, and `speak-swiftly://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
+- [x] Flatten HTTP runtime routes from `/runtime/...` to top-level `/overview`, `/status`, `/configuration`, `/backend`, and `/models/...` paths.
 - [ ] Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist

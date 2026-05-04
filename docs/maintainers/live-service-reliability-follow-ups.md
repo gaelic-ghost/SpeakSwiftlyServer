@@ -33,7 +33,7 @@ The intended flow is:
 - confirm that the installed property list uses the canonical Application Support config path
 - confirm that install/refresh seeds the canonical config when it is missing
 - boot the service
-- probe `GET /runtime/host`
+- probe `GET /overview`
 - probe MCP `initialize` over `POST /mcp`
 - confirm that both HTTP and MCP are actually live before the test exits
 
@@ -86,7 +86,7 @@ The output should be short enough for operators to use interactively, but specif
 - HTTP up and MCP advertised, but MCP initialize failing
 - service healthy on both transports
 
-Status update on `2026-04-15`: this is now shipped as `xcrun swift run SpeakSwiftlyServerTool healthcheck`. The command probes `GET /healthz`, reads `GET /runtime/host`, sends a real MCP `initialize` request to `/mcp`, and handles the current streaming-style MCP initialize response instead of assuming a plain JSON body.
+Status update on `2026-04-15`: this is now shipped as `xcrun swift run SpeakSwiftlyServerTool healthcheck`. The command probes `GET /healthz`, reads `GET /overview`, sends a real MCP `initialize` request to `/mcp`, and handles the current streaming-style MCP initialize response instead of assuming a plain JSON body.
 
 ### 4. Revisit whether LaunchAgent-owned config needs a reloading provider
 

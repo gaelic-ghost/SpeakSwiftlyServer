@@ -94,7 +94,7 @@ The doctor reports:
 - legacy global `~/.codex/hooks.json` entries that still point at SpeakSwiftly
 - installed plugin-cache manifests and whether they declare hooks
 - `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
-- live runtime reachability through `GET /runtime/host`
+- live runtime reachability through `GET /overview`
 - runtime default voice profile versus the hook's configured profile
 - cached voice profiles
 - recent plugin-managed and repo-local hook log outcomes

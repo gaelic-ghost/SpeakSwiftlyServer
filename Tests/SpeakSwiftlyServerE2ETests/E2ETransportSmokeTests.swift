@@ -46,7 +46,7 @@ extension ServerTransportE2ETests {
 
         let status = try await decode(
             E2EStatusSnapshot.self,
-            from: client.request(path: "/runtime/host", method: "GET").data,
+            from: client.request(path: "/overview", method: "GET").data,
         )
         #expect(status.workerMode == "ready")
         #expect(status.cachedProfiles.contains { $0.profileName == profileName })

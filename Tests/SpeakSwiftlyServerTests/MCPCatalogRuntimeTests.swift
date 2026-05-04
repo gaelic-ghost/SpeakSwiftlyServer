@@ -245,17 +245,6 @@ extension ServerTests {
             #expect(getRuntimeConfigPayload["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
             #expect(getRuntimeConfigPayload["next_marvis_resident_policy"] as? String == "dual_resident_serialized")
 
-            let getRuntimeConfigAliasEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(name: "get_staged_runtime_config", arguments: [:]),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let getRuntimeConfigAliasPayload = try mcpToolPayload(from: getRuntimeConfigAliasEnvelope)
-            #expect(getRuntimeConfigAliasPayload["next_runtime_speech_backend"] as? String == "qwen3")
-
             let setRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -302,7 +291,7 @@ extension ServerTests {
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
-                            name: "set_staged_config",
+                            name: "set_runtime_configuration",
                             arguments: ["speech_backend": "chatterbox_turbo"],
                         ),
                         sessionID: sessionID,
@@ -317,7 +306,7 @@ extension ServerTests {
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
-                            name: "set_staged_config",
+                            name: "set_runtime_configuration",
                             arguments: ["speech_backend": "qwen3_custom_voice"],
                         ),
                         sessionID: sessionID,

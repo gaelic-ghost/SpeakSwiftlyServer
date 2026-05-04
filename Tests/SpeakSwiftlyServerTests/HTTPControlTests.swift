@@ -242,7 +242,7 @@ extension ServerTests {
             #expect(readyJSON["worker_mode"] as? String == "failed")
             #expect((readyJSON["startup_error"] as? String)?.contains("startup failure") == true)
 
-            let statusResponse = try await client.execute(uri: "/runtime/host", method: .get)
+            let statusResponse = try await client.execute(uri: "/overview", method: .get)
             let statusJSON = try jsonObject(from: statusResponse.body)
             #expect(statusResponse.status == .ok)
             #expect(statusJSON["worker_mode"] as? String == "failed")

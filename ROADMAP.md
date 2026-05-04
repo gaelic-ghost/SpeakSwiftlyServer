@@ -156,7 +156,7 @@ In Progress
 
 ### Tickets
 
-- [ ] Add an app-managed LaunchAgent smoke test that starts from a canonical config path with spaces and verifies both `GET /runtime/host` and MCP `initialize`.
+- [ ] Add an app-managed LaunchAgent smoke test that starts from a canonical config path with spaces and verifies both `GET /overview` and MCP `initialize`.
 - [ ] Add explicit startup logging for canonical config paths, LaunchAgent alias staging, and the exact config file path the runtime loader opened.
 - [ ] Decide whether LaunchAgent-owned startup config should keep using a reloading provider or move to a simpler startup-open path with reload support layered on intentionally later.
 - [ ] Promote the existing MCP E2E client utilities into a reusable repo-owned smoke helper for local checks, CI, and release verification.
@@ -283,14 +283,13 @@ In Progress
 - [x] Make MCP guidance resources-first immediately after the snapshot cleanup: prefer `speak-swiftly://overview` and specific `speak-swiftly://...` resources for read-only status, and reserve tools as the preferred path for queueing, mutation, and destructive actions.
 - [x] Update `API.md`, README guidance, MCP guide resources, and `choose_surface_action` prompt text so agents do not have to choose blindly between read-only tools and matching resources.
 - [x] Rename MCP resource URIs from the generic `speak://` scheme to `speak-swiftly://`, and flatten runtime reads to `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
-- [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model while keeping the older active/stored routes as compatibility aliases.
-- [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope, while keeping scoped route and tool aliases for compatibility.
-- [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`) while keeping the older staged-config tool names as compatibility aliases.
+- [x] Add target-model HTTP text-profile replacement routes so HTTP can follow MCP's optional `profile_id` targeting model.
+- [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope.
+- [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`).
 - [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak-swiftly://generation/artifacts` resources) without compatibility aliases.
 - [x] Implement generated artifact unification as a breaking major-version change by replacing generated file/batch read routes, tools, and resources with one artifact read family.
-- [ ] Keep remaining compatibility-sensitive cleanup separate: HTTP text-profile compatibility aliases, cancellation aliases, staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
-- [ ] Continue the agreed compatibility-sensitive order: remaining alias removal comes next, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
-- [ ] After artifact unification, review whether the HTTP runtime route family should flatten `GET /runtime/host`, `GET /runtime/status`, and `GET`/`PUT /runtime/configuration` into simpler top-level routes for the major version, and decide where backend/model-control commands belong if that namespace goes away.
+- [x] Remove remaining next-major compatibility aliases: older active/stored text-profile replacement routes, scoped HTTP cancel routes, scoped MCP cancel tools, staged runtime-configuration MCP tools, and nested `/runtime/...` HTTP routes.
+- [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 
 ### Exit Criteria
 

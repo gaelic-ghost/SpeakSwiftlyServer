@@ -337,7 +337,7 @@ async function main() {
     }
   }
 
-  const runtime = await fetchJSON("/runtime/host");
+  const runtime = await fetchJSON("/overview");
   if (runtime.ok) {
     const overview = runtime.value;
     const profileNames = Array.isArray(overview.cached_profiles)
