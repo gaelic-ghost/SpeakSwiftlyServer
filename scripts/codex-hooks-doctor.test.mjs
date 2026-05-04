@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   buildRepairPlan,
+  classifyGlobalHookCommands,
   pluginConfigEntries,
 } from "./codex-hooks-doctor.mjs";
 
@@ -89,4 +90,33 @@ enabled = true
   assert.equal(plan.status, "clean");
   assert.equal(plan.preferredEntry.key, "speak-swiftly@SpeakSwiftlyServer");
   assert.equal(plan.duplicateEntries.length, 0);
+});
+
+test("classifyGlobalHookCommands accepts centralized user-level fallback", () => {
+  const classification = classifyGlobalHookCommands([
+    "node /Users/example/SpeakSwiftlyServer/hooks/stop-tts.mjs",
+  ]);
+
+  assert.equal(classification.status, "supported-fallback");
+  assert.equal(classification.supportedFallbackCommands.length, 1);
+  assert.equal(classification.legacyOrDevCommands.length, 0);
+});
+
+test("classifyGlobalHookCommands warns on repo-local dev harness commands", () => {
+  const classification = classifyGlobalHookCommands([
+    "CODEX_HOOK_TTS_DATA_DIR=\"$(git rev-parse --show-toplevel)/.codex\" node \"$(git rev-parse --show-toplevel)/hooks/stop-tts.mjs\"",
+  ]);
+
+  assert.equal(classification.status, "legacy-or-dev");
+  assert.equal(classification.supportedFallbackCommands.length, 0);
+  assert.equal(classification.legacyOrDevCommands.length, 1);
+});
+
+test("classifyGlobalHookCommands treats absent Speak Swiftly hook as plugin-only", () => {
+  const classification = classifyGlobalHookCommands([
+    "node /Users/example/other-hook.mjs",
+  ]);
+
+  assert.equal(classification.status, "absent");
+  assert.equal(classification.speakSwiftlyCommands.length, 0);
 });

@@ -69,6 +69,50 @@ function stopHookCommands(hooksJSON) {
     .map((hook) => String(hook.command ?? ""));
 }
 
+function isSpeakSwiftlyHookCommand(command) {
+  return command.includes("SpeakSwiftlyServer") || command.includes("stop-tts.mjs");
+}
+
+function isCentralizedGlobalHookCommand(command) {
+  return command.includes("hooks/stop-tts.mjs")
+    && !command.includes("CODEX_HOOK_TTS_DATA_DIR")
+    && !command.includes(".codex/hooks/stop-tts.mjs");
+}
+
+export function classifyGlobalHookCommands(commands) {
+  const speakSwiftlyCommands = commands.filter(isSpeakSwiftlyHookCommand);
+  const supportedFallbackCommands = speakSwiftlyCommands.filter(isCentralizedGlobalHookCommand);
+  const legacyOrDevCommands = speakSwiftlyCommands.filter((command) => !isCentralizedGlobalHookCommand(command));
+
+  if (speakSwiftlyCommands.length === 0) {
+    return {
+      status: "absent",
+      speakSwiftlyCommands,
+      supportedFallbackCommands,
+      legacyOrDevCommands,
+      message: "Plugin-bundled hooks may still provide TTS when Codex dispatches installed plugin lifecycle config.",
+    };
+  }
+
+  if (legacyOrDevCommands.length === 0) {
+    return {
+      status: "supported-fallback",
+      speakSwiftlyCommands,
+      supportedFallbackCommands,
+      legacyOrDevCommands,
+      message: "User-level Speak Swiftly hook is a supported fallback and keeps state/logs under ~/.codex/speak-swiftly-server/hooks by default.",
+    };
+  }
+
+  return {
+    status: "legacy-or-dev",
+    speakSwiftlyCommands,
+    supportedFallbackCommands,
+    legacyOrDevCommands,
+    message: `Replace legacy or dev-only global hook commands with a single user-level fallback that calls hooks/stop-tts.mjs without CODEX_HOOK_TTS_DATA_DIR: ${legacyOrDevCommands.join(" | ")}`,
+  };
+}
+
 async function inspectHookFile(label, filePath) {
   const hooksJSON = await readJSON(filePath);
   if (!hooksJSON) {
@@ -309,11 +353,13 @@ async function main() {
   }
 
   const globalHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"));
-  const legacyGlobalCommands = globalHookCommands.filter((command) => command.includes("SpeakSwiftlyServer") || command.includes("stop-tts.mjs"));
-  if (legacyGlobalCommands.length > 0) {
-    addCheck("warn", "Global user hooks still include SpeakSwiftly TTS", "Remove the global hook after the plugin-managed hook is installed and verified.");
+  const globalHookClassification = classifyGlobalHookCommands(globalHookCommands);
+  if (globalHookClassification.status === "supported-fallback") {
+    addCheck("ok", "Global user Speak Swiftly hook is a supported fallback", globalHookClassification.message);
+  } else if (globalHookClassification.status === "legacy-or-dev") {
+    addCheck("warn", "Global user hooks include legacy or dev-only SpeakSwiftly TTS", globalHookClassification.message);
   } else {
-    addCheck("ok", "Global user hooks do not include a legacy SpeakSwiftly TTS command");
+    addCheck("info", "Global user Speak Swiftly fallback hook is not configured", globalHookClassification.message);
   }
 
   const configText = await readText(path.join(codexHome, "config.toml"));
@@ -364,7 +410,7 @@ async function main() {
     addCheck("warn", "Voice profile endpoint is not reachable", voices.error ?? `${voices.status}: ${voices.text}`);
   }
 
-  await summarizeHookLog("Plugin-managed", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
+  await summarizeHookLog("Centralized user/plugin", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
   await summarizeHookLog("Repo dev-only", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-tts.jsonl")));
 
   console.log("Checks:");

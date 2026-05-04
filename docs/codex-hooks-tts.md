@@ -3,8 +3,11 @@
 SpeakSwiftlyServer ships a Codex lifecycle hook that can speak final assistant
 replies through the local `SpeakSwiftlyServer` HTTP surface.
 
-The user-facing install path is plugin-managed. The repository-local `.codex/`
-files are only a development and testing harness for this checkout.
+The user-facing install path starts with the plugin-managed payload. A
+user-level `~/.codex/hooks.json` entry is also a supported fallback when a
+Codex surface has not yet dispatched installed plugin lifecycle config
+reliably. The repository-local `.codex/` files are only a development and
+testing harness for this checkout.
 
 ## User Install Surface
 
@@ -22,6 +25,48 @@ The plugin-managed hook stores state and logs under
 `~/.codex/speak-swiftly-server/hooks/` by default, or under `CODEX_HOME` when
 that environment variable points Codex at a different home directory.
 
+OpenAI's [Codex hooks documentation](https://developers.openai.com/codex/hooks#where-codex-looks-for-hooks)
+lists `~/.codex/hooks.json` as one of the main hook locations and says
+installed plugins can bundle lifecycle config through their plugin manifest or
+`hooks/hooks.json`. OpenAI's
+[plugin packaging documentation](https://developers.openai.com/codex/plugins/build#plugin-structure)
+also allows a manifest `hooks` field and a default `./hooks/hooks.json`
+lifecycle file. Because Codex runs every matching hook source instead of using
+higher-precedence config to replace lower-precedence hooks, Speak Swiftly keeps
+dedupe state in the shared hook data directory.
+
+## User-Level Fallback
+
+Use a user-level fallback when a current Codex install recognizes the plugin
+but does not dispatch the plugin-bundled `Stop` hook from every working
+directory. The fallback should call the tracked source hook script directly and
+should not set `CODEX_HOOK_TTS_DATA_DIR`; leaving that variable unset keeps
+state and logs centralized under `~/.codex/speak-swiftly-server/hooks/`.
+
+Example shape:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /absolute/path/to/SpeakSwiftlyServer/hooks/stop-tts.mjs",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Do not pair that fallback with the repo-local development harness command that
+sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`; that splits logs and dedupe state
+back into the checkout.
+
 ## Development Harness
 
 - `.codex/config.toml`
@@ -31,9 +76,8 @@ that environment variable points Codex at a different home directory.
   Registers the same `Stop` hook script for local testing, with
   `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's `.codex/` directory.
 - `.codex/hooks/stop-tts.mjs`
-  Dev-only forwarding entrypoint for older local configs that still point at
-  the pre-plugin hook path. It keeps existing developer sessions from failing
-  while the doctor reports that the global hook should be migrated away.
+  Dev-only forwarding entrypoint for local harness configs that need checkout
+  scoped state and logs while testing hook payload behavior.
 - `.codex/hooks/notify-dump.mjs`
   Records whatever Codex passes to the `notify` command so maintainers can
   inspect the real payload shape.
@@ -45,8 +89,9 @@ that environment variable points Codex at a different home directory.
   Development-harness dedupe state keyed by `session_id + turn_id`.
 
 Do not tell end users to copy `.codex/hooks.json` or `.codex/config.toml` into
-their own Codex home. That creates a second hook source and can make Codex
-launch duplicate `Stop` hook processes. Use the plugin install flow instead.
+their own Codex home. The supported user-level fallback is a minimal
+`~/.codex/hooks.json` entry that calls the source `hooks/stop-tts.mjs` script
+without repo-local development-harness environment overrides.
 
 ## Environment Overrides
 
@@ -91,17 +136,19 @@ The doctor reports:
 
 - repo plugin hook metadata
 - repo development-harness hook metadata
-- legacy global `~/.codex/hooks.json` entries that still point at SpeakSwiftly
+- user-level `~/.codex/hooks.json` fallback wiring, when present
+- legacy or dev-only global hook entries that split state into `.codex/`
 - installed plugin-cache manifests and whether they declare hooks
 - `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
 - live runtime reachability through `GET /overview`
 - runtime default voice profile versus the hook's configured profile
 - cached voice profiles
-- recent plugin-managed and repo-local hook log outcomes
+- recent centralized user/plugin and repo-local hook log outcomes
 
-Warnings are expected during migration if a legacy global hook is still active
-or the installed plugin cache has not yet been upgraded to a version that
-declares plugin-managed hooks.
+Warnings are expected if a global hook points at the repo-local development
+harness or sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`. A user-level hook that
+calls `hooks/stop-tts.mjs` directly is a supported fallback, not a migration
+failure.
 
 ## Runtime Insights
 

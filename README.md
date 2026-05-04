@@ -316,7 +316,7 @@ After adding `socket`, restart Codex, open the plugin directory in the Codex GUI
 
 If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor detects duplicate enablement across both marketplaces and reports a dry-run repair plan that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after confirmation. During migration, the duplicate scan accounts for both the current `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
 
-End users should rely on the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The repo-local `.codex/` files are a development harness for testing hook payloads and notification behavior from this checkout.
+End users should start with the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. OpenAI's Codex hooks documentation also treats user-level `~/.codex/hooks.json` as a first-class hook location, so a minimal user-level fallback that calls `hooks/stop-tts.mjs` directly is supported when the current Codex surface recognizes the plugin but does not dispatch plugin-bundled lifecycle hooks from every working directory. The repo-local `.codex/` files remain a development harness for testing hook payloads and notification behavior from this checkout.
 
 To inspect the installed hook and voice surfaces, run:
 
@@ -324,7 +324,7 @@ To inspect the installed hook and voice surfaces, run:
 node scripts/codex-hooks-doctor.mjs
 ```
 
-The doctor checks whether the plugin manifest declares hooks, whether a legacy global `~/.codex/hooks.json` entry is still pointing at this checkout, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
+The doctor checks whether the plugin manifest declares hooks, whether a user-level `~/.codex/hooks.json` fallback is present, whether any global hook still uses the repo-local development harness, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
 For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running local checkout and Git-backed marketplace tests with a temporary `CODEX_HOME`, removing the test marketplace before cleanup. Run detailed Speak Swiftly payload tests from this repository; run Socket catalog-reference tests from the `socket` checkout.
 
