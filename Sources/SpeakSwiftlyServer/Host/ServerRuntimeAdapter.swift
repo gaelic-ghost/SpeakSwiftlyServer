@@ -213,24 +213,14 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "expire_generation_job", profileName: nil, events: handle.events)
     }
 
-    func generatedFile(id artifactID: String) async -> RuntimeRequestHandle {
+    func generationArtifact(id artifactID: String) async -> RuntimeRequestHandle {
         let handle = await runtime.artifacts.file(id: artifactID)
-        return .init(id: handle.id, operation: "get_generated_file", profileName: nil, events: handle.events)
+        return .init(id: handle.id, operation: "get_generation_artifact", profileName: nil, events: handle.events)
     }
 
-    func listGeneratedFiles() async -> RuntimeRequestHandle {
+    func listGenerationArtifacts() async -> RuntimeRequestHandle {
         let handle = await runtime.artifacts.files()
-        return .init(id: handle.id, operation: "list_generated_files", profileName: nil, events: handle.events)
-    }
-
-    func generatedBatch(id batchID: String) async -> RuntimeRequestHandle {
-        let handle = await runtime.artifacts.batch(id: batchID)
-        return .init(id: handle.id, operation: "get_generated_batch", profileName: nil, events: handle.events)
-    }
-
-    func listGeneratedBatches() async -> RuntimeRequestHandle {
-        let handle = await runtime.artifacts.batches()
-        return .init(id: handle.id, operation: "list_generated_batches", profileName: nil, events: handle.events)
+        return .init(id: handle.id, operation: "list_generation_artifacts", profileName: nil, events: handle.events)
     }
 
     // MARK: - Runtime Controls

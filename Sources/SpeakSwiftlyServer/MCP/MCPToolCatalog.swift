@@ -455,42 +455,6 @@ enum MCPToolCatalog {
                 ],
             ],
         ),
-        Tool(
-            name: "list_generated_files",
-            description: "Compatibility read tool for retained generated audio files. Prefer reading speak-swiftly://generation/files when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_generated_file",
-            description: "Compatibility read tool for one retained generated audio file. Prefer reading speak-swiftly://generation/files/{artifact_id} when the client supports MCP resources.",
-            inputSchema: [
-                "type": "object",
-                "required": ["artifact_id"],
-                "properties": [
-                    "artifact_id": ["type": "string"],
-                ],
-            ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "list_generated_batches",
-            description: "Compatibility read tool for retained generated audio batches. Prefer reading speak-swiftly://generation/batches when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_generated_batch",
-            description: "Compatibility read tool for one retained generated audio batch. Prefer reading speak-swiftly://generation/batches/{batch_id} when the client supports MCP resources.",
-            inputSchema: [
-                "type": "object",
-                "required": ["batch_id"],
-                "properties": [
-                    "batch_id": ["type": "string"],
-                ],
-            ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
     ]
 
     private static func stringEnum(_ values: [String]) -> Value {

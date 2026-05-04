@@ -109,7 +109,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/files or speak-swiftly://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-file generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/artifacts or speak-swiftly://generation/jobs.",
                     )
 
                 case "generate_batch":
@@ -126,7 +126,7 @@ extension MCPSurface {
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,
-                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/batches or speak-swiftly://generation/jobs.",
+                        message: "SpeakSwiftlyServer accepted the retained audio-batch generation request. Read the returned request resource for progress, then inspect speak-swiftly://generation/artifacts or speak-swiftly://generation/jobs.",
                     )
 
                 case "create_voice_profile_from_description":
@@ -414,18 +414,6 @@ extension MCPSurface {
 
                 case "expire_generation_job":
                     return try await toolResult(host.expireGenerationJob(id: requiredString("job_id", in: arguments)))
-
-                case "list_generated_files":
-                    return try await toolResult(host.listGeneratedFiles())
-
-                case "get_generated_file":
-                    return try await toolResult(host.generatedFile(id: requiredString("artifact_id", in: arguments)))
-
-                case "list_generated_batches":
-                    return try await toolResult(host.listGeneratedBatches())
-
-                case "get_generated_batch":
-                    return try await toolResult(host.generatedBatch(id: requiredString("batch_id", in: arguments)))
 
                 default:
                     throw MCPError.methodNotFound(

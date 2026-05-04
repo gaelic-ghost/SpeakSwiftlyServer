@@ -31,21 +31,12 @@ func registerHTTPGenerationRoutes(
         return try await encodeJSONResponse(host.expireGenerationJob(id: jobID), status: .ok)
     }
 
-    router.get("generation/files") { _, _ -> Response in
-        try await encodeJSONResponse(host.listGeneratedFiles(), status: .ok)
+    router.get("generation/artifacts") { _, _ -> Response in
+        try await encodeJSONResponse(host.listGenerationArtifacts(), status: .ok)
     }
 
-    router.get("generation/files/:artifact_id") { _, context -> Response in
+    router.get("generation/artifacts/:artifact_id") { _, context -> Response in
         let artifactID = try context.parameters.require("artifact_id")
-        return try await encodeJSONResponse(host.generatedFile(id: artifactID), status: .ok)
-    }
-
-    router.get("generation/batches") { _, _ -> Response in
-        try await encodeJSONResponse(host.listGeneratedBatches(), status: .ok)
-    }
-
-    router.get("generation/batches/:batch_id") { _, context -> Response in
-        let batchID = try context.parameters.require("batch_id")
-        return try await encodeJSONResponse(host.generatedBatch(id: batchID), status: .ok)
+        return try await encodeJSONResponse(host.generationArtifact(id: artifactID), status: .ok)
     }
 }

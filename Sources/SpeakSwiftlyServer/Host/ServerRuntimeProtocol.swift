@@ -123,10 +123,8 @@ protocol ServerRuntimeProtocol: Actor {
     func generationJob(id jobID: String) async -> RuntimeRequestHandle
     func listGenerationJobs() async -> RuntimeRequestHandle
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle
-    func generatedFile(id artifactID: String) async -> RuntimeRequestHandle
-    func listGeneratedFiles() async -> RuntimeRequestHandle
-    func generatedBatch(id batchID: String) async -> RuntimeRequestHandle
-    func listGeneratedBatches() async -> RuntimeRequestHandle
+    func generationArtifact(id artifactID: String) async -> RuntimeRequestHandle
+    func listGenerationArtifacts() async -> RuntimeRequestHandle
     func runtimeStatus() async -> RuntimeRequestHandle
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle
     func reloadModels() async -> RuntimeRequestHandle

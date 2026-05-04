@@ -130,10 +130,8 @@ API simplification work proceeds.
 - `GET /generation/jobs`
 - `GET /generation/jobs/{job_id}`
 - `DELETE /generation/jobs/{job_id}`
-- `GET /generation/files`
-- `GET /generation/files/{artifact_id}`
-- `GET /generation/batches`
-- `GET /generation/batches/{batch_id}`
+- `GET /generation/artifacts`
+- `GET /generation/artifacts/{artifact_id}`
 
 ### Playback Endpoints
 
@@ -152,7 +150,7 @@ Those responses use `request_id`, `request_url`, and `events_url` so ordinary HT
 
 `POST /speech/live` mirrors the current public live-speech queue lane and accepts optional `cwd`, `repo_root`, `text_profile_id`, `text_format`, `nested_source_format`, `source_format`, and `qwen_pre_model_text_chunking` fields so callers can pass path-aware, normalization-aware, and Qwen live-chunking context explicitly. `qwen_pre_model_text_chunking` is an opt-in boolean for Qwen live playback only; omitted requests keep SpeakSwiftly's default single-pass Qwen live path.
 
-`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/files`, `GET /generation/files/{artifact_id}`, `GET /generation/batches`, or `GET /generation/batches/{batch_id}` for the retained media records.
+`POST /speech/files` and `POST /speech/batches` use the same request-tracking shape for retained artifact generation. Clients should follow the returned request URL while generation is active, then read `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `GET /generation/jobs`, or `GET /generation/jobs/{job_id}` for retained media records and their originating jobs.
 
 ### Text Profile Semantics
 
@@ -203,10 +201,6 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `list_generation_jobs`
 - `get_generation_job`
 - `expire_generation_job`
-- `list_generated_files`
-- `get_generated_file`
-- `list_generated_batches`
-- `get_generated_batch`
 
 #### Voice Tools
 
@@ -290,13 +284,11 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `speak-swiftly://requests/{request_id}`
 - `speak-swiftly://generation/jobs`
 - `speak-swiftly://generation/jobs/{job_id}`
-- `speak-swiftly://generation/files`
-- `speak-swiftly://generation/files/{artifact_id}`
-- `speak-swiftly://generation/batches`
-- `speak-swiftly://generation/batches/{batch_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
 - `speak-swiftly://playback/guide`
 
-Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; read-only tools mirror current resource payloads for compatibility.
+Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; generated artifact reads are resources-only in the next major surface so clients do not have two names for the same retained media records.
 
 `inspect_builtin_voice_seed` is a maintainer/development tool for package-owned built-in voice seed
 inspection. Normal agent and user workflows should read `speak-swiftly://voices`, choose a profile name, and
@@ -333,10 +325,8 @@ Clients connected to the standalone MCP event stream can subscribe to:
 - `speak-swiftly://requests/{request_id}`
 - `speak-swiftly://generation/jobs`
 - `speak-swiftly://generation/jobs/{job_id}`
-- `speak-swiftly://generation/files`
-- `speak-swiftly://generation/files/{artifact_id}`
-- `speak-swiftly://generation/batches`
-- `speak-swiftly://generation/batches/{batch_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
 - `speak-swiftly://text-profiles`
 - `speak-swiftly://text-profiles/style`
 - `speak-swiftly://text-profiles/base`

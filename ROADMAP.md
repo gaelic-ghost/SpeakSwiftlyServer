@@ -287,8 +287,9 @@ In Progress
 - [x] Add one preferred cancellation path across HTTP and MCP: `DELETE /requests/{request_id}` and `cancel_request`, each with optional generation/playback scope, while keeping scoped route and tool aliases for compatibility.
 - [x] Add preferred runtime-configuration MCP tools (`get_runtime_configuration`, `set_runtime_configuration`) while keeping the older staged-config tool names as compatibility aliases.
 - [x] Decide the next-major generated-artifact target shape: replace generated file/batch read families with one artifact read family (`GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, and matching `speak-swiftly://generation/artifacts` resources) without compatibility aliases.
-- [ ] Keep compatibility-sensitive cleanup separate: generated artifact unification as a breaking major-version change, remaining HTTP text-profile compatibility aliases, remaining cancellation aliases, remaining staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
-- [ ] Continue the agreed compatibility-sensitive order: generated artifact unification as the next major-version code slice, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
+- [x] Implement generated artifact unification as a breaking major-version change by replacing generated file/batch read routes, tools, and resources with one artifact read family.
+- [ ] Keep remaining compatibility-sensitive cleanup separate: HTTP text-profile compatibility aliases, cancellation aliases, staged runtime-configuration aliases, and any `EmbeddedServer` surface widening should each get explicit review before implementation.
+- [ ] Continue the agreed compatibility-sensitive order: remaining alias removal comes next, and no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 - [ ] After artifact unification, review whether the HTTP runtime route family should flatten `GET /runtime/host`, `GET /runtime/status`, and `GET`/`PUT /runtime/configuration` into simpler top-level routes for the major version, and decide where backend/model-control commands belong if that namespace goes away.
 
 ### Exit Criteria
@@ -298,7 +299,7 @@ In Progress
 ## Backlog Candidates
 
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
-- [ ] Implement the next-major generated-artifact read model by removing generated file/batch read routes, tools, and resources in favor of one artifact family.
+- [ ] Turn upstream `SpeakSwiftly` into a clearer product-level package surface so `SpeakSwiftlyServer` can depend on stable, ergonomic runtime concepts instead of carrying extra server-side explanation, translation, or compatibility planning for package-owned behavior.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
 
 ## History

@@ -223,7 +223,7 @@ extension MCPSurface {
                     - voice profile reads: speak-swiftly://voices, speak-swiftly://voices/{profile_name}, speak-swiftly://voices/guide
                     - voice profile actions: create_voice_profile_from_description, create_voice_profile_from_audio, update_voice_profile_name, reroll_voice_profile, delete_voice_profile
                     - maintainer-only built-in voice seed inspection: inspect_builtin_voice_seed
-                    - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak-swiftly://requests/{request_id}, speak-swiftly://generation/jobs, speak-swiftly://generation/files, speak-swiftly://generation/batches
+                    - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak-swiftly://requests/{request_id}, speak-swiftly://generation/jobs, speak-swiftly://generation/artifacts
                     - text profile reads: speak-swiftly://text-profiles, speak-swiftly://text-profiles/style, speak-swiftly://text-profiles/base, speak-swiftly://text-profiles/active, speak-swiftly://text-profiles/effective, speak-swiftly://text-profiles/guide
                     - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
                     - playback and queue reads: speak-swiftly://overview, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide

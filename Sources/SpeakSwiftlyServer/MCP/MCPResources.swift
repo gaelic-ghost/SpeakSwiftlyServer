@@ -32,8 +32,7 @@ enum MCPResourceCatalog {
         "speak-swiftly://playback/guide",
         "speak-swiftly://requests",
         "speak-swiftly://generation/jobs",
-        "speak-swiftly://generation/files",
-        "speak-swiftly://generation/batches",
+        "speak-swiftly://generation/artifacts",
     ])
 
     static let resources: [Resource] = [
@@ -51,8 +50,7 @@ enum MCPResourceCatalog {
         .init(name: "Playback Guide", uri: "speak-swiftly://playback/guide", description: "Operator guidance for reading queues, controlling playback, and choosing the least destructive action.", mimeType: "text/markdown"),
         .init(name: "Tracked Requests", uri: "speak-swiftly://requests", description: "Retained shared-host request snapshots for live server operations.", mimeType: "application/json"),
         .init(name: "Generation Jobs", uri: "speak-swiftly://generation/jobs", description: "Retained v2 generation jobs known to the SpeakSwiftly runtime.", mimeType: "application/json"),
-        .init(name: "Generated Files", uri: "speak-swiftly://generation/files", description: "Retained generated audio files known to the SpeakSwiftly runtime.", mimeType: "application/json"),
-        .init(name: "Generated Batches", uri: "speak-swiftly://generation/batches", description: "Retained generated audio batches known to the SpeakSwiftly runtime.", mimeType: "application/json"),
+        .init(name: "Generation Artifacts", uri: "speak-swiftly://generation/artifacts", description: "Retained generated audio artifacts known to the SpeakSwiftly runtime.", mimeType: "application/json"),
     ]
 
     static let templates: [Resource.Template] = [
@@ -61,8 +59,7 @@ enum MCPResourceCatalog {
         .init(uriTemplate: "speak-swiftly://text-profiles/effective/{profile_id}", name: "Effective Stored Text Profile", description: "The effective text profile produced by merging the base profile with one stored profile.", mimeType: "application/json"),
         .init(uriTemplate: "speak-swiftly://requests/{request_id}", name: "Request Detail", description: "Detailed shared-host state for one tracked request.", mimeType: "application/json"),
         .init(uriTemplate: "speak-swiftly://generation/jobs/{job_id}", name: "Generation Job Detail", description: "One retained v2 generation job.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://generation/files/{artifact_id}", name: "Generated File Detail", description: "One retained generated audio file.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://generation/batches/{batch_id}", name: "Generated Batch Detail", description: "One retained generated audio batch.", mimeType: "application/json"),
+        .init(uriTemplate: "speak-swiftly://generation/artifacts/{artifact_id}", name: "Generation Artifact Detail", description: "One retained generated audio artifact.", mimeType: "application/json"),
     ]
 }
 
@@ -182,11 +179,8 @@ extension MCPSurface {
                 case "speak-swiftly://generation/jobs":
                     return try await resourceResult(uri: params.uri, payload: host.listGenerationJobs())
 
-                case "speak-swiftly://generation/files":
-                    return try await resourceResult(uri: params.uri, payload: host.listGeneratedFiles())
-
-                case "speak-swiftly://generation/batches":
-                    return try await resourceResult(uri: params.uri, payload: host.listGeneratedBatches())
+                case "speak-swiftly://generation/artifacts":
+                    return try await resourceResult(uri: params.uri, payload: host.listGenerationArtifacts())
 
                 default:
                     if let profileName = profileDetailName(from: params.uri) {
@@ -236,12 +230,8 @@ extension MCPSurface {
                         return try await resourceResult(uri: params.uri, payload: host.generationJob(id: jobID))
                     }
 
-                    if let artifactID = generatedFileID(from: params.uri) {
-                        return try await resourceResult(uri: params.uri, payload: host.generatedFile(id: artifactID))
-                    }
-
-                    if let batchID = generatedBatchID(from: params.uri) {
-                        return try await resourceResult(uri: params.uri, payload: host.generatedBatch(id: batchID))
+                    if let artifactID = generationArtifactID(from: params.uri) {
+                        return try await resourceResult(uri: params.uri, payload: host.generationArtifact(id: artifactID))
                     }
 
                     throw MCPError.invalidRequest(
@@ -272,8 +262,7 @@ func ensureKnownResourceURI(_ uri: String) throws {
         || effectiveTextProfileID(from: uri) != nil
         || requestID(from: uri) != nil
         || generationJobID(from: uri) != nil
-        || generatedFileID(from: uri) != nil
-        || generatedBatchID(from: uri) != nil
+        || generationArtifactID(from: uri) != nil
     else {
         throw MCPError.invalidRequest(
             "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface.",
@@ -432,15 +421,8 @@ private func generationJobID(from uri: String) -> String? {
     return String(uri.dropFirst(prefix.count))
 }
 
-private func generatedFileID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://generation/files/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    return String(uri.dropFirst(prefix.count))
-}
-
-private func generatedBatchID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://generation/batches/"
+private func generationArtifactID(from uri: String) -> String? {
+    let prefix = "speak-swiftly://generation/artifacts/"
     guard uri.hasPrefix(prefix) else { return nil }
 
     return String(uri.dropFirst(prefix.count))

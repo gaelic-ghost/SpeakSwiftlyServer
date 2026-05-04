@@ -327,43 +327,23 @@ extension MockRuntime {
         return RuntimeRequestHandle(id: requestID, operation: "expire_generation_job", profileName: nil, events: events)
     }
 
-    func generatedFile(id artifactID: String) async -> RuntimeRequestHandle {
+    func generationArtifact(id artifactID: String) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let file = generatedFiles.first { $0.artifactID == artifactID }
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedFile: file, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "get_generated_file", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "get_generation_artifact", profileName: nil, events: events)
     }
 
-    func listGeneratedFiles() async -> RuntimeRequestHandle {
+    func listGenerationArtifacts() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let files = generatedFiles
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedFiles: files, activeRequests: nil)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_generated_files", profileName: nil, events: events)
-    }
-
-    func generatedBatch(id batchID: String) async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        let batch = generatedBatches.first { $0.batchID == batchID }
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedBatch: batch, activeRequests: nil)))
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "get_generated_batch", profileName: nil, events: events)
-    }
-
-    func listGeneratedBatches() async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        let batches = generatedBatches
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(SpeakSwiftly.Success(id: requestID, generatedBatches: batches, activeRequests: nil)))
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "list_generated_batches", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "list_generation_artifacts", profileName: nil, events: events)
     }
 }

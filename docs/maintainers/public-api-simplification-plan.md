@@ -25,7 +25,7 @@ The surfaces are intentionally adapters over the same `ServerHost` state, but se
 
 ### Read-Only MCP Tools Duplicate Resources
 
-The MCP surface exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_runtime_configuration`, `get_staged_runtime_config`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, `get_generation_job`, `list_generated_files`, `get_generated_file`, `list_generated_batches`, and `get_generated_batch`.
+The MCP surface still exposes read-only tools such as `get_runtime_overview`, `get_runtime_status`, `get_runtime_configuration`, `get_staged_runtime_config`, `list_voice_profiles`, `get_text_normalizer_snapshot`, `get_text_profile_style`, `list_generation_queue`, `list_playback_queue`, `get_playback_state`, `list_active_requests`, `list_generation_jobs`, and `get_generation_job`.
 
 Most of those tools mirror resources with the same read job:
 
@@ -39,10 +39,8 @@ Most of those tools mirror resources with the same read job:
 - `speak-swiftly://requests/{request_id}`
 - `speak-swiftly://generation/jobs`
 - `speak-swiftly://generation/jobs/{job_id}`
-- `speak-swiftly://generation/files`
-- `speak-swiftly://generation/files/{artifact_id}`
-- `speak-swiftly://generation/batches`
-- `speak-swiftly://generation/batches/{batch_id}`
+- `speak-swiftly://generation/artifacts`
+- `speak-swiftly://generation/artifacts/{artifact_id}`
 
 The MCP resource scheme is now `speak-swiftly://`. Because that scheme already names the product surface, the older `speak://runtime/...` route prefix added cognitive load without adding useful selection power. The next-major MCP read surface therefore keeps the runtime concepts but flattens their resource paths to `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
 
@@ -229,10 +227,10 @@ These items should be revisited after the first two phases are reviewed and land
 - [x] Add preferred runtime-configuration MCP tool names while keeping the older staged-config names as compatibility aliases.
 - [x] Decide the generated-artifact target shape for the next major version: one artifact read family with no files/batches compatibility aliases.
 - [ ] Decide whether the duplicated active/stored HTTP replacement routes are aliases for one major version or breaking removals in the next API cleanup.
-- Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
-- Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak-swiftly://generation/artifacts`, and `speak-swiftly://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
-- Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
+- [ ] Decide whether the duplicated scoped cancellation HTTP routes and MCP tools are aliases for one major version or breaking removals in the next API cleanup.
+- [ ] Decide whether the duplicated staged runtime-configuration MCP tools are aliases for one major version or breaking removals in the next API cleanup.
+- [x] Rework generated files and generated batches into the next-major artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak-swiftly://generation/artifacts`, and `speak-swiftly://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
+- [ ] Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist
 

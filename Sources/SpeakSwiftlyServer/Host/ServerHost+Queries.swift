@@ -3,6 +3,47 @@ import Hummingbird
 import SpeakSwiftly
 import TextForSpeech
 
+private struct GenerationArtifactPayload: Encodable {
+    let artifactID: String
+    let kind: String
+    let createdAt: Date
+    let filePath: String
+    let sampleRate: Int
+    let voiceProfile: String
+    let textProfile: SpeakSwiftly.TextProfileID?
+    let inputTextContext: SpeakSwiftly.InputTextContext?
+    let requestContext: SpeakSwiftly.RequestContext?
+
+    enum CodingKeys: String, CodingKey {
+        case artifactID = "artifact_id"
+        case kind
+        case createdAt = "created_at"
+        case filePath = "file_path"
+        case sampleRate = "sample_rate"
+        case voiceProfile = "voice_profile"
+        case textProfile = "text_profile"
+        case inputTextContext = "input_text_context"
+        case requestContext = "request_context"
+    }
+}
+
+private func makeGenerationArtifact(from generatedFile: SpeakSwiftly.GeneratedFile) throws -> SpeakSwiftly.GenerationArtifact {
+    let payload = GenerationArtifactPayload(
+        artifactID: generatedFile.artifactID,
+        kind: "audio_wav",
+        createdAt: generatedFile.createdAt,
+        filePath: generatedFile.filePath,
+        sampleRate: generatedFile.sampleRate,
+        voiceProfile: generatedFile.voiceProfile,
+        textProfile: generatedFile.textProfile,
+        inputTextContext: generatedFile.inputTextContext,
+        requestContext: generatedFile.requestContext,
+    )
+
+    let data = try JSONEncoder().encode(payload)
+    return try JSONDecoder().decode(SpeakSwiftly.GenerationArtifact.self, from: data)
+}
+
 extension ServerHost {
     // MARK: - Public Query Surface
 
@@ -121,58 +162,31 @@ extension ServerHost {
         return generationJob
     }
 
-    func listGeneratedFiles() async throws -> [SpeakSwiftly.GeneratedFile] {
-        let handle = await runtime.listGeneratedFiles()
+    func listGenerationArtifacts() async throws -> [SpeakSwiftly.GenerationArtifact] {
+        let handle = await runtime.listGenerationArtifacts()
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-files request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio files.",
+            missingTerminalMessage: "SpeakSwiftly finished the generation-artifacts request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing retained generation artifacts.",
         )
-        return success.generatedFiles ?? []
+        return try success.generatedFiles?.map(makeGenerationArtifact(from:)) ?? []
     }
 
-    func generatedFile(id artifactID: String) async throws -> SpeakSwiftly.GeneratedFile {
-        let handle = await runtime.generatedFile(id: artifactID)
+    func generationArtifact(id artifactID: String) async throws -> SpeakSwiftly.GenerationArtifact {
+        let handle = await runtime.generationArtifact(id: artifactID)
         let success = try await awaitImmediateSuccess(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-file request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio file '\(artifactID)'.",
+            missingTerminalMessage: "SpeakSwiftly finished the generation-artifact request without yielding a terminal success payload.",
+            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading retained generation artifact '\(artifactID)'.",
         )
         guard let generatedFile = success.generatedFile else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the generated-file request for '\(artifactID)', but it did not return a generated_file payload.",
+                message: "SpeakSwiftly accepted the generation-artifact request for '\(artifactID)', but it did not return an artifact payload.",
             )
         }
 
-        return generatedFile
-    }
-
-    func listGeneratedBatches() async throws -> [SpeakSwiftly.GeneratedBatch] {
-        let handle = await runtime.listGeneratedBatches()
-        let success = try await awaitImmediateSuccess(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-batches request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while listing generated audio batches.",
-        )
-        return success.generatedBatches ?? []
-    }
-
-    func generatedBatch(id batchID: String) async throws -> SpeakSwiftly.GeneratedBatch {
-        let handle = await runtime.generatedBatch(id: batchID)
-        let success = try await awaitImmediateSuccess(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the generated-batch request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading generated audio batch '\(batchID)'.",
-        )
-        guard let generatedBatch = success.generatedBatch else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the generated-batch request for '\(batchID)', but it did not return a generated_batch payload.",
-            )
-        }
-
-        return generatedBatch
+        return try makeGenerationArtifact(from: generatedFile)
     }
 
     func runtimeStatus() async throws -> RuntimeStatusResponse {
