@@ -13,6 +13,7 @@ Use this skill when the user wants the standalone `SpeakSwiftlyServer` to run as
 - Read the repo operator guidance in [README.md](../../README.md) first, then [LaunchAgent-Workflow.md](../../Sources/SpeakSwiftlyServer/SpeakSwiftlyServer.docc/Articles/LaunchAgent-Workflow.md) when the user needs the full setup model.
 - If the user is asking about Codex access to the running service, remember that the installed plugin already handles the Codex-side MCP registration through [`.mcp.json`](../../.mcp.json). The setup work here is about getting the live server healthy at `http://127.0.0.1:7337/mcp`, not about hand-editing Codex config files.
 - If the user installed Speak Swiftly through the `SpeakSwiftlyServer` or `socket` marketplace, treat the installed plugin cache as the source checkout for first-run setup and service refresh. Marketplace install or upgrade refreshes the Codex-managed plugin payload, but it does not silently install or restart the native LaunchAgent-backed service.
+- For marketplace users, make the update sequence explicit: upgrade the owning marketplace, start a fresh Codex session, run `launch-agent install` from the upgraded plugin checkout, then run `healthcheck`. Do not imply that plugin upgrade alone updates the running native service.
 - Phrase the setup outcome in user terms like "set up SpeakSwiftly on this machine," "install the background service," "make the local service reachable from Codex," or "fix the LaunchAgent install," because those are the kinds of requests this skill should trigger on.
 
 ## Normal Setup Flow

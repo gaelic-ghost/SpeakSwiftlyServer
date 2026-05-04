@@ -18,6 +18,7 @@ base_branch="${REPO_MAINTENANCE_RELEASE_BRANCH:-main}"
 review_comments_addressed="false"
 skip_branch_cleanup="false"
 dry_run="false"
+remote_ci_mode="${REPO_MAINTENANCE_REMOTE_CI_MODE:-full}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -53,6 +54,10 @@ while [ "$#" -gt 0 ]; do
       review_comments_addressed="true"
       shift
       ;;
+    --remote-ci-mode)
+      remote_ci_mode="${2:-}"
+      shift 2
+      ;;
     --skip-branch-cleanup)
       skip_branch_cleanup="true"
       shift
@@ -64,7 +69,7 @@ while [ "$#" -gt 0 ]; do
     -h|--help)
       cat <<'USAGE'
 Usage:
-  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--skip-branch-cleanup] [--dry-run]
+  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
   release.sh --mode submodule --version <vX.Y.Z> [--skip-validate] [--skip-gh-release] [--dry-run]
 USAGE
       exit 0
@@ -81,6 +86,7 @@ export REPO_MAINTENANCE_RELEASE_MODE="$mode"
 export RELEASE_TAG="$release_tag"
 export REPO_MAINTENANCE_SKIP_GH_RELEASE="$skip_gh_release"
 export REPO_MAINTENANCE_DRY_RUN="$dry_run"
+export REPO_MAINTENANCE_REMOTE_CI_MODE="$remote_ci_mode"
 
 ensure_clean_worktree() {
   status_output="$(git -C "$REPO_ROOT" status --porcelain)"
@@ -101,6 +107,16 @@ ensure_semver_tag() {
   esac
 }
 
+ensure_remote_ci_mode() {
+  case "$REPO_MAINTENANCE_REMOTE_CI_MODE" in
+    full|defer)
+      ;;
+    *)
+      die "Remote CI mode must be either full or defer. Use full to watch GitHub checks in this script, or defer to pause after initial check discovery and continue from a Codex wakeup."
+      ;;
+  esac
+}
+
 current_branch() {
   git -C "$REPO_ROOT" symbolic-ref --quiet --short HEAD || true
 }
@@ -115,9 +131,15 @@ ensure_branch_release_context() {
 run_version_bump() {
   release_version="${RELEASE_TAG#v}"
   version_bump_script="$SELF_DIR/version-bump.sh"
+  head_subject="$(git -C "$REPO_ROOT" log -1 --format=%s 2>/dev/null || true)"
 
   if [ "$skip_version_bump" = "true" ]; then
     log "Skipping repo version bump because --skip-version-bump was requested."
+    return 0
+  fi
+
+  if [ "$head_subject" = "release: bump versions for $RELEASE_TAG" ]; then
+    log "Version bump commit for $RELEASE_TAG is already at HEAD; continuing the release resume path."
     return 0
   fi
 
@@ -234,13 +256,30 @@ watch_ci() {
     return 0
   fi
 
-  wait_for_initial_pr_checks "$pr_number"
-
   log "Watching CI for PR #$pr_number."
   if ! gh pr checks "$pr_number" --watch; then
     die "CI is not green for PR #$pr_number. Fix the failing checks, push the branch, and rerun release.sh so it can watch CI again."
   fi
   log "CI is green for PR #$pr_number."
+}
+
+defer_remote_ci_if_requested() {
+  pr_number="$1"
+  branch_name="$2"
+
+  [ "$REPO_MAINTENANCE_REMOTE_CI_MODE" = "defer" ] || return 1
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would defer remote CI after PR #$pr_number reports initial checks."
+    return 0
+  fi
+
+  pr_url="$(gh pr view "$pr_number" --json url --jq '.url')"
+  log "Remote CI mode is defer, so release.sh is pausing after local validation, branch push, PR creation, and initial check discovery."
+  log "Release is not complete yet. Let GitHub finish CI for PR #$pr_number, then continue from branch $branch_name with:"
+  log "  bash scripts/repo-maintenance/release.sh --mode standard --version $RELEASE_TAG"
+  log "Codex should use a native thread Timer/Wakeup or heartbeat automation for this wait when available, then resume by checking $pr_url and rerunning the command above instead of leaving a shell script open to poll GitHub."
+  return 0
 }
 
 wait_for_initial_pr_checks() {
@@ -425,6 +464,7 @@ run_standard_release() {
   ensure_git_repo
   ensure_gh_cli
   ensure_semver_tag
+  ensure_remote_ci_mode
   branch_name="$(ensure_branch_release_context)"
   ensure_clean_worktree
 
@@ -437,6 +477,11 @@ run_standard_release() {
   push_release_branch "$branch_name"
   create_or_update_pr "$branch_name"
   pr_number="$PR_NUMBER"
+  wait_for_initial_pr_checks "$pr_number"
+  if defer_remote_ci_if_requested "$pr_number" "$branch_name"; then
+    log "Standard release flow paused before remote CI watch for $RELEASE_TAG."
+    return 0
+  fi
   watch_ci "$pr_number"
   check_pr_comments "$pr_number"
   merge_pr "$pr_number"
