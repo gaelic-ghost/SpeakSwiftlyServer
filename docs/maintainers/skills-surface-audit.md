@@ -13,7 +13,7 @@ The checked-in plugin exposes six focused skills under `skills/`:
 - `speak-swiftly-voice-workflows`: voice-profile creation and editing, live speech, retained artifact generation, and artifact inspection.
 - `speak-swiftly-text-profiles`: text-normalization style, stored profile, replacement, and persistence workflows.
 - `speak-swiftly-launchagent-setup`: supported LaunchAgent setup, promotion, inspection, uninstall, and healthcheck flow.
-- `speak-swiftly-codex-hooks`: Codex lifecycle hook setup, user-level fallback wiring, doctor interpretation, and final-reply TTS troubleshooting.
+- `speak-swiftly-codex-hooks`: Codex lifecycle hook setup, user-level fallback wiring, permission-request probing, doctor interpretation, and final-reply TTS troubleshooting.
 
 The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `./.mcp.json`, and `./hooks/hooks.json`. The local marketplace entry at `.agents/plugins/marketplace.json` points at the repository root because the root is the plugin root.
 
@@ -35,6 +35,8 @@ The skill-referenced MCP tool names, prompt names, and `speak-swiftly://` resour
 
 The skills now match the resources-first MCP guidance: use `speak-swiftly://overview`, `speak-swiftly://voices`, `speak-swiftly://text-profiles`, and focused detail resources for read-only inspection, and reserve tools for queueing speech, runtime changes, profile/text-profile mutations, cancellation, clearing, playback control, and compatibility clients that cannot read resources cleanly.
 
+The public HTTP and MCP guidance now treats request-context metadata as transport-owned by default. Callers can omit `request_context` for ordinary speech calls; they only need to provide it when they know richer app, project, topic, path, or caller attributes than the server can infer.
+
 ## Drift Fixed In This Pass
 
 - The skills now use the `speak-swiftly://...` MCP resource scheme, scoped `cancel_request`, `set_runtime_configuration`, and retained generation-job/artifact wording after the next-major API cleanup.
@@ -45,6 +47,7 @@ The skills now match the resources-first MCP guidance: use `speak-swiftly://over
 - The MCP, runtime, voice, and text-profile skills still treated read-only MCP tools as normal first reads. They now point agents at `speak-swiftly://...` resources first and describe read-only tools as compatibility paths.
 - The voice workflow skill still described `swift-signal` and `swift-anchor` as planned/reserved names. It now treats them as package-owned built-in defaults.
 - Added `speak-swiftly-codex-hooks` so plugin-managed hooks, user-level fallback hooks, centralized hook logs, and doctor interpretation have a dedicated skill instead of living only in maintainer prose.
+- Added permission-request hook probing and default HTTP/MCP request-context provenance to the docs and skill surfaces so future TTS and TextForSpeech behavior can rely on the same origin metadata.
 
 ## Healthy Constraints To Preserve
 

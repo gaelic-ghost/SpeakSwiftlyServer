@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the maintainer map for the current `SpeakSwiftly 4.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
+This document is the maintainer map for the current `SpeakSwiftly 5.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
 Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging
 writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer
@@ -45,7 +45,7 @@ dedupe follow-through remain visible to maintainers.
 ## Model Sources
 
 - `Sources/SpeakSwiftlyServer/Host/ServerModels.swift`
-  Request payloads plus shared normalization-format helpers.
+  Request payloads, shared normalization-format helpers, and transport-owned `SpeakSwiftly.RequestContext` default merging for HTTP and MCP speech requests.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
 - `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
@@ -89,6 +89,15 @@ dedupe follow-through remain visible to maintainers.
   Keep the live HTTP transport, MCP request transport, and MCP SSE stream handling separate so transport bugs do not regrow one giant helper file.
 - `Tests/SpeakSwiftlyServerE2ETests/E2EPayloadHelpers.swift` and `E2ETransportWaiters.swift`
   Keep JSON or JSON-RPC decoding, polling waiters, and stored-profile manifest loading split by responsibility instead of mixing transport and payload utilities.
+
+## Transport Sources
+
+- `Sources/SpeakSwiftlyServer/HTTP/HTTPSpeechRoutes.swift`
+  Owns HTTP speech submission and the HTTP default request-context provenance for route, method, server app, and speech topic.
+- `Sources/SpeakSwiftlyServer/MCP/MCPClientIdentity.swift`
+  Captures MCP `clientInfo` from session initialization and converts it into speech request-context defaults such as `Codex via SpeakSwiftlyServer`.
+- `Sources/SpeakSwiftlyServer/MCP/MCPToolHandlers.swift` and `MCPToolSupport.swift`
+  Own MCP tool execution and merge MCP tool/client defaults with caller-provided `request_context`, `cwd`, and `repo_root`.
 
 ## Plugin And Skill Sources
 

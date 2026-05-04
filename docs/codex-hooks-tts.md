@@ -117,15 +117,21 @@ without repo-local development-harness environment overrides.
 
 ## Environment Overrides
 
-The `Stop` hook script accepts these optional environment overrides:
+The hook scripts share these optional environment overrides:
+
+- `CODEX_HOOK_TTS_DATA_DIR`
+  Override the state and log root. Hook scripts create their needed `state/`
+  and `logs/` paths under this directory.
+- `CODEX_HOOK_TTS_LOG_FULL_PAYLOAD`
+  Defaults to `false`. Set to `true` only during focused debugging when the log
+  needs the full raw Codex hook payload and parsed payload.
+
+The `Stop` hook script also accepts:
 
 - `CODEX_HOOK_TTS_BASE_URL`
   Override the default `http://127.0.0.1:7337`.
 - `CODEX_HOOK_TTS_PROFILE_NAME`
   Override the default voice profile name `default-femme`.
-- `CODEX_HOOK_TTS_DATA_DIR`
-  Override the state and log root. The hook creates `state/` and `logs/` under
-  this directory.
 - `CODEX_HOOK_TTS_SKIP_CONTINUATIONS`
   Defaults to `true`. Set to `false` if continued `Stop` turns should be read
   aloud too.
@@ -133,9 +139,6 @@ The `Stop` hook script accepts these optional environment overrides:
   Defaults to `true`. Skips compact structured assistant payloads such as
   `{"title":"..."}`, `{"suggestions":[...]}`, and `{"exclude":[...]}` because
   those are UI or automation metadata rather than speakable final prose.
-- `CODEX_HOOK_TTS_LOG_FULL_PAYLOAD`
-  Defaults to `false`. Set to `true` only during focused debugging when the log
-  needs the full raw Codex hook payload and parsed payload.
 - `CODEX_HOOK_TTS_MAX_SEEN_TURNS`
   Controls how many dedupe keys are retained in the local state file.
 - `CODEX_HOOK_TTS_STATE_LOCK_TIMEOUT_MS`

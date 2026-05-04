@@ -231,7 +231,7 @@ These items should be revisited after the first two phases are reviewed and land
 - [x] Remove duplicated staged runtime-configuration MCP tools as breaking removals in the next-major cleanup.
 - [x] Rework older generated-file and generated-batch reads into the next-major retained artifact-family model: `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}`, `speak-swiftly://generation/artifacts`, and `speak-swiftly://generation/artifacts/{artifact_id}`, removing the older files/batches read surfaces instead of aliasing them.
 - [x] Flatten HTTP runtime routes from `/runtime/...` to top-level `/overview`, `/status`, `/configuration`, `/backend`, and `/models/...` paths.
-- [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request model directly by deleting server-local speech normalization context shaping, forwarding `source_format` directly, merging `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and using upstream text-profile transport details without JSON bridge adapters.
+- [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request model directly by deleting server-local speech normalization context shaping, forwarding `source_format` directly, merging `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, filling HTTP/MCP transport defaults at the edge, capturing MCP `clientInfo` for caller provenance, and using upstream text-profile transport details without JSON bridge adapters.
 - [ ] Decide whether `EmbeddedServer` intentionally stays narrow or grows artifact and text-profile APIs.
 
 ## Review Checklist
