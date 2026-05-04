@@ -18,7 +18,7 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 
 The standard flow runs `scripts/repo-maintenance/version-bump.sh` before the release PR is pushed. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
 
-The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, and cleans up merged local branches when safe.
+The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, updates the local LaunchAgent-backed live service from the synced `main` checkout, healthchecks HTTP and MCP, and cleans up merged local branches when safe.
 
 ## Context Rules
 
@@ -67,6 +67,7 @@ Key flags:
 - `--skip-validate`
 - `--skip-version-bump`
 - `--skip-gh-release`
+- `--skip-live-service-update`
 - `--review-comments-addressed`
 - `--skip-branch-cleanup`
 - `--dry-run`
@@ -97,8 +98,8 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
 4. Let the repo-maintenance validation check run.
-5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, and clean up merged branches.
-6. Run any post-release live-service refresh or staged-artifact promotion only when that operation is explicitly part of the release task.
+5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, update the live LaunchAgent-backed service from synced local `main`, run `SpeakSwiftlyServerTool healthcheck`, and clean up merged branches.
+6. Use `--skip-live-service-update` only when the release is intentionally metadata-only for this machine or when a maintainer will refresh the live service from a different checkout.
 
 ## Validation Shape
 
@@ -137,4 +138,6 @@ The explicit repo-maintenance profile lives in `scripts/repo-maintenance/config/
 - Standard mode uses a pull request and watches CI before merge.
 - Standard mode stops on requested changes or unresolved review/discussion comments unless rerun with `--review-comments-addressed` after the comment pass is intentionally complete.
 - Standard mode creates the GitHub release from the pushed tag with `--verify-tag`.
+- Standard mode updates the LaunchAgent-backed live service only after local `main` has been fast-forwarded and the versioned GitHub release exists.
+- Standard mode immediately runs the server healthcheck after the live-service update so HTTP and MCP startup failures block the release handoff.
 - Submodule mode leaves parent repository pointer updates to a separate follow-up commit.

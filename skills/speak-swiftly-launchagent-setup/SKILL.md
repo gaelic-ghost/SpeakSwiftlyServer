@@ -17,19 +17,19 @@ Use this skill when the user wants the standalone `SpeakSwiftlyServer` to run as
 ## Normal Setup Flow
 
 1. Print the property list first with `xcrun swift run SpeakSwiftlyServerTool launch-agent print-plist`.
-2. Confirm the config file the service should use. The standard live-service path is `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` unless the user explicitly wants another file.
-3. If the staged live artifact is already the intended executable, run `xcrun swift run SpeakSwiftlyServerTool launch-agent install --config-file <server-config-yaml>`.
-4. If the user wants the current checkout to become the live service now, run `xcrun swift run SpeakSwiftlyServerTool launch-agent promote-live --config-file <server-config-yaml>`.
+2. Confirm whether the user wants the default config. The standard live-service path is `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`, and the install command seeds it automatically when it is missing.
+3. Run `xcrun swift run SpeakSwiftlyServerTool launch-agent install` for the normal all-in-one path. With the default staged artifact path, this builds and stages the current checkout, refreshes the LaunchAgent property list, and bootstraps the service.
+4. If the user explicitly wants a custom config file, pass `--config-file <server-config-yaml>` and make sure that file already exists.
 5. Verify the result with `xcrun swift run SpeakSwiftlyServerTool healthcheck`.
 
 ## When To Use Each Command
 
 - `launch-agent print-plist`:
   Use before install work or when the user wants to inspect exactly what will be staged into `~/Library/LaunchAgents`.
-- `launch-agent install --config-file ...`:
-  Use when the staged release artifact under `.release-artifacts/current` is already the executable the user wants `launchd` to boot.
-- `launch-agent promote-live --config-file ...`:
-  Use when the intent is "make this checkout become the live service now." This rebuilds and stages the release artifact first, then refreshes the LaunchAgent install.
+- `launch-agent install`:
+  Use for the normal "make this checkout become the live service now" path. With the default executable path, this rebuilds and stages the release artifact first, then refreshes the LaunchAgent install.
+- `launch-agent promote-live`:
+  Use only when a script or operator flow wants the lower-level promotion spelling explicitly. It performs the same current-checkout staging step before refreshing the LaunchAgent install.
 - `launch-agent status`:
   Use when the user wants to inspect the installed state, label, plist location, or staged executable details.
 - `launch-agent uninstall`:

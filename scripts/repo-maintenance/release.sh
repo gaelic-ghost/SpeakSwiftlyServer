@@ -13,6 +13,7 @@ release_tag=""
 skip_validate="false"
 skip_gh_release="false"
 skip_version_bump="false"
+skip_live_service_update="false"
 base_branch="${REPO_MAINTENANCE_RELEASE_BRANCH:-main}"
 review_comments_addressed="false"
 skip_branch_cleanup="false"
@@ -40,6 +41,10 @@ while [ "$#" -gt 0 ]; do
       skip_version_bump="true"
       shift
       ;;
+    --skip-live-service-update)
+      skip_live_service_update="true"
+      shift
+      ;;
     --base-branch)
       base_branch="${2:-}"
       shift 2
@@ -59,7 +64,7 @@ while [ "$#" -gt 0 ]; do
     -h|--help)
       cat <<'USAGE'
 Usage:
-  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--review-comments-addressed] [--skip-branch-cleanup] [--dry-run]
+  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--skip-branch-cleanup] [--dry-run]
   release.sh --mode submodule --version <vX.Y.Z> [--skip-validate] [--skip-gh-release] [--dry-run]
 USAGE
       exit 0
@@ -373,6 +378,23 @@ create_github_release() {
   wait_for_github_release "$RELEASE_TAG"
 }
 
+update_live_service() {
+  if [ "$skip_live_service_update" = "true" ]; then
+    log "Skipping live-service update because --skip-live-service-update was requested."
+    return 0
+  fi
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would update the live LaunchAgent-backed service from synced local $base_branch, then run SpeakSwiftlyServerTool healthcheck."
+    return 0
+  fi
+
+  log "Updating the live LaunchAgent-backed service from synced local $base_branch."
+  xcrun swift run SpeakSwiftlyServerTool launch-agent install
+  xcrun swift run SpeakSwiftlyServerTool healthcheck
+  log "Updated and healthchecked the live LaunchAgent-backed service for $RELEASE_TAG."
+}
+
 cleanup_merged_branches() {
   release_branch_name="$1"
 
@@ -422,6 +444,7 @@ run_standard_release() {
   create_release_tag
   push_release_tag
   create_github_release
+  update_live_service
   cleanup_merged_branches "$branch_name"
   log "Standard release flow completed successfully for $RELEASE_TAG."
 }

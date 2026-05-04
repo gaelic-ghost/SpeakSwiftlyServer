@@ -158,18 +158,18 @@ npx -y @modelcontextprotocol/inspector --transport http --server-url http://127.
 
 But Inspector should stay in the "operator investigation" lane, not become the only regression tool. Automated coverage should continue to live in Swift tests and repo-owned smoke helpers so releases do not depend on browser-driven tooling.
 
-### 3. Extend the release-owned live-service refresh into transport health verification
+### 3. Keep release-owned live-service refresh tied to transport health verification
 
-The release script now validates the repo, creates or verifies the requested tag at `HEAD`, pushes the branch and tag, opens the release PR, watches CI, checks review state, merges, fast-forwards `main`, and creates the GitHub release object. It still does not verify that a refreshed live service can actually boot from the staged artifact with both transports healthy.
+Status: implemented in the standard release path. The release script now validates the repo, opens and merges the release PR, fast-forwards local `main`, creates and publishes the versioned tag, creates the GitHub release object, updates the LaunchAgent-backed live service from the synced local `main` checkout, and runs `SpeakSwiftlyServerTool healthcheck`.
 
-Add a maintainer-facing release checklist or release helper step that covers:
+Keep this release-owned check covering:
 
 - LaunchAgent install using the staged release artifact
-- runtime host overview probe
+- HTTP runtime overview probe
 - MCP initialize probe
 - verification that the staged release artifact and live LaunchAgent agree on the intended config path
 
-This does not have to block every local release immediately, but it should become the standard post-tag validation path for the live accessibility service.
+Use `--skip-live-service-update` only when the current machine should not be updated by that release or when another checkout will perform the live promotion.
 
 ### 4. Tighten E2E separation between transport coverage and playback-heavy runtime coverage
 
