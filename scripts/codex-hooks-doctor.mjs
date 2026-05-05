@@ -73,7 +73,7 @@ function isSpeakSwiftlyHookCommand(command) {
   return command.includes("SpeakSwiftlyServer") || command.includes("stop-tts.mjs");
 }
 
-function isCentralizedGlobalHookCommand(command) {
+function isGlobalSpeakSwiftlyStopCommand(command) {
   return command.includes("hooks/stop-tts.mjs")
     && !command.includes("CODEX_HOOK_TTS_DATA_DIR")
     && !command.includes(".codex/hooks/stop-tts.mjs");
@@ -81,14 +81,14 @@ function isCentralizedGlobalHookCommand(command) {
 
 export function classifyGlobalHookCommands(commands) {
   const speakSwiftlyCommands = commands.filter(isSpeakSwiftlyHookCommand);
-  const supportedFallbackCommands = speakSwiftlyCommands.filter(isCentralizedGlobalHookCommand);
-  const legacyOrDevCommands = speakSwiftlyCommands.filter((command) => !isCentralizedGlobalHookCommand(command));
+  const globalStopCommands = speakSwiftlyCommands.filter(isGlobalSpeakSwiftlyStopCommand);
+  const legacyOrDevCommands = speakSwiftlyCommands.filter((command) => !isGlobalSpeakSwiftlyStopCommand(command));
 
   if (speakSwiftlyCommands.length === 0) {
     return {
       status: "absent",
       speakSwiftlyCommands,
-      supportedFallbackCommands,
+      globalStopCommands,
       legacyOrDevCommands,
       message: "Plugin-bundled hooks may still provide TTS when Codex dispatches installed plugin lifecycle config.",
     };
@@ -96,20 +96,20 @@ export function classifyGlobalHookCommands(commands) {
 
   if (legacyOrDevCommands.length === 0) {
     return {
-      status: "supported-fallback",
+      status: "global-duplicate",
       speakSwiftlyCommands,
-      supportedFallbackCommands,
+      globalStopCommands,
       legacyOrDevCommands,
-      message: "User-level Speak Swiftly hook is a supported fallback and keeps state/logs under ~/.codex/speak-swiftly-server/hooks by default.",
+      message: "User-level Speak Swiftly Stop hook duplicates the plugin-managed Stop hook; remove the global Stop hook when plugin-managed hooks are intended.",
     };
   }
 
   return {
     status: "legacy-or-dev",
     speakSwiftlyCommands,
-    supportedFallbackCommands,
+    globalStopCommands,
     legacyOrDevCommands,
-    message: `Replace legacy or dev-only global hook commands with a single user-level fallback that calls hooks/stop-tts.mjs without CODEX_HOOK_TTS_DATA_DIR: ${legacyOrDevCommands.join(" | ")}`,
+    message: `Remove legacy or dev-only global Speak Swiftly hook commands; plugin-managed hooks own final-reply TTS: ${legacyOrDevCommands.join(" | ")}`,
   };
 }
 
@@ -339,16 +339,16 @@ async function main() {
   }
 
   const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
-  if (pluginStopHookCommands.some((command) => command.includes("./hooks/stop-tts.mjs"))) {
-    addCheck("ok", "Repo plugin Stop hook points at the plugin hook script");
+  if (pluginStopHookCommands.some((command) => command.includes("${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/stop-tts.mjs"))) {
+    addCheck("ok", "Repo plugin Stop hook uses the configured Codex home plugin install path");
   } else {
-    addCheck("fail", "Repo plugin Stop hook does not point at ./hooks/stop-tts.mjs");
+    addCheck("fail", "Repo plugin Stop hook does not use the configured Codex home plugin install path");
   }
   const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
-  if (pluginPermissionHookCommands.some((command) => command.includes("./hooks/permission-request-log.mjs"))) {
-    addCheck("ok", "Repo plugin PermissionRequest hook points at the logging probe");
+  if (pluginPermissionHookCommands.some((command) => command.includes("${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/permission-request-log.mjs"))) {
+    addCheck("ok", "Repo plugin PermissionRequest hook uses the configured Codex home plugin install path");
   } else {
-    addCheck("warn", "Repo plugin PermissionRequest hook is not wired to the logging probe");
+    addCheck("warn", "Repo plugin PermissionRequest hook does not use the configured Codex home plugin install path");
   }
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
@@ -369,12 +369,12 @@ async function main() {
     missingEventSeverity: "info",
   });
   const globalHookClassification = classifyGlobalHookCommands(globalStopHookCommands);
-  if (globalHookClassification.status === "supported-fallback") {
-    addCheck("ok", "Global user Speak Swiftly hook is a supported fallback", globalHookClassification.message);
+  if (globalHookClassification.status === "global-duplicate") {
+    addCheck("warn", "Global user Speak Swiftly Stop hook duplicates plugin-managed TTS", globalHookClassification.message);
   } else if (globalHookClassification.status === "legacy-or-dev") {
     addCheck("warn", "Global user hooks include legacy or dev-only SpeakSwiftly TTS", globalHookClassification.message);
   } else {
-    addCheck("info", "Global user Speak Swiftly fallback hook is not configured", globalHookClassification.message);
+    addCheck("ok", "Global user Speak Swiftly Stop hook is not configured", globalHookClassification.message);
   }
   const globalPermissionHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "PermissionRequest");
   if (globalPermissionHookCommands.some((command) => command.includes("hooks/permission-request-log.mjs") && !command.includes("CODEX_HOOK_TTS_DATA_DIR"))) {

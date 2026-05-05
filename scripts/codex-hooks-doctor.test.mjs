@@ -92,13 +92,13 @@ enabled = true
   assert.equal(plan.duplicateEntries.length, 0);
 });
 
-test("classifyGlobalHookCommands accepts centralized user-level fallback", () => {
+test("classifyGlobalHookCommands warns on user-level duplicate Stop hook", () => {
   const classification = classifyGlobalHookCommands([
     "node /Users/example/SpeakSwiftlyServer/hooks/stop-tts.mjs",
   ]);
 
-  assert.equal(classification.status, "supported-fallback");
-  assert.equal(classification.supportedFallbackCommands.length, 1);
+  assert.equal(classification.status, "global-duplicate");
+  assert.equal(classification.globalStopCommands.length, 1);
   assert.equal(classification.legacyOrDevCommands.length, 0);
 });
 
@@ -108,7 +108,7 @@ test("classifyGlobalHookCommands warns on repo-local dev harness commands", () =
   ]);
 
   assert.equal(classification.status, "legacy-or-dev");
-  assert.equal(classification.supportedFallbackCommands.length, 0);
+  assert.equal(classification.globalStopCommands.length, 0);
   assert.equal(classification.legacyOrDevCommands.length, 1);
 });
 
