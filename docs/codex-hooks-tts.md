@@ -136,11 +136,11 @@ The `Stop` hook script also accepts:
   those are UI or automation metadata rather than speakable final prose.
 - `CODEX_HOOK_TTS_SKIP_SECTIONS`
   Comma-separated list of final-reply sections to omit from spoken playback.
-  The hook recognizes top-level `Answer`, `Meaning`, `Evidence`, `Details`,
-  and `Risk` headings written as Markdown headings, bold headings, or plain
-  heading lines. For example, `Evidence,Details` keeps those sections in the
-  written reply while omitting their bodies from the text sent to
-  `POST /speech/live`.
+  Defaults to `Evidence,Details`. The hook recognizes top-level `Answer`,
+  `Meaning`, `Evidence`, `Details`, and `Risk` headings written as Markdown
+  headings, bold headings, or plain heading lines. For example,
+  `Evidence,Details` keeps those sections in the written reply while omitting
+  their bodies from the text sent to `POST /speech/live`.
 - `CODEX_HOOK_TTS_SECTION_NOTICE`
   Controls how skipped section presence is announced in speech. Supported
   values are `brief`, `verbose`, and `none`; invalid values fall back to

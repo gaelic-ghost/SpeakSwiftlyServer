@@ -21,7 +21,7 @@ const defaultProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-f
 const skipContinuedTurns = (process.env.CODEX_HOOK_TTS_SKIP_CONTINUATIONS ?? "true") !== "false";
 const skipStructuredMessages = (process.env.CODEX_HOOK_TTS_SKIP_STRUCTURED_MESSAGES ?? "true") !== "false";
 const logFullPayload = (process.env.CODEX_HOOK_TTS_LOG_FULL_PAYLOAD ?? "false") === "true";
-const skippedSectionNames = sectionNameSet(process.env.CODEX_HOOK_TTS_SKIP_SECTIONS ?? "");
+const skippedSectionNames = sectionNameSet(process.env.CODEX_HOOK_TTS_SKIP_SECTIONS ?? "Evidence,Details");
 const sectionNoticeMode = normalizeSectionNoticeMode(process.env.CODEX_HOOK_TTS_SECTION_NOTICE ?? "brief");
 const maxSeenTurns = Number.parseInt(process.env.CODEX_HOOK_TTS_MAX_SEEN_TURNS ?? "200", 10);
 const stateLockDir = path.join(stateDir, "stop-tts-seen-turns.lock");

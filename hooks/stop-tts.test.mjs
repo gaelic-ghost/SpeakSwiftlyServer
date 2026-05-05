@@ -5,6 +5,30 @@ import test from "node:test";
 
 import { speakableMessageProjection } from "./stop-tts.mjs";
 
+test("speakableMessageProjection skips Evidence and Details by default", () => {
+  const projection = speakableMessageProjection(
+    [
+      "**Answer**",
+      "",
+      "Done.",
+      "",
+      "**Evidence**",
+      "",
+      "Dense command output.",
+      "",
+      "**Details**",
+      "",
+      "Extra file inventory.",
+    ].join("\n"),
+  );
+
+  assert.deepEqual(projection.presentSections, ["Answer", "Evidence", "Details"]);
+  assert.deepEqual(projection.spokenSections, ["Answer"]);
+  assert.deepEqual(projection.skippedSections, ["Evidence", "Details"]);
+  assert.doesNotMatch(projection.text, /Dense command output/);
+  assert.doesNotMatch(projection.text, /Extra file inventory/);
+});
+
 test("speakableMessageProjection skips configured sections and keeps a brief notice", () => {
   const projection = speakableMessageProjection(
     [
