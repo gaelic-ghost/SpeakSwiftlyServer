@@ -220,9 +220,13 @@ state when the installed plugin-managed hook is the intended live speech path.
 
 The hook sends `request_context` with each queued speech request. That keeps
 Codex-originated speech inspectable through the existing `SpeakSwiftlyServer`
-request model without adding a hook-specific server API. The context includes
-the Codex model, permission mode, transcript path, session id, turn id, and
-event name when those fields are available.
+request model without adding a hook-specific server API. Ordinary project
+turns use source `Codex Hook` and a topic derived from the working directory.
+Codex document chat workspaces whose second-to-last working-directory component
+is `Codex`, or whose working directory is under `Documents/Codex`, use source
+`Codex` and topic `Chat`. The context includes the Codex model, permission
+mode, transcript path, session id, turn id, and event name when those fields
+are available.
 
 ## Validation Notes
 

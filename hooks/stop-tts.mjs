@@ -278,8 +278,31 @@ function topicFromCwd(cwd) {
     return "assistant-final-reply";
   }
 
-  const basename = path.basename(path.resolve(cwd));
+  const resolvedCwd = path.resolve(cwd);
+  const basename = path.basename(resolvedCwd);
   return basename.length > 0 ? basename : "assistant-final-reply";
+}
+
+function requestContextIdentity(cwd) {
+  if (typeof cwd === "string" && cwd.trim().length > 0) {
+    const components = path.resolve(cwd).split(path.sep).filter((item) => item.length > 0);
+    const codexIndex = components.lastIndexOf("Codex");
+    const hasPenultimateCodexComponent = components.at(-2) === "Codex";
+    const isDocumentsCodexWorkspace = codexIndex > 0
+      && components.at(codexIndex - 1) === "Documents"
+      && components.length > codexIndex + 1;
+    if (hasPenultimateCodexComponent || isDocumentsCodexWorkspace) {
+      return {
+        source: "Codex",
+        topic: "Chat",
+      };
+    }
+  }
+
+  return {
+    source: "Codex Hook",
+    topic: topicFromCwd(cwd),
+  };
 }
 
 export function speechRequestBody(message, payload, profileName) {
@@ -311,8 +334,7 @@ export function speechRequestBody(message, payload, profileName) {
     profile_name: profileName,
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
-      source: "Codex Hook",
-      topic: topicFromCwd(cwd),
+      ...requestContextIdentity(cwd),
       attributes,
     },
   };
