@@ -16,7 +16,7 @@ Local speech for Codex and Apple-platform tools, packaged as a small server plus
 
 ### Status
 
-This project is actively available and stable enough to try.
+`SpeakSwiftlyServer` is active, maintained, and used by Gale daily.
 
 ### What This Project Is
 
