@@ -26,10 +26,13 @@ this checkout.
   is an observability probe for learning what approval prompts expose before
   deciding whether they should become speakable events.
 
-The plugin-managed hook command uses the global Codex plugin install path,
+The plugin-managed hook command uses the installed plugin path,
 `~/.codex/plugins/speak-swiftly/hooks/...`, instead of assuming `./hooks/...`
 is relative to the session working directory. Codex loads `hooks/hooks.json`
 from the plugin root, but hook commands themselves run with the session `cwd`.
+Normal installs must not add a user-level `~/.codex/hooks.json` Speak Swiftly
+hook; if one is present, treat it as a duplicate or legacy repair target rather
+than a fallback.
 
 The plugin-managed hook stores state and logs under
 `~/.codex/speak-swiftly-server/hooks/` by default, or under `CODEX_HOME` when
@@ -142,7 +145,8 @@ The doctor reports:
 
 - repo plugin hook metadata
 - repo development-harness hook metadata
-- user-level `~/.codex/hooks.json` Speak Swiftly hook wiring, when present
+- user-level `~/.codex/hooks.json` Speak Swiftly hook wiring, when present, as
+  duplicate or legacy state to repair
 - legacy or dev-only global hook entries that split state into `.codex/`
 - installed plugin-cache manifests and whether they declare hooks
 - `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
@@ -152,10 +156,10 @@ The doctor reports:
 - recent centralized user/plugin and repo-local hook log outcomes
 - recent centralized and repo-local permission-request probe outcomes
 
-Warnings are expected if a global hook points at the repo-local development
+Warnings are expected if a user-level hook points at the repo-local development
 harness, sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`, or duplicates the
-plugin-managed `Stop` hook. A missing global `Stop` hook is healthy when the
-installed plugin-managed hook is the intended live speech path.
+plugin-managed `Stop` hook. A missing user-level `Stop` hook is the healthy
+state when the installed plugin-managed hook is the intended live speech path.
 
 ## Runtime Insights
 
@@ -173,8 +177,8 @@ installed plugin-managed hook is the intended live speech path.
 - In this repository, duplicate `Stop` invocations are especially easy to see
   if a user-level hook duplicates the installed plugin hook while the repo-local
   `.codex/hooks.json` development harness is also active. Ordinary users should
-  use the plugin-managed hook. The repo-local `.codex/hooks.json` entry is for
-  checkout-scoped hook development and now uses `hooks/stop-log.mjs` so it
+  use only the plugin-managed hook. The repo-local `.codex/hooks.json` entry is
+  for checkout-scoped hook development and now uses `hooks/stop-log.mjs` so it
   writes Stop payload summaries under `.codex/` without calling the live speech
   route.
 - Some assistant messages are compact JSON metadata used by Codex UI or
