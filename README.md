@@ -322,13 +322,15 @@ If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket`
 
 End users should start with the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The plugin-managed hook commands use the Socket marketplace cache path at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/...` instead of relying on the session working directory. Do not add stale standalone `SpeakSwiftlyServer` cache commands or a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs; those are duplicate or legacy repair targets, not fallback paths. The plugin can also register the logging-only `PermissionRequest` probe at `hooks/permission-request-log.mjs`; it records approval-prompt payloads for investigation without approving, rejecting, printing, or queueing speech. The repo-local `.codex/` files remain a development harness for testing hook payloads and notification behavior from this checkout.
 
+Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system generally; `plugin_hooks` enables hook sources loaded from installed plugins.
+
 To inspect the installed hook and voice surfaces, run:
 
 ```bash
 node scripts/codex-hooks-doctor.mjs
 ```
 
-The doctor checks whether the plugin manifest declares hooks, whether any user-level `~/.codex/hooks.json` Stop hook duplicates plugin-managed TTS, whether the permission-request probe is centralized, whether any global hook still uses the repo-local development harness, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
+The doctor checks whether the plugin manifest declares hooks, whether both required hook feature flags are enabled, whether any user-level `~/.codex/hooks.json` Stop hook duplicates plugin-managed TTS, whether the permission-request probe is centralized, whether any global hook still uses the repo-local development harness, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
 For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running manifest and payload checks from this repository; run actual marketplace add, upgrade, and catalog-reference tests from the `socket` checkout.
 

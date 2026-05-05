@@ -408,6 +408,15 @@ async function main() {
   } else {
     addCheck("warn", "Could not confirm codex_hooks = true in config.toml");
   }
+  if (configText?.includes("plugin_hooks = true")) {
+    addCheck("ok", "Codex plugin-managed hooks feature flag appears enabled in config.toml");
+  } else {
+    addCheck(
+      "fail",
+      "Could not confirm plugin_hooks = true in config.toml",
+      "Plugin-bundled lifecycle hooks are gated by the under-development plugin_hooks feature in the current Codex CLI source.",
+    );
+  }
   const pluginConfig = summarizePluginConfig(configText);
   reportRepairPlan(pluginConfig);
 
