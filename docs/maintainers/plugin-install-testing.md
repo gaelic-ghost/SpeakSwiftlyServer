@@ -38,6 +38,9 @@ Expected result:
 - The plugin manifest declares `name: speak-swiftly`, display name
   `Speak Swiftly`, `mcpServers: ./.mcp.json`, `hooks: ./hooks/hooks.json`, and
   `skills: ./skills/`.
+- The hook doctor reports both `features.codex_hooks = true` and
+  `features.plugin_hooks = true`. `plugin_hooks` is required before Codex runs
+  lifecycle hooks loaded from installed plugins.
 - The hook doctor reports one installed-cache dispatcher command for `Stop` and
   one for `PermissionRequest`.
 - The hook doctor keeps `speak-swiftly@socket` as the preferred enabled entry
@@ -58,6 +61,11 @@ the payload source of truth; Socket owns marketplace publication.
 Marketplace updates do not prove that an already-running Codex session has
 refreshed visible plugin tools, skills, or hooks. Start a fresh Codex session
 after the Socket marketplace update before judging the installed plugin surface.
+
+If a fresh session sees the installed plugin but the `Stop` hook still does not
+write to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, check
+`features.plugin_hooks` before changing plugin hook commands or adding any
+user-level hook file.
 
 ## End-User First Run And Updates
 
