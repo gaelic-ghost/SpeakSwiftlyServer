@@ -36,7 +36,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 ## Troubleshooting
 
-- If a direct manual run of the installed plugin's `hooks/stop-tts.mjs` queues speech but normal assistant final replies do not add a fresh row to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, inspect whether the plugin-managed command uses `$HOME/.codex/plugins/speak-swiftly/hooks/...` before blaming the live service.
+- If a direct manual run of the installed plugin's `hooks/stop-tts.mjs` queues speech but normal assistant final replies do not add a fresh row to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, inspect whether the plugin-managed command uses `${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/...` before blaming the live service.
 - `speech-route-unreachable` means the hook could not reach the local HTTP route.
 - HTTP `503` from `/speech/live` means the service is reachable but not ready for speech work yet.
 - `duplicate-turn` means shared dedupe blocked a repeated `session_id + turn_id`; that is expected when more than one matching hook source starts.

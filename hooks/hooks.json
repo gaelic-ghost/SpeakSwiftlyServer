@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.codex/plugins/speak-swiftly/hooks/permission-request-log.mjs\"",
+            "command": "node \"${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/permission-request-log.mjs\"",
             "timeout": 15
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.codex/plugins/speak-swiftly/hooks/stop-tts.mjs\"",
+            "command": "node \"${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/stop-tts.mjs\"",
             "timeout": 15
           }
         ]

@@ -339,16 +339,16 @@ async function main() {
   }
 
   const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
-  if (pluginStopHookCommands.some((command) => command.includes("$HOME/.codex/plugins/speak-swiftly/hooks/stop-tts.mjs"))) {
-    addCheck("ok", "Repo plugin Stop hook uses the generic home plugin install path");
+  if (pluginStopHookCommands.some((command) => command.includes("${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/stop-tts.mjs"))) {
+    addCheck("ok", "Repo plugin Stop hook uses the configured Codex home plugin install path");
   } else {
-    addCheck("fail", "Repo plugin Stop hook does not use the generic home plugin install path");
+    addCheck("fail", "Repo plugin Stop hook does not use the configured Codex home plugin install path");
   }
   const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
-  if (pluginPermissionHookCommands.some((command) => command.includes("$HOME/.codex/plugins/speak-swiftly/hooks/permission-request-log.mjs"))) {
-    addCheck("ok", "Repo plugin PermissionRequest hook uses the generic home plugin install path");
+  if (pluginPermissionHookCommands.some((command) => command.includes("${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/permission-request-log.mjs"))) {
+    addCheck("ok", "Repo plugin PermissionRequest hook uses the configured Codex home plugin install path");
   } else {
-    addCheck("warn", "Repo plugin PermissionRequest hook does not use the generic home plugin install path");
+    addCheck("warn", "Repo plugin PermissionRequest hook does not use the configured Codex home plugin install path");
   }
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");

@@ -26,9 +26,9 @@ this checkout.
   is an observability probe for learning what approval prompts expose before
   deciding whether they should become speakable events.
 
-The plugin-managed hook command uses the generic home install path,
-`$HOME/.codex/plugins/speak-swiftly/hooks/...`, instead of assuming
-`./hooks/...` is relative to the session working directory. Codex loads
+The plugin-managed hook command uses the configured Codex home install path,
+`${CODEX_HOME:-$HOME/.codex}/plugins/speak-swiftly/hooks/...`, instead of
+assuming `./hooks/...` is relative to the session working directory. Codex loads
 `hooks/hooks.json` from the plugin root, but hook commands themselves run with
 the session `cwd`.
 
