@@ -48,6 +48,14 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Keep package resources under the owning target tree and load them through `Bundle.module`.
 - Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference over adding another translation path.
 
+### Documentation Ownership
+
+- Keep `README.md` nontechnical and focused on end users, evaluators, integrators, and agents deciding whether and how to use `Speak Swiftly`.
+- Keep `README.md` contributor handoff limited to a short link to `CONTRIBUTING.md` and `AGENTS.md`; do not reintroduce maintainer setup, release, validation, embedding, configuration, or plugin-debugging procedures there.
+- Keep contributor-facing and maintainer-facing workflow detail in `CONTRIBUTING.md` or a linked document under `docs/maintainers/`.
+- Keep agent-facing maintainer rules in this `AGENTS.md` file when the rule changes how Codex should edit, validate, release, or route work in this repository.
+- Preserve the README `Overview > What This Project Is` and `Overview > Motivation` subsections as user-authored prose. Use `TBD` as the placeholder until Gale provides replacement text.
+
 ### Codex Plugin Hooks
 
 - Treat plugin-managed hooks as the required end-user path for Speak Swiftly Codex TTS. Do not add `~/.codex/hooks.json` as a repair path for normal installs.
