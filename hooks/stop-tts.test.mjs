@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { speakableMessageProjection } from "./stop-tts.mjs";
+import { speakableMessageProjection, speechRequestBody } from "./stop-tts.mjs";
 
 test("speakableMessageProjection skips Evidence and Details by default", () => {
   const projection = speakableMessageProjection(
@@ -103,4 +103,30 @@ test("speakableMessageProjection can skip all sections without a spoken notice",
   assert.deepEqual(projection.presentSections, ["Answer"]);
   assert.deepEqual(projection.spokenSections, []);
   assert.deepEqual(projection.skippedSections, ["Answer"]);
+});
+
+test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
+  const body = speechRequestBody(
+    "Answer\n\nDone.",
+    {
+      session_id: "session-1",
+      turn_id: "turn-1",
+      transcript_path: "/tmp/transcript.jsonl",
+      cwd: "/tmp/project",
+      model: "gpt-test",
+      hook_event_name: "Stop",
+    },
+    "default-femme",
+  );
+
+  assert.equal(body.cwd, "/tmp/project");
+  assert.equal(body.request_context.source, "Codex Hook");
+  assert.equal(body.request_context.topic, "assistant-final-reply");
+  assert.deepEqual(body.request_context.attributes, {
+    session_id: "session-1",
+    turn_id: "turn-1",
+    transcript_path: "/tmp/transcript.jsonl",
+    model: "gpt-test",
+    hook_event_name: "Stop",
+  });
 });

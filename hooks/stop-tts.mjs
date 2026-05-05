@@ -273,7 +273,7 @@ function stringAttribute(value) {
   return null;
 }
 
-function speechRequestBody(message, payload, profileName) {
+export function speechRequestBody(message, payload, profileName) {
   const {
     session_id: sessionId = null,
     turn_id: turnId = null,
@@ -302,7 +302,7 @@ function speechRequestBody(message, payload, profileName) {
     profile_name: profileName,
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
-      source: "codex-stop-hook",
+      source: "Codex Hook",
       topic: "assistant-final-reply",
       attributes,
     },
