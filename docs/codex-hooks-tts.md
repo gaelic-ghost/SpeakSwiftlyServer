@@ -35,8 +35,8 @@ Socket marketplace command set:
 
 ```json
 {
-  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/permission-request-log.mjs",
-  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/stop-tts.mjs"
+  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/permission-request-log.mjs",
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/stop-tts.mjs"
 }
 ```
 
