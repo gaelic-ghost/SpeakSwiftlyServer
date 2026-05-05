@@ -8,8 +8,10 @@ Practical contributor and maintainer guide for working on `SpeakSwiftlyServer`, 
 - [Contribution Workflow](#contribution-workflow)
 - [Local Setup](#local-setup)
 - [Development Expectations](#development-expectations)
+- [Maintainer Reference](#maintainer-reference)
 - [Pull Request Expectations](#pull-request-expectations)
 - [Communication](#communication)
+- [Documentation Map](#documentation-map)
 - [License and Contribution Terms](#license-and-contribution-terms)
 
 ## Overview
@@ -32,7 +34,7 @@ This guide is for contributors and maintainers making source, docs, test, releas
 
 ### Choosing Work
 
-Choose work from the current repo state rather than from stale assumptions. Use [README.md](./README.md) for the product and operator story, [ROADMAP.md](./ROADMAP.md) for planned work, the active maintainer docs under [docs/maintainers](./docs/maintainers/) when the task touches current architecture or workflow, the historical release records under [docs/releases](./docs/releases/) when you need prior release context, and [docs/investigations](./docs/investigations/) when you need past incident or debugging context.
+Choose work from the current repo state rather than from stale assumptions. Use [README.md](./README.md) for the product and agent-facing story, [ROADMAP.md](./ROADMAP.md) for planned work, the active maintainer docs under [docs/maintainers](./docs/maintainers/) when the task touches current architecture or workflow, the historical release records under [docs/releases](./docs/releases/) when you need prior release context, and [docs/investigations](./docs/investigations/) when you need past incident or debugging context.
 
 For substantial changes, work on a feature branch instead of local `main`. When a task already has active release or bug-fix context on a branch, keep the follow-on work stacked on that line unless maintainers explicitly want a separate branch.
 
@@ -68,12 +70,31 @@ The concrete runtime config surfaces in this repo are:
 
 - [`server.yaml`](./server.yaml) for local config examples
 - `APP_CONFIG_FILE` for YAML-backed configuration
+- `APP_NAME`
+- `APP_ENVIRONMENT`
+- `APP_DEFAULT_VOICE_PROFILE_NAME`
+- `APP_HOST`
+- `APP_PORT`
+- `APP_SSE_HEARTBEAT_SECONDS`
+- `APP_COMPLETED_JOB_TTL_SECONDS`
+- `APP_COMPLETED_JOB_MAX_COUNT`
+- `APP_JOB_PRUNE_INTERVAL_SECONDS`
+- `APP_HTTP_ENABLED`
+- `APP_HTTP_HOST`
+- `APP_HTTP_PORT`
+- `APP_HTTP_SSE_HEARTBEAT_SECONDS`
+- `APP_MCP_ENABLED`
+- `APP_MCP_PATH`
+- `APP_MCP_SERVER_NAME`
+- `APP_MCP_TITLE`
 - `SPEAKSWIFTLY_PROFILE_ROOT` for the runtime-owned profile and persistence root
 - the staged release artifact under `.release-artifacts/current/` for LaunchAgent-owned runs
 
-The shared server supports the same environment variables documented in [README.md](./README.md#configuration), including the `APP_*` transport settings and `SPEAKSWIFTLY_PROFILE_ROOT`.
+If `APP_CONFIG_FILE` points at a YAML file, the server loads it through the package's Foundation URL-backed YAML provider and `swift-configuration`; environment variables take precedence over YAML, and YAML takes precedence over built-in defaults. Missing config files fail startup loudly. LaunchAgent install and refresh paths seed the default `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` from the bundled template when that canonical file is missing.
 
-The default build and unit-test loop does not require secrets or a running LaunchAgent. Use `server.yaml` only when you want to run the executable or inspect LaunchAgent-owned behavior locally.
+The app-managed install layout is centered on one per-user location under `~/Library/Application Support/SpeakSwiftlyServer`, with logs in `~/Library/Logs/SpeakSwiftlyServer`. The package exposes that layout through `AppManagedInstallLayout.swift`.
+
+The default build and unit-test loop does not require secrets or a running LaunchAgent. Use `server.yaml` only when you want to run the executable, inspect configuration loading, or inspect LaunchAgent-owned behavior locally.
 
 ### Runtime Behavior
 
@@ -166,25 +187,47 @@ curl -X POST http://127.0.0.1:7337/models/reload
 
 This suite is a transport-owned smoke pass, not a second copy of SpeakSwiftly's broader worker end-to-end coverage. Keep this repo's live E2E focused on proving the shipped server can boot the published runtime, answer over HTTP and MCP, deliver MCP resource updates, and retain completed request state.
 
-## Pull Request Expectations
+## Maintainer Reference
 
-Summarize what changed, why it changed, and what reviewers should pay attention to first. For release work, make sure the branch-side candidate preparation is complete before handing it off to `main` for the final publish step.
+### Embedding
 
-## Communication
+The supported public embedding surface is `EmbeddedServer`, defined in `Sources/SpeakSwiftlyServer/Host/ServerState.swift`. App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`.
 
-Raise uncertainty early when a task starts pushing on architecture, release semantics, or live-service behavior. If the clean path needs wider scope than the original request, say so before the change sprawls. If a behavior changed across docs, HTTP, MCP, LaunchAgent, or embedding surfaces, mention that explicitly instead of assuming reviewers will reconstruct it from the diff.
+Embedded app callers should pass `SpeakSwiftly.RequestContext` directly when the app has richer caller, project, or origin metadata than the server can infer. HTTP and MCP speech surfaces add transport defaults for that context automatically.
 
-## Documentation Map
+If callers do not pass `EmbeddedServer.Options(port:)`, the embedded host defaults to `127.0.0.1:7339`. If callers pass `EmbeddedServer.Options(runtimeProfileRootURL:)`, the server treats that as its profile-store root and bridges it at startup into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime, while keeping the server's own runtime-configuration snapshot aligned with the same on-disk state.
 
-- [README.md](./README.md) is the product and operator-facing entrypoint.
-- [API.md](./API.md) is the detailed HTTP and MCP contract reference.
-- [docs/maintainers/source-layout.md](./docs/maintainers/source-layout.md) is the maintainer map for the current source split.
-- [docs/maintainers/release-workflow.md](./docs/maintainers/release-workflow.md) is the current `maintain-project-repo` release contract.
-- [docs/maintainers](./docs/maintainers/) holds active maintainer-facing architecture, workflow, and cleanup notes.
-- [docs/releases](./docs/releases/) holds historical release notes and release checklists.
-- [docs/investigations](./docs/investigations/) holds historical investigations and incident writeups.
+### Codex Plugin
 
-## Monorepo and Submodule Handoff
+This repository is the canonical payload source for the Socket-managed `Speak Swiftly` Codex plugin. The root `.codex-plugin/plugin.json` points at the checked-in `.mcp.json` connection, the tracked `skills/` bundle, and the plugin-managed `hooks/hooks.json` file.
+
+This repo does not maintain Claude Code or Anthropic plugin parity. Keep plugin work focused on the Socket-managed Codex path, and remove tracked Claude-specific docs, manifests, scripts, or examples if they appear.
+
+Default user-facing install and update examples should use the Socket marketplace entry:
+
+```bash
+codex plugin marketplace add gaelic-ghost/socket
+codex plugin marketplace upgrade socket
+```
+
+The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older standalone installs may still appear as `speak-swiftly-server` until upgraded or disabled. Do not use a repo-local marketplace file from this checkout for normal installs. Socket is the supported marketplace entrypoint for end users.
+
+Marketplace installation gives Codex the plugin payload: skills, MCP registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not by itself start, install, or update the native Swift service.
+
+End users should start with plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. User-level `~/.codex/hooks.json` Speak Swiftly entries are duplicate or legacy repair targets, not the healthy default path.
+
+Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system generally; `plugin_hooks` enables hook sources loaded from installed plugins.
+
+Use the hook doctor as the first audit surface for installed plugin metadata, duplicate user-level hooks, live runtime reachability, and recent hook logs:
+
+```bash
+node scripts/codex-hooks-doctor.mjs
+node scripts/codex-hooks-doctor.mjs --repair-plan
+```
+
+For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running manifest and payload checks from this repository; run actual marketplace add, upgrade, and catalog-reference tests from the `socket` checkout.
+
+### Monorepo and Submodule Handoff
 
 - Treat `../../speak-to-user/monorepo/packages/SpeakSwiftlyServer` as the integration submodule copy, not the primary development home.
 - Treat the local `../../speak-to-user/monorepo` checkout as a clean base checkout that stays on `main` and stays clean.
@@ -192,7 +235,7 @@ Raise uncertainty early when a task starts pushing on architecture, release sema
 - For monorepo work, create a dedicated `git worktree`, do the work there, open a pull request, and then delete the merged worktree and branch afterward.
 - When `speak-to-user` adopts a new server version, prefer updating the submodule pointer to a tagged `SpeakSwiftlyServer` release instead of an arbitrary branch tip.
 
-## Release Workflow
+### Release Workflow
 
 Use the repo-maintenance release entrypoint intentionally:
 
@@ -213,6 +256,24 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --remote-ci
 Deferred mode still performs the local release preparation, branch push, pull request creation, and initial check discovery. The release is not complete until the same thread resumes after CI settles and reruns the standard release command to finish review checks, merge, tagging, GitHub release creation, live-service update, and cleanup.
 
 For the detailed contract and edge cases, use [docs/maintainers/release-workflow.md](./docs/maintainers/release-workflow.md).
+
+## Pull Request Expectations
+
+Summarize what changed, why it changed, and what reviewers should pay attention to first. For release work, make sure the branch-side candidate preparation is complete before handing it off to `main` for the final publish step.
+
+## Communication
+
+Raise uncertainty early when a task starts pushing on architecture, release semantics, or live-service behavior. If the clean path needs wider scope than the original request, say so before the change sprawls. If a behavior changed across docs, HTTP, MCP, LaunchAgent, or embedding surfaces, mention that explicitly instead of assuming reviewers will reconstruct it from the diff.
+
+## Documentation Map
+
+- [README.md](./README.md) is the product and agent-facing entrypoint.
+- [API.md](./API.md) is the detailed HTTP and MCP contract reference.
+- [docs/maintainers/source-layout.md](./docs/maintainers/source-layout.md) is the maintainer map for the current source split.
+- [docs/maintainers/release-workflow.md](./docs/maintainers/release-workflow.md) is the current `maintain-project-repo` release contract.
+- [docs/maintainers](./docs/maintainers/) holds active maintainer-facing architecture, workflow, and cleanup notes.
+- [docs/releases](./docs/releases/) holds historical release notes and release checklists.
+- [docs/investigations](./docs/investigations/) holds historical investigations and incident writeups.
 
 ## License and Contribution Terms
 

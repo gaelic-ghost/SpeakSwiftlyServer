@@ -48,8 +48,17 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Keep package resources under the owning target tree and load them through `Bundle.module`.
 - Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference over adding another translation path.
 
+### Documentation Ownership
+
+- Keep `README.md` nontechnical and focused on end users, evaluators, integrators, and agents deciding whether and how to use `Speak Swiftly`.
+- Keep `README.md` contributor handoff limited to a short link to `CONTRIBUTING.md` and `AGENTS.md`; do not reintroduce maintainer setup, release, validation, embedding, configuration, or plugin-debugging procedures there.
+- Keep contributor-facing and maintainer-facing workflow detail in `CONTRIBUTING.md` or a linked document under `docs/maintainers/`.
+- Keep agent-facing maintainer rules in this `AGENTS.md` file when the rule changes how Codex should edit, validate, release, or route work in this repository.
+- Preserve the README `Overview > What This Project Is` and `Overview > Motivation` subsections as user-authored prose. Use `TBD` as the placeholder until Gale provides replacement text.
+
 ### Codex Plugin Hooks
 
+- This repository supports the Socket-managed Codex plugin path only. Do not add or maintain Claude Code, Anthropic, `.claude`, or `.claude-plugin` support surfaces here; if historical Claude-specific support appears in tracked docs, scripts, manifests, or examples, remove it instead of keeping parity.
 - Treat plugin-managed hooks as the required end-user path for Speak Swiftly Codex TTS. Do not add `~/.codex/hooks.json` as a repair path for normal installs.
 - Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system; `plugin_hooks` enables hooks loaded from installed plugins.
 - If the installed plugin manifest and `hooks/hooks.json` are correct but no `Stop` row appears in `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, check `features.plugin_hooks` before changing hook commands, adding global hooks, or blaming the live service.

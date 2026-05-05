@@ -1,6 +1,6 @@
 {
   "name": "speak-swiftly",
-  "version": "5.0.11",
+  "version": "5.0.12",
   "description": "Codex plugin for local Speak Swiftly speech, playback, runtime operation, and shared MCP access.",
   "author": {
     "name": "Gale",

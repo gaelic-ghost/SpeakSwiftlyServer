@@ -21,7 +21,7 @@ const defaultProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-f
 const skipContinuedTurns = (process.env.CODEX_HOOK_TTS_SKIP_CONTINUATIONS ?? "true") !== "false";
 const skipStructuredMessages = (process.env.CODEX_HOOK_TTS_SKIP_STRUCTURED_MESSAGES ?? "true") !== "false";
 const logFullPayload = (process.env.CODEX_HOOK_TTS_LOG_FULL_PAYLOAD ?? "false") === "true";
-const skippedSectionNames = sectionNameSet(process.env.CODEX_HOOK_TTS_SKIP_SECTIONS ?? "");
+const skippedSectionNames = sectionNameSet(process.env.CODEX_HOOK_TTS_SKIP_SECTIONS ?? "Evidence,Details");
 const sectionNoticeMode = normalizeSectionNoticeMode(process.env.CODEX_HOOK_TTS_SECTION_NOTICE ?? "brief");
 const maxSeenTurns = Number.parseInt(process.env.CODEX_HOOK_TTS_MAX_SEEN_TURNS ?? "200", 10);
 const stateLockDir = path.join(stateDir, "stop-tts-seen-turns.lock");
@@ -273,7 +273,16 @@ function stringAttribute(value) {
   return null;
 }
 
-function speechRequestBody(message, payload, profileName) {
+function topicFromCwd(cwd) {
+  if (typeof cwd !== "string" || cwd.trim().length === 0) {
+    return "assistant-final-reply";
+  }
+
+  const basename = path.basename(path.resolve(cwd));
+  return basename.length > 0 ? basename : "assistant-final-reply";
+}
+
+export function speechRequestBody(message, payload, profileName) {
   const {
     session_id: sessionId = null,
     turn_id: turnId = null,
@@ -302,8 +311,8 @@ function speechRequestBody(message, payload, profileName) {
     profile_name: profileName,
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
-      source: "codex-stop-hook",
-      topic: "assistant-final-reply",
+      source: "Codex Hook",
+      topic: topicFromCwd(cwd),
       attributes,
     },
   };

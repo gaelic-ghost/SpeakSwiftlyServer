@@ -3,7 +3,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { speakableMessageProjection } from "./stop-tts.mjs";
+import { speakableMessageProjection, speechRequestBody } from "./stop-tts.mjs";
+
+test("speakableMessageProjection skips Evidence and Details by default", () => {
+  const projection = speakableMessageProjection(
+    [
+      "**Answer**",
+      "",
+      "Done.",
+      "",
+      "**Evidence**",
+      "",
+      "Dense command output.",
+      "",
+      "**Details**",
+      "",
+      "Extra file inventory.",
+    ].join("\n"),
+  );
+
+  assert.deepEqual(projection.presentSections, ["Answer", "Evidence", "Details"]);
+  assert.deepEqual(projection.spokenSections, ["Answer"]);
+  assert.deepEqual(projection.skippedSections, ["Evidence", "Details"]);
+  assert.doesNotMatch(projection.text, /Dense command output/);
+  assert.doesNotMatch(projection.text, /Extra file inventory/);
+});
 
 test("speakableMessageProjection skips configured sections and keeps a brief notice", () => {
   const projection = speakableMessageProjection(
@@ -79,4 +103,36 @@ test("speakableMessageProjection can skip all sections without a spoken notice",
   assert.deepEqual(projection.presentSections, ["Answer"]);
   assert.deepEqual(projection.spokenSections, []);
   assert.deepEqual(projection.skippedSections, ["Answer"]);
+});
+
+test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
+  const body = speechRequestBody(
+    "Answer\n\nDone.",
+    {
+      session_id: "session-1",
+      turn_id: "turn-1",
+      transcript_path: "/tmp/transcript.jsonl",
+      cwd: "/tmp/project",
+      model: "gpt-test",
+      hook_event_name: "Stop",
+    },
+    "default-femme",
+  );
+
+  assert.equal(body.cwd, "/tmp/project");
+  assert.equal(body.request_context.source, "Codex Hook");
+  assert.equal(body.request_context.topic, "project");
+  assert.deepEqual(body.request_context.attributes, {
+    session_id: "session-1",
+    turn_id: "turn-1",
+    transcript_path: "/tmp/transcript.jsonl",
+    model: "gpt-test",
+    hook_event_name: "Stop",
+  });
+});
+
+test("speechRequestBody falls back to assistant final reply topic when cwd has no basename", () => {
+  const body = speechRequestBody("Answer\n\nDone.", { cwd: "/" }, "default-femme");
+
+  assert.equal(body.request_context.topic, "assistant-final-reply");
 });
