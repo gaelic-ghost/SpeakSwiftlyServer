@@ -16,7 +16,7 @@ const pluginNames = [canonicalPluginName, legacyPluginName];
 const preferredPluginKey = `${canonicalPluginName}@socket`;
 const pluginMarketplaces = ["socket", "SpeakSwiftlyServer"];
 const knownPluginKeys = pluginNames.flatMap((name) => pluginMarketplaces.map((marketplace) => `${name}@${marketplace}`));
-const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks";
+const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.11/hooks";
 const expectedStopHookCommand = `node ${socketCachedHookPath}/stop-tts.mjs`;
 const expectedPermissionHookCommand = `node ${socketCachedHookPath}/permission-request-log.mjs`;
 const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
@@ -407,6 +407,15 @@ async function main() {
     addCheck("ok", "Codex hooks feature flag appears enabled in config.toml");
   } else {
     addCheck("warn", "Could not confirm codex_hooks = true in config.toml");
+  }
+  if (configText?.includes("plugin_hooks = true")) {
+    addCheck("ok", "Codex plugin-managed hooks feature flag appears enabled in config.toml");
+  } else {
+    addCheck(
+      "fail",
+      "Could not confirm plugin_hooks = true in config.toml",
+      "Plugin-bundled lifecycle hooks are gated by the under-development plugin_hooks feature in the current Codex CLI source.",
+    );
   }
   const pluginConfig = summarizePluginConfig(configText);
   reportRepairPlan(pluginConfig);

@@ -48,6 +48,14 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Keep package resources under the owning target tree and load them through `Bundle.module`.
 - Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference over adding another translation path.
 
+### Codex Plugin Hooks
+
+- Treat plugin-managed hooks as the required end-user path for Speak Swiftly Codex TTS. Do not add `~/.codex/hooks.json` as a repair path for normal installs.
+- Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system; `plugin_hooks` enables hooks loaded from installed plugins.
+- If the installed plugin manifest and `hooks/hooks.json` are correct but no `Stop` row appears in `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, check `features.plugin_hooks` before changing hook commands, adding global hooks, or blaming the live service.
+- Use `node scripts/codex-hooks-doctor.mjs --repair-plan` as the first audit surface for hook feature flags, installed plugin metadata, duplicate user-level hooks, live runtime reachability, and recent hook logs.
+- Keep user-level `~/.codex/hooks.json` Speak Swiftly entries classified as duplicate or legacy repair targets. A missing user-level Stop hook is the healthy state when the installed plugin-managed hook is intended.
+
 ### Communication and Escalation
 
 - Surface architectural pivots before implementing them when they introduce a new ownership boundary, queue, storage model, release path, or live-service behavior.

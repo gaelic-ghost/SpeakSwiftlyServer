@@ -35,8 +35,8 @@ Socket marketplace command set:
 
 ```json
 {
-  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/permission-request-log.mjs",
-  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/stop-tts.mjs"
+  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.11/hooks/permission-request-log.mjs",
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.11/hooks/stop-tts.mjs"
 }
 ```
 
@@ -52,6 +52,16 @@ The plugin-managed hook stores state and logs under
 that environment variable points Codex at a different home directory.
 The `Stop` hook writes `logs/stop-tts.jsonl`; the permission-request probe
 writes `logs/permission-request.jsonl`.
+
+Current Codex builds gate runnable plugin-bundled hooks behind both lifecycle
+hooks and plugin hooks feature flags. For plugin-managed TTS, confirm the user
+configuration includes:
+
+```toml
+[features]
+codex_hooks = true
+plugin_hooks = true
+```
 
 OpenAI's [Codex hooks documentation](https://developers.openai.com/codex/hooks#where-codex-looks-for-hooks)
 lists `~/.codex/hooks.json` as one of the main hook locations and says
@@ -163,6 +173,8 @@ The doctor reports:
 - legacy or dev-only global hook entries that split state into `.codex/`
 - installed plugin-cache manifests and whether they declare hooks
 - `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
+- `plugin_hooks = true`, which is required by current Codex builds before
+  installed plugin lifecycle hooks become runnable
 - live runtime reachability through `GET /overview`
 - runtime default voice profile versus the hook's configured profile
 - cached voice profiles

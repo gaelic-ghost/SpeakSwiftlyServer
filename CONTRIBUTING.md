@@ -95,7 +95,7 @@ xcrun swift run SpeakSwiftlyServerTool healthcheck
 
 Direct executable runs default to `127.0.0.1:7338`. LaunchAgent installs default to `127.0.0.1:7337`. Embedded app-owned sessions default to `127.0.0.1:7339`.
 
-For Codex plugin or hook changes, keep end-user behavior plugin-managed and use the repo-local `.codex/` files only as a development harness. The hook doctor summarizes the active install and voice-profile state:
+For Codex plugin or hook changes, keep end-user behavior plugin-managed and use the repo-local `.codex/` files only as a development harness. Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks run; do not add `~/.codex/hooks.json` as a normal repair path. The hook doctor summarizes the active install, hook feature flags, and voice-profile state:
 
 ```bash
 node scripts/codex-hooks-doctor.mjs

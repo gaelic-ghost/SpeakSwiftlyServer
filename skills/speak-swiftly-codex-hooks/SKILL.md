@@ -13,12 +13,13 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 - Verify the live service before changing hook config: read `speak-swiftly://overview` or run `node scripts/codex-hooks-doctor.mjs --repair-plan` from the repository root.
 - Treat `speak-swiftly@socket` as the preferred plugin entry when both Socket and standalone marketplaces are present.
 - Keep the legacy `speak-swiftly-server@socket` config entry disabled unless the user explicitly asks for legacy-plugin investigation.
+- For plugin-managed hooks, confirm both `features.codex_hooks = true` and `features.plugin_hooks = true` in `~/.codex/config.toml`; current Codex CLI source gates runnable plugin hooks behind the separate `plugin_hooks` feature.
 
 ## Setup Model
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state. Do not add a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs.
-- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
+- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.11/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
 - Treat `PermissionRequest` as logging-only unless the user explicitly asks to make approval prompts speakable. The probe must not approve, reject, or print text to `stdout`.
 
 ## Doctor Interpretation
@@ -33,6 +34,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 - Run `node scripts/codex-hooks-doctor.mjs --repair-plan` and inspect both centralized and repo-local recent hook log summaries, including `permission-request.jsonl` when approval-prompt behavior is under investigation.
 - To prove all-directory coverage, run a tiny Codex CLI turn from a different working directory and then tail `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`.
 - Treat a queued log entry with the probe `cwd`, `sessionId`, `turnId`, and `request.request_id` as the proof that the hook fired and the service accepted the speech request.
+- If the installed plugin manifest is correct but no `Stop` row appears, check `features.plugin_hooks` before adding any user-level fallback.
 
 ## Troubleshooting
 
