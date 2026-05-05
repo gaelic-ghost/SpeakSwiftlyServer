@@ -42,7 +42,6 @@ fs.writeFileSync(`${manifestPath}\n`.trim(), `${JSON.stringify(manifest, null, 2
 const versionedFiles = [
   "hooks/hooks.json",
   "scripts/codex-hooks-doctor.mjs",
-  "README.md",
   "docs/codex-hooks-tts.md",
   "skills/speak-swiftly-codex-hooks/SKILL.md",
 ];
