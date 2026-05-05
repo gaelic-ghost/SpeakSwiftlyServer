@@ -20,11 +20,11 @@ Local speech synthesis for Codex and all kinds of macOS apps. Packaged as a smal
 
 ### What This Project Is
 
-TBD
+SpeakSwiftlyServer is a high-quality, local-first TTS service built for macOS users on Apple Silicon. It's about a third of the way to where I want it to be, but we'll get there soon enough.
 
 ### Motivation
 
-TBD
+This project was borne of my own need for a decent, customizable, no-cost TTS solution that integrated smoothly with apps I already use. That didn't seem to exist for macOS, frankly, so I built it myself. Having had to drop out of college, in part, due to lack of available and usable TTS options, I'm quite proud of this one.
 
 ## Quick Start
 
