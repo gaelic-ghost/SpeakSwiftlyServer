@@ -16,7 +16,7 @@ const pluginNames = [canonicalPluginName, legacyPluginName];
 const preferredPluginKey = `${canonicalPluginName}@socket`;
 const pluginMarketplaces = ["socket", "SpeakSwiftlyServer"];
 const knownPluginKeys = pluginNames.flatMap((name) => pluginMarketplaces.map((marketplace) => `${name}@${marketplace}`));
-const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks";
+const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.11/hooks";
 const expectedStopHookCommand = `node ${socketCachedHookPath}/stop-tts.mjs`;
 const expectedPermissionHookCommand = `node ${socketCachedHookPath}/permission-request-log.mjs`;
 const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
