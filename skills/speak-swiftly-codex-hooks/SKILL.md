@@ -1,6 +1,6 @@
 ---
 name: speak-swiftly-codex-hooks
-description: Use when a user wants Speak Swiftly to read Codex replies aloud automatically through Codex lifecycle hooks, including plugin-managed hook setup, user-level ~/.codex/hooks.json fallback wiring, hook doctor interpretation, duplicate-hook diagnosis, centralized hook logs, permission-request payload probes, final-reply TTS troubleshooting, or validation from another working directory.
+description: Use when a user wants Speak Swiftly to read Codex replies aloud automatically through Codex lifecycle hooks, including plugin-managed hook setup, hook command path diagnosis, hook doctor interpretation, duplicate-hook diagnosis, centralized hook logs, permission-request payload probes, final-reply TTS troubleshooting, or validation from another working directory.
 ---
 
 # Speak Swiftly Codex Hooks
@@ -9,7 +9,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 ## Start Here
 
-- Read [docs/codex-hooks-tts.md](../../docs/codex-hooks-tts.md) before changing guidance or setup. It is the repo source of truth for the plugin hook, user-level fallback, logs, state, and known Codex payload behavior.
+- Read [docs/codex-hooks-tts.md](../../docs/codex-hooks-tts.md) before changing guidance or setup. It is the repo source of truth for the plugin hook, command path behavior, logs, state, and known Codex payload behavior.
 - Verify the live service before changing hook config: read `speak-swiftly://overview` or run `node scripts/codex-hooks-doctor.mjs --repair-plan` from the repository root.
 - Treat `speak-swiftly@socket` as the preferred plugin entry when both Socket and standalone marketplaces are present.
 - Keep the legacy `speak-swiftly-server@socket` config entry disabled unless the user explicitly asks for legacy-plugin investigation.
@@ -17,15 +17,13 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 ## Setup Model
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
-- Supported fallback: a minimal user-level `~/.codex/hooks.json` entry can call the source `hooks/stop-tts.mjs` script directly when plugin-bundled hook dispatch is not reliable across all working directories. If permission prompt payloads need investigation, it can also call `hooks/permission-request-log.mjs` for `PermissionRequest`.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state.
-- Leave `CODEX_HOOK_TTS_DATA_DIR` unset for the user-level fallback so state and logs stay centralized under `~/.codex/speak-swiftly-server/hooks/`.
+- Plugin-managed hook commands must not rely on `./hooks/...` resolving relative to the plugin root because Codex runs hook commands with the session `cwd`.
 - Treat `PermissionRequest` as logging-only unless the user explicitly asks to make approval prompts speakable. The probe must not approve, reject, or print text to `stdout`.
 
 ## Doctor Interpretation
 
-- `Global user Speak Swiftly hook is a supported fallback` is healthy when the command calls `hooks/stop-tts.mjs` directly and does not set `CODEX_HOOK_TTS_DATA_DIR`.
-- Warn on global hooks that point at `.codex/hooks/stop-tts.mjs` or include `CODEX_HOOK_TTS_DATA_DIR`; those are development-harness shapes and split logs or dedupe state.
+- Warn on global hooks that point at `.codex/hooks/stop-tts.mjs`, include `CODEX_HOOK_TTS_DATA_DIR`, or duplicate the plugin-managed `Stop` hook.
 - Warn on duplicate enabled plugin entries. Keep the canonical Socket entry and disable or remove duplicate standalone or legacy plugin entries after confirmation.
 - Runtime default voice mismatch is not automatically a hook failure. The hook uses `CODEX_HOOK_TTS_PROFILE_NAME` or `default-femme`; confirm the profile exists in the cached voice inventory.
 
@@ -38,6 +36,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 ## Troubleshooting
 
+- If a direct manual run of the installed plugin's `hooks/stop-tts.mjs` queues speech but normal assistant final replies do not add a fresh row to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, inspect whether the plugin-managed command uses `$HOME/.codex/plugins/speak-swiftly/hooks/...` before blaming the live service.
 - `speech-route-unreachable` means the hook could not reach the local HTTP route.
 - HTTP `503` from `/speech/live` means the service is reachable but not ready for speech work yet.
 - `duplicate-turn` means shared dedupe blocked a repeated `session_id + turn_id`; that is expected when more than one matching hook source starts.

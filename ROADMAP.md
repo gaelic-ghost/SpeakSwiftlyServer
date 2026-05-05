@@ -36,7 +36,7 @@ Make `SpeakSwiftlyServer` the small, dependable Apple-platform speech-service pa
 ## Milestone Progress
 
 - Milestone 8: Config Reload Policy - In Progress
-- Milestone 10: Swift Package Index Readiness - Planned
+- Milestone 10: Swift Package Index Readiness - In Progress
 - Milestone 11: Runtime Surface Follow-Through - In Progress
 - Milestone 12: Standalone Read-Model Parity - Planned
 - Milestone 13: Runtime Maintenance Surface Review - Planned
@@ -218,6 +218,9 @@ In Progress
 
 - [ ] Add a maintained repo-local "use this with Codex hooks" guide or skill so operators can enable, understand, and validate the speech-hook workflow without reverse-engineering the prototype files.
 - [ ] Improve Codex Hooks setup filtering so hook guidance, doctor output, and repair plans separate actionable Speak Swiftly hook entries from unrelated Codex hooks, structured metadata skips, continuation skips, and stale development-harness noise.
+- [ ] Reproduce Codex Desktop plugin-bundled `Stop` hook dispatch from Gale's personal scope by uninstalling and reinstalling `speak-swiftly@socket`, confirming whether plugin-managed hooks fire without a user-level `Stop` hook, and documenting the exact refresh boundary and Codex behavior.
+- [ ] Investigate a ChatGPT Apps SDK connector path for Speak Swiftly that exposes the server's MCP surface over HTTPS for explicit "speak this text/reply" actions, with a self-hosted Cloudflare Tunnel or equivalent setup path documented for users who want ChatGPT access to their local Mac speech service.
+- [ ] Document the current boundary between Codex hook-driven automatic spoken replies, ChatGPT MCP-tool-driven spoken replies, and native app-managed install/update flows so users and their agents know which surface can actually install, update, or speak automatically.
 - [ ] Add package-building skills that help people's agents embed `SpeakSwiftlyServer`, choose HTTP versus MCP versus `EmbeddedServer`, configure profile roots safely, and validate the resulting app or tool against the repo's public contract.
 
 ### Exit Criteria
@@ -302,6 +305,7 @@ In Progress
 - [ ] Turn upstream `SpeakSwiftly` into a clearer product-level package surface so `SpeakSwiftlyServer` can depend on stable, ergonomic runtime concepts instead of carrying extra server-side explanation, translation, or compatibility planning for package-owned behavior.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
 - [ ] Add a focused Codex Hooks setup skill for `SpeakSwiftlyServer` after stop-hook text filtering is improved, likely in `TextForSpeech`, so hook-triggered TTS can be set up safely without teaching agents to speak tables, metadata, or stale stop-hook payloads.
+- [ ] Explore whether SayBar should become the native Mac install/update center for Speak Swiftly, including App Store distribution, ServiceManagement-managed helpers, Codex hook/plugin repair flows, and a guided ChatGPT connector/self-host setup.
 
 ## History
 
@@ -314,3 +318,4 @@ In Progress
 - Added public built-in voice samples for `swift-signal` and `swift-anchor` under `docs/media/default-voices/` after the package-owned seed voices shipped.
 - Moved system-authored built-in voice handling into the upstream `SpeakSwiftly` authorship model and kept deep seed inspection behind an explicit maintainer/tool surface.
 - Recorded the public API simplification audit and ordered the cleanup plan around snapshot dedupe first, MCP resources-first guidance second, and compatibility-sensitive route/tool cleanup later.
+- Added a future ChatGPT Apps SDK and SayBar productization investigation so spoken ChatGPT replies, self-hosted MCP access, and native install/update ownership can be evaluated explicitly.

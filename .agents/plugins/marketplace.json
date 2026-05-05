@@ -6,6 +6,11 @@
   "plugins": [
     {
       "name": "speak-swiftly",
+      "description": "Local Speak Swiftly speech, playback, runtime operation, MCP, and Codex final-reply TTS hooks.",
+      "interface": {
+        "displayName": "Speak Swiftly",
+        "shortDescription": "Local speech and playback workflows for Codex."
+      },
       "source": {
         "source": "local",
         "path": "./"

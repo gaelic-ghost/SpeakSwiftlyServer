@@ -3,11 +3,9 @@
 SpeakSwiftlyServer ships a Codex lifecycle hook that can speak final assistant
 replies through the local `SpeakSwiftlyServer` HTTP surface.
 
-The user-facing install path starts with the plugin-managed payload. A
-user-level `~/.codex/hooks.json` entry is also a supported fallback when a
-Codex surface has not yet dispatched installed plugin lifecycle config
-reliably. The repository-local `.codex/` files are only a development and
-testing harness for this checkout.
+The user-facing install path starts with the plugin-managed payload. The
+repository-local `.codex/` files are only a development and testing harness for
+this checkout.
 
 ## User Install Surface
 
@@ -28,6 +26,12 @@ testing harness for this checkout.
   is an observability probe for learning what approval prompts expose before
   deciding whether they should become speakable events.
 
+The plugin-managed hook command uses the generic home install path,
+`$HOME/.codex/plugins/speak-swiftly/hooks/...`, instead of assuming
+`./hooks/...` is relative to the session working directory. Codex loads
+`hooks/hooks.json` from the plugin root, but hook commands themselves run with
+the session `cwd`.
+
 The plugin-managed hook stores state and logs under
 `~/.codex/speak-swiftly-server/hooks/` by default, or under `CODEX_HOME` when
 that environment variable points Codex at a different home directory.
@@ -43,49 +47,6 @@ also allows a manifest `hooks` field and a default `./hooks/hooks.json`
 lifecycle file. Because Codex runs every matching hook source instead of using
 higher-precedence config to replace lower-precedence hooks, Speak Swiftly keeps
 dedupe state in the shared hook data directory.
-
-## User-Level Fallback
-
-Use a user-level fallback when a current Codex install recognizes the plugin
-but does not dispatch the plugin-bundled `Stop` hook from every working
-directory. The fallback should call the tracked source hook script directly and
-should not set `CODEX_HOOK_TTS_DATA_DIR`; leaving that variable unset keeps
-state and logs centralized under `~/.codex/speak-swiftly-server/hooks/`.
-
-Example shape:
-
-```json
-{
-  "hooks": {
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /absolute/path/to/SpeakSwiftlyServer/hooks/permission-request-log.mjs",
-            "timeout": 15
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /absolute/path/to/SpeakSwiftlyServer/hooks/stop-tts.mjs",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Do not pair that fallback with the repo-local development harness command that
-sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`; that splits logs and dedupe state
-back into the checkout.
 
 ## Development Harness
 
@@ -122,9 +83,7 @@ back into the checkout.
   Development-harness dedupe state keyed by `session_id + turn_id`.
 
 Do not tell end users to copy `.codex/hooks.json` or `.codex/config.toml` into
-their own Codex home. The supported user-level fallback is a minimal
-`~/.codex/hooks.json` entry that calls the source `hooks/stop-tts.mjs` script
-without repo-local development-harness environment overrides.
+their own Codex home.
 
 ## Environment Overrides
 
@@ -184,7 +143,7 @@ The doctor reports:
 
 - repo plugin hook metadata
 - repo development-harness hook metadata
-- user-level `~/.codex/hooks.json` fallback wiring, when present
+- user-level `~/.codex/hooks.json` Speak Swiftly hook wiring, when present
 - legacy or dev-only global hook entries that split state into `.codex/`
 - installed plugin-cache manifests and whether they declare hooks
 - `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
@@ -195,10 +154,9 @@ The doctor reports:
 - recent centralized and repo-local permission-request probe outcomes
 
 Warnings are expected if a global hook points at the repo-local development
-harness or sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`. A user-level hook that
-calls `hooks/stop-tts.mjs` directly is a supported fallback, not a migration
-failure. A missing global `Stop` hook is also healthy when the installed
-plugin-managed hook is the intended live speech path.
+harness, sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`, or duplicates the
+plugin-managed `Stop` hook. A missing global `Stop` hook is healthy when the
+installed plugin-managed hook is the intended live speech path.
 
 ## Runtime Insights
 
@@ -214,11 +172,9 @@ plugin-managed hook is the intended live speech path.
   when multiple hook sources match. The hook reserves a turn before posting to
   the speech route so duplicate processes do not queue duplicate audio jobs.
 - In this repository, duplicate `Stop` invocations are especially easy to see
-  because the installed plugin hook, the supported global fallback hook, and the
-  repo-local `.codex/hooks.json` development harness can all run for the same
-  turn. Ordinary users usually only need the plugin-managed hook and, when
-  plugin dispatch is not reliable from every working directory, the single
-  global fallback hook. The repo-local `.codex/hooks.json` entry is for
+  if a user-level hook duplicates the installed plugin hook while the repo-local
+  `.codex/hooks.json` development harness is also active. Ordinary users should
+  use the plugin-managed hook. The repo-local `.codex/hooks.json` entry is for
   checkout-scoped hook development and now uses `hooks/stop-log.mjs` so it
   writes Stop payload summaries under `.codex/` without calling the live speech
   route.
@@ -247,9 +203,8 @@ The hook matches the current official Codex hooks payload shape:
 - `Stop` receives one JSON object on `stdin`, including `turn_id`,
   `stop_hook_active`, and `last_assistant_message`.
 - `Stop` must not emit plain text on `stdout`.
-- Commands run with the session `cwd`, so repo-local development hooks resolve
-  through `git rev-parse --show-toplevel` and plugin hooks keep their command
-  path relative to the plugin lifecycle config.
+- Commands run with the session `cwd`, so plugin-managed hook commands must not
+  rely on `./hooks/...` resolving relative to the plugin root.
 - `notify` is a top-level Codex configuration command that receives a JSON
   payload from Codex; it is not nested under `[features]`.
 
