@@ -1,128 +1,75 @@
 # Plugin Install Testing
 
-Use this guide when testing the standalone SpeakSwiftlyServer Codex marketplace
-and plugin payload without touching personal production Codex installs.
+Use this guide when checking the Speak Swiftly Codex plugin payload from this
+repository without touching Gale's personal production Codex install.
 
 ## Safety Model
 
-Gale's personal Codex scope should stay reserved for stable production installs.
-Marketplace add, remove, and upgrade tests should use an isolated temporary
-`CODEX_HOME` so test marketplaces, caches, and config do not rewrite
-`~/.codex/config.toml` or the production plugin cache.
+This repository owns the canonical `speak-swiftly` plugin payload, but it no
+longer ships a repo-local marketplace file. Socket is the supported end-user
+marketplace entrypoint.
 
-This repository owns the canonical `speak-swiftly` plugin payload:
+Do not run marketplace add, upgrade, or remove tests from this checkout. Run
+those from the `socket` checkout, where the catalog entry points back to this
+repository by Git-backed reference.
+
+This repository should only validate the payload files that Socket installs:
 
 - `.codex-plugin/plugin.json`
-- `.agents/plugins/marketplace.json`
 - `.mcp.json`
 - `hooks/`
 - `skills/`
 - `scripts/codex-hooks-doctor.mjs`
 
-Run payload install tests from this checkout. The `socket` repository should
-only prove that its marketplace lists this same repository by Git-backed
-reference.
-
-## Local Checkout Test
+## Local Payload Check
 
 Run this from the `SpeakSwiftlyServer` checkout when validating branch-local
-plugin payload or marketplace changes:
+plugin payload changes:
 
 ```bash
-SPEAK_SWIFTLY_SERVER_REPO="$(pwd)"
-TEST_CODEX_HOME="$(mktemp -d /private/tmp/speak-swiftly-codex-home.XXXXXX)"
-
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace add "$SPEAK_SWIFTLY_SERVER_REPO"
-
-jq '.plugins[] | select(.name == "speak-swiftly")' \
-  "$SPEAK_SWIFTLY_SERVER_REPO/.agents/plugins/marketplace.json"
-
 jq '{name, version, displayName: .interface.displayName, mcpServers, hooks, skills}' \
-  "$SPEAK_SWIFTLY_SERVER_REPO/.codex-plugin/plugin.json"
+  .codex-plugin/plugin.json
 
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove SpeakSwiftlyServer
-test ! -s "$TEST_CODEX_HOME/config.toml"
-rm -rf "$TEST_CODEX_HOME"
+node scripts/codex-hooks-doctor.mjs --repair-plan
 ```
 
 Expected result:
 
-- Codex reports an added marketplace named `SpeakSwiftlyServer` from
-  the local checkout.
-- The repo-local marketplace entry contains `name: speak-swiftly` and
-  `source.path: ./`.
 - The plugin manifest declares `name: speak-swiftly`, display name
   `Speak Swiftly`, `mcpServers: ./.mcp.json`, `hooks: ./hooks/hooks.json`, and
   `skills: ./skills/`.
-- Removing `SpeakSwiftlyServer` leaves no configured marketplace in the
-  temporary Codex home.
-
-## Git-Backed Test
-
-Run this after the branch has landed in GitHub state that users can fetch:
-
-```bash
-TEST_CODEX_HOME="$(mktemp -d /private/tmp/speak-swiftly-codex-home.XXXXXX)"
-
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace upgrade SpeakSwiftlyServer
-
-jq '.plugins[] | select(.name == "speak-swiftly")' \
-  "$TEST_CODEX_HOME/.tmp/marketplaces/SpeakSwiftlyServer/.agents/plugins/marketplace.json"
-
-jq '{name, version, displayName: .interface.displayName, mcpServers, hooks, skills}' \
-  "$TEST_CODEX_HOME/.tmp/marketplaces/SpeakSwiftlyServer/.codex-plugin/plugin.json"
-
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove SpeakSwiftlyServer
-test ! -s "$TEST_CODEX_HOME/config.toml"
-rm -rf "$TEST_CODEX_HOME"
-```
-
-Expected result:
-
-- Codex reports `source_type = "git"` for
-  `marketplaces.SpeakSwiftlyServer`.
-- `upgrade SpeakSwiftlyServer` succeeds.
-- The cached marketplace entry contains `name: speak-swiftly` and
-  `source.path: ./`.
-- The cached plugin manifest declares the expected `Speak Swiftly` payload
-  paths.
-- Removing `SpeakSwiftlyServer` leaves no configured marketplace in the
-  temporary Codex home.
-
-The standalone marketplace name is `SpeakSwiftlyServer`. Do not use a
-local-suffixed marketplace name; that implies a different lifecycle surface and
-produces the wrong cache path in examples.
+- The hook doctor reports one installed-cache dispatcher command for `Stop` and
+  one for `PermissionRequest`.
+- The hook doctor keeps `speak-swiftly@socket` as the preferred enabled entry
+  when duplicate or legacy plugin entries are present.
 
 ## Socket Catalog Test
 
-Socket owns the catalog test for its broader marketplace. Run Socket-side tests
+Socket owns the catalog test for the broader marketplace. Run Socket-side tests
 from the `socket` checkout, not here. The Socket test should prove that its
 marketplace entry named `speak-swiftly` points at
-`https://github.com/gaelic-ghost/SpeakSwiftlyServer.git` with `ref: main`.
+`https://github.com/gaelic-ghost/SpeakSwiftlyServer.git` with the intended ref.
 
-Do not copy this plugin payload into Socket for testing. The whole point of the
-catalog split is that this repository remains the one payload source of truth.
+Do not copy this plugin payload into Socket for testing. This repository remains
+the payload source of truth; Socket owns marketplace publication.
 
 ## Session Availability
 
-These commands prove the marketplace and cached plugin files. They do not prove
-that an already-running Codex session has refreshed its visible plugin tools and
-skills. For that final check, start a fresh Codex session after the add or
-upgrade and inspect the Plugin Directory or the model-visible tool list.
+Marketplace updates do not prove that an already-running Codex session has
+refreshed visible plugin tools, skills, or hooks. Start a fresh Codex session
+after the Socket marketplace update before judging the installed plugin surface.
 
 ## End-User First Run And Updates
 
 Marketplace installation and native service installation are separate by design.
-The marketplace gives Codex the `speak-swiftly` plugin payload: skills, MCP
-registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not
-silently install, restart, or update the per-user LaunchAgent-backed Swift
+The Socket marketplace gives Codex the `speak-swiftly` plugin payload: skills,
+MCP registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does
+not silently install, restart, or update the per-user LaunchAgent-backed Swift
 service.
 
 The expected first-run path is:
 
-1. Add or upgrade the `SpeakSwiftlyServer` marketplace, or add or upgrade the
-   broader `socket` marketplace and enable `Speak Swiftly` from there.
+1. Add or upgrade the broader Socket marketplace and enable `Speak Swiftly`.
 2. Start a fresh Codex session so the managed plugin payload is visible.
 3. Ask Codex to "set up Speak Swiftly on this machine" or run the LaunchAgent
    install command from the installed plugin checkout:
@@ -134,11 +81,9 @@ xcrun swift run SpeakSwiftlyServerTool healthcheck
 
 The expected update path is:
 
-1. Upgrade the marketplace that owns the enabled plugin:
+1. Upgrade Socket:
 
 ```bash
-codex plugin marketplace upgrade SpeakSwiftlyServer
-# or
 codex plugin marketplace upgrade socket
 ```
 

@@ -33,7 +33,6 @@ const manifestPath = process.env.PLUGIN_MANIFEST;
 const releaseVersion = process.env.RELEASE_VERSION;
 const repoRoot = process.env.REPO_ROOT;
 const socketCachePathPattern = process.env.SOCKET_CACHE_PATH_PATTERN;
-const socketHookPath = `~/.codex/plugins/cache/socket/speak-swiftly/${releaseVersion}/hooks`;
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 
 manifest.version = releaseVersion;
@@ -55,7 +54,7 @@ for (const relativePath of versionedFiles) {
   const original = fs.readFileSync(filePath, "utf8");
   const matched = socketCachePathExpression.test(original);
   socketCachePathExpression.lastIndex = 0;
-  const updated = original.replace(socketCachePathExpression, socketHookPath);
+  const updated = original.replace(socketCachePathExpression, `~/.codex/plugins/cache/socket/speak-swiftly/${releaseVersion}/hooks`);
 
   if (!matched) {
     throw new Error(

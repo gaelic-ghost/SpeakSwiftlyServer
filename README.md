@@ -39,21 +39,15 @@ The goal is to give macOS and near-future Apple-platform apps one small, typed l
 
 `SpeakSwiftlyServer` currently targets macOS 15.0 and Swift 6.3.
 
-For Codex users, install or update the managed plugin first:
-
-```bash
-codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
-codex plugin marketplace upgrade SpeakSwiftlyServer
-```
-
-If you use Gale's broader Socket marketplace instead, install or update that catalog:
+For Codex users, install or update the managed plugin through Gale's broader
+Socket marketplace:
 
 ```bash
 codex plugin marketplace add gaelic-ghost/socket
 codex plugin marketplace upgrade socket
 ```
 
-After adding or upgrading the marketplace, restart Codex, enable `Speak Swiftly` in the Plugin Directory, then set up or refresh the native service from the installed plugin checkout:
+After adding or upgrading Socket, restart Codex, enable `Speak Swiftly` in the Plugin Directory, then set up or refresh the native service from the installed plugin checkout:
 
 ```bash
 xcrun swift run SpeakSwiftlyServerTool launch-agent install
@@ -316,19 +310,17 @@ The app-managed install layout is centered on one per-user location under `~/Lib
 
 ## Codex Plugin
 
-This repository is also packaged as a repo-local Codex plugin through [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json). The plugin points at the checked-in [`.mcp.json`](./.mcp.json) connection for the local `speak_swiftly` MCP server, the tracked [skills](./skills/) bundle that teaches Codex how to use the surface intentionally, and the plugin-managed [hooks](./hooks/hooks.json) that can speak final Codex replies through the local service.
+This repository is the canonical payload source for the Socket-managed `Speak Swiftly` Codex plugin. The root [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json) points at the checked-in [`.mcp.json`](./.mcp.json) connection for the local `speak_swiftly` MCP server, the tracked [skills](./skills/) bundle that teaches Codex how to use the surface intentionally, and the plugin-managed [hooks](./hooks/hooks.json) that can speak final Codex replies through the local service.
 
-The plugin can be installed without using `socket` through Codex's Git-backed marketplace flow. The repo-local marketplace lives at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json), and its single plugin entry points at this repository root with `source.path` set to `./` because the root directory is also the plugin root.
-
-The plugin install and update commands are in [Quick Start](#quick-start). The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older installs may still appear as `speak-swiftly-server` until they are upgraded or disabled. Manual local clone marketplaces and personal copied-payload entries are development, unpublished-testing, and fallback paths rather than the default user install story.
+The plugin install and update commands are in [Quick Start](#quick-start). The plugin identity is `speak-swiftly`, with display name `Speak Swiftly`; older standalone installs may still appear as `speak-swiftly-server` until they are upgraded or disabled. Do not use a repo-local marketplace file from this checkout for normal installs. Socket is the supported marketplace entrypoint for end users.
 
 Marketplace installation gives Codex the plugin payload: skills, MCP registration for `http://127.0.0.1:7337/mcp`, and lifecycle hooks. It does not by itself start, install, or update the native Swift service. The native service step also lives in [Quick Start](#quick-start) so users and agents see it before digging into plugin details.
 
-The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Use an explicit ref such as `gaelic-ghost/SpeakSwiftlyServer@vX.Y.Z` only when you want a pinned reproducible install rather than the release-aligned default branch.
+The [`socket`](https://github.com/gaelic-ghost/socket) repository is Gale's plugin superproject and marketplace catalog. The catalog split keeps this repository as the canonical Speak Swiftly plugin payload while letting the Socket marketplace list that same payload by Git-backed reference. Socket's marketplace entry uses the root Git source for this repository, not a copied `socket/plugins/speak-swiftly` payload. Use an explicit ref such as `gaelic-ghost/SpeakSwiftlyServer@vX.Y.Z` only in Socket metadata when you want a pinned reproducible install rather than the release-aligned default branch.
 
 If both the standalone `SpeakSwiftlyServer` marketplace and the broader `socket` marketplace are configured, prefer the Socket catalog entry. The doctor detects duplicate enablement across both marketplaces and reports a dry-run repair plan that keeps `speak-swiftly@socket` active while disabling or removing duplicate standalone enablement after confirmation. During migration, the duplicate scan accounts for both the current `speak-swiftly` id and the legacy `speak-swiftly-server` id in each marketplace.
 
-End users should start with the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The plugin-managed hook commands use Codex cache payload paths instead of relying on the session working directory. The Socket marketplace command set targets `~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/...`; the standalone `SpeakSwiftlyServer` marketplace command set targets `~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/...`. Do not add a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs; user-level Speak Swiftly hooks are duplicate or legacy repair targets, not a fallback path. The plugin can also register the logging-only `PermissionRequest` probe at `hooks/permission-request-log.mjs`; it records approval-prompt payloads for investigation without approving, rejecting, printing, or queueing speech. The repo-local `.codex/` files remain a development harness for testing hook payloads and notification behavior from this checkout.
+End users should start with the plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. The plugin-managed hook commands use the Socket marketplace cache path at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/...` instead of relying on the session working directory. Do not add stale standalone `SpeakSwiftlyServer` cache commands or a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs; those are duplicate or legacy repair targets, not fallback paths. The plugin can also register the logging-only `PermissionRequest` probe at `hooks/permission-request-log.mjs`; it records approval-prompt payloads for investigation without approving, rejecting, printing, or queueing speech. The repo-local `.codex/` files remain a development harness for testing hook payloads and notification behavior from this checkout.
 
 To inspect the installed hook and voice surfaces, run:
 
@@ -338,7 +330,7 @@ node scripts/codex-hooks-doctor.mjs
 
 The doctor checks whether the plugin manifest declares hooks, whether any user-level `~/.codex/hooks.json` Stop hook duplicates plugin-managed TTS, whether the permission-request probe is centralized, whether any global hook still uses the repo-local development harness, whether the live service is reachable, and whether the hook voice profile matches the runtime voice-profile inventory. The doctor also covers legacy `speak-swiftly-server` plugin ids and duplicate marketplace enablement, preferring the Socket marketplace when both catalogs are installed. Run `node scripts/codex-hooks-doctor.mjs --repair-plan` to print the dry-run repair plan; the command reports the intended config change without mutating user config.
 
-For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running local checkout and Git-backed marketplace tests with a temporary `CODEX_HOME`, removing the test marketplace before cleanup. Run detailed Speak Swiftly payload tests from this repository; run Socket catalog-reference tests from the `socket` checkout.
+For install-surface testing, use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md). Keep personal production Codex installs untouched by running manifest and payload checks from this repository; run actual marketplace add, upgrade, and catalog-reference tests from the `socket` checkout.
 
 The first plugin pass ships focused skills for:
 

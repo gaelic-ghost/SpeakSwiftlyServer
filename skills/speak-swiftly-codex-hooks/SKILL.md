@@ -18,7 +18,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state. Do not add a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs.
-- Plugin-managed hook commands must target Codex cache payload paths. Use the Socket command set at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/...` and the standalone `SpeakSwiftlyServer` command set at `~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/...`.
+- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
 - Treat `PermissionRequest` as logging-only unless the user explicitly asks to make approval prompts speakable. The probe must not approve, reject, or print text to `stdout`.
 
 ## Doctor Interpretation
@@ -36,7 +36,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 ## Troubleshooting
 
-- If a direct manual run of the installed plugin's `hooks/stop-tts.mjs` queues speech but normal assistant final replies do not add a fresh row to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, inspect whether the plugin-managed commands use the two Codex cache command sets before blaming the live service.
+- If a direct manual run of the installed plugin's `hooks/stop-tts.mjs` queues speech but normal assistant final replies do not add a fresh row to `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, inspect whether the plugin-managed commands still include stale direct commands for absent cache paths before blaming the live service.
 - `speech-route-unreachable` means the hook could not reach the local HTTP route.
 - HTTP `503` from `/speech/live` means the service is reachable but not ready for speech work yet.
 - `duplicate-turn` means shared dedupe blocked a repeated `session_id + turn_id`; that is expected when more than one matching hook source starts.
