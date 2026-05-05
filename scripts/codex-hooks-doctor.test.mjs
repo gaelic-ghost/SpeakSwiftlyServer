@@ -94,7 +94,7 @@ enabled = true
 
 test("classifyGlobalHookCommands warns on user-level duplicate Stop hook", () => {
   const classification = classifyGlobalHookCommands([
-    "node /Users/example/SpeakSwiftlyServer/hooks/stop-tts.mjs",
+    "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/stop-tts.mjs",
   ]);
 
   assert.equal(classification.status, "global-duplicate");

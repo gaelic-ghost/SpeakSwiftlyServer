@@ -5,7 +5,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.codex/plugins/speak-swiftly/hooks/permission-request-log.mjs",
+            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/permission-request-log.mjs",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/permission-request-log.mjs",
             "timeout": 15
           }
         ]
@@ -16,7 +21,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.codex/plugins/speak-swiftly/hooks/stop-tts.mjs",
+            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/stop-tts.mjs",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/stop-tts.mjs",
             "timeout": 15
           }
         ]

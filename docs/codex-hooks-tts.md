@@ -26,10 +26,29 @@ this checkout.
   is an observability probe for learning what approval prompts expose before
   deciding whether they should become speakable events.
 
-The plugin-managed hook command uses the installed plugin path,
-`~/.codex/plugins/speak-swiftly/hooks/...`, instead of assuming `./hooks/...`
-is relative to the session working directory. Codex loads `hooks/hooks.json`
-from the plugin root, but hook commands themselves run with the session `cwd`.
+The plugin-managed hook commands use Codex cache payload paths instead of
+assuming `./hooks/...` is relative to the session working directory. Codex
+loads `hooks/hooks.json` from the plugin root, but hook commands themselves run
+with the session `cwd`.
+
+Socket marketplace command set:
+
+```json
+{
+  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/permission-request-log.mjs",
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.5/hooks/stop-tts.mjs"
+}
+```
+
+Standalone `SpeakSwiftlyServer` marketplace command set:
+
+```json
+{
+  "PermissionRequest": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/permission-request-log.mjs",
+  "Stop": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/stop-tts.mjs"
+}
+```
+
 Normal installs must not add a user-level `~/.codex/hooks.json` Speak Swiftly
 hook; if one is present, treat it as a duplicate or legacy repair target rather
 than a fallback.

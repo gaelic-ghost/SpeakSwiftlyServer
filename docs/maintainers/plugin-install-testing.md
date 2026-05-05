@@ -40,21 +40,21 @@ jq '.plugins[] | select(.name == "speak-swiftly")' \
 jq '{name, version, displayName: .interface.displayName, mcpServers, hooks, skills}' \
   "$SPEAK_SWIFTLY_SERVER_REPO/.codex-plugin/plugin.json"
 
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove speak-swiftly-server-local
+CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove SpeakSwiftlyServer
 test ! -s "$TEST_CODEX_HOME/config.toml"
 rm -rf "$TEST_CODEX_HOME"
 ```
 
 Expected result:
 
-- Codex reports an added marketplace named `speak-swiftly-server-local` from
+- Codex reports an added marketplace named `SpeakSwiftlyServer` from
   the local checkout.
 - The repo-local marketplace entry contains `name: speak-swiftly` and
   `source.path: ./`.
 - The plugin manifest declares `name: speak-swiftly`, display name
   `Speak Swiftly`, `mcpServers: ./.mcp.json`, `hooks: ./hooks/hooks.json`, and
   `skills: ./skills/`.
-- Removing `speak-swiftly-server-local` leaves no configured marketplace in the
+- Removing `SpeakSwiftlyServer` leaves no configured marketplace in the
   temporary Codex home.
 
 ## Git-Backed Test
@@ -65,15 +65,15 @@ Run this after the branch has landed in GitHub state that users can fetch:
 TEST_CODEX_HOME="$(mktemp -d /private/tmp/speak-swiftly-codex-home.XXXXXX)"
 
 CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace add gaelic-ghost/SpeakSwiftlyServer
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace upgrade speak-swiftly-server-local
+CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace upgrade SpeakSwiftlyServer
 
 jq '.plugins[] | select(.name == "speak-swiftly")' \
-  "$TEST_CODEX_HOME/.tmp/marketplaces/speak-swiftly-server-local/.agents/plugins/marketplace.json"
+  "$TEST_CODEX_HOME/.tmp/marketplaces/SpeakSwiftlyServer/.agents/plugins/marketplace.json"
 
 jq '{name, version, displayName: .interface.displayName, mcpServers, hooks, skills}' \
-  "$TEST_CODEX_HOME/.tmp/marketplaces/speak-swiftly-server-local/.codex-plugin/plugin.json"
+  "$TEST_CODEX_HOME/.tmp/marketplaces/SpeakSwiftlyServer/.codex-plugin/plugin.json"
 
-CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove speak-swiftly-server-local
+CODEX_HOME="$TEST_CODEX_HOME" codex plugin marketplace remove SpeakSwiftlyServer
 test ! -s "$TEST_CODEX_HOME/config.toml"
 rm -rf "$TEST_CODEX_HOME"
 ```
@@ -81,19 +81,18 @@ rm -rf "$TEST_CODEX_HOME"
 Expected result:
 
 - Codex reports `source_type = "git"` for
-  `marketplaces.speak-swiftly-server-local`.
-- `upgrade speak-swiftly-server-local` succeeds.
+  `marketplaces.SpeakSwiftlyServer`.
+- `upgrade SpeakSwiftlyServer` succeeds.
 - The cached marketplace entry contains `name: speak-swiftly` and
   `source.path: ./`.
 - The cached plugin manifest declares the expected `Speak Swiftly` payload
   paths.
-- Removing `speak-swiftly-server-local` leaves no configured marketplace in the
+- Removing `SpeakSwiftlyServer` leaves no configured marketplace in the
   temporary Codex home.
 
-The current Codex CLI registers both local and Git-backed
-`gaelic-ghost/SpeakSwiftlyServer` marketplaces as
-`speak-swiftly-server-local`. Use the marketplace name Codex reports instead of
-guessing from the repository name.
+The standalone marketplace name is `SpeakSwiftlyServer`. Do not use a
+local-suffixed marketplace name; that implies a different lifecycle surface and
+produces the wrong cache path in examples.
 
 ## Socket Catalog Test
 
