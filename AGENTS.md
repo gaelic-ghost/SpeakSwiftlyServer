@@ -58,6 +58,7 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 
 ### Codex Plugin Hooks
 
+- This repository supports the Socket-managed Codex plugin path only. Do not add or maintain Claude Code, Anthropic, `.claude`, or `.claude-plugin` support surfaces here; if historical Claude-specific support appears in tracked docs, scripts, manifests, or examples, remove it instead of keeping parity.
 - Treat plugin-managed hooks as the required end-user path for Speak Swiftly Codex TTS. Do not add `~/.codex/hooks.json` as a repair path for normal installs.
 - Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system; `plugin_hooks` enables hooks loaded from installed plugins.
 - If the installed plugin manifest and `hooks/hooks.json` are correct but no `Stop` row appears in `~/.codex/speak-swiftly-server/hooks/logs/stop-tts.jsonl`, check `features.plugin_hooks` before changing hook commands, adding global hooks, or blaming the live service.

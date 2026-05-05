@@ -201,6 +201,8 @@ If callers do not pass `EmbeddedServer.Options(port:)`, the embedded host defaul
 
 This repository is the canonical payload source for the Socket-managed `Speak Swiftly` Codex plugin. The root `.codex-plugin/plugin.json` points at the checked-in `.mcp.json` connection, the tracked `skills/` bundle, and the plugin-managed `hooks/hooks.json` file.
 
+This repo does not maintain Claude Code or Anthropic plugin parity. Keep plugin work focused on the Socket-managed Codex path, and remove tracked Claude-specific docs, manifests, scripts, or examples if they appear.
+
 Default user-facing install and update examples should use the Socket marketplace entry:
 
 ```bash
