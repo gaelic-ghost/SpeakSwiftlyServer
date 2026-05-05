@@ -35,19 +35,13 @@ Socket marketplace command set:
 
 ```json
 {
-  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/permission-request-log.mjs",
-  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks/stop-tts.mjs"
+  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/permission-request-log.mjs",
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks/stop-tts.mjs"
 }
 ```
 
-Standalone `SpeakSwiftlyServer` marketplace command set:
-
-```json
-{
-  "PermissionRequest": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/permission-request-log.mjs",
-  "Stop": "node ~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks/stop-tts.mjs"
-}
-```
+Do not register stale standalone `SpeakSwiftlyServer` cache commands in the
+Socket-managed manifest. The Socket install path is the supported command path.
 
 Normal installs must not add a user-level `~/.codex/hooks.json` Speak Swiftly
 hook; if one is present, treat it as a duplicate or legacy repair target rather

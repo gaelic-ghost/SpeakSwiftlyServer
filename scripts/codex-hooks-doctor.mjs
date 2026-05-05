@@ -16,16 +16,9 @@ const pluginNames = [canonicalPluginName, legacyPluginName];
 const preferredPluginKey = `${canonicalPluginName}@socket`;
 const pluginMarketplaces = ["socket", "SpeakSwiftlyServer"];
 const knownPluginKeys = pluginNames.flatMap((name) => pluginMarketplaces.map((marketplace) => `${name}@${marketplace}`));
-const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.9/hooks";
-const standaloneCachedHookPath = "~/.codex/plugins/cache/SpeakSwiftlyServer/speak-swiftly/hooks";
-const expectedStopHookCommands = [
-  `node ${socketCachedHookPath}/stop-tts.mjs`,
-  `node ${standaloneCachedHookPath}/stop-tts.mjs`,
-];
-const expectedPermissionHookCommands = [
-  `node ${socketCachedHookPath}/permission-request-log.mjs`,
-  `node ${standaloneCachedHookPath}/permission-request-log.mjs`,
-];
+const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/5.0.10/hooks";
+const expectedStopHookCommand = `node ${socketCachedHookPath}/stop-tts.mjs`;
+const expectedPermissionHookCommand = `node ${socketCachedHookPath}/permission-request-log.mjs`;
 const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
 
 const checks = [];
@@ -89,8 +82,26 @@ function isGlobalSpeakSwiftlyStopCommand(command) {
     && !command.includes(".codex/hooks/stop-tts.mjs");
 }
 
-function commandSetIncludesAll(commands, expectedCommands) {
-  return expectedCommands.every((expectedCommand) => commands.includes(expectedCommand));
+function validatePluginCommand(eventName, commands, expectedCommand) {
+  if (commands.length !== 1) {
+    addCheck(
+      "fail",
+      `Repo plugin ${eventName} hook should use exactly one Socket command`,
+      `${commands.length} configured: ${commands.join(" | ")}`,
+    );
+    return;
+  }
+
+  const command = commands[0];
+  if (command === expectedCommand) {
+    addCheck("ok", `Repo plugin ${eventName} hook uses the Socket cache command path`, command);
+  } else {
+    addCheck(
+      eventName === "Stop" ? "fail" : "warn",
+      `Repo plugin ${eventName} hook does not use the expected Socket cache command path`,
+      expectedCommand,
+    );
+  }
 }
 
 export function classifyGlobalHookCommands(commands) {
@@ -353,17 +364,9 @@ async function main() {
   }
 
   const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
-  if (commandSetIncludesAll(pluginStopHookCommands, expectedStopHookCommands)) {
-    addCheck("ok", "Repo plugin Stop hook uses the expected Codex cache command paths");
-  } else {
-    addCheck("fail", "Repo plugin Stop hook does not use the expected Codex cache command paths", expectedStopHookCommands.join(" | "));
-  }
+  validatePluginCommand("Stop", pluginStopHookCommands, expectedStopHookCommand);
   const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
-  if (commandSetIncludesAll(pluginPermissionHookCommands, expectedPermissionHookCommands)) {
-    addCheck("ok", "Repo plugin PermissionRequest hook uses the expected Codex cache command paths");
-  } else {
-    addCheck("warn", "Repo plugin PermissionRequest hook does not use the expected Codex cache command paths", expectedPermissionHookCommands.join(" | "));
-  }
+  validatePluginCommand("PermissionRequest", pluginPermissionHookCommands, expectedPermissionHookCommand);
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
   if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-log.mjs"))) {

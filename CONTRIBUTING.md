@@ -101,7 +101,7 @@ For Codex plugin or hook changes, keep end-user behavior plugin-managed and use 
 node scripts/codex-hooks-doctor.mjs
 ```
 
-When testing Codex marketplace add, remove, or upgrade behavior, keep Gale's personal Codex scope reserved for stable production installs. Use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md) to run local checkout and Git-backed tests with a temporary `CODEX_HOME`, remove the test marketplace before cleanup, and leave Socket catalog-reference tests to the `socket` checkout.
+When testing Codex plugin payload behavior, keep Gale's personal Codex scope reserved for stable production installs. Use [docs/maintainers/plugin-install-testing.md](./docs/maintainers/plugin-install-testing.md) to inspect this repository's manifest, hooks, skills, and MCP payload locally, and leave marketplace add, upgrade, remove, and catalog-reference tests to the `socket` checkout.
 
 Before any live end-to-end run, make sure the LaunchAgent-backed live service has released resident model memory through the live-service model unload preflight. Leave the installed service in place; the E2E helper runs on its own random ports and only needs comfortable memory headroom.
 
