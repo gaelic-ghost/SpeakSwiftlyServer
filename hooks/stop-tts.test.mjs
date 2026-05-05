@@ -121,7 +121,7 @@ test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
 
   assert.equal(body.cwd, "/tmp/project");
   assert.equal(body.request_context.source, "Codex Hook");
-  assert.equal(body.request_context.topic, "assistant-final-reply");
+  assert.equal(body.request_context.topic, "project");
   assert.deepEqual(body.request_context.attributes, {
     session_id: "session-1",
     turn_id: "turn-1",
@@ -129,4 +129,10 @@ test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
     model: "gpt-test",
     hook_event_name: "Stop",
   });
+});
+
+test("speechRequestBody falls back to assistant final reply topic when cwd has no basename", () => {
+  const body = speechRequestBody("Answer\n\nDone.", { cwd: "/" }, "default-femme");
+
+  assert.equal(body.request_context.topic, "assistant-final-reply");
 });

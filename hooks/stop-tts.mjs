@@ -273,6 +273,15 @@ function stringAttribute(value) {
   return null;
 }
 
+function topicFromCwd(cwd) {
+  if (typeof cwd !== "string" || cwd.trim().length === 0) {
+    return "assistant-final-reply";
+  }
+
+  const basename = path.basename(path.resolve(cwd));
+  return basename.length > 0 ? basename : "assistant-final-reply";
+}
+
 export function speechRequestBody(message, payload, profileName) {
   const {
     session_id: sessionId = null,
@@ -303,7 +312,7 @@ export function speechRequestBody(message, payload, profileName) {
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
       source: "Codex Hook",
-      topic: "assistant-final-reply",
+      topic: topicFromCwd(cwd),
       attributes,
     },
   };
