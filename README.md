@@ -1,6 +1,6 @@
 # SpeakSwiftlyServer
 
-Local speech for Codex and Apple-platform tools, packaged as a small server plus the `Speak Swiftly` plugin payload.
+Local speech synthesis for Codex and all kinds of macOS apps. Packaged as a small server, plus the `Speak Swiftly` Codex Plugin and Hook.
 
 ## Table of Contents
 
@@ -28,10 +28,15 @@ TBD
 
 ## Quick Start
 
-Install or update the Socket marketplace entry, then restart Codex and enable `Speak Swiftly` in the Plugin Directory.
+Add or upgrade the Socket marketplace entry to your Codex. Then, restart Codex and enable `Speak Swiftly` in the Plugin Directory under Socket.
 
+Add Socket:
 ```bash
 codex plugin marketplace add gaelic-ghost/socket
+```
+
+Upgrade Socket and Enabled Plugins:
+```bash
 codex plugin marketplace upgrade socket
 ```
 
