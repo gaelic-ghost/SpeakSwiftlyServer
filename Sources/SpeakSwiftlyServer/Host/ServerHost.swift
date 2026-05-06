@@ -251,7 +251,9 @@ actor ServerHost {
         environment: [String: String] = ProcessInfo.processInfo.environment,
     ) async -> ServerHost {
         let runtimeConfigurationStore = RuntimeConfigurationStore(environment: environment)
-        let startupConfiguration = runtimeConfigurationStore.startupConfiguration()
+        let startupConfiguration = runtimeConfigurationStore.startupConfiguration(
+            configuredDefaultVoiceProfileName: appConfig.server.defaultVoiceProfileName,
+        )
         let runtime = await ServerRuntimeAdapter(
             runtime: SpeakSwiftlyRuntimeLauncher.shared.launch(
                 configuration: startupConfiguration,

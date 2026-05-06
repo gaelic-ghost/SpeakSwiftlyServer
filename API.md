@@ -18,9 +18,9 @@ The server exposes one shared localhost host process with:
 - an optional MCP surface
 - shared retained request, artifact, playback, and runtime snapshots behind both transports
 
-Maintainer planning for reducing duplicate public surface area lives in
-[`docs/maintainers/public-api-simplification-plan.md`](docs/maintainers/public-api-simplification-plan.md).
-Keep this API reference focused on the current contract, not future cleanup proposals.
+Maintainer comparison against the resolved `SpeakSwiftly` package surface lives in
+[`docs/maintainers/speakswiftly-api-coverage-matrix.md`](docs/maintainers/speakswiftly-api-coverage-matrix.md).
+Keep this API reference focused on the current transport contract, not historical cleanup plans.
 
 When the same host is embedded through `EmbeddedServerSession`, the transport process now runs
 inside one outer service-owned lifecycle group that also owns package-level host startup,
@@ -163,7 +163,7 @@ The queue and playback control routes are immediate control operations rather th
 The runtime routes are also state-oriented.
 
 - `GET /overview` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
-- `GET /status` returns the underlying `SpeakSwiftly.StatusEvent` plus the same live backend-switch transition summary.
+- `GET /status` returns the underlying `SpeakSwiftly.RuntimeSnapshot` plus the same live backend-switch transition summary.
 - `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
 - `POST /backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /overview`, `GET /status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
 - `POST /models/reload` and `POST /models/unload` follow the current runtime-control verbs directly.

@@ -63,7 +63,7 @@ struct ServerSuccessEvent: Encodable, Equatable {
         case activeRequests = "active_requests"
         case queue
         case playbackState = "playback_state"
-        case status
+        case runtime
         case speechBackend = "speech_backend"
         case clearedCount = "cleared_count"
         case cancelledRequestID = "cancelled_request_id"
@@ -85,7 +85,7 @@ struct ServerSuccessEvent: Encodable, Equatable {
     let activeRequests: [ActiveRequestSnapshot]?
     let queue: [QueuedRequestSnapshot]?
     let playbackState: PlaybackStatusSnapshot?
-    let status: SpeakSwiftly.StatusEvent?
+    let runtime: SpeakSwiftly.RuntimeSnapshot?
     let speechBackend: String?
     let clearedCount: Int?
     let cancelledRequestID: String?
@@ -106,7 +106,7 @@ struct ServerSuccessEvent: Encodable, Equatable {
         activeRequests: [ActiveRequestSnapshot]? = nil,
         queue: [QueuedRequestSnapshot]? = nil,
         playbackState: PlaybackStatusSnapshot? = nil,
-        status: SpeakSwiftly.StatusEvent? = nil,
+        runtime: SpeakSwiftly.RuntimeSnapshot? = nil,
         speechBackend: String? = nil,
         clearedCount: Int? = nil,
         cancelledRequestID: String? = nil,
@@ -126,7 +126,7 @@ struct ServerSuccessEvent: Encodable, Equatable {
         self.activeRequests = activeRequests
         self.queue = queue
         self.playbackState = playbackState
-        self.status = status
+        self.runtime = runtime
         self.speechBackend = speechBackend
         self.clearedCount = clearedCount
         self.cancelledRequestID = cancelledRequestID

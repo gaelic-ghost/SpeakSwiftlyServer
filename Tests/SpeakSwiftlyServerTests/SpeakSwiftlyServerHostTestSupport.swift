@@ -64,18 +64,35 @@ func waitForActiveRequestID(on host: ServerHost) async throws -> String {
 struct TimeoutError: Error {}
 
 @available(macOS 14, *)
-func workerStatus(_ stage: SpeakSwiftly.StatusStage) -> SpeakSwiftly.StatusEvent {
-    let residentState: SpeakSwiftly.ResidentModelState = switch stage {
-        case .warmingResidentModel:
-            .warming
-        case .residentModelReady:
-            .ready
-        case .residentModelsUnloaded:
-            .unloaded
-        case .residentModelFailed:
-            .failed
+func workerStatus(_ state: SpeakSwiftly.RuntimeState) -> SpeakSwiftly.RuntimeUpdate {
+    decodedSpeakSwiftlyRuntimeUpdate(
+        sequence: 0,
+        date: Date(),
+        state: state,
+        event: .stateChanged(state),
+    )
+}
+
+private struct RuntimeUpdatePayload: Encodable {
+    let sequence: Int
+    let date: Date
+    let state: SpeakSwiftly.RuntimeState
+    let event: SpeakSwiftly.RuntimeEvent
+}
+
+private func decodedSpeakSwiftlyRuntimeUpdate(
+    sequence: Int,
+    date: Date,
+    state: SpeakSwiftly.RuntimeState,
+    event: SpeakSwiftly.RuntimeEvent,
+) -> SpeakSwiftly.RuntimeUpdate {
+    do {
+        let payload = RuntimeUpdatePayload(sequence: sequence, date: date, state: state, event: event)
+        let data = try JSONEncoder().encode(payload)
+        return try JSONDecoder().decode(SpeakSwiftly.RuntimeUpdate.self, from: data)
+    } catch {
+        fatalError("SpeakSwiftlyServer tests could not construct a RuntimeUpdate. Likely cause: the resolved SpeakSwiftly Codable shape changed. Error: \(error.localizedDescription)")
     }
-    return .init(stage: stage, residentState: residentState, speechBackend: .qwen3)
 }
 
 // MARK: - Host Submission Helpers

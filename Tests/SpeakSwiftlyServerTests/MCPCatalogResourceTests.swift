@@ -93,7 +93,7 @@ extension ServerTests {
             #expect(runtimeTransports.contains { $0["name"] as? String == "mcp" && $0["advertised_address"] as? String == "http://127.0.0.1:7337/mcp" })
             let runtimeRefresh = try #require(runtimePayload["runtime_refresh"] as? [String: Any])
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
-            #expect(runtimeRefresh["source"] as? String == "runtime_overview")
+            #expect(runtimeRefresh["source"] as? String == "runtime_snapshots")
 
             let runtimeStatusResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -107,7 +107,7 @@ extension ServerTests {
             let runtimeStatusContents = try #require(runtimeStatusResourceResult["contents"] as? [[String: Any]])
             let runtimeStatusText = try #require(runtimeStatusContents.first?["text"] as? String)
             let runtimeStatusPayload = try jsonObject(from: Data(runtimeStatusText.utf8))
-            let runtimeStatus = try #require(runtimeStatusPayload["status"] as? [String: Any])
+            let runtimeStatus = try #require(runtimeStatusPayload["runtime"] as? [String: Any])
             #expect(runtimeStatus["speech_backend"] as? String == "qwen3")
 
             let runtimeConfigResourceEnvelope = try await mcpEnvelope(

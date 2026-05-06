@@ -141,28 +141,30 @@ extension ServerHost {
         requestID: String,
         expectation: RuntimeBackendSwitchExpectation,
     ) async {
-        guard case let .runtimeStatus(status: _, speechBackend: resolvedSpeechBackend?) = completion else {
+        guard case .runtimeUpdate = completion else {
             let failure = ServerFailureEvent(
                 id: requestID,
                 code: SpeakSwiftly.ErrorCode.internalError.rawValue,
-                message: "SpeakSwiftly reported a successful speech-backend switch request '\(requestID)', but it did not include the active speech_backend payload.",
-            )
-            await record(.failed(failure), for: requestID, terminal: true)
-            return
-        }
-        guard resolvedSpeechBackend == expectation.requestedSpeechBackend else {
-            let failure = ServerFailureEvent(
-                id: requestID,
-                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
-                message: "SpeakSwiftly reported speech-backend switch request '\(requestID)' as '\(resolvedSpeechBackend.rawValue)' instead of the requested '\(expectation.requestedSpeechBackend.rawValue)'.",
+                message: "SpeakSwiftly reported a successful speech-backend switch request '\(requestID)', but it did not include a runtime update payload.",
             )
             await record(.failed(failure), for: requestID, terminal: true)
             return
         }
 
-        activeRuntimeSpeechBackend = resolvedSpeechBackend
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        guard runtimeSnapshot.speechBackend == expectation.requestedSpeechBackend else {
+            let failure = ServerFailureEvent(
+                id: requestID,
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
+                message: "SpeakSwiftly reported speech-backend switch request '\(requestID)' as '\(runtimeSnapshot.speechBackend.rawValue)' instead of the requested '\(expectation.requestedSpeechBackend.rawValue)'.",
+            )
+            await record(.failed(failure), for: requestID, terminal: true)
+            return
+        }
+
+        activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
         let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
-            activeRuntimeSpeechBackend: resolvedSpeechBackend,
+            activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
@@ -212,7 +214,7 @@ extension ServerHost {
                 activeRequests: nil,
                 queue: nil,
                 playbackState: nil,
-                status: nil,
+                runtime: nil,
                 speechBackend: nil,
                 clearedCount: nil,
                 cancelledRequestID: nil,
@@ -355,14 +357,14 @@ extension ServerHost {
         }
     }
 
-    func handle(status: SpeakSwiftly.StatusEvent) async {
-        switch status.stage {
+    func handle(runtimeUpdate: SpeakSwiftly.RuntimeUpdate) async {
+        switch runtimeUpdate.state {
             case .warmingResidentModel:
                 workerMode = "starting"
-                workerStage = status.stage.rawValue
+                workerStage = runtimeUpdate.state.rawValue
                 startupError = nil
             case .residentModelReady:
-                workerStage = status.stage.rawValue
+                workerStage = runtimeUpdate.state.rawValue
                 startupError = nil
                 if !hasRequestedStartupProfileRefresh, !isRunningStartupProfileRefresh {
                     isRunningStartupProfileRefresh = true
@@ -377,16 +379,16 @@ extension ServerHost {
                     }
                     isRunningStartupProfileRefresh = false
                 }
-                if workerStage == status.stage.rawValue, !isRunningStartupProfileRefresh {
+                if workerStage == runtimeUpdate.state.rawValue, !isRunningStartupProfileRefresh {
                     workerMode = "ready"
                 }
             case .residentModelsUnloaded:
                 workerMode = "starting"
-                workerStage = status.stage.rawValue
+                workerStage = runtimeUpdate.state.rawValue
                 startupError = nil
             case .residentModelFailed:
                 workerMode = "failed"
-                workerStage = status.stage.rawValue
+                workerStage = runtimeUpdate.state.rawValue
                 startupError = "SpeakSwiftly reported resident model startup failure."
                 recordRecentError(
                     source: "worker",

@@ -103,10 +103,10 @@ public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
         self.stableBufferTargetMS = stableBufferTargetMS
     }
 
-    init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
+    init(summary: SpeakSwiftly.PlaybackSnapshot) {
         state = summary.state.rawValue
         activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
-        isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
+        isStableForConcurrentGeneration = false
         isRebuffering = summary.isRebuffering
         stableBufferedAudioMS = summary.stableBufferedAudioMS
         stableBufferTargetMS = summary.stableBufferTargetMS

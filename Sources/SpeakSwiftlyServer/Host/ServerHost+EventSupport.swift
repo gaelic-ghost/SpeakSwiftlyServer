@@ -158,6 +158,30 @@ extension ServerHost {
         )
     }
 
+    func queueStatusSnapshot(from summary: SpeakSwiftly.GenerateSnapshot) -> QueueStatusSnapshot {
+        let activeRequests = summary.activeRequests.map(ActiveRequestSnapshot.init(summary:))
+        return .init(
+            queueType: SpeakSwiftly.QueueType.generation.rawValue,
+            activeCount: activeRequests.count,
+            queuedCount: summary.queuedRequests.count,
+            activeRequest: activeRequests.first,
+            activeRequests: activeRequests,
+            queuedRequests: summary.queuedRequests.map(QueuedRequestSnapshot.init(summary:)),
+        )
+    }
+
+    func queueStatusSnapshot(from summary: SpeakSwiftly.PlaybackSnapshot) -> QueueStatusSnapshot {
+        let activeRequests = summary.activeRequest.map { [ActiveRequestSnapshot(summary: $0)] } ?? []
+        return .init(
+            queueType: SpeakSwiftly.QueueType.playback.rawValue,
+            activeCount: activeRequests.count,
+            queuedCount: summary.queuedRequests.count,
+            activeRequest: activeRequests.first,
+            activeRequests: activeRequests,
+            queuedRequests: summary.queuedRequests.map(QueuedRequestSnapshot.init(summary:)),
+        )
+    }
+
     func queueSnapshotResponse(from snapshot: QueueStatusSnapshot) -> QueueSnapshotResponse {
         .init(snapshot: snapshot)
     }
@@ -220,12 +244,12 @@ extension ServerHost {
                     activeRequests: active.map(ActiveRequestSnapshot.init(summary:)),
                     queue: queued.map(QueuedRequestSnapshot.init(summary:)),
                 )
-            case let .playbackState(value):
+            case let .playbackSnapshot(value):
                 .init(id: id, playbackState: PlaybackStatusSnapshot(summary: value))
-            case .runtimeOverview:
+            case let .runtimeSnapshot(value):
+                .init(id: id, runtime: value, speechBackend: value.speechBackend.rawValue)
+            case .runtimeUpdate:
                 .init(id: id)
-            case let .runtimeStatus(status: value, speechBackend: backend):
-                .init(id: id, status: value, speechBackend: backend?.rawValue)
             case let .defaultVoiceProfile(name):
                 .init(id: id, profileName: name)
             case let .queueCleared(count: count):

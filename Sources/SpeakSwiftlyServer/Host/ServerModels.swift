@@ -272,12 +272,77 @@ struct RequestListResponse: ResponseEncodable {
 }
 
 struct RuntimeStatusResponse: ResponseEncodable {
-    let status: SpeakSwiftly.StatusEvent
+    let runtime: RuntimeObservationSnapshot
     let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
 
+    init(
+        runtime: SpeakSwiftly.RuntimeSnapshot,
+        runtimeBackendTransition: RuntimeBackendTransitionSnapshot,
+    ) {
+        self.runtime = .init(runtime)
+        self.runtimeBackendTransition = runtimeBackendTransition
+    }
+
     enum CodingKeys: String, CodingKey {
-        case status
+        case runtime
         case runtimeBackendTransition = "runtime_backend_transition"
+    }
+}
+
+struct RuntimeObservationSnapshot: Encodable {
+    let sequence: Int
+    let capturedAt: Date
+    let state: String
+    let speechBackend: String
+    let residentState: String
+    let defaultVoiceProfile: String
+    let storage: RuntimeStorageObservationSnapshot
+
+    init(_ snapshot: SpeakSwiftly.RuntimeSnapshot) {
+        sequence = snapshot.sequence
+        capturedAt = snapshot.capturedAt
+        state = snapshot.state.rawValue
+        speechBackend = snapshot.speechBackend.rawValue
+        residentState = snapshot.residentState.rawValue
+        defaultVoiceProfile = snapshot.defaultVoiceProfile
+        storage = .init(snapshot.storage)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case sequence
+        case capturedAt = "captured_at"
+        case state
+        case speechBackend = "speech_backend"
+        case residentState = "resident_state"
+        case defaultVoiceProfile = "default_voice_profile"
+        case storage
+    }
+}
+
+struct RuntimeStorageObservationSnapshot: Encodable {
+    let stateRootPath: String
+    let profileStoreRootPath: String
+    let configurationPath: String
+    let textProfilesPath: String
+    let generatedFilesRootPath: String
+    let generationJobsRootPath: String
+
+    init(_ snapshot: SpeakSwiftly.RuntimeStorageSnapshot) {
+        stateRootPath = snapshot.stateRootPath
+        profileStoreRootPath = snapshot.profileStoreRootPath
+        configurationPath = snapshot.configurationPath
+        textProfilesPath = snapshot.textProfilesPath
+        generatedFilesRootPath = snapshot.generatedFilesRootPath
+        generationJobsRootPath = snapshot.generationJobsRootPath
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case stateRootPath = "state_root_path"
+        case profileStoreRootPath = "profile_store_root_path"
+        case configurationPath = "configuration_path"
+        case textProfilesPath = "text_profiles_path"
+        case generatedFilesRootPath = "generated_files_root_path"
+        case generationJobsRootPath = "generation_jobs_root_path"
     }
 }
 

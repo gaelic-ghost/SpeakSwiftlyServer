@@ -45,7 +45,7 @@ extension ServerTests {
             #expect(runtimeHostJSON["default_voice_profile_name"] as? String == "default")
             let runtimeRefresh = try #require(runtimeHostJSON["runtime_refresh"] as? [String: Any])
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
-            #expect(runtimeRefresh["source"] as? String == "runtime_overview")
+            #expect(runtimeRefresh["source"] as? String == "runtime_snapshots")
             #expect((runtimeRefresh["started_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["generation_queue_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["playback_queue_refreshed_at"] as? String)?.isEmpty == false)

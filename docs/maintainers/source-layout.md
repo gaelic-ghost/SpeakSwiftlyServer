@@ -10,10 +10,11 @@ maps in this directory.
 Public documentation media belongs under [`docs/media`](../media/). Runtime-loaded package resources
 belong under `Sources/SpeakSwiftlyServer/Resources` instead, because SwiftPM only exposes target
 resources through the target bundle.
-Public API simplification planning belongs in
-[`docs/maintainers/public-api-simplification-plan.md`](public-api-simplification-plan.md) so the
-consumer-facing `API.md` can stay a stable contract while cleanup ordering, compatibility notes, and
-dedupe follow-through remain visible to maintainers.
+The current package-to-server API comparison belongs in
+[`speakswiftly-api-coverage-matrix.md`](speakswiftly-api-coverage-matrix.md) so the consumer-facing
+`API.md` can stay a stable contract while compatibility notes and dedupe follow-through remain
+visible to maintainers. Completed implementation plans belong in
+[`implementation-history.md`](implementation-history.md), not as active roadmap files.
 
 ## Host Sources
 

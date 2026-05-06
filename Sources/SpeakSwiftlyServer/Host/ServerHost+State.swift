@@ -73,33 +73,17 @@ extension ServerHost {
             return
         }
 
-        var runtimeOverviewRefreshedAt = Date()
-        do {
-            try await applyRuntimeOverviewSnapshot()
-            runtimeOverviewRefreshedAt = Date()
-            runtimeRefreshSnapshot = .init(
-                sequenceID: refreshSequenceID,
-                source: "runtime_overview",
-                startedAt: TimestampFormatter.string(from: startedAt),
-                generationQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-                playbackQueueRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-                playbackStateRefreshedAt: TimestampFormatter.string(from: runtimeOverviewRefreshedAt),
-                completedAt: TimestampFormatter.string(from: Date()),
-            )
-        } catch {
-            recordRecentError(
-                source: "runtime:overview",
-                code: "runtime_overview_failed",
-                message: "SpeakSwiftlyServer could not refresh the atomic runtime overview snapshot. Likely cause: \(error.localizedDescription)",
-            )
-            applyCachedRuntimeDerivedState(
-                sequenceID: refreshSequenceID,
-                startedAt: startedAt,
-                previousPlaybackStatus: previousPlaybackStatus,
-                source: "cached_runtime_overview_failed",
-            )
-            return
-        }
+        await applyRuntimeStateSnapshots()
+        let runtimeSnapshotsRefreshedAt = Date()
+        runtimeRefreshSnapshot = .init(
+            sequenceID: refreshSequenceID,
+            source: "runtime_snapshots",
+            startedAt: TimestampFormatter.string(from: startedAt),
+            generationQueueRefreshedAt: TimestampFormatter.string(from: runtimeSnapshotsRefreshedAt),
+            playbackQueueRefreshedAt: TimestampFormatter.string(from: runtimeSnapshotsRefreshedAt),
+            playbackStateRefreshedAt: TimestampFormatter.string(from: runtimeSnapshotsRefreshedAt),
+            completedAt: TimestampFormatter.string(from: Date()),
+        )
 
         if playbackStatus != previousPlaybackStatus {
             hostEventContinuation.yield(.playbackChanged(playbackStatus))
@@ -164,24 +148,15 @@ extension ServerHost {
 
     // MARK: - Runtime Snapshot Fetches
 
-    func applyRuntimeOverviewSnapshot() async throws {
-        let handle = await runtime.runtimeOverview()
-        let completion = try await awaitImmediateCompletion(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the runtime overview request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing the atomic runtime overview snapshot.",
-        )
-        guard case let .runtimeOverview(overview) = completion else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the runtime overview request, but it did not return a runtime_overview payload.",
-            )
-        }
+    func applyRuntimeStateSnapshots() async {
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        let generationSnapshot = await runtime.generationSnapshot()
+        let playbackSnapshot = await runtime.playbackSnapshot()
 
-        generationQueueStatus = queueStatusSnapshot(from: overview.generationQueue)
-        playbackQueueStatus = queueStatusSnapshot(from: overview.playbackQueue)
-        playbackStatus = PlaybackStatusSnapshot(summary: overview.playbackState)
-        activeRuntimeSpeechBackend = overview.speechBackend
+        generationQueueStatus = queueStatusSnapshot(from: generationSnapshot)
+        playbackQueueStatus = queueStatusSnapshot(from: playbackSnapshot)
+        playbackStatus = PlaybackStatusSnapshot(summary: playbackSnapshot)
+        activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
     }
 
     // MARK: - Derived Snapshot Helpers

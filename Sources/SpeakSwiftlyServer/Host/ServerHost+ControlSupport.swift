@@ -13,10 +13,10 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        guard case let .playbackState(playbackState) = completion else {
+        guard case let .playbackSnapshot(playbackState) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload.",
+                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback snapshot payload.",
             )
         }
 
@@ -33,7 +33,7 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        if case let .playbackState(playbackState) = completion, playbackState.state == expectedState {
+        if case let .playbackSnapshot(playbackState) = completion, playbackState.state == expectedState {
             let response = PlaybackStateResponse(playback: .init(summary: playbackState))
             await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
             return response
@@ -55,8 +55,9 @@ extension ServerHost {
         var lastResponse: PlaybackStateResponse?
 
         while true {
+            let snapshotHandle = await syntheticPlaybackSnapshotHandle()
             let response = try await playbackStateResponse(
-                handle: runtime.playbackState(),
+                handle: snapshotHandle,
                 requestName: requestName,
             )
             lastResponse = response
@@ -138,15 +139,34 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the \(requestName) request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request.",
         )
-        guard case let .runtimeStatus(status: status?, speechBackend: _) = completion else {
+        guard case let .runtimeUpdate(runtimeUpdate) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload.",
+                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a runtime update payload.",
             )
         }
 
-        await self.handle(status: status)
-        return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
+        await self.handle(runtimeUpdate: runtimeUpdate)
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+
+        return .init(
+            runtime: runtimeSnapshot,
+            runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
+        )
+    }
+
+    func syntheticPlaybackSnapshotHandle() async -> RuntimeRequestHandle {
+        let snapshot = await runtime.playbackSnapshot()
+        let stream = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            continuation.yield(.completed(.playbackSnapshot(snapshot)))
+            continuation.finish()
+        }
+        return .init(
+            id: UUID().uuidString,
+            operation: "get_playback_snapshot",
+            profileName: snapshot.activeRequest?.voiceProfile,
+            events: stream,
+        )
     }
 
     func awaitImmediateCompletion(

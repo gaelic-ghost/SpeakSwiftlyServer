@@ -61,8 +61,20 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         await runtime.shutdown()
     }
 
-    func statusEvents() async -> AsyncStream<SpeakSwiftly.StatusEvent> {
-        await runtime.statusEvents()
+    func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate> {
+        await runtime.updates()
+    }
+
+    func runtimeSnapshot() async -> SpeakSwiftly.RuntimeSnapshot {
+        await runtime.snapshot()
+    }
+
+    func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot {
+        await runtime.generate.snapshot()
+    }
+
+    func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot {
+        await runtime.playback.snapshot()
     }
 
     // MARK: - Speech Requests
@@ -217,11 +229,6 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     // MARK: - Runtime Controls
 
-    func runtimeStatus() async -> RuntimeRequestHandle {
-        let handle = await runtime.status()
-        return .init(id: handle.id, operation: "get_runtime_status", profileName: nil, events: handle.events)
-    }
-
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle {
         let handle = await runtime.switchSpeechBackend(to: speechBackend)
         return .init(id: handle.id, operation: "switch_speech_backend", profileName: nil, events: handle.events)
@@ -237,24 +244,19 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
         return .init(id: handle.id, operation: "unload_models", profileName: nil, events: handle.events)
     }
 
-    func runtimeOverview() async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.overview())
-    }
-
-    func playbackState() async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.player.state())
-    }
-
     func pausePlayback() async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.player.pause())
+        let handle = await runtime.playback.pause()
+        return RuntimeRequestHandle(handle)
     }
 
     func resumePlayback() async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.player.resume())
+        let handle = await runtime.playback.resume()
+        return RuntimeRequestHandle(handle)
     }
 
     func clearQueue() async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.player.clearQueue())
+        let handle = await runtime.playback.clearQueue()
+        return RuntimeRequestHandle(handle)
     }
 
     func clearQueue(_ queueType: SpeakSwiftly.QueueType) async -> RuntimeRequestHandle {
@@ -262,7 +264,8 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
     }
 
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle {
-        await RuntimeRequestHandle(runtime.player.cancelRequest(requestID))
+        let handle = await runtime.playback.cancelRequest(requestID)
+        return RuntimeRequestHandle(handle)
     }
 
     func cancel(_ queueType: SpeakSwiftly.QueueType, requestID: String) async -> RuntimeRequestHandle {

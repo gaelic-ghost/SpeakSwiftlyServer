@@ -10,17 +10,17 @@ It answers three concrete questions:
 2. Which public capabilities are intentionally adapted instead of mirrored exactly?
 3. Which transport is the right client contract for each capability: HTTP, MCP, both, or neither?
 
-Current baseline checked against the `SpeakSwiftly 4.0.7` package state resolved by this repository on `2026-04-25`. The root package now follows `SpeakSwiftly` with an up-to-next-major semantic-version requirement starting at `4.0.7`.
+Current baseline checked against the `SpeakSwiftly` package state resolved by this repository on `2026-05-06`: tagged release `v6.0.0`.
 
 ## Summary
 
-`SpeakSwiftlyServer` exposes most of the public runtime control plane that makes sense outside Swift code, with the current `SpeakSwiftly 4.0.7` Qwen additions called out below as deliberate follow-up decisions:
+`SpeakSwiftlyServer` exposes most of the public runtime control plane that makes sense outside Swift code, with the current aligned `SpeakSwiftly` observation surface called out below as deliberate transport shaping:
 
 - speech generation for live playback, retained file output, and batches
 - voice design and voice cloning with explicit `vibe`
-- runtime overview, runtime status, backend switching, and model reload or unload controls
+- host overview, runtime snapshots, backend switching, and model reload or unload controls
 - text-normalizer built-in style, state, persistence, and replacement editing
-- generation queue, playback queue, playback state, queue clearing, request cancellation, retained request inspection, and retained generation artifacts
+- generation snapshots, playback snapshots, queue clearing, request cancellation, retained request inspection, and retained generation artifacts
 
 The server's normalized backend contract is now:
 
@@ -46,9 +46,9 @@ That means the server is best understood as a transport adapter over the public 
 | --- | --- | --- | --- | --- |
 | `SpeakSwiftly.liftoff(configuration:)` | Indirect | None | None | Server-owned lifecycle concern. Intentionally not client-exposed. |
 | `runtime.start()` / `runtime.shutdown()` | Indirect | None | None | Owned by process or embedded-session lifecycle, not by clients. |
-| `runtime.statusEvents()` | Adapted | `GET /healthz`, `GET /readyz`, `GET /overview`, `GET /status`, `GET /requests/{request_id}/events` | `get_runtime_overview`, `get_runtime_status`, live resources and subscriptions | Exposed through host snapshots, retained request history, and typed resource updates instead of raw streams. |
-| `runtime.overview()` | Full | `GET /overview` | `get_runtime_overview`, `speak-swiftly://overview` | The host now trusts the atomic runtime overview instead of reconstructing queue or playback state locally. |
-| `runtime.status()` | Full | `GET /status` | `get_runtime_status`, `speak-swiftly://status` | Returned as runtime status data plus server-owned live backend-transition state so clients can observe queued backend switches without treating persisted configuration as live state. |
+| `runtime.updates()` | Adapted | `GET /healthz`, `GET /readyz`, `GET /overview`, `GET /status`, `GET /requests/{request_id}/events` | `get_runtime_overview`, `get_runtime_status`, live resources and subscriptions | Exposed through host snapshots, retained request history, and typed resource updates instead of raw streams. |
+| `runtime.snapshot()` / `runtime.generate.snapshot()` / `runtime.playback.snapshot()` | Full | `GET /overview` | `get_runtime_overview`, `speak-swiftly://overview` | The host refreshes the three runtime-owned snapshots together instead of reconstructing queue or playback state through older request-style reads. |
+| `runtime.snapshot()` | Full | `GET /status` | `get_runtime_status`, `speak-swiftly://status` | Returned as runtime snapshot data plus server-owned live backend-transition state so clients can observe queued backend switches without treating persisted configuration as live state. |
 | `SpeakSwiftly.Configuration.qwenResidentModel` | Full | `GET /configuration`, `PUT /configuration` with `qwen_resident_model` | `get_runtime_configuration`, `set_runtime_configuration` with `qwen_resident_model`, `speak-swiftly://configuration` | Startup-only configuration. Accepts `base_0_6b_8bit` and `base_1_7b_8bit`, reports both active and next-start values, and honors the upstream `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` override when building the startup configuration passed to `SpeakSwiftly.liftoff(configuration:)`. |
 | `SpeakSwiftly.Configuration.marvisResidentPolicy` | Full | `GET /configuration`, `PUT /configuration` with `marvis_resident_policy` | `get_runtime_configuration`, `set_runtime_configuration` with `marvis_resident_policy`, `speak-swiftly://configuration` | Startup-only configuration. Accepts `dual_resident_serialized` and `single_resident_dynamic`, and reports both active and next-start values. |
 | `runtime.switchSpeechBackend(to:)` | Full | `POST /backend` | `switch_speech_backend` | Queues an ordered live backend switch and returns an accepted request. Transport-facing input accepts `qwen3`, `chatterbox_turbo`, and `marvis`, and still normalizes legacy `qwen3_custom_voice` input onto `qwen3`. Pending live transition state is observable from runtime overview/status and the retained request resource. |
@@ -67,13 +67,13 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.normalizer.persistence.load()` / `save()` | Full | `POST /text-profiles/load`, `POST /text-profiles/save` | `load_text_profiles`, `save_text_profiles` | Operator-triggered persistence refresh and flush. |
 | `runtime.normalizer.profiles.create` / `rename` / `setActive` / `delete` / `factoryReset` / `reset(id:)` | Full | `POST /text-profiles/stored`, `PUT /text-profiles/stored/{profile_id}/name`, `PUT /text-profiles/active`, `DELETE /text-profiles/stored/{profile_id}`, `POST /text-profiles/factory-reset`, `POST /text-profiles/stored/{profile_id}/reset` | `create_text_profile`, `rename_text_profile`, `set_active_text_profile`, `delete_text_profile`, `factory_reset_text_profiles`, `reset_text_profile` | The server now mirrors the released profile lifecycle directly instead of exposing whole-profile store or use shims. |
 | `runtime.normalizer.profiles.addReplacement` / `patchReplacement` / `removeReplacement` | Full | `POST`, `PUT`, and `DELETE` replacement routes under active and stored profile paths | `add_text_replacement`, `replace_text_replacement`, `remove_text_replacement` | Supports both active custom profile mutation and stored profile mutation. |
-| `runtime.jobs.generationQueue()` | Full | `GET /generation/queue` | `list_generation_queue` | Exposed directly from runtime-owned queue data. |
+| `runtime.generate.snapshot()` | Full | `GET /generation/queue` | `list_generation_queue` | Exposed directly from runtime-owned generation queue data. |
 | `runtime.jobs.list()` / `job(id:)` / `expire(id:)` | Full | `GET /generation/jobs`, `GET /generation/jobs/{job_id}`, `DELETE` equivalent via expiry route family when present in HTTP flow | `list_generation_jobs`, `get_generation_job`, `expire_generation_job`, `speak-swiftly://generation/jobs`, `speak-swiftly://generation/jobs/{job_id}` | Retained generation-job reads and expiry controls now follow the runtime terminology instead of older server-only job wrappers. |
 | `runtime.artifacts()` / `artifact(id:)` | Full | `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}` | `speak-swiftly://generation/artifacts`, `speak-swiftly://generation/artifacts/{artifact_id}` | Saved artifact reads use one retained artifact family; batch membership is read through generation jobs instead of a separate batch read family. |
-| `runtime.player.list()` | Full | `GET /playback/queue` | `list_playback_queue` | Exposed as the playback queue read model. |
-| `runtime.player.state()` | Full | `GET /playback/state` | `get_playback_state` | Used directly for playback state reads and control settling. |
-| `runtime.player.pause()` / `resume()` | Full | `POST /playback/pause`, `POST /playback/resume` | `pause_playback`, `resume_playback` | The server now aligns its cached playback snapshot with these accepted control responses. |
-| `runtime.player.clearQueue()` | Full | `DELETE /playback/queue` | `clear_playback_queue` | Returns cleared queued-count information rather than forcing clients to infer it. |
+| `runtime.playback.snapshot()` | Full | `GET /playback/queue` | `list_playback_queue` | Exposed as the playback queue read model. |
+| `runtime.playback.snapshot()` | Full | `GET /playback/state` | `get_playback_state` | Used directly for playback state reads and control settling. |
+| `runtime.playback.pause()` / `resume()` | Full | `POST /playback/pause`, `POST /playback/resume` | `pause_playback`, `resume_playback` | The server now aligns its cached playback snapshot with these accepted control responses. |
+| `runtime.playback.clearQueue()` | Full | `DELETE /playback/queue` | `clear_playback_queue` | Returns cleared queued-count information rather than forcing clients to infer it. |
 | `runtime.cancelRequest(_:)` / queue-scoped cancellation | Full | `DELETE /requests/{request_id}` with optional `?scope=generation\|playback` | `cancel_request` with optional `scope` | Cancels one active or queued request by id, with scope only when the caller deliberately needs queue-specific protection. |
 | `runtime.request(id:)` / `runtime.updates(for:)` | Adapted | `GET /requests`, `GET /requests/{request_id}`, `GET /requests/{request_id}/events` | `list_active_requests`, `speak-swiftly://requests`, `speak-swiftly://requests/{request_id}` | Exposed through retained host request snapshots and event history instead of raw Swift concurrency streams. |
 | `accept(line:)` | Not exposed | None | None | Correctly left as an internal line-oriented parser entrypoint. |
@@ -93,6 +93,6 @@ Those adaptations are deliberate because HTTP and MCP consumers need stable, nav
 
 At this point, the remaining surface work should stay focused on clarity rather than parity theater:
 
-1. keep trimming any server-local wrappers that do not add real transport clarity now that the runtime overview, jobs, artifacts, runtime configuration, and text-normalizer APIs are all directly available
+1. keep trimming any server-local wrappers that do not add real transport clarity now that runtime snapshots, jobs, artifacts, runtime configuration, and text-normalizer APIs are all directly available
 2. keep README and maintainer docs synchronized whenever the resolved `SpeakSwiftly` version or MCP surface changes
 3. keep the small live E2E smoke suite pointed at the current HTTP and MCP names so release verification proves the actual shipped transport surface

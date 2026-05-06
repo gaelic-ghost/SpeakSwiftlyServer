@@ -157,20 +157,11 @@ extension ServerHost {
     }
 
     func runtimeStatus() async throws -> RuntimeStatusResponse {
-        let handle = await runtime.runtimeStatus()
-        let completion = try await awaitImmediateCompletion(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the runtime-status request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while reading runtime status.",
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        return .init(
+            runtime: runtimeSnapshot,
+            runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
         )
-        guard case let .runtimeStatus(status: status?, speechBackend: _) = completion else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the runtime-status request, but it did not return a status payload.",
-            )
-        }
-
-        return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
     }
 
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async throws -> RuntimeBackendResponse {
@@ -180,22 +171,23 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the speech-backend switch request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while switching the active speech backend.",
         )
-        guard case let .runtimeStatus(status: _, speechBackend: resolvedSpeechBackend?) = completion else {
+        guard case .runtimeUpdate = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a speech_backend payload.",
+                message: "SpeakSwiftly accepted the speech-backend switch request, but it did not return a runtime update payload.",
             )
         }
 
-        activeRuntimeSpeechBackend = resolvedSpeechBackend
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
         let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
-            activeRuntimeSpeechBackend: resolvedSpeechBackend,
+            activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
-        return .init(speechBackend: resolvedSpeechBackend.rawValue)
+        return .init(speechBackend: runtimeSnapshot.speechBackend.rawValue)
     }
 
     func reloadModels() async throws -> RuntimeStatusResponse {

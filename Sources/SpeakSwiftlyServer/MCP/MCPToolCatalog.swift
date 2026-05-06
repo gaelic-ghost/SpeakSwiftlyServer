@@ -141,7 +141,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "get_runtime_status",
-            description: "Compatibility read tool for the underlying SpeakSwiftly runtime status event. Prefer reading speak-swiftly://status for stage, resident model state, and active speech backend.",
+            description: "Compatibility read tool for the underlying SpeakSwiftly runtime snapshot. Prefer reading speak-swiftly://status for runtime state, resident model state, active speech backend, storage paths, and default voice profile.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
@@ -330,18 +330,18 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "get_playback_state",
-            description: "Compatibility read tool for the current SpeakSwiftly playback state snapshot. Prefer reading speak-swiftly://overview for playback state when the client supports MCP resources.",
+            description: "Compatibility read tool for the current SpeakSwiftly playback snapshot. Prefer reading speak-swiftly://overview for playback state when the client supports MCP resources.",
             inputSchema: ["type": "object", "properties": [:]],
             annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "pause_playback",
-            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback snapshot.",
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "resume_playback",
-            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback snapshot.",
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
