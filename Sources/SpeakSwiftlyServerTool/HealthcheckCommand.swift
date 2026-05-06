@@ -93,6 +93,12 @@ struct SpeakSwiftlyServerHealthcheck {
         let hostStatus = try await fetchHostStatus()
         let mcpResult = try await initializeMCP()
         print(Self.summary(httpHealth: httpHealth, hostStatus: hostStatus, mcpResult: mcpResult))
+        ToolLog.healthcheck.notice(
+            """
+            SpeakSwiftlyServer healthcheck passed for base URL '\(options.baseURL.absoluteString, privacy: .public)' \
+            and MCP path '\(options.mcpPath, privacy: .public)'.
+            """,
+        )
     }
 
     private func fetchHealth() async throws -> HealthcheckHealthSnapshot {

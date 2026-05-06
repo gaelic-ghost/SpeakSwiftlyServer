@@ -77,6 +77,13 @@ extension LaunchAgentOptions {
             Active tool executable: \(toolExecutableActivationSummary())
             """,
         )
+        ToolLog.launchAgent.notice(
+            """
+            Installed LaunchAgent '\(self.label, privacy: .public)' at '\(self.plistPath, privacy: .public)' \
+            and bootstrapped it into '\(self.userDomain, privacy: .public)'. \
+            Active tool executable: \(self.toolExecutablePath, privacy: .public)
+            """,
+        )
     }
 
     private func prepareStagedArtifactIfNeeded() throws {
@@ -100,6 +107,13 @@ extension LaunchAgentOptions {
             Staged current release artifact from '\(stagingResult.builtExecutablePath)' to '\(stagingResult.stagedExecutablePath)'.
             Refreshed staged metallib at '\(stagingResult.stagedMetallibPath)'.
             Refreshed staged code signature for '\(stagingResult.stagedExecutablePath)'.
+            """,
+        )
+        ToolLog.launchAgent.notice(
+            """
+            Staged current release artifact from '\(stagingResult.builtExecutablePath, privacy: .public)' \
+            to '\(stagingResult.stagedExecutablePath, privacy: .public)' with metallib \
+            '\(stagingResult.stagedMetallibPath, privacy: .public)'.
             """,
         )
     }

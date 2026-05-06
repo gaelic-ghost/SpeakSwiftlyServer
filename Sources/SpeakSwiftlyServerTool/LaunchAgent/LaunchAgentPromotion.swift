@@ -36,6 +36,13 @@ struct LaunchAgentPromoteOptions {
             Refreshed staged code signature for '\(stagingResult.stagedExecutablePath)'.
             """,
         )
+        ToolLog.launchAgent.notice(
+            """
+            Promoted live staged release artifact from '\(stagingResult.builtExecutablePath, privacy: .public)' \
+            to '\(stagingResult.stagedExecutablePath, privacy: .public)' with metallib \
+            '\(stagingResult.stagedMetallibPath, privacy: .public)'.
+            """,
+        )
 
         let refreshedInstallOptions = try LaunchAgentOptions(
             label: installOptions.label,
