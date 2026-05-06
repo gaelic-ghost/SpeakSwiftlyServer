@@ -6,7 +6,7 @@ import TextForSpeech
 // MARK: - Mock Runtime
 
 @available(macOS 14, *)
-actor MockRuntime: ServerRuntimeProtocol {
+actor MockRuntime: SpeakSwiftlyRuntimeServing {
     struct MockRequest {
         let id: String
         let operation: String

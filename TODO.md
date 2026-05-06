@@ -3,11 +3,11 @@
 ## Thorough Review Slices
 
 - [x] Slice 1: Host state and job tracking
-  Files: `Sources/SpeakSwiftlyServer/Host/ServerHost+State.swift`, `Sources/SpeakSwiftlyServer/Host/ServerHost+JobTracking.swift`
+  Files: `Sources/SpeakSwiftlyServer/Host/ServerHost+Snapshots.swift`, `Sources/SpeakSwiftlyServer/Host/ServerHost+RequestEvents.swift`
   Focus: runtime-derived state refresh policy, degraded-worker fallback behavior, profile-cache reconciliation, SSE replay, request retention and pruning.
 
 - [x] Slice 2: Runtime adapter transport bridging
-  Files: `Sources/SpeakSwiftlyServer/Host/ServerRuntimeAdapter.swift`
+  Files: `Sources/SpeakSwiftlyServer/Host/SpeakSwiftlyRuntimeAdapter.swift`
   Focus: text-profile transport shaping, crash-vs-error behavior, path resolution, and runtime API drift handling.
 
 - [x] Slice 3: MCP tool dispatch and notification policy

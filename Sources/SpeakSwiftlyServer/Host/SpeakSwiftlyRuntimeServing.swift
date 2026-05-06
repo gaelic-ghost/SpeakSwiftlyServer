@@ -47,7 +47,7 @@ func canonicalOperationName(_ operation: String) -> String {
     }
 }
 
-protocol ServerRuntimeProtocol: Actor {
+protocol SpeakSwiftlyRuntimeServing: Actor {
     func start() async
     func shutdown() async
     func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate>

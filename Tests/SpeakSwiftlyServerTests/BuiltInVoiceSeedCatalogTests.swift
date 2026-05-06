@@ -2,10 +2,10 @@ import Foundation
 @testable import SpeakSwiftlyServer
 import Testing
 
-// MARK: - Default Voice Catalog Tests
+// MARK: - Built-In Voice Seed Catalog Tests
 
-@Test func `default voice catalog loads package built in seeds`() throws {
-    let voices = try DefaultVoiceCatalog.load()
+@Test func `built in voice seed catalog loads package built in seeds`() throws {
+    let voices = try BuiltInVoiceSeedCatalog.load()
 
     #expect(voices.map(\.seedID) == ["swift.signal", "swift.anchor"])
     #expect(voices.map(\.profileName) == ["swift-signal", "swift-anchor"])
@@ -15,8 +15,8 @@ import Testing
     #expect(voices.allSatisfy { $0.seedVersion == "1" })
 }
 
-@Test func `default voice catalog keeps seed identity separate from visible profile names`() throws {
-    let voices = try DefaultVoiceCatalog.load()
+@Test func `built in voice seed catalog keeps seed identity separate from visible profile names`() throws {
+    let voices = try BuiltInVoiceSeedCatalog.load()
 
     for voice in voices {
         #expect(voice.seedID.contains("."))
@@ -28,11 +28,11 @@ import Testing
     }
 }
 
-@Test func `default voice catalog reports missing resource with actionable context`() throws {
+@Test func `built in voice seed catalog reports missing resource with actionable context`() throws {
     do {
-        _ = try DefaultVoiceCatalog.load(bundle: .main)
+        _ = try BuiltInVoiceSeedCatalog.load(bundle: .main)
         Issue.record("Expected loading from the main bundle to miss the package resource catalog.")
-    } catch let error as DefaultVoiceCatalogError {
+    } catch let error as BuiltInVoiceSeedCatalogError {
         #expect(error.message.contains("DefaultVoiceProfiles/catalog.json"))
         #expect(error.message.contains("package resource bundle"))
     }

@@ -81,7 +81,7 @@ actor ServerHost {
     var configuration: ServerConfiguration
     var httpConfig: HTTPConfig
     var mcpConfig: MCPConfig
-    let runtime: any ServerRuntimeProtocol
+    let runtime: any SpeakSwiftlyRuntimeServing
     let runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore
     let state: EmbeddedServer
     let immediatePublishRequests: AsyncStream<Void>
@@ -154,7 +154,7 @@ actor ServerHost {
         configuration: ServerConfiguration,
         httpConfig: HTTPConfig? = nil,
         mcpConfig: MCPConfig? = nil,
-        runtime: any ServerRuntimeProtocol,
+        runtime: any SpeakSwiftlyRuntimeServing,
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
@@ -261,7 +261,7 @@ actor ServerHost {
             configuredDefaultVoiceProfileName: appConfig.runtime.defaultVoiceProfileName
                 ?? appConfig.server.defaultVoiceProfileName,
         )
-        let runtime = await ServerRuntimeAdapter(
+        let runtime = await SpeakSwiftlyRuntimeAdapter(
             runtime: SpeakSwiftlyRuntimeLauncher.shared.launch(
                 configuration: startupConfiguration,
                 environment: environment,

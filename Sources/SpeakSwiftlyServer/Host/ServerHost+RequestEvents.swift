@@ -373,7 +373,7 @@ extension ServerHost {
                     isRunningStartupProfileRefresh = true
                     do {
                         let profiles = try await refreshProfiles(reason: "startup")
-                        _ = try await installMissingDefaultVoices(after: profiles)
+                        _ = try await installMissingBuiltInVoices(after: profiles)
                         hasRequestedStartupProfileRefresh = true
                     } catch {
                         profileCacheState = "stale"

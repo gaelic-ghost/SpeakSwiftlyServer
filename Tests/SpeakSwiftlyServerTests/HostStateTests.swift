@@ -826,7 +826,7 @@ import Testing
 
 @available(macOS 14, *)
 @Test func `startup reuses existing fallback default voice when preferred name becomes free`() async throws {
-    let signalSeed = try #require(DefaultVoiceCatalog.load().first { $0.profileName == "swift-signal" })
+    let signalSeed = try #require(BuiltInVoiceSeedCatalog.load().first { $0.profileName == "swift-signal" })
     let runtime = MockRuntime(
         profiles: [
             SpeakSwiftly.ProfileSummary(
@@ -869,7 +869,7 @@ import Testing
 
 @available(macOS 14, *)
 @Test func `startup installs fallback default voice when unrelated profile matches seed metadata`() async throws {
-    let signalSeed = try #require(DefaultVoiceCatalog.load().first { $0.profileName == "swift-signal" })
+    let signalSeed = try #require(BuiltInVoiceSeedCatalog.load().first { $0.profileName == "swift-signal" })
     let runtime = MockRuntime(
         profiles: [
             SpeakSwiftly.ProfileSummary(

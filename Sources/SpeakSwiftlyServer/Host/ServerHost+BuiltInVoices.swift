@@ -2,12 +2,12 @@ import Foundation
 import SpeakSwiftly
 
 extension ServerHost {
-    func installMissingDefaultVoices(after profiles: [ProfileSnapshot]) async throws -> [ProfileSnapshot] {
+    func installMissingBuiltInVoices(after profiles: [ProfileSnapshot]) async throws -> [ProfileSnapshot] {
         var currentProfiles = profiles
-        let seeds = try DefaultVoiceCatalog.load()
+        let seeds = try BuiltInVoiceSeedCatalog.load()
 
         for seed in seeds {
-            guard let targetProfileName = defaultVoiceInstallName(for: seed, in: currentProfiles) else {
+            guard let targetProfileName = builtInVoiceInstallName(for: seed, in: currentProfiles) else {
                 recordRecentError(
                     source: "voices:default-install",
                     code: "default_voice_seed_conflict",
@@ -19,42 +19,42 @@ extension ServerHost {
             }
 
             if let targetProfile = currentProfiles.first(where: { $0.profileName == targetProfileName }),
-               profileMatchesDefaultVoiceSeed(targetProfile, seed: seed) {
+               profileMatchesBuiltInVoiceSeed(targetProfile, seed: seed) {
                 continue
             }
 
-            try await createDefaultVoice(seed, profileName: targetProfileName)
+            try await createBuiltInVoice(seed, profileName: targetProfileName)
             currentProfiles = try await refreshProfiles(reason: "default_voice_seed:\(seed.seedID)")
         }
 
         return currentProfiles
     }
 
-    private func defaultVoiceInstallName(
-        for seed: DefaultVoiceSeed,
+    private func builtInVoiceInstallName(
+        for seed: BuiltInVoiceSeed,
         in profiles: [ProfileSnapshot],
     ) -> String? {
         if let existingProfile = profiles.first(where: { $0.profileName == seed.profileName }) {
-            if profileMatchesDefaultVoiceSeed(existingProfile, seed: seed) {
+            if profileMatchesBuiltInVoiceSeed(existingProfile, seed: seed) {
                 return seed.profileName
             }
             if let fallbackProfile = profiles.first(where: { $0.profileName == seed.fallbackProfileName }) {
-                return profileMatchesDefaultVoiceSeed(fallbackProfile, seed: seed) ? seed.fallbackProfileName : nil
+                return profileMatchesBuiltInVoiceSeed(fallbackProfile, seed: seed) ? seed.fallbackProfileName : nil
             }
             return seed.fallbackProfileName
         }
 
         if let fallbackProfile = profiles.first(where: { $0.profileName == seed.fallbackProfileName }),
-           profileMatchesDefaultVoiceSeed(fallbackProfile, seed: seed) {
+           profileMatchesBuiltInVoiceSeed(fallbackProfile, seed: seed) {
             return seed.fallbackProfileName
         }
 
         return seed.profileName
     }
 
-    private func profileMatchesDefaultVoiceSeed(
+    private func profileMatchesBuiltInVoiceSeed(
         _ profile: ProfileSnapshot,
-        seed: DefaultVoiceSeed,
+        seed: BuiltInVoiceSeed,
     ) -> Bool {
         if profile.author == SpeakSwiftly.ProfileAuthor.system.rawValue,
            profile.seedID == seed.seedID {
@@ -66,8 +66,8 @@ extension ServerHost {
             && profile.sourceText == seed.sourceText
     }
 
-    private func createDefaultVoice(
-        _ seed: DefaultVoiceSeed,
+    private func createBuiltInVoice(
+        _ seed: BuiltInVoiceSeed,
         profileName: String,
     ) async throws {
         let handle = await runtime.createSystemVoiceProfileFromDescription(

@@ -1,6 +1,6 @@
 import Foundation
 
-private final class HostLifecycleDelayState: @unchecked Sendable {
+private final class ServerHostLifecycleDelayState: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<Void, Error>?
     private var isResolved = false
@@ -43,7 +43,7 @@ private final class HostLifecycleDelayState: @unchecked Sendable {
 }
 
 func hostLifecycleDelay(for duration: Duration) async throws {
-    let state = HostLifecycleDelayState()
+    let state = ServerHostLifecycleDelayState()
     let interval = max(0, duration.timeInterval)
 
     try await withTaskCancellationHandler {

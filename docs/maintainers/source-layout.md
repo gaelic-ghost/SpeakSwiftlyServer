@@ -22,26 +22,32 @@ visible to maintainers. Completed implementation plans belong in
   Holds the embedded-session readiness gates, shutdown barrier, and the explicit service-owned wrappers for host lifecycle, config watching, MCP lifecycle, and wrapped application runtime.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost.swift`
   Holds the actor declaration, stored state, and construction-time setup.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+Lifecycle.swift`
+- `Sources/SpeakSwiftlyServer/Host/EmbeddedServer.swift`
+  Holds the public observable embedded-server surface that consuming apps own directly.
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+RuntimeLifecycle.swift`
   Holds runtime start and shutdown, shared update streams, transport lifecycle hooks, configuration-reload handling, and the host health or readiness snapshot surface.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+Queries.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+RuntimeControls.swift`
   Holds the public runtime query surface, generated-artifact reads, retained-request reads, and immediate control entrypoints.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+ProfileQueries.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+Profiles.swift`
   Holds the voice-profile cache reads, default-voice-profile ownership, text-profile queries and mutations, and profile-refresh entrypoints.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+JobSubmission.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+Requests.swift`
   Holds request submission, accepted-request shaping, and the handoff into retained host tracking.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+JobTracking.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+RequestEvents.swift`
   Holds SSE replay, request-event consumption, profile-cache reconciliation, worker status handling, and in-memory job retention.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+State.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+Snapshots.swift`
   Holds publish flow, runtime refresh, derived host snapshots, and live configuration reload helpers.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+EventSupport.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+EventMapping.swift`
   Holds transport-status helpers, recent-error emission, event mapping, SSE encoding, and shared host-event helpers.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+ControlSupport.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+ControlResponses.swift`
   Holds playback-control settling, optimistic playback snapshots, and immediate runtime-success helpers.
-- `Sources/SpeakSwiftlyServer/Host/ServerRuntimeProtocol.swift`
+- `Sources/SpeakSwiftlyServer/Host/ServerHost+BuiltInVoices.swift`
+  Holds the temporary server-side built-in voice seed installation behavior. This should shrink or disappear when built-in voice seeds move into `SpeakSwiftly`.
+- `Sources/SpeakSwiftlyServer/Host/SpeakSwiftlyRuntimeServing.swift`
   Holds the narrow runtime seam and the request-handle wrapper type used by the host.
-- `Sources/SpeakSwiftlyServer/Host/ServerRuntimeAdapter.swift`
+- `Sources/SpeakSwiftlyServer/Host/SpeakSwiftlyRuntimeAdapter.swift`
   Holds the concrete adapter from the public `SpeakSwiftly.Runtime` actor into that host-owned seam.
+- `Sources/SpeakSwiftlyServer/Host/ServerHostLifecycleDelay.swift`
+  Holds the host lifecycle delay helper used by shutdown and retry paths.
 
 ## Model Sources
 
@@ -49,19 +55,21 @@ visible to maintainers. Completed implementation plans belong in
   Request payloads, shared normalization-format helpers, and transport-owned `SpeakSwiftly.RequestContext` default merging for HTTP and MCP speech requests.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
-- `Sources/SpeakSwiftlyServer/Host/DefaultVoiceCatalog.swift`
-  Package-owned default voice seed catalog loading and validation models.
-- `Sources/SpeakSwiftlyServer/Host/QueueStatusModels.swift`
-  Queue response envelopes plus health, readiness, and status snapshots. Keep playback state itself in `HostStateModels.swift` so app state, HTTP, and MCP event payloads do not grow parallel playback snapshot shapes.
-- `Sources/SpeakSwiftlyServer/Host/JobEventModels.swift`
+- `Sources/SpeakSwiftlyServer/Host/BuiltInVoiceSeedCatalog.swift`
+  Package-owned built-in voice seed catalog loading and validation models. This is a temporary server-side home until SpeakSwiftly owns its built-in voice seeds directly.
+- `Sources/SpeakSwiftlyServer/Host/QueueResponseModels.swift`
+  Queue response envelopes plus health, readiness, and status snapshots. Keep playback state itself in `EmbeddedServerSnapshots.swift` so app state, HTTP, and MCP event payloads do not grow parallel playback snapshot shapes.
+- `Sources/SpeakSwiftlyServer/Host/RequestEventModels.swift`
   Job event payloads and retained request snapshots.
-- `Sources/SpeakSwiftlyServer/Host/HostStateModels.swift`
+- `Sources/SpeakSwiftlyServer/Host/EmbeddedServerSnapshots.swift`
   Shared host-overview, queue, playback, runtime, transport, and error snapshots for app state, HTTP, MCP resources, and request-event payloads.
+- `Sources/SpeakSwiftlyServer/Host/ServerHostEvents.swift`
+  Host event snapshots and update messages for profile-cache, text-profile, runtime-config, and request-event notifications.
 
 ## Operator Sources
 
 - `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/catalog.json`
-  Holds the package-owned default voice seed catalog. Keep this as bundled seed metadata, not as
+  Holds the package-owned built-in voice seed catalog. Keep this as bundled seed metadata, not as
   user profile storage.
 - `Sources/SpeakSwiftlyServer/Resources/default-server.yaml`
   Holds the bundled default server config. The library seeds the persisted Application Support
@@ -74,9 +82,11 @@ visible to maintainers. Completed implementation plans belong in
 - `Sources/SpeakSwiftlyServer/Config/ServerConfigPersistence.swift`
   Owns the library-level default-config seed, load, and save behavior for the persisted YAML file.
   Keep one-off config-provider adapters private inside this file unless another source needs them.
-- `Sources/SpeakSwiftlyServer/Host/RuntimeStartupConfigurationStore.swift`
+- `Sources/SpeakSwiftlyServer/Config/RuntimeStartupConfigurationStore.swift`
   Bridges persisted `app.runtime` choices into active host snapshots and save operations.
-- `Sources/SpeakSwiftlyServer/Host/ServerStorageDefaults.swift`
+- `Sources/SpeakSwiftlyServer/Config/ServerConfiguration.swift`
+  Holds the typed root server configuration and shared server configuration error.
+- `Sources/SpeakSwiftlyServer/Config/ServerStorageDefaults.swift`
   Holds the default Application Support paths for the server YAML config and runtime profile root.
 - `Sources/SpeakSwiftlyServerTool/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
   Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.

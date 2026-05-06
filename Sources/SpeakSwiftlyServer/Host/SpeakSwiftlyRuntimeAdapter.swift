@@ -44,7 +44,7 @@ func resolvedAbsoluteFilesystemPath(
     .path
 }
 
-actor ServerRuntimeAdapter: ServerRuntimeProtocol {
+actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
     private let runtime: SpeakSwiftly.Runtime
 
     // MARK: - Initialization

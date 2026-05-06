@@ -1,18 +1,18 @@
 import Foundation
 import SpeakSwiftly
 
-package enum DefaultVoiceCatalog {
+package enum BuiltInVoiceSeedCatalog {
     package static let resourceDirectory = "DefaultVoiceProfiles"
     package static let resourceName = "catalog"
     package static let resourceExtension = "json"
 
-    package static func load(bundle: Bundle = .module) throws -> [DefaultVoiceSeed] {
+    package static func load(bundle: Bundle = .module) throws -> [BuiltInVoiceSeed] {
         guard let catalogURL = bundle.url(
             forResource: resourceName,
             withExtension: resourceExtension,
             subdirectory: resourceDirectory,
         ) else {
-            throw DefaultVoiceCatalogError(
+            throw BuiltInVoiceSeedCatalogError(
                 """
                 SpeakSwiftlyServer could not load the built-in default voice catalog because the bundled resource '\(resourceDirectory)/\(resourceName).\(resourceExtension)' is missing.
                 Likely cause: the package resource bundle was built without the default voice catalog.
@@ -22,10 +22,10 @@ package enum DefaultVoiceCatalog {
 
         do {
             let data = try Data(contentsOf: catalogURL)
-            let catalog = try JSONDecoder().decode(DefaultVoiceSeedCatalog.self, from: data)
+            let catalog = try JSONDecoder().decode(BuiltInVoiceSeedCatalogDocument.self, from: data)
             return catalog.voices
         } catch {
-            throw DefaultVoiceCatalogError(
+            throw BuiltInVoiceSeedCatalogError(
                 """
                 SpeakSwiftlyServer could not decode the built-in default voice catalog at '\(catalogURL.path)'.
                 Likely cause: \(error.localizedDescription)
@@ -35,7 +35,7 @@ package enum DefaultVoiceCatalog {
     }
 }
 
-package struct DefaultVoiceCatalogError: Error, CustomStringConvertible {
+package struct BuiltInVoiceSeedCatalogError: Error, CustomStringConvertible {
     package let message: String
 
     package init(_ message: String) {
@@ -45,9 +45,9 @@ package struct DefaultVoiceCatalogError: Error, CustomStringConvertible {
     package var description: String { message }
 }
 
-package struct DefaultVoiceSeedCatalog: Codable, Equatable {
+package struct BuiltInVoiceSeedCatalogDocument: Codable, Equatable {
     package let catalogVersion: Int
-    package let voices: [DefaultVoiceSeed]
+    package let voices: [BuiltInVoiceSeed]
 
     enum CodingKeys: String, CodingKey {
         case catalogVersion = "catalog_version"
@@ -55,16 +55,16 @@ package struct DefaultVoiceSeedCatalog: Codable, Equatable {
     }
 }
 
-package struct DefaultVoiceSeed: Codable, Equatable, Identifiable {
+package struct BuiltInVoiceSeed: Codable, Equatable, Identifiable {
     package let seedID: String
     package let seedVersion: String
     package let profileName: String
     package let fallbackProfileName: String
-    package let author: DefaultVoiceSeedAuthor
+    package let author: BuiltInVoiceSeedAuthor
     package let vibe: SpeakSwiftly.Vibe
     package let voiceDescription: String
     package let sourceText: String
-    package let sourceKind: DefaultVoiceSeedSourceKind
+    package let sourceKind: BuiltInVoiceSeedSourceKind
     package let sampleMediaPath: String?
 
     package var id: String { seedID }
@@ -95,10 +95,10 @@ package struct DefaultVoiceSeed: Codable, Equatable, Identifiable {
     }
 }
 
-package enum DefaultVoiceSeedAuthor: String, Codable {
+package enum BuiltInVoiceSeedAuthor: String, Codable {
     case system
 }
 
-package enum DefaultVoiceSeedSourceKind: String, Codable {
+package enum BuiltInVoiceSeedSourceKind: String, Codable {
     case generatedDesign = "generated_design"
 }
