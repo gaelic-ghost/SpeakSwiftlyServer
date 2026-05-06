@@ -23,7 +23,7 @@
   Focus: launchctl polling, uninstall timing, partial teardown states, and operator-facing diagnostics.
 
 - [x] Slice 6: E2E MCP stream harness
-  Files: `Tests/SpeakSwiftlyServerE2ETests/E2EMCPEventStream.swift` and related E2E helpers
+  Files: `Tests/SpeakSwiftlyServerTransportE2ETests/E2EMCPEventStream.swift` and related E2E helpers
   Focus: stream connection timing, polling sleeps, notification matching, and flake risk.
 
 ## Slice 1 Findings

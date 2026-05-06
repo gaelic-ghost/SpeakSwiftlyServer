@@ -44,11 +44,11 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:Tests/SpeakSwiftlyServer-Package-Main.xctestplan"
+            reference = "container:Tests/SpeakSwiftlyServer-Package-Library.xctestplan"
             default = "YES">
          </TestPlanReference>
          <TestPlanReference
-            reference = "container:Tests/SpeakSwiftlyServer-Package-E2E.xctestplan">
+            reference = "container:Tests/SpeakSwiftlyServer-Package-TransportE2E.xctestplan">
          </TestPlanReference>
       </TestPlans>
       <Testables>
@@ -56,9 +56,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SpeakSwiftlyServerTests"
-               BuildableName = "SpeakSwiftlyServerTests"
-               BlueprintName = "SpeakSwiftlyServerTests"
+               BlueprintIdentifier = "SpeakSwiftlyServerLibraryTests"
+               BuildableName = "SpeakSwiftlyServerLibraryTests"
+               BlueprintName = "SpeakSwiftlyServerLibraryTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -76,9 +76,29 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SpeakSwiftlyServerE2ETests"
-               BuildableName = "SpeakSwiftlyServerE2ETests"
-               BlueprintName = "SpeakSwiftlyServerE2ETests"
+               BlueprintIdentifier = "SpeakSwiftlyServerTransportE2ETests"
+               BuildableName = "SpeakSwiftlyServerTransportE2ETests"
+               BlueprintName = "SpeakSwiftlyServerTransportE2ETests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SpeakSwiftlyServerLibraryTests"
+               BuildableName = "SpeakSwiftlyServerLibraryTests"
+               BlueprintName = "SpeakSwiftlyServerLibraryTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SpeakSwiftlyServerTransportE2ETests"
+               BuildableName = "SpeakSwiftlyServerTransportE2ETests"
+               BlueprintName = "SpeakSwiftlyServerTransportE2ETests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -105,15 +125,6 @@
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SpeakSwiftlyServerTool"
-            BuildableName = "SpeakSwiftlyServerTool"
-            BlueprintName = "SpeakSwiftlyServerTool"
-            ReferencedContainer = "container:">
-         </BuildableReference>
-      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

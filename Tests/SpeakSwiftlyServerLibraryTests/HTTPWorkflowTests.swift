@@ -282,7 +282,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","topic":"route-coverage","attributes":{"caller.app":"SpeakSwiftlyServerTests","caller.project":"SpeakSwiftlyServer","surface":"http"}},"cwd":"./Sources","repo_root":".","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
+                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","topic":"route-coverage","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"http"}},"cwd":"./Sources","repo_root":".","source_format":"python_source","qwen_pre_model_text_chunking":true}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -302,7 +302,7 @@ extension ServerTests {
                         cwd: "./Sources",
                         repoRoot: ".",
                         attributes: [
-                            "caller.app": "SpeakSwiftlyServerTests",
+                            "caller.app": "SpeakSwiftlyServerLibraryTests",
                             "caller.project": "SpeakSwiftlyServer",
                             "http.method": "POST",
                             "http.route": "/speech/live",

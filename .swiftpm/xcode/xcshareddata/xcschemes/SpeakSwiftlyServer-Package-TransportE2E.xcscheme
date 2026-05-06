@@ -44,7 +44,7 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:Tests/SpeakSwiftlyServer-Package-Main.xctestplan"
+            reference = "container:Tests/SpeakSwiftlyServer-Package-TransportE2E.xctestplan"
             default = "YES">
          </TestPlanReference>
       </TestPlans>
@@ -53,19 +53,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SpeakSwiftlyServerTests"
-               BuildableName = "SpeakSwiftlyServerTests"
-               BlueprintName = "SpeakSwiftlyServerTests"
-               ReferencedContainer = "container:">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SpeakSwiftlyServerToolTests"
-               BuildableName = "SpeakSwiftlyServerToolTests"
-               BlueprintName = "SpeakSwiftlyServerToolTests"
+               BlueprintIdentifier = "SpeakSwiftlyServerTransportE2ETests"
+               BuildableName = "SpeakSwiftlyServerTransportE2ETests"
+               BlueprintName = "SpeakSwiftlyServerTransportE2ETests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

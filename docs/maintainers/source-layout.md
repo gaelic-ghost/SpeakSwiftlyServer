@@ -101,21 +101,21 @@ visible to maintainers. Completed implementation plans belong in
 
 ## Test Sources
 
-- `Tests/SpeakSwiftlyServerTests/HTTPWorkflowTests.swift`, `HTTPControlTests.swift`, and `HTTPFailureTests.swift`
+- `Tests/SpeakSwiftlyServerLibraryTests/HTTPWorkflowTests.swift`, `HTTPControlTests.swift`, and `HTTPFailureTests.swift`
   Keep lifecycle-heavy HTTP route coverage split by mainline flows, immediate control paths, and error handling.
-- `Tests/SpeakSwiftlyServerTests/MCPCatalogListingTests.swift`, `MCPCatalogRuntimeTests.swift`, `MCPCatalogResourceTests.swift`, and `SpeakSwiftlyServerMCPCatalogSupport.swift`
+- `Tests/SpeakSwiftlyServerLibraryTests/MCPCatalogListingTests.swift`, `MCPCatalogRuntimeTests.swift`, `MCPCatalogResourceTests.swift`, and `SpeakSwiftlyServerMCPCatalogSupport.swift`
   Keep MCP catalog, runtime-tool, and resource/prompt coverage separate so the tool surface can grow without another single giant catalog test.
-- `Tests/SpeakSwiftlyServerTests/MCPSessionTests.swift` and `MCPSubscriptionTests.swift`
+- `Tests/SpeakSwiftlyServerLibraryTests/MCPSessionTests.swift` and `MCPSubscriptionTests.swift`
   Keep MCP session behavior and live-subscription behavior independent from catalog assertions.
-- `Tests/SpeakSwiftlyServerTests/ConfigTests.swift`, `HostLifecycleTests.swift`, and `HostStateTests.swift`
+- `Tests/SpeakSwiftlyServerLibraryTests/ConfigTests.swift`, `HostLifecycleTests.swift`, and `HostStateTests.swift`
   Keep configuration, lifecycle, and shared-state coverage independent instead of mixing them into one broad host suite.
-- `Tests/SpeakSwiftlyServerTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
+- `Tests/SpeakSwiftlyServerLibraryTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
   Keep the typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks.
-- `Tests/SpeakSwiftlyServerE2ETests/E2ESuite.swift`, `E2ETransportSmokeTests.swift`, and the `SpeakSwiftlyServerE2E*Helpers.swift` files
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2ESuite.swift`, `E2ETransportSmokeTests.swift`, and the `SpeakSwiftlyServerE2E*Helpers.swift` files
   Keep the live target as one small transport-owned smoke suite that proves server boot, one real HTTP request, one real MCP resource update, and retained request inspection without duplicating SpeakSwiftly's worker-owned E2E matrix here.
-- `Tests/SpeakSwiftlyServerE2ETests/E2EHTTPClient.swift`, `E2EMCPClient.swift`, and `E2EMCPEventStream.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EHTTPClient.swift`, `E2EMCPClient.swift`, and `E2EMCPEventStream.swift`
   Keep the live HTTP transport, MCP request transport, and MCP SSE stream handling separate so transport bugs do not regrow one giant helper file.
-- `Tests/SpeakSwiftlyServerE2ETests/E2EPayloadHelpers.swift` and `E2ETransportWaiters.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EPayloadHelpers.swift` and `E2ETransportWaiters.swift`
   Keep JSON or JSON-RPC decoding, polling waiters, and stored-profile manifest loading split by responsibility instead of mixing transport and payload utilities.
 
 ## Transport Sources

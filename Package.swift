@@ -70,7 +70,7 @@ let package = Package(
             path: "Sources/SpeakSwiftlyServerTool",
         ),
         .testTarget(
-            name: "SpeakSwiftlyServerTests",
+            name: "SpeakSwiftlyServerLibraryTests",
             dependencies: [
                 "SpeakSwiftlyServer",
                 .product(name: "Hummingbird", package: "hummingbird"),
@@ -80,7 +80,7 @@ let package = Package(
             ],
         ),
         .testTarget(
-            name: "SpeakSwiftlyServerE2ETests",
+            name: "SpeakSwiftlyServerTransportE2ETests",
             dependencies: [
                 // Keep the live server smoke suite on the same MLX runtime stack as
                 // the published SpeakSwiftly runtime this package launches in-process.

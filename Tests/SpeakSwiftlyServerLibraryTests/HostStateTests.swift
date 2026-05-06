@@ -649,7 +649,7 @@ import Testing
             cwd: "./Sources",
             repoRoot: ".",
             attributes: [
-                "caller.app": "SpeakSwiftlyServerTests",
+                "caller.app": "SpeakSwiftlyServerLibraryTests",
                 "caller.project": "SpeakSwiftlyServer",
                 "surface": "embedded",
             ],
@@ -669,7 +669,7 @@ import Testing
                 cwd: "./Sources",
                 repoRoot: ".",
                 attributes: [
-                    "caller.app": "SpeakSwiftlyServerTests",
+                    "caller.app": "SpeakSwiftlyServerLibraryTests",
                     "caller.project": "SpeakSwiftlyServer",
                     "surface": "embedded",
                 ],

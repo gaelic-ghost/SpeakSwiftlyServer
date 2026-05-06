@@ -1,8 +1,8 @@
 {
   "configurations" : [
     {
-      "id" : "A8FDECCF-2273-4021-A1D3-6C19FED861BB",
-      "name" : "Live End-to-End Tests",
+      "id" : "52553EFB-0347-44C9-8F59-6986DA07C80A",
+      "name" : "Package Tests",
       "options" : {
 
       }
@@ -12,10 +12,6 @@
     "environmentVariableEntries" : [
       {
         "key" : "SPEAKSWIFTLYSERVER_E2E",
-        "value" : "1"
-      },
-      {
-        "key" : "SPEAKSWIFTLY_PLAYBACK_TRACE",
         "value" : "0"
       }
     ],
@@ -30,8 +26,15 @@
     {
       "target" : {
         "containerPath" : "container:",
-        "identifier" : "SpeakSwiftlyServerE2ETests",
-        "name" : "SpeakSwiftlyServerE2ETests"
+        "identifier" : "SpeakSwiftlyServerLibraryTests",
+        "name" : "SpeakSwiftlyServerLibraryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SpeakSwiftlyServerToolTests",
+        "name" : "SpeakSwiftlyServerToolTests"
       }
     }
   ],

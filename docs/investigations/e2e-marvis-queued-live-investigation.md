@@ -17,7 +17,7 @@
 - The process environment confirmed:
   - `APP_MCP_ENABLED=false`
   - `SPEAKSWIFTLY_SPEECH_BACKEND=marvis`
-- Those settings narrow the stuck run to the HTTP queued-Marvis lane now housed in `Tests/SpeakSwiftlyServerE2ETests/E2EQueuedMarvisLane.swift`.
+- Those settings narrow the stuck run to the HTTP queued-Marvis lane now housed in `Tests/SpeakSwiftlyServerTransportE2ETests/E2EQueuedMarvisLane.swift`.
 
 ## Confirmed Failure Signals
 

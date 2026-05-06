@@ -133,9 +133,9 @@ If the right long-term answer is "never mutate `.release-artifacts/current` in p
 
 The repository already has good MCP testing primitives in:
 
-- `Tests/SpeakSwiftlyServerE2ETests/E2EMCPClient.swift`
-- `Tests/SpeakSwiftlyServerE2ETests/E2EMCPEventStream.swift`
-- `Tests/SpeakSwiftlyServerE2ETests/E2EServerProcess.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EMCPClient.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EMCPEventStream.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EServerProcess.swift`
 
 Those should be promoted into a small shared maintainer utility or executable test helper so the same code path can be reused for:
 
