@@ -90,7 +90,7 @@ Status update on `2026-04-15`: this is now shipped as `xcrun swift run SpeakSwif
 
 ### 4. Revisit whether LaunchAgent-owned config needs a reloading provider
 
-Status update: the package now keeps reload behavior, but uses a small Foundation URL-backed YAML provider for the filesystem read and polling. `swift-configuration` still owns the reader, precedence behavior, YAML snapshot parsing, and value lookup shape; only the path-sensitive file access moved out of `ReloadingFileProvider<YAMLSnapshot>`.
+Status update: the package now keeps reload behavior, but uses `swift-configuration`'s `FileProvider<YAMLSnapshot>` for YAML loading and a small Foundation URL-backed monitor for file-change detection. `swift-configuration` still owns the reader, precedence behavior, YAML snapshot parsing, and value lookup shape; only path-sensitive file monitoring stays server-local because `ReloadingFileProvider<YAMLSnapshot>` currently treats Application Support paths with spaces as missing after symlink resolution.
 
 ### 5. Add explicit self-reporting for transport policy at startup
 

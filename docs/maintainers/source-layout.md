@@ -66,7 +66,7 @@ visible to maintainers. Completed implementation plans belong in
 - `Sources/SpeakSwiftlyServer/Resources/default-server.yaml`
   Holds the bundled default server config. The library seeds the persisted Application Support
   config from this resource and stores runtime startup choices in the same YAML document.
-- `Sources/SpeakSwiftlyServer/Config/AppConfig.swift`, `ServerConfigStore.swift`, and `ServerConfigDefaults.swift`
+- `Sources/SpeakSwiftlyServer/Config/AppConfig.swift` and `ServerConfigStore.swift`
   Hold the typed server config, the `swift-configuration` reader/reload setup, and the fallback
   defaults used when a config file omits values.
 - `Sources/SpeakSwiftlyServer/Config/RuntimeStartupConfiguration.swift`

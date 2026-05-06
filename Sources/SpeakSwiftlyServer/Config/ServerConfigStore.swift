@@ -11,7 +11,10 @@ struct ServerConfigStore {
     let reader: ConfigReader
     let services: [any Service]
 
-    private let reloadingProvider: URLReloadingYAMLConfigProvider?
+    private let environment: [String: String]
+    private let defaultProfile: ServerConfigDefaultProfile
+    private let monitoredConfigurationURL: URL?
+    private let reloadMonitor: ServerConfigFileMonitor?
 
     // MARK: - Initialization
 
@@ -20,6 +23,8 @@ struct ServerConfigStore {
         defaultProfile: ServerConfigDefaultProfile? = nil,
         configurationURL: URL? = nil,
     ) async throws {
+        self.environment = environment
+
         var services = [any Service]()
         var providers: [any ConfigProvider] = [
             EnvironmentVariablesProvider(environmentVariables: environment),
@@ -28,33 +33,41 @@ struct ServerConfigStore {
             explicitProfile: defaultProfile,
             environment: environment,
         )
+        self.defaultProfile = resolvedDefaultProfile
 
-        var reloadingProvider: URLReloadingYAMLConfigProvider?
+        var monitoredConfigurationURL: URL?
+        var reloadMonitor: ServerConfigFileMonitor?
 
         if let configurationURL {
             let persistence = ServerConfigPersistence(configurationURL: configurationURL)
             try persistence.seedIfMissing()
-            let provider = try await URLReloadingYAMLConfigProvider(
+            let provider = try await Self.yamlProvider(fileURL: persistence.configurationURL)
+            let monitor = try ServerConfigFileMonitor(
                 fileURL: persistence.configurationURL,
                 pollInterval: Self.reloadPollInterval(from: environment),
             )
             providers.append(provider)
-            services.append(provider)
-            reloadingProvider = provider
+            services.append(monitor)
+            monitoredConfigurationURL = persistence.configurationURL
+            reloadMonitor = monitor
         } else if let configFilePath = environment["APP_CONFIG_FILE"], !configFilePath.isEmpty {
-            let provider = try await URLReloadingYAMLConfigProvider(
-                fileURL: URL(fileURLWithPath: configFilePath),
+            let configFileURL = URL(fileURLWithPath: configFilePath).standardizedFileURL
+            let provider = try await Self.yamlProvider(fileURL: configFileURL)
+            let monitor = try ServerConfigFileMonitor(
+                fileURL: configFileURL,
                 pollInterval: Self.reloadPollInterval(from: environment),
             )
             providers.append(provider)
-            services.append(provider)
-            reloadingProvider = provider
+            services.append(monitor)
+            monitoredConfigurationURL = configFileURL
+            reloadMonitor = monitor
         }
 
         providers.append(InMemoryProvider(values: resolvedDefaultProfile.configDefaults))
         reader = ConfigReader(providers: providers)
         self.services = services
-        self.reloadingProvider = reloadingProvider
+        self.monitoredConfigurationURL = monitoredConfigurationURL
+        self.reloadMonitor = reloadMonitor
     }
 
     // MARK: - Helpers
@@ -76,6 +89,23 @@ struct ServerConfigStore {
         return .milliseconds(Int((seconds * 1000).rounded()))
     }
 
+    private static func yamlProvider(fileURL: URL) async throws -> FileProvider<YAMLSnapshot> {
+        try await FileProvider<YAMLSnapshot>(filePath: .init(fileURL.path))
+    }
+
+    private static func loadAppConfig(
+        environment: [String: String],
+        defaultProfile: ServerConfigDefaultProfile,
+        configurationURL: URL,
+    ) async throws -> AppConfig {
+        let providers: [any ConfigProvider] = [
+            EnvironmentVariablesProvider(environmentVariables: environment),
+            try await yamlProvider(fileURL: configurationURL),
+            InMemoryProvider(values: defaultProfile.configDefaults),
+        ]
+        return try AppConfig(config: ConfigReader(providers: providers).scoped(to: "app"))
+    }
+
     // MARK: - Loading
 
     func loadAppConfig() throws -> AppConfig {
@@ -83,32 +113,29 @@ struct ServerConfigStore {
     }
 
     func updates() -> AsyncThrowingStream<Update, Error> {
-        guard reloadingProvider != nil else {
+        guard let reloadMonitor, let monitoredConfigurationURL else {
             return Self.finishedUpdateStream()
         }
 
-        let config = reader.scoped(to: "app")
+        let environment = environment
+        let defaultProfile = defaultProfile
         return AsyncThrowingStream { continuation in
             let task = Task {
-                var didConsumeInitialSnapshot = false
-
                 do {
-                    try await config.watchSnapshot { snapshots in
-                        for try await _ in snapshots {
-                            if !didConsumeInitialSnapshot {
-                                didConsumeInitialSnapshot = true
-                                continue
-                            }
-
-                            do {
-                                try continuation.yield(.reloaded(AppConfig(config: config)))
-                            } catch {
-                                continuation.yield(.rejected(String(describing: error)))
-                            }
+                    for try await _ in reloadMonitor.updates() {
+                        do {
+                            let appConfig = try await Self.loadAppConfig(
+                                environment: environment,
+                                defaultProfile: defaultProfile,
+                                configurationURL: monitoredConfigurationURL,
+                            )
+                            continuation.yield(.reloaded(appConfig))
+                        } catch {
+                            continuation.yield(.rejected(String(describing: error)))
                         }
-
-                        continuation.finish()
                     }
+
+                    continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
                 }
@@ -118,5 +145,59 @@ struct ServerConfigStore {
                 task.cancel()
             }
         }
+    }
+}
+
+public enum ServerConfigDefaultProfile: String, CaseIterable, Sendable {
+    case standaloneExecutable = "standalone-executable"
+    case launchAgent = "launch-agent"
+    case embeddedSession = "embedded-session"
+
+    static let environmentKey = "SPEAKSWIFTLY_SERVER_DEFAULT_PROFILE"
+
+    var port: Int {
+        switch self {
+            case .standaloneExecutable:
+                7338
+            case .launchAgent:
+                7337
+            case .embeddedSession:
+                7339
+        }
+    }
+
+    var configDefaults: [AbsoluteConfigKey: ConfigValue] {
+        [
+            .init(["app", "name"]): "speak-swiftly-server",
+            .init(["app", "environment"]): "development",
+            .init(["app", "host"]): "127.0.0.1",
+            .init(["app", "port"]): ConfigValue(integerLiteral: port),
+            .init(["app", "sseHeartbeatSeconds"]): 10.0,
+            .init(["app", "completedJobTTLSeconds"]): 900.0,
+            .init(["app", "completedJobMaxCount"]): 200,
+            .init(["app", "jobPruneIntervalSeconds"]): 60.0,
+            .init(["app", "http", "enabled"]): true,
+            .init(["app", "mcp", "enabled"]): false,
+            .init(["app", "mcp", "path"]): "/mcp",
+            .init(["app", "mcp", "serverName"]): "speak-swiftly-mcp",
+            .init(["app", "mcp", "title"]): "Speak Swiftly",
+        ]
+    }
+
+    static func resolve(
+        explicitProfile: ServerConfigDefaultProfile?,
+        environment: [String: String],
+    ) -> ServerConfigDefaultProfile {
+        if let explicitProfile {
+            return explicitProfile
+        }
+
+        guard let rawValue = environment[environmentKey]?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !rawValue.isEmpty
+        else {
+            return .standaloneExecutable
+        }
+
+        return ServerConfigDefaultProfile(rawValue: rawValue) ?? .standaloneExecutable
     }
 }
