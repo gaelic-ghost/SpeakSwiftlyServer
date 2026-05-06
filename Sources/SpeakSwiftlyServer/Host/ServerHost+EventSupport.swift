@@ -210,7 +210,7 @@ extension ServerHost {
         id: String,
         _ completion: SpeakSwiftly.RequestCompletion,
         acknowledged: Bool = false,
-    ) -> ServerJobEvent {
+    ) async -> ServerJobEvent {
         let success: ServerSuccessEvent = switch completion {
             case let .artifact(value):
                 .init(id: id, artifact: value)
@@ -249,7 +249,7 @@ extension ServerHost {
             case let .runtimeSnapshot(value):
                 .init(id: id, runtime: value, speechBackend: value.speechBackend.rawValue)
             case .runtimeUpdate:
-                .init(id: id)
+                await runtimeSnapshotSuccessEvent(id: id)
             case let .defaultVoiceProfile(name):
                 .init(id: id, profileName: name)
             case let .queueCleared(count: count):
@@ -260,6 +260,11 @@ extension ServerHost {
                 .init(id: id)
         }
         return acknowledged ? .acknowledged(success) : .completed(success)
+    }
+
+    func runtimeSnapshotSuccessEvent(id: String) async -> ServerSuccessEvent {
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        return .init(id: id, runtime: runtimeSnapshot, speechBackend: runtimeSnapshot.speechBackend.rawValue)
     }
 
     func encodeSSEBuffer(for event: ServerJobEvent) -> ByteBuffer {

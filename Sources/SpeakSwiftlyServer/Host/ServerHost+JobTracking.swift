@@ -117,9 +117,9 @@ extension ServerHost {
                             )
                         } else if handle.operation == "voice_profiles_snapshot" {
                             await applyProfileRefresh(from: completion)
-                            await record(mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
+                            await record(await mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
                         } else {
-                            await record(mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
+                            await record(await mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
                         }
                 }
             }
@@ -169,7 +169,7 @@ extension ServerHost {
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
-        await record(mapCompletionEvent(id: requestID, completion), for: requestID, terminal: true)
+        await record(await mapCompletionEvent(id: requestID, completion), for: requestID, terminal: true)
     }
 
     func finalizeMutationSuccess(

@@ -412,7 +412,14 @@ extension ServerTests {
             #expect(queuedTransition.waitingReason == "waiting_for_active_request")
 
             await runtime.finishHeldSpeak(id: speakJobID)
-            _ = try await waitForJobSnapshot(switchJobID, on: host)
+            let switchSnapshot = try await waitForJobSnapshot(switchJobID, on: host)
+            switch switchSnapshot.terminalEvent {
+                case let .completed(event):
+                    #expect(event.speechBackend == "marvis")
+                    #expect(event.runtime?.speechBackend == .marvis)
+                default:
+                    Issue.record("Expected speech-backend switch request to complete with runtime snapshot details.")
+            }
 
             let finalHostResponse = try await client.execute(uri: "/overview", method: .get)
             let finalHostJSON = try jsonObject(from: finalHostResponse.body)

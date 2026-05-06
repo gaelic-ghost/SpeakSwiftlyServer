@@ -113,6 +113,45 @@ import Testing
     #expect(queueJSON["queued_requests"] == nil)
 }
 
+@Test func `playback snapshots derive concurrent generation stability from buffer telemetry`() throws {
+    struct PlaybackPayload: Encodable {
+        let sequence = 1
+        let capturedAt = Date(timeIntervalSinceReferenceDate: 0)
+        let state = "playing"
+        let activeRequest: String? = nil
+        let queuedRequests: [String] = []
+        let isRebuffering: Bool
+        let stableBufferedAudioMS: Int?
+        let stableBufferTargetMS: Int?
+    }
+
+    let stableSnapshot = try JSONDecoder().decode(
+        SpeakSwiftly.PlaybackSnapshot.self,
+        from: JSONEncoder().encode(
+            PlaybackPayload(
+                isRebuffering: false,
+                stableBufferedAudioMS: 320,
+                stableBufferTargetMS: 250,
+            ),
+        ),
+    )
+    let stableStatus = PlaybackStatusSnapshot(summary: stableSnapshot)
+    #expect(stableStatus.isStableForConcurrentGeneration == true)
+
+    let rebufferingSnapshot = try JSONDecoder().decode(
+        SpeakSwiftly.PlaybackSnapshot.self,
+        from: JSONEncoder().encode(
+            PlaybackPayload(
+                isRebuffering: true,
+                stableBufferedAudioMS: 320,
+                stableBufferTargetMS: 250,
+            ),
+        ),
+    )
+    let rebufferingStatus = PlaybackStatusSnapshot(summary: rebufferingSnapshot)
+    #expect(rebufferingStatus.isStableForConcurrentGeneration == false)
+}
+
 @available(macOS 14, *)
 @Test func `state completes queued speech jobs and prunes expired entries`() async throws {
     let runtime = MockRuntime()
