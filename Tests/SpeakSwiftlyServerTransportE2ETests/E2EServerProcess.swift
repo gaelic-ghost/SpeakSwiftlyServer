@@ -80,6 +80,7 @@ final class ServerProcess: @unchecked Sendable {
 
         var environment = ProcessInfo.processInfo.environment
         environment["APP_PORT"] = String(port)
+        environment["APP_HTTP_PORT"] = String(port)
         environment["SPEAKSWIFTLY_PROFILE_ROOT"] = profileRootURL.path
         environment["APP_MCP_ENABLED"] = mcpEnabled ? "true" : "false"
         environment["APP_MCP_PATH"] = "/mcp"
