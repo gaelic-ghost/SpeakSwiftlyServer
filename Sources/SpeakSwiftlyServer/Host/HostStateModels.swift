@@ -117,6 +117,7 @@ private extension SpeakSwiftly.PlaybackSnapshot {
     var isStableForConcurrentGeneration: Bool {
         guard state == .playing, !isRebuffering else { return false }
         guard let stableBufferedAudioMS, let stableBufferTargetMS else { return false }
+
         return stableBufferedAudioMS >= stableBufferTargetMS
     }
 }
