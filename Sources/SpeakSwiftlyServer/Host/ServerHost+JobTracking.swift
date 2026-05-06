@@ -165,7 +165,7 @@ extension ServerHost {
         }
 
         activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
-        let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
+        let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,

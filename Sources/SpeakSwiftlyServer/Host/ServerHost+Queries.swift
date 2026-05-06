@@ -36,7 +36,7 @@ extension ServerHost {
     }
 
     func runtimeConfigurationSnapshot() -> RuntimeConfigurationSnapshot {
-        runtimeConfigurationStore.snapshot(
+        runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
@@ -50,7 +50,7 @@ extension ServerHost {
         qwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
     ) async throws -> RuntimeConfigurationSnapshot {
-        let snapshot = try runtimeConfigurationStore.save(
+        let snapshot = try runtimeStartupConfigurationStore.save(
             speechBackend: speechBackend,
             qwenResidentModel: qwenResidentModel,
             marvisResidentPolicy: marvisResidentPolicy,
@@ -183,14 +183,13 @@ extension ServerHost {
             ? runtimeSnapshot.speechBackend
             : speechBackend
         activeRuntimeSpeechBackend = resolvedSpeechBackend
-        let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
+        let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: resolvedSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
-        activeRuntimeSpeechBackend = resolvedSpeechBackend
         return .init(speechBackend: resolvedSpeechBackend.rawValue)
     }
 

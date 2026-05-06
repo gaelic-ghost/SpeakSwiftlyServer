@@ -251,14 +251,14 @@ struct HostPruneService: Service {
 }
 
 struct ConfigWatchService: Service {
-    let configStore: ConfigStore
+    let serverConfigStore: ServerConfigStore
     let host: ServerHost
     let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
 
     func run() async throws {
         _ = try await withEmbeddedShutdownBarrier(shutdownBarrier) {
             do {
-                for try await update in configStore.updates().cancelOnGracefulShutdown() {
+                for try await update in serverConfigStore.updates().cancelOnGracefulShutdown() {
                     switch update {
                         case let .reloaded(updatedConfig):
                             await host.applyConfigurationUpdate(updatedConfig)

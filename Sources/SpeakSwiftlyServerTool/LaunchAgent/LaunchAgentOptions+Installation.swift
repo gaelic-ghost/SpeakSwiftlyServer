@@ -12,7 +12,7 @@ extension LaunchAgentOptions {
                 toolExecutablePath,
                 "serve",
                 "--default-profile",
-                AppRuntimeDefaultProfile.launchAgent.rawValue,
+                ServerConfigDefaultProfile.launchAgent.rawValue,
                 "--config-file",
                 effectiveConfigFilePath(layout: layout),
                 "--profile-root",

@@ -22,7 +22,7 @@ import Testing
             #expect(environment["APP_PORT"] == "7811")
             #expect(environment["APP_HTTP_PORT"] == "7811")
             #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == nil)
-            #expect(environment[AppRuntimeDefaultProfile.environmentKey] == AppRuntimeDefaultProfile.embeddedSession.rawValue)
+            #expect(environment[ServerConfigDefaultProfile.environmentKey] == ServerConfigDefaultProfile.embeddedSession.rawValue)
 
             await MainActor.run {
                 server.overview = HostOverviewSnapshot(
@@ -202,7 +202,7 @@ import Testing
             title: "Speak Swiftly",
         ),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
     let readinessGate = EmbeddedLifecycleReadinessGate()
@@ -249,7 +249,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
     let readinessGate = EmbeddedLifecycleReadinessGate()
@@ -287,7 +287,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
     let readinessGate = EmbeddedLifecycleReadinessGate()
@@ -331,7 +331,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
     let probe = StartCompletionProbe()
@@ -361,7 +361,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -387,7 +387,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
@@ -450,7 +450,7 @@ import Testing
             title: "Speak Swiftly",
         ),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -528,7 +528,7 @@ import Testing
             title: "Speak Swiftly",
         ),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -559,7 +559,7 @@ import Testing
             title: "Speak Swiftly",
         ),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -625,7 +625,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -647,7 +647,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 

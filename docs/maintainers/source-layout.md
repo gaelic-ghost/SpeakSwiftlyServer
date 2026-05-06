@@ -66,8 +66,18 @@ visible to maintainers. Completed implementation plans belong in
 - `Sources/SpeakSwiftlyServer/Resources/default-server.yaml`
   Holds the bundled default server config. The library seeds the persisted Application Support
   config from this resource and stores runtime startup choices in the same YAML document.
+- `Sources/SpeakSwiftlyServer/Config/AppConfig.swift`, `ServerConfigStore.swift`, and `ServerConfigDefaults.swift`
+  Hold the typed server config, the `swift-configuration` reader/reload setup, and the fallback
+  defaults used when a config file omits values.
+- `Sources/SpeakSwiftlyServer/Config/RuntimeStartupConfiguration.swift`
+  Holds the typed `app.runtime` startup choices and converts them into `SpeakSwiftly.Configuration`.
 - `Sources/SpeakSwiftlyServer/Config/ServerConfigPersistence.swift`
   Owns the library-level default-config seed, load, and save behavior for the persisted YAML file.
+  Keep one-off config-provider adapters private inside this file unless another source needs them.
+- `Sources/SpeakSwiftlyServer/Host/RuntimeStartupConfigurationStore.swift`
+  Bridges persisted `app.runtime` choices into active host snapshots and save operations.
+- `Sources/SpeakSwiftlyServer/Host/ServerStorageDefaults.swift`
+  Holds the default Application Support paths for the server YAML config and runtime profile root.
 - `Sources/SpeakSwiftlyServerTool/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
   Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.
 - `Sources/SpeakSwiftlyServerTool/AppManagedInstallLayout.swift`

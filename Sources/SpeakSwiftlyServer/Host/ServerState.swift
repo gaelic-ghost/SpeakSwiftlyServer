@@ -366,7 +366,7 @@ public final class EmbeddedServer {
 
     func liftoff(
         environment: [String: String],
-        defaultProfile: AppRuntimeDefaultProfile,
+        defaultProfile: ServerConfigDefaultProfile,
         bootstrap: @escaping @Sendable ([String: String], EmbeddedServer) async throws -> EmbeddedServerLifecycleHooks = embeddedServerLiveBootstrap,
     ) async throws {
         guard lifecycle == nil, !isLiftingOff else {

@@ -1,7 +1,7 @@
 import Foundation
 import SpeakSwiftly
 
-struct RuntimeConfigurationStore {
+struct RuntimeStartupConfigurationStore {
     private final class FileSystem: @unchecked Sendable {
         private let fileManager: FileManager
 
@@ -46,7 +46,7 @@ struct RuntimeConfigurationStore {
         let resolvedConfigurationURL: URL
         if let profileRootURL {
             resolvedProfileRootURL = profileRootURL.standardizedFileURL
-            resolvedConfigurationURL = (configurationURL ?? RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager).configurationURL)
+            resolvedConfigurationURL = (configurationURL ?? ServerStorageDefaults.defaultForCurrentUser(fileManager: fileManager).configurationURL)
                 .standardizedFileURL
         } else if let profileRootOverride,
            profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
@@ -57,7 +57,7 @@ struct RuntimeConfigurationStore {
                 .standardizedFileURL
             resolvedProfileRootURL = overriddenProfileRootURL.standardizedFileURL
         } else {
-            let defaults = RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
+            let defaults = ServerStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
             resolvedProfileRootURL = defaults.profileRootURL.standardizedFileURL
             resolvedConfigurationURL = (configurationURL ?? defaults.configurationURL).standardizedFileURL
         }
@@ -172,7 +172,7 @@ struct RuntimeConfigurationStore {
                 ),
             )
         } catch {
-            throw RuntimeConfigurationStoreError(
+            throw RuntimeStartupConfigurationStoreError(
                 "SpeakSwiftlyServer could not save the persisted runtime configuration to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
@@ -204,7 +204,7 @@ struct RuntimeConfigurationStore {
                 ),
             )
         } catch {
-            throw RuntimeConfigurationStoreError(
+            throw RuntimeStartupConfigurationStoreError(
                 "SpeakSwiftlyServer could not save the persisted default voice profile to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
@@ -246,7 +246,7 @@ struct RuntimeConfigurationStore {
     }
 }
 
-private extension RuntimeConfigurationStore {
+private extension RuntimeStartupConfigurationStore {
     enum ConfigurationState: String {
         case missing
         case loaded
@@ -375,7 +375,7 @@ private extension RuntimeConfigurationStore {
     }
 }
 
-struct RuntimeConfigurationStoreError: LocalizedError {
+struct RuntimeStartupConfigurationStoreError: LocalizedError {
     let message: String
 
     init(_ message: String) {

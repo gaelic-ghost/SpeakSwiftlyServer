@@ -1,6 +1,6 @@
 import Foundation
 
-enum RuntimeStorageDefaults {
+enum ServerStorageDefaults {
     static func defaultForCurrentUser(
         fileManager: FileManager = .default,
     ) -> (profileRootURL: URL, configurationURL: URL) {

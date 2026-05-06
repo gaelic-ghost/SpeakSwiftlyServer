@@ -13,7 +13,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -93,7 +93,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -148,7 +148,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -216,7 +216,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: testConfiguration(),
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 

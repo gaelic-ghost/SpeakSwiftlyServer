@@ -13,7 +13,7 @@ public struct ServerConfigPersistence: @unchecked Sendable {
         profileRootURL: URL? = nil,
         fileManager: FileManager = .default,
     ) {
-        let defaults = RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
+        let defaults = ServerStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
         self.configurationURL = (configurationURL ?? defaults.configurationURL).standardizedFileURL
         self.profileRootURL = (profileRootURL ?? defaults.profileRootURL).standardizedFileURL
         self.fileManager = fileManager
@@ -67,7 +67,7 @@ public struct ServerConfigPersistence: @unchecked Sendable {
                 providerName: "ServerConfigPersistence",
                 parsingOptions: .default,
             )
-            let reader = ConfigReader(provider: SnapshotConfigProvider(currentSnapshot: snapshot))
+            let reader = ConfigReader(provider: StaticConfigSnapshotProvider(currentSnapshot: snapshot))
             return try AppConfig(config: reader.scoped(to: "app"))
         } catch let error as ServerConfigurationError {
             throw error
@@ -130,5 +130,44 @@ private extension Double {
             return String(Int(self))
         }
         return String(self)
+    }
+}
+
+private struct StaticConfigSnapshotProvider: ConfigProvider {
+    let providerName = "StaticConfigSnapshotProvider"
+    let currentSnapshot: any ConfigSnapshot
+
+    func value(forKey key: AbsoluteConfigKey, type: ConfigType) throws -> LookupResult {
+        try currentSnapshot.value(forKey: key, type: type)
+    }
+
+    func fetchValue(forKey key: AbsoluteConfigKey, type: ConfigType) async throws -> LookupResult {
+        try value(forKey: key, type: type)
+    }
+
+    func snapshot() -> any ConfigSnapshot {
+        currentSnapshot
+    }
+
+    nonisolated(nonsending) func watchValue<Return: ~Copyable>(
+        forKey key: AbsoluteConfigKey,
+        type: ConfigType,
+        updatesHandler: nonisolated(nonsending) (_ updates: ConfigUpdatesAsyncSequence<Result<LookupResult, any Error>, Never>) async throws -> Return,
+    ) async throws -> Return {
+        let stream = AsyncStream<Result<LookupResult, any Error>> { continuation in
+            continuation.yield(Result { try currentSnapshot.value(forKey: key, type: type) })
+            continuation.finish()
+        }
+        return try await updatesHandler(.init(stream))
+    }
+
+    nonisolated(nonsending) func watchSnapshot<Return: ~Copyable>(
+        updatesHandler: nonisolated(nonsending) (_ updates: ConfigUpdatesAsyncSequence<any ConfigSnapshot, Never>) async throws -> Return,
+    ) async throws -> Return {
+        let stream = AsyncStream<any ConfigSnapshot> { continuation in
+            continuation.yield(currentSnapshot)
+            continuation.finish()
+        }
+        return try await updatesHandler(.init(stream))
     }
 }

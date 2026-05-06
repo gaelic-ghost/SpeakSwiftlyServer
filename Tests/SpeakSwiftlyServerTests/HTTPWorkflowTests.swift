@@ -21,7 +21,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: .init(
+            runtimeStartupConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
                 activeRuntimeSpeechBackend: .qwen3,
             ),
@@ -367,7 +367,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -442,7 +442,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -481,7 +481,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -514,7 +514,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 
@@ -570,7 +570,7 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            runtimeConfigurationStore: testRuntimeConfigurationStore(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
 

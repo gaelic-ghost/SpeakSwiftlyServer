@@ -53,11 +53,11 @@ func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
     )
 }
 
-func testRuntimeConfigurationStore() -> RuntimeConfigurationStore {
+func testRuntimeStartupConfigurationStore() -> RuntimeStartupConfigurationStore {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    return RuntimeConfigurationStore(
+    return RuntimeStartupConfigurationStore(
         environment: [
             "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.standardizedFileURL.path,
         ],

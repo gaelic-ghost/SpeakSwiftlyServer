@@ -2,7 +2,7 @@ import Configuration
 import Foundation
 import ServiceLifecycle
 
-struct ConfigStore {
+struct ServerConfigStore {
     enum Update {
         case reloaded(AppConfig)
         case rejected(String)
@@ -17,14 +17,14 @@ struct ConfigStore {
 
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        defaultProfile: AppRuntimeDefaultProfile? = nil,
+        defaultProfile: ServerConfigDefaultProfile? = nil,
         configurationURL: URL? = nil,
     ) async throws {
         var services = [any Service]()
         var providers: [any ConfigProvider] = [
             EnvironmentVariablesProvider(environmentVariables: environment),
         ]
-        let resolvedDefaultProfile = AppRuntimeDefaultProfile.resolve(
+        let resolvedDefaultProfile = ServerConfigDefaultProfile.resolve(
             explicitProfile: defaultProfile,
             environment: environment,
         )

@@ -39,10 +39,10 @@ struct AppConfig {
 
     static func load(
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        defaultProfile: AppRuntimeDefaultProfile? = nil,
+        defaultProfile: ServerConfigDefaultProfile? = nil,
         configurationURL: URL? = nil,
     ) async throws -> AppConfig {
-        let store = try await ConfigStore(
+        let store = try await ServerConfigStore(
             environment: environment,
             defaultProfile: defaultProfile,
             configurationURL: configurationURL,

@@ -40,7 +40,7 @@ extension ServerHost {
         }
 
         activeDefaultVoiceProfileName = normalizedProfileName
-        let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
+        let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             normalizedProfileName,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
@@ -55,7 +55,7 @@ extension ServerHost {
     func clearDefaultVoiceProfileName() async throws -> SpeakSwiftly.Name? {
         let fallbackProfileName = configuration.defaultVoiceProfileName
         activeDefaultVoiceProfileName = fallbackProfileName
-        let runtimeConfigurationSnapshot = try runtimeConfigurationStore.saveDefaultVoiceProfileName(
+        let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             nil,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,

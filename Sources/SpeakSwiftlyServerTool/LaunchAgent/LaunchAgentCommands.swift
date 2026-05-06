@@ -6,12 +6,12 @@ let speakSwiftlyServerToolName = "SpeakSwiftlyServerTool"
 package struct ServeOptions {
     let configFilePath: String?
     let runtimeProfileRootPath: String?
-    let defaultProfile: AppRuntimeDefaultProfile?
+    let defaultProfile: ServerConfigDefaultProfile?
 
     static func parse(arguments: [String], currentDirectoryPath: String) throws -> ServeOptions {
         var configFilePath: String?
         var runtimeProfileRootPath: String?
-        var defaultProfile: AppRuntimeDefaultProfile?
+        var defaultProfile: ServerConfigDefaultProfile?
         var index = 0
 
         while index < arguments.count {
@@ -38,8 +38,8 @@ package struct ServeOptions {
                         index: index,
                         option: "--default-profile",
                     )
-                    guard let parsedProfile = AppRuntimeDefaultProfile(rawValue: rawValue) else {
-                        let supportedProfiles = AppRuntimeDefaultProfile.allCases
+                    guard let parsedProfile = ServerConfigDefaultProfile(rawValue: rawValue) else {
+                        let supportedProfiles = ServerConfigDefaultProfile.allCases
                             .map(\.rawValue)
                             .joined(separator: ", ")
                         throw SpeakSwiftlyServerToolCommandError(

@@ -31,7 +31,7 @@ extension ServerTests {
                 title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
-            runtimeConfigurationStore: .init(
+            runtimeStartupConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
                 activeRuntimeSpeechBackend: .qwen3,
             ),

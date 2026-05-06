@@ -3,12 +3,12 @@ import Foundation
 public struct ServerRuntimeEntrypointOptions: Sendable {
     public let configurationPath: String?
     public let runtimeProfileRootPath: String?
-    public let defaultProfile: AppRuntimeDefaultProfile?
+    public let defaultProfile: ServerConfigDefaultProfile?
 
     public init(
         configurationPath: String? = nil,
         runtimeProfileRootPath: String? = nil,
-        defaultProfile: AppRuntimeDefaultProfile? = nil,
+        defaultProfile: ServerConfigDefaultProfile? = nil,
     ) {
         let trimmedConfigPath = configurationPath?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let trimmedConfigPath, !trimmedConfigPath.isEmpty {

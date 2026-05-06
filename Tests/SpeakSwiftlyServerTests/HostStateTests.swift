@@ -159,7 +159,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -188,7 +188,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(completedJobTTLSeconds: 60, completedJobMaxCount: 2),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -220,7 +220,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(sseHeartbeatSeconds: 0.02),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -280,7 +280,7 @@ import Testing
             title: "Speak Swiftly",
         ),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -336,7 +336,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -394,7 +394,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -463,7 +463,7 @@ import Testing
     let host = await ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: MainActor.run { EmbeddedServer() },
     )
 
@@ -495,7 +495,7 @@ import Testing
     let host = await ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: MainActor.run { EmbeddedServer() },
     )
 
@@ -523,7 +523,7 @@ import Testing
     let host = await ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: MainActor.run { EmbeddedServer() },
     )
 
@@ -548,7 +548,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -755,7 +755,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -802,7 +802,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -845,7 +845,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -898,7 +898,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -941,7 +941,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -991,7 +991,7 @@ import Testing
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 
@@ -1096,7 +1096,7 @@ import Testing
     let host = ServerHost(
         configuration: configuration,
         runtime: runtime,
-        runtimeConfigurationStore: testRuntimeConfigurationStore(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
         state: state,
     )
 

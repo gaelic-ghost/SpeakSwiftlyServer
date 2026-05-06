@@ -23,10 +23,10 @@ actor EmbeddedServerStopCoordinator {
 func embeddedServerEffectiveEnvironment(
     environment: [String: String],
     options: EmbeddedServer.Options,
-    defaultProfile: AppRuntimeDefaultProfile,
+    defaultProfile: ServerConfigDefaultProfile,
 ) -> [String: String] {
     var resolvedEnvironment = environment
-    resolvedEnvironment[AppRuntimeDefaultProfile.environmentKey] = defaultProfile.rawValue
+    resolvedEnvironment[ServerConfigDefaultProfile.environmentKey] = defaultProfile.rawValue
     if let port = options.port {
         resolvedEnvironment["APP_PORT"] = String(port)
         resolvedEnvironment["APP_HTTP_PORT"] = String(port)
@@ -42,12 +42,12 @@ func embeddedServerLiveBootstrap(
     let defaultPersistence = ServerConfigPersistence.defaultForCurrentUser()
     let configurationURL = bootstrapOptions.configurationURL ?? defaultPersistence.configurationURL
     let profileRootURL = bootstrapOptions.runtimeProfileRootURL ?? defaultPersistence.profileRootURL
-    let configStore = try await ConfigStore(
+    let serverConfigStore = try await ServerConfigStore(
         environment: environment,
         defaultProfile: nil,
         configurationURL: configurationURL,
     )
-    let config = try configStore.loadAppConfig()
+    let config = try serverConfigStore.loadAppConfig()
     let host = await ServerHost.makeLive(
         appConfig: config,
         state: server,
@@ -133,7 +133,7 @@ func embeddedServerLiveBootstrap(
     let hostDependentSiblingServiceCount =
         1 + // EmbeddedApplicationService
         (mcpSurface == nil ? 0 : 1) + // MCPLifecycleService
-        (configStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
+        (serverConfigStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
         1 // HostPruneService
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: hostDependentSiblingServiceCount)
     let app = assembleHBApp(
@@ -159,7 +159,7 @@ func embeddedServerLiveBootstrap(
         await host.markTransportStarting(name: "mcp")
     }
 
-    var services = configStore.services.map { service in
+    var services = serverConfigStore.services.map { service in
         ServiceGroupConfiguration.ServiceConfiguration(service: service)
     }
     services.append(
@@ -172,11 +172,11 @@ func embeddedServerLiveBootstrap(
             ),
         ),
     )
-    if !configStore.services.isEmpty {
+    if !serverConfigStore.services.isEmpty {
         services.append(
             .init(
                 service: ConfigWatchService(
-                    configStore: configStore,
+                    serverConfigStore: serverConfigStore,
                     host: host,
                     shutdownBarrier: shutdownBarrier,
                 ),

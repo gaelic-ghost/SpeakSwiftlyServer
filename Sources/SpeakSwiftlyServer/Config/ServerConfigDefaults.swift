@@ -1,7 +1,7 @@
 import Configuration
 import Foundation
 
-public enum AppRuntimeDefaultProfile: String, CaseIterable, Sendable {
+public enum ServerConfigDefaultProfile: String, CaseIterable, Sendable {
     case standaloneExecutable = "standalone-executable"
     case launchAgent = "launch-agent"
     case embeddedSession = "embedded-session"
@@ -38,9 +38,9 @@ public enum AppRuntimeDefaultProfile: String, CaseIterable, Sendable {
     }
 
     static func resolve(
-        explicitProfile: AppRuntimeDefaultProfile?,
+        explicitProfile: ServerConfigDefaultProfile?,
         environment: [String: String],
-    ) -> AppRuntimeDefaultProfile {
+    ) -> ServerConfigDefaultProfile {
         if let explicitProfile {
             return explicitProfile
         }
@@ -51,6 +51,6 @@ public enum AppRuntimeDefaultProfile: String, CaseIterable, Sendable {
             return .standaloneExecutable
         }
 
-        return AppRuntimeDefaultProfile(rawValue: rawValue) ?? .standaloneExecutable
+        return ServerConfigDefaultProfile(rawValue: rawValue) ?? .standaloneExecutable
     }
 }

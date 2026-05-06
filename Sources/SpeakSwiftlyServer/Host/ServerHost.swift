@@ -82,7 +82,7 @@ actor ServerHost {
     var httpConfig: HTTPConfig
     var mcpConfig: MCPConfig
     let runtime: any ServerRuntimeProtocol
-    let runtimeConfigurationStore: RuntimeConfigurationStore
+    let runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore
     let state: EmbeddedServer
     let immediatePublishRequests: AsyncStream<Void>
     let immediatePublishContinuation: AsyncStream<Void>.Continuation
@@ -155,7 +155,7 @@ actor ServerHost {
         httpConfig: HTTPConfig? = nil,
         mcpConfig: MCPConfig? = nil,
         runtime: any ServerRuntimeProtocol,
-        runtimeConfigurationStore: RuntimeConfigurationStore = .init(),
+        runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
@@ -194,14 +194,14 @@ actor ServerHost {
             title: "Speak Swiftly",
         )
         self.runtime = runtime
-        self.runtimeConfigurationStore = runtimeConfigurationStore
+        self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
-            ?? runtimeConfigurationStore.initialActiveRuntimeSpeechBackend()
+            ?? runtimeStartupConfigurationStore.initialActiveRuntimeSpeechBackend()
         self.activeQwenResidentModel = activeQwenResidentModel
-            ?? runtimeConfigurationStore.initialActiveQwenResidentModel()
+            ?? runtimeStartupConfigurationStore.initialActiveQwenResidentModel()
         self.activeMarvisResidentPolicy = activeMarvisResidentPolicy
-            ?? runtimeConfigurationStore.initialActiveMarvisResidentPolicy()
-        activeDefaultVoiceProfileName = runtimeConfigurationStore.initialActiveDefaultVoiceProfileName(
+            ?? runtimeStartupConfigurationStore.initialActiveMarvisResidentPolicy()
+        activeDefaultVoiceProfileName = runtimeStartupConfigurationStore.initialActiveDefaultVoiceProfileName(
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         self.state = state
@@ -252,12 +252,12 @@ actor ServerHost {
         configurationURL: URL? = nil,
         profileRootURL: URL? = nil,
     ) async -> ServerHost {
-        let runtimeConfigurationStore = RuntimeConfigurationStore(
+        let runtimeStartupConfigurationStore = RuntimeStartupConfigurationStore(
             environment: environment,
             configurationURL: configurationURL,
             profileRootURL: profileRootURL,
         )
-        let startupConfiguration = runtimeConfigurationStore.startupConfiguration(
+        let startupConfiguration = runtimeStartupConfigurationStore.startupConfiguration(
             configuredDefaultVoiceProfileName: appConfig.runtime.defaultVoiceProfileName
                 ?? appConfig.server.defaultVoiceProfileName,
         )
@@ -275,7 +275,7 @@ actor ServerHost {
             httpConfig: appConfig.http,
             mcpConfig: appConfig.mcp,
             runtime: runtime,
-            runtimeConfigurationStore: runtimeConfigurationStore,
+            runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
             activeQwenResidentModel: startupConfiguration.qwenResidentModel,
             activeMarvisResidentPolicy: startupConfiguration.marvisResidentPolicy,

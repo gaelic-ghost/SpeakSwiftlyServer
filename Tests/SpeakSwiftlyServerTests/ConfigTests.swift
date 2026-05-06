@@ -119,7 +119,7 @@ import Testing
     }
 }
 
-@Test func `config store loads yaml and exposes reloading service when config file is set`() async throws {
+@Test func `server config store loads yaml and exposes reloading service when config file is set`() async throws {
     let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: configDirectory, withIntermediateDirectories: true)
@@ -146,7 +146,7 @@ import Testing
         title: SpeakSwiftly
     """.write(to: yamlURL, atomically: true, encoding: .utf8)
 
-    let store = try await ConfigStore(environment: [
+    let store = try await ServerConfigStore(environment: [
         "APP_CONFIG_FILE": yamlURL.path,
         "APP_CONFIG_RELOAD_INTERVAL_SECONDS": "0.05",
     ])
@@ -157,7 +157,7 @@ import Testing
     #expect(initialConfig.server.completedJobMaxCount == 25)
 }
 
-@Test func `config store loads application support yaml path with spaces directly`() async throws {
+@Test func `server config store loads application support yaml path with spaces directly`() async throws {
     let applicationSupportDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("Application Support/SpeakSwiftlyServer", isDirectory: true)
@@ -200,14 +200,14 @@ import Testing
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    let configurationStore = RuntimeConfigurationStore(
+    let configurationStore = RuntimeStartupConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
         activeRuntimeSpeechBackend: .qwen3,
     )
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: configurationStore,
+        runtimeStartupConfigurationStore: configurationStore,
         state: state,
     )
 
@@ -258,14 +258,14 @@ import Testing
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    let configurationStore = RuntimeConfigurationStore(
+    let configurationStore = RuntimeStartupConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
         activeRuntimeSpeechBackend: .qwen3,
     )
     let host = ServerHost(
         configuration: testConfiguration(),
         runtime: runtime,
-        runtimeConfigurationStore: configurationStore,
+        runtimeStartupConfigurationStore: configurationStore,
         state: state,
     )
 
@@ -291,7 +291,7 @@ import Testing
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    let configurationStore = RuntimeConfigurationStore(
+    let configurationStore = RuntimeStartupConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": profileRootURL.path],
         activeRuntimeSpeechBackend: .qwen3,
     )
@@ -302,7 +302,7 @@ import Testing
         let host = ServerHost(
             configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
             runtime: runtime,
-            runtimeConfigurationStore: configurationStore,
+            runtimeStartupConfigurationStore: configurationStore,
             state: state,
         )
 
@@ -321,7 +321,7 @@ import Testing
         let restartedHost = ServerHost(
             configuration: testConfiguration(defaultVoiceProfileName: "configured-default"),
             runtime: runtime,
-            runtimeConfigurationStore: configurationStore,
+            runtimeStartupConfigurationStore: configurationStore,
             state: state,
         )
 
@@ -333,7 +333,7 @@ import Testing
     }
 }
 
-@Test func `runtime configuration store reports invalid persisted configuration`() throws {
+@Test func `runtime startup configuration store reports invalid persisted configuration`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
@@ -348,7 +348,7 @@ import Testing
     { this is not valid yaml
     """.write(to: configurationURL, atomically: true, encoding: .utf8)
 
-    let store = RuntimeConfigurationStore(
+    let store = RuntimeStartupConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
         activeRuntimeSpeechBackend: .qwen3,
     )
@@ -366,11 +366,11 @@ import Testing
     #expect(snapshot.persistedConfigurationError?.contains("Likely cause") == true)
 }
 
-@Test func `runtime configuration store environment override beats persisted backend`() throws {
+@Test func `runtime startup configuration store environment override beats persisted backend`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    let store = RuntimeConfigurationStore(
+    let store = RuntimeStartupConfigurationStore(
         environment: [
             "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path,
             "SPEAKSWIFTLY_SPEECH_BACKEND": "marvis",
@@ -398,11 +398,11 @@ import Testing
     #expect(snapshot.activeRuntimeMatchesNextRuntime == true)
 }
 
-@Test func `runtime configuration store normalizes blank default voice profile name`() throws {
+@Test func `runtime startup configuration store normalizes blank default voice profile name`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
-    let store = RuntimeConfigurationStore(
+    let store = RuntimeStartupConfigurationStore(
         environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
     )
 
