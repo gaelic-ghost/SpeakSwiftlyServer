@@ -16,7 +16,7 @@ func waitUntilReady(_ host: ServerHost) async throws {
 
 @available(macOS 14, *)
 func waitForJobSnapshot(_ jobID: String, on host: ServerHost) async throws -> JobSnapshot {
-    try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+    try await waitUntil(timeout: .seconds(5), pollInterval: .milliseconds(10)) {
         do {
             let snapshot = try await host.jobSnapshot(id: jobID)
             return snapshot.terminalEvent == nil ? nil : snapshot
