@@ -1,4 +1,5 @@
 import Foundation
+import SpeakSwiftlyServer
 
 let speakSwiftlyServerToolName = "SpeakSwiftlyServerTool"
 

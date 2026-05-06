@@ -97,9 +97,9 @@ struct RuntimeConfigurationStore {
                 .deletingLastPathComponent()
                 .appendingPathComponent("configuration.json", isDirectory: false)
         } else {
-            let layout = ServerInstallLayout.defaultForCurrentUser(fileManager: fileManager)
-            profileRootURL = layout.runtimeProfileRootURL
-            configurationURL = layout.runtimeConfigurationFileURL
+            let defaults = RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
+            profileRootURL = defaults.profileRootURL
+            configurationURL = defaults.configurationURL
         }
         defaultActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend
         defaultActiveQwenResidentModel = activeQwenResidentModel

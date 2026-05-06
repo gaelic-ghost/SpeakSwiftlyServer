@@ -64,11 +64,12 @@ Stay in the library-first docs when you are answering questions like:
 
 - how does an app start the shared host
 - which state type should SwiftUI observe
-- what filesystem layout should an app own for a managed install
+- when should an app switch from embedded hosting to a bundled helper executable
 
 Jump to the operator docs when the question becomes:
 
 - how do I install or refresh the LaunchAgent
+- what filesystem layout should the bundled tool helper own
 - which HTTP or MCP route exposes this runtime operation
 - what does the command-line tool print or accept
 

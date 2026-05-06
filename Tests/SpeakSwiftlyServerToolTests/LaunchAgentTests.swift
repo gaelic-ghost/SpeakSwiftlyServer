@@ -1,5 +1,6 @@
 import Foundation
 @testable import SpeakSwiftlyServer
+@testable import SpeakSwiftlyServerTool
 import Testing
 
 // MARK: - Launch Agent Command Tests

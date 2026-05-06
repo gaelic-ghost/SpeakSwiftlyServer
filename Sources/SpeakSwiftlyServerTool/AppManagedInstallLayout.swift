@@ -1,11 +1,11 @@
 import Foundation
 
-/// App-facing path contract for a per-user SpeakSwiftlyServer install.
+/// Tool-facing path contract for a per-user SpeakSwiftlyServer install.
 ///
-/// The forthcoming macOS app should treat these paths as the owned install surface for the
-/// standalone LaunchAgent-backed server instead of guessing at ad hoc filesystem locations.
+/// The companion tool should treat these paths as the owned install surface for the standalone
+/// LaunchAgent-backed server instead of guessing at ad hoc filesystem locations.
 public struct ServerInstallLayout: Codable, Sendable, Equatable {
-    /// The LaunchAgent label the app-managed install uses for `launchctl` operations.
+    /// The LaunchAgent label the tool-managed install uses for `launchctl` operations.
     public let launchAgentLabel: String
     /// The working directory the standalone process should use when launched as an installed service.
     public let workingDirectoryURL: URL
@@ -19,7 +19,7 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     public let launchAgentsDirectoryURL: URL
     /// The property list URL for the installed LaunchAgent definition.
     public let launchAgentPlistURL: URL
-    /// The durable server config file an app should manage for the standalone server.
+    /// The durable server config file the tool should manage for the standalone server.
     public let serverConfigFileURL: URL
     /// The legacy alias config file path used by older LaunchAgent installs.
     public let launchAgentConfigAliasURL: URL
@@ -34,7 +34,7 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     /// The retained stderr log file for the installed service.
     public let standardErrorLogURL: URL
 
-    /// Creates a fully resolved install-layout contract for one app-managed server install.
+    /// Creates a fully resolved install-layout contract for one tool-managed server install.
     public init(
         launchAgentLabel: String,
         workingDirectoryURL: URL,
@@ -182,7 +182,7 @@ public struct ServerInstalledLogsSnapshot: Codable, Sendable, Equatable {
     }
 }
 
-/// Reads retained stdout and stderr files from an app-managed standalone server install.
+/// Reads retained stdout and stderr files from a tool-managed standalone server install.
 public enum ServerInstalledLogs {
     /// Loads retained stdout and stderr content for the supplied install layout.
     public static func read(

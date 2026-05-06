@@ -22,7 +22,7 @@ extension LaunchAgentOptions {
         .merging(
             [
                 "SPEAKSWIFTLY_PROFILE_ROOT": profileRootPath,
-                AppRuntimeDefaultProfile.environmentKey: LaunchAgentDefaults.defaultProfile.rawValue,
+                LaunchAgentDefaults.defaultProfileEnvironmentKey: LaunchAgentDefaults.defaultProfileRawValue,
             ],
         ) { _, rhs in rhs }
         if !environmentVariables.isEmpty {

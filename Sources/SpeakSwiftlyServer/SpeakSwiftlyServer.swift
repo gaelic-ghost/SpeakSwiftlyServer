@@ -1,9 +1,9 @@
 import Foundation
 
-package struct ServerRuntimeEntrypointOptions {
-    package let runtimeProfileRootPath: String?
+public struct ServerRuntimeEntrypointOptions: Sendable {
+    public let runtimeProfileRootPath: String?
 
-    package init(runtimeProfileRootPath: String? = nil) {
+    public init(runtimeProfileRootPath: String? = nil) {
         let trimmedPath = runtimeProfileRootPath?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let trimmedPath, !trimmedPath.isEmpty {
             self.runtimeProfileRootPath = trimmedPath
@@ -14,9 +14,9 @@ package struct ServerRuntimeEntrypointOptions {
 }
 
 /// Starts the standalone SpeakSwiftly server runtime using the package's default embedded bootstrap path.
-package enum ServerRuntimeEntrypoint {
+public enum ServerRuntimeEntrypoint {
     /// Builds and runs an embedded session, then waits until that session stops.
-    package static func run(
+    public static func run(
         options: ServerRuntimeEntrypointOptions = .init(),
         environment: [String: String] = ProcessInfo.processInfo.environment,
     ) async throws {

@@ -42,6 +42,4 @@ This DocC catalog intentionally stays library-first. For the transport inventory
 
 If you are embedding the host in an app, continue with <doc:Embedding-The-Server>.
 
-If you are staging a standalone install owned by an app, continue with <doc:App-Managed-Install-Layout>.
-
 If you are operating the executable directly, continue with <doc:Using-The-Command-Line-Tool>.

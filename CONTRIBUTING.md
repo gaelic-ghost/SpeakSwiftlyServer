@@ -92,7 +92,7 @@ The concrete runtime config surfaces in this repo are:
 
 If `APP_CONFIG_FILE` points at a YAML file, the server loads it through the package's Foundation URL-backed YAML provider and `swift-configuration`; environment variables take precedence over YAML, and YAML takes precedence over built-in defaults. Missing config files fail startup loudly. LaunchAgent install and refresh paths seed the default `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` from the bundled template when that canonical file is missing.
 
-The app-managed install layout is centered on one per-user location under `~/Library/Application Support/SpeakSwiftlyServer`, with logs in `~/Library/Logs/SpeakSwiftlyServer`. The package exposes that layout through `AppManagedInstallLayout.swift`.
+The tool-managed LaunchAgent layout is centered on one per-user location under `~/Library/Application Support/SpeakSwiftlyServer`, with logs in `~/Library/Logs/SpeakSwiftlyServer`. The `SpeakSwiftlyServerTool` target owns that layout through `AppManagedInstallLayout.swift`; the library target stays focused on embedded server state, runtime hosting, HTTP, and MCP.
 
 The default build and unit-test loop does not require secrets or a running LaunchAgent. Use `server.yaml` only when you want to run the executable, inspect configuration loading, or inspect LaunchAgent-owned behavior locally.
 

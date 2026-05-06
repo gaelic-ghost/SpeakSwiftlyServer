@@ -91,5 +91,4 @@ Treat those commands as the stable maintenance surface for the per-user service.
 ## Related Reading
 
 - Continue with <doc:Using-The-Command-Line-Tool> if you need the broader role of the executable.
-- Continue with <doc:App-Managed-Install-Layout> if an app also needs to own the filesystem surface around the installed service.
 - Use the repository docs for the full command reference and the transport-level operator inventory.

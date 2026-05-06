@@ -1,5 +1,5 @@
 import Foundation
-@testable import SpeakSwiftlyServer
+@testable import SpeakSwiftlyServerTool
 import Testing
 
 // MARK: - Install Layout Tests
