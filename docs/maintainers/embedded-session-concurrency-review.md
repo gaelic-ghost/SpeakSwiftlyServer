@@ -37,7 +37,7 @@ startup path was also main-actor-isolated.
 
 That pulled the following startup work through the app's UI executor:
 
-- `ConfigStore` creation
+- `ServerConfigStore` creation
 - config loading
 - `ServerHost.live(...)`
 - `SpeakSwiftly.liftoff(...)`

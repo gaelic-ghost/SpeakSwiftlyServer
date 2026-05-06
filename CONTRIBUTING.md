@@ -69,7 +69,8 @@ Before asking for review, make sure the affected docs are in sync, the local val
 The concrete runtime config surfaces in this repo are:
 
 - [`server.yaml`](./server.yaml) for local config examples
-- `APP_CONFIG_FILE` for YAML-backed configuration
+- the bundled `default-server.yaml` resource in the `SpeakSwiftlyServer` target
+- the persisted `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` config seeded from that resource
 - `APP_NAME`
 - `APP_ENVIRONMENT`
 - `APP_DEFAULT_VOICE_PROFILE_NAME`
@@ -87,12 +88,11 @@ The concrete runtime config surfaces in this repo are:
 - `APP_MCP_PATH`
 - `APP_MCP_SERVER_NAME`
 - `APP_MCP_TITLE`
-- `SPEAKSWIFTLY_PROFILE_ROOT` for the runtime-owned profile and persistence root
 - the staged release artifact under `.release-artifacts/current/` for LaunchAgent-owned runs
 
-If `APP_CONFIG_FILE` points at a YAML file, the server loads it through the package's Foundation URL-backed YAML provider and `swift-configuration`; environment variables take precedence over YAML, and YAML takes precedence over built-in defaults. Missing config files fail startup loudly. LaunchAgent install and refresh paths seed the default `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` from the bundled template when that canonical file is missing.
+The server loads persisted YAML through the package's Foundation URL-backed YAML provider and `swift-configuration`; environment variables remain a developer override surface, and persisted YAML takes precedence over bundled defaults. The normal standalone path seeds `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` from the bundled `default-server.yaml` resource when that persisted file is missing. Runtime startup choices live in the same document under `app.runtime`, so HTTP, MCP, embedded, and tool-managed saves no longer maintain a separate runtime JSON file.
 
-The app-managed install layout is centered on one per-user location under `~/Library/Application Support/SpeakSwiftlyServer`, with logs in `~/Library/Logs/SpeakSwiftlyServer`. The package exposes that layout through `AppManagedInstallLayout.swift`.
+The tool-managed LaunchAgent layout is centered on one per-user location under `~/Library/Application Support/SpeakSwiftlyServer`, with logs in `~/Library/Logs/SpeakSwiftlyServer`. The `SpeakSwiftlyServerTool` target owns that layout through `AppManagedInstallLayout.swift`; the library target stays focused on embedded server state, runtime hosting, HTTP, and MCP.
 
 The default build and unit-test loop does not require secrets or a running LaunchAgent. Use `server.yaml` only when you want to run the executable, inspect configuration loading, or inspect LaunchAgent-owned behavior locally.
 
@@ -114,7 +114,7 @@ xcrun swift run SpeakSwiftlyServerTool launch-agent print-plist
 xcrun swift run SpeakSwiftlyServerTool healthcheck
 ```
 
-Direct executable runs default to `127.0.0.1:7338`. LaunchAgent installs default to `127.0.0.1:7337`. Embedded app-owned sessions default to `127.0.0.1:7339`.
+The server-owned Application Support config is LaunchAgent-oriented and defaults to `127.0.0.1:7337`. The in-memory default profiles still reserve `7338` for ad hoc standalone executable configs and `7339` for embedded app-owned configs when a config file omits an explicit port.
 
 For Codex plugin or hook changes, keep end-user behavior plugin-managed and use the repo-local `.codex/` files only as a development harness. Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks run; do not add `~/.codex/hooks.json` as a normal repair path. The hook doctor summarizes the active install, hook feature flags, and voice-profile state:
 
@@ -191,7 +191,7 @@ This suite is a transport-owned smoke pass, not a second copy of SpeakSwiftly's 
 
 ### Embedding
 
-The supported public embedding surface is `EmbeddedServer`, defined in `Sources/SpeakSwiftlyServer/Host/ServerState.swift`. App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`.
+The supported public embedding surface is `EmbeddedServer`, defined in `Sources/SpeakSwiftlyServer/Host/EmbeddedServer.swift`. App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`.
 
 Embedded app callers should pass `SpeakSwiftly.RequestContext` directly when the app has richer caller, project, or origin metadata than the server can infer. HTTP and MCP speech surfaces add transport defaults for that context automatically.
 

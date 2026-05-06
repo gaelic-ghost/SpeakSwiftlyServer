@@ -160,7 +160,7 @@ Use `--remote-ci-mode defer` when full local validation has already run and the 
 - Never edit or experiment in `../../speak-to-user/monorepo` as a feature workspace; keep it as the clean integration checkout.
 - Never retarget public dependency declarations to machine-local paths such as `/Users/...`, `~/...`, or `../...`.
 - Never run overlapping SwiftPM, Xcode, or live end-to-end test processes on this machine.
-- Never run live `SpeakSwiftlyServerE2ETests` before the live-service resident-model unload preflight has completed.
+- Never run live `SpeakSwiftlyServerTransportE2ETests` before the live-service resident-model unload preflight has completed.
 - Never make live-service code changes directly in a live local service repo when a separate development repo exists.
 - Never leave duplicate release command stories active after a release workflow alignment.
 
@@ -178,7 +178,7 @@ No deeper `AGENTS.md` files are currently checked in below this repository root.
 ## Swift Package Workflow
 
 - Use `xcrun swift build` and `xcrun swift test` as the default first-pass validation commands so repo-local SwiftPM work stays on the Xcode-selected toolchain.
-- Treat the live `SpeakSwiftlyServerE2ETests` target as a one-process, one-suite-at-a-time surface. Even though the target is split into HTTP, MCP, and control suites, those live end-to-end suites must always be run sequentially in separate foreground commands and must never overlap in parallel.
+- Treat the live `SpeakSwiftlyServerTransportE2ETests` target as a one-process, one-suite-at-a-time surface. Even though the target is split into HTTP, MCP, and control suites, those live end-to-end suites must always be run sequentially in separate foreground commands and must never overlap in parallel.
 - Before running any live end-to-end suite, use the live-service resident-model unload preflight so the installed LaunchAgent-backed service stays installed while the test-owned helper has enough memory headroom. Do not uninstall the live service as an E2E preflight.
 - Use `bootstrap-swift-package` only when a brand-new Swift package repository still needs to be created from scratch.
 - Use `sync-swift-package-guidance` when this repo guidance drifts and needs a deliberate refresh against the current Swift package baseline.

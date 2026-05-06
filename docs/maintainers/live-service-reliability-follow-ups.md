@@ -11,8 +11,8 @@
 
 The live service had two separate issues that combined into one confusing operator symptom:
 
-1. The LaunchAgent had been installed without `APP_CONFIG_FILE`, so the service fell back to built-in defaults and kept the MCP transport disabled.
-2. Once a real config file was supplied, the current config-loading path failed when `APP_CONFIG_FILE` pointed at `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`, because that path contains spaces.
+1. The LaunchAgent had previously been installed without an explicit config handoff, so the service fell back to built-in defaults and kept the MCP transport disabled.
+2. Once a real config file was supplied, the older config-loading path failed when the path pointed at `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`, because that path contains spaces.
 
 The `v2.0.4` fix kept the canonical config file in Application Support, but staged a copied LaunchAgent-owned alias config under `~/Library/Caches/SpeakSwiftlyServer/launch-agent-server.yaml` whenever the canonical path contained spaces. The LaunchAgent environment pointed at that cache copy instead of the spaced canonical path.
 
@@ -24,7 +24,7 @@ The Application Support cleanup is implemented on the `runtime/application-suppo
 
 ### 1. Add a full LaunchAgent smoke test for the real per-user install layout
 
-The current unit coverage now proves that LaunchAgent installs point `APP_CONFIG_FILE` directly at the canonical Application Support config path, even when the path contains spaces. That should be extended into an end-to-end smoke test that verifies the whole app-managed install contract, not only the environment shaping.
+The current unit coverage now proves that LaunchAgent installs pass `serve --config-file ... --profile-root ...` directly, even when the canonical Application Support config path contains spaces. That should be extended into an end-to-end smoke test that verifies the whole tool-managed install contract, not only the argument shaping.
 
 The intended flow is:
 
@@ -90,7 +90,7 @@ Status update on `2026-04-15`: this is now shipped as `xcrun swift run SpeakSwif
 
 ### 4. Revisit whether LaunchAgent-owned config needs a reloading provider
 
-Status update: the package now keeps reload behavior, but uses a small Foundation URL-backed YAML provider for the filesystem read and polling. `swift-configuration` still owns the reader, precedence behavior, YAML snapshot parsing, and value lookup shape; only the path-sensitive file access moved out of `ReloadingFileProvider<YAMLSnapshot>`.
+Status update: the package now keeps reload behavior, but uses `swift-configuration`'s `FileProvider<YAMLSnapshot>` for YAML loading and a small Foundation URL-backed monitor for file-change detection. `swift-configuration` still owns the reader, precedence behavior, YAML snapshot parsing, and value lookup shape; only path-sensitive file monitoring stays server-local because `ReloadingFileProvider<YAMLSnapshot>` currently treats Application Support paths with spaces as missing after symlink resolution.
 
 ### 5. Add explicit self-reporting for transport policy at startup
 
@@ -133,9 +133,9 @@ If the right long-term answer is "never mutate `.release-artifacts/current` in p
 
 The repository already has good MCP testing primitives in:
 
-- `Tests/SpeakSwiftlyServerE2ETests/E2EMCPClient.swift`
-- `Tests/SpeakSwiftlyServerE2ETests/E2EMCPEventStream.swift`
-- `Tests/SpeakSwiftlyServerE2ETests/E2EServerProcess.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EMCPClient.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EMCPEventStream.swift`
+- `Tests/SpeakSwiftlyServerTransportE2ETests/E2EServerProcess.swift`
 
 Those should be promoted into a small shared maintainer utility or executable test helper so the same code path can be reused for:
 
@@ -208,7 +208,7 @@ The broader package hardening program should now follow this order:
 1. Install and release surface hardening.
    This includes staged-artifact refresh, LaunchAgent promotion semantics, signature handling, release verification, and operator-facing install diagnostics.
 2. Playback and device-observation hardening.
-   The recurring `freed pointer was not the last allocation` warning still needs a focused ownership audit even though the prune-maintenance crash loop is now fixed in the live service. The current audit result is that this package did own one startup-ordering issue: `ServerRuntimeAdapter.start()` used an untracked fire-and-forget task, so `ServerHost.start()` did not actually wait for runtime startup. That race is now fixed here by making the runtime start path truly awaitable. The remaining `playback_output_device_observed` event and eager playback-engine preparation still originate upstream from `SpeakSwiftly.Runtime.start()` -> `startResidentPreload()` -> `playbackController.prepare(...)` with no active request, so any deeper audio-hardware or preload policy change belongs in `SpeakSwiftly` unless this server later chooses a different readiness model intentionally.
+   The recurring `freed pointer was not the last allocation` warning still needs a focused ownership audit even though the prune-maintenance crash loop is now fixed in the live service. The current audit result is that this package did own one startup-ordering issue: `SpeakSwiftlyRuntimeAdapter.start()` used an untracked fire-and-forget task, so `ServerHost.start()` did not actually wait for runtime startup. That race is now fixed here by making the runtime start path truly awaitable. The remaining `playback_output_device_observed` event and eager playback-engine preparation still originate upstream from `SpeakSwiftly.Runtime.start()` -> `startResidentPreload()` -> `playbackController.prepare(...)` with no active request, so any deeper audio-hardware or preload policy change belongs in `SpeakSwiftly` unless this server later chooses a different readiness model intentionally.
 3. Host lifecycle and background-work hardening.
    This local pass is now complete. The package-owned shutdown gap was the accepted-request monitor path in `ServerHost`, which was still spawning retained request-consumer tasks without explicit lifecycle accounting. That is now fixed locally: request-monitor tasks are tracked as host-owned state, cancelled during shutdown, and drained before the host finishes tearing the runtime down. Keep any future retained maintenance or watch behavior under the same explicit service ownership model instead of reintroducing long-lived freestanding task loops.
 4. Configuration and persisted runtime-state hardening.

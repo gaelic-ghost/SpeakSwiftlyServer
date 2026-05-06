@@ -26,11 +26,11 @@ That gives you the exact LaunchAgent payload the package currently wants to stag
 - the label
 - the `ProgramArguments` path and `serve` invocation
 - the working directory
-- the `APP_CONFIG_FILE` path for the canonical Application Support config
+- the `--config-file` path for the canonical Application Support config
+- the `--profile-root` path for runtime-owned profile storage
 - the stdout and stderr log files
-- the `SPEAKSWIFTLY_PROFILE_ROOT` environment override for the standalone server
 
-That profile-root override is the LaunchAgent-owned profile-store root on the `SpeakSwiftlyServer` side. The startup bridge converts it into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime so the installed background service can keep one on-disk state tree without nesting `profiles/profiles/`.
+Those paths are passed as explicit server bootstrap inputs. The config file stores server, transport, and runtime startup choices; the profile root points generated profiles and artifacts at the LaunchAgent-owned runtime state tree.
 
 ## Install Or Refresh The Background Service
 
@@ -91,5 +91,4 @@ Treat those commands as the stable maintenance surface for the per-user service.
 ## Related Reading
 
 - Continue with <doc:Using-The-Command-Line-Tool> if you need the broader role of the executable.
-- Continue with <doc:App-Managed-Install-Layout> if an app also needs to own the filesystem surface around the installed service.
 - Use the repository docs for the full command reference and the transport-level operator inventory.
