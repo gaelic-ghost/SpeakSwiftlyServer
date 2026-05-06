@@ -11,10 +11,6 @@ func supportedSpeechBackendDescription() -> String {
     exposedSpeechBackendIdentifiers().joined(separator: ", ")
 }
 
-func legacySpeechBackendNormalizationNote() -> String {
-    "The legacy value '\(SpeakSwiftly.SpeechBackend.legacyQwenCustomVoiceRawValue)' is still accepted and normalized to 'qwen3'."
-}
-
 func exposedQwenResidentModelIdentifiers() -> [String] {
     SpeakSwiftly.QwenResidentModel.allCases.map(\.rawValue)
 }
@@ -272,24 +268,6 @@ struct RequestListResponse: ResponseEncodable {
 }
 
 struct RuntimeStatusResponse: ResponseEncodable {
-    let runtime: RuntimeObservationSnapshot
-    let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
-
-    init(
-        runtime: SpeakSwiftly.RuntimeSnapshot,
-        runtimeBackendTransition: RuntimeBackendTransitionSnapshot,
-    ) {
-        self.runtime = .init(runtime)
-        self.runtimeBackendTransition = runtimeBackendTransition
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case runtime
-        case runtimeBackendTransition = "runtime_backend_transition"
-    }
-}
-
-struct RuntimeObservationSnapshot: Encodable {
     let sequence: Int
     let capturedAt: Date
     let state: String
@@ -297,15 +275,20 @@ struct RuntimeObservationSnapshot: Encodable {
     let residentState: String
     let defaultVoiceProfile: String
     let storage: RuntimeStorageObservationSnapshot
+    let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
 
-    init(_ snapshot: SpeakSwiftly.RuntimeSnapshot) {
-        sequence = snapshot.sequence
-        capturedAt = snapshot.capturedAt
-        state = snapshot.state.rawValue
-        speechBackend = snapshot.speechBackend.rawValue
-        residentState = snapshot.residentState.rawValue
-        defaultVoiceProfile = snapshot.defaultVoiceProfile
-        storage = .init(snapshot.storage)
+    init(
+        runtime: SpeakSwiftly.RuntimeSnapshot,
+        runtimeBackendTransition: RuntimeBackendTransitionSnapshot,
+    ) {
+        sequence = runtime.sequence
+        capturedAt = runtime.capturedAt
+        state = runtime.state.rawValue
+        speechBackend = runtime.speechBackend.rawValue
+        residentState = runtime.residentState.rawValue
+        defaultVoiceProfile = runtime.defaultVoiceProfile
+        storage = .init(runtime.storage)
+        self.runtimeBackendTransition = runtimeBackendTransition
     }
 
     enum CodingKeys: String, CodingKey {
@@ -316,6 +299,7 @@ struct RuntimeObservationSnapshot: Encodable {
         case residentState = "resident_state"
         case defaultVoiceProfile = "default_voice_profile"
         case storage
+        case runtimeBackendTransition = "runtime_backend_transition"
     }
 }
 
@@ -418,10 +402,10 @@ private func resolveSpeechBackend(
     _ rawValue: String,
     fieldName: String,
 ) throws -> SpeakSwiftly.SpeechBackend {
-    guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
+    guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
         throw HTTPError(
             .badRequest,
-            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()). \(legacySpeechBackendNormalizationNote())",
+            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
         )
     }
 

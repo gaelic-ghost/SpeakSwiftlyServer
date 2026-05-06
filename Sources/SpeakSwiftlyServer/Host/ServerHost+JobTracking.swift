@@ -115,7 +115,7 @@ extension ServerHost {
                                 requestID: handle.id,
                                 expectation: backendSwitchExpectation,
                             )
-                        } else if handle.operation == "list_voice_profiles" {
+                        } else if handle.operation == "voice_profiles_snapshot" {
                             await applyProfileRefresh(from: completion)
                             await record(mapCompletionEvent(id: handle.id, completion), for: handle.id, terminal: true)
                         } else {
@@ -277,13 +277,13 @@ extension ServerHost {
         let handle = await runtime.listVoiceProfiles()
         let completion = try await awaitImmediateCompletion(
             handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the internal list_voice_profiles request without yielding a terminal success payload.",
+            missingTerminalMessage: "SpeakSwiftly finished the internal voice-profile snapshot request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while refreshing cached profiles.",
         )
         guard case let .voiceProfiles(profileSummaries) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the internal list_voice_profiles request, but it did not return a profiles payload.",
+                message: "SpeakSwiftly accepted the internal voice-profile snapshot request, but it did not return a profiles payload.",
             )
         }
 

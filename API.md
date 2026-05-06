@@ -163,7 +163,7 @@ The queue and playback control routes are immediate control operations rather th
 The runtime routes are also state-oriented.
 
 - `GET /overview` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
-- `GET /status` returns the underlying `SpeakSwiftly.RuntimeSnapshot` plus the same live backend-switch transition summary.
+- `GET /status` returns direct `SpeakSwiftly.RuntimeSnapshot` fields plus the same live backend-switch transition summary.
 - `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
 - `POST /backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /overview`, `GET /status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
 - `POST /models/reload` and `POST /models/unload` follow the current runtime-control verbs directly.
@@ -176,7 +176,7 @@ The MCP surface is optional and mounts on the same shared Hummingbird process at
 
 ### MCP Tools
 
-For read-only MCP inspection, prefer resources first. Use `speak-swiftly://overview` for broad orientation, then read the most specific `speak-swiftly://...` resource for the state you need. The read-only tools remain available for compatibility and clients that cannot use MCP resources cleanly, but tools are the preferred path for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
+For read-only MCP inspection, use resources. Use `speak-swiftly://overview` for broad orientation, then read the most specific `speak-swiftly://...` resource for the state you need. Tools are reserved for queueing speech, changing runtime state, editing profiles, and cancelling or clearing work.
 
 The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are intentionally top-level under that scheme: `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`. The older `speak://runtime/...` shape is not carried forward in the next major API because it made read routes look nested by implementation detail instead of by user job.
 
@@ -185,9 +185,6 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `generate_speech`
 - `generate_audio_file`
 - `generate_batch`
-- `list_active_requests`
-- `list_generation_jobs`
-- `get_generation_job`
 - `expire_generation_job`
 
 #### Voice Tools
@@ -197,13 +194,10 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `inspect_builtin_voice_seed`
 - `update_voice_profile_name`
 - `reroll_voice_profile`
-- `list_voice_profiles`
 - `delete_voice_profile`
 
 #### Text Profile Tools
 
-- `get_text_normalizer_snapshot`
-- `get_text_profile_style`
 - `set_text_profile_style`
 - `load_text_profiles`
 - `save_text_profiles`
@@ -219,18 +213,12 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 
 #### Playback And Runtime Tools
 
-- `get_runtime_overview`
-- `get_runtime_status`
-- `get_runtime_configuration`
 - `set_runtime_configuration`
 - `switch_speech_backend`
 - `reload_models`
 - `unload_models`
-- `list_generation_queue`
-- `list_playback_queue`
 - `pause_playback`
 - `resume_playback`
-- `get_playback_state`
 - `clear_generation_queue`
 - `clear_playback_queue`
 - `cancel_request`

@@ -148,7 +148,7 @@ extension ServerTransportE2ETests {
             server: server,
         )
 
-        let profiles = try await requireProfiles(from: client.callToolJSON(name: "list_voice_profiles", arguments: [:]))
+        let profiles = try await requireProfiles(from: client.readResourceJSON(uri: "speak-swiftly://voices"))
         #expect(profiles.contains { $0.profileName == profileName })
 
         let profileDetail = try await Self.requireObjectPayload(

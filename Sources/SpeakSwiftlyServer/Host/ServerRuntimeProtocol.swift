@@ -39,9 +39,9 @@ func canonicalOperationName(_ operation: String) -> String {
         case "queue_speech_batch":
             "generate_batch"
         case "get_text_profiles_state":
-            "get_text_normalizer_snapshot"
+            "text_profiles_snapshot"
         case "list_requests":
-            "list_active_requests"
+            "requests_snapshot"
         default:
             operation
     }

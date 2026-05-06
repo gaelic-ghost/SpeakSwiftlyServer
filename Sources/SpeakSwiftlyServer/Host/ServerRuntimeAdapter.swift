@@ -182,7 +182,7 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func listVoiceProfiles() async -> RuntimeRequestHandle {
         let handle = await runtime.voices.list()
-        return .init(id: handle.id, operation: "list_voice_profiles", profileName: nil, events: handle.events)
+        return .init(id: handle.id, operation: "voice_profiles_snapshot", profileName: nil, events: handle.events)
     }
 
     func renameVoiceProfile(profileName: String, to newProfileName: String) async -> RuntimeRequestHandle {
@@ -204,12 +204,12 @@ actor ServerRuntimeAdapter: ServerRuntimeProtocol {
 
     func generationJob(id jobID: String) async -> RuntimeRequestHandle {
         let handle = await runtime.jobs.job(id: jobID)
-        return .init(id: handle.id, operation: "get_generation_job", profileName: nil, events: handle.events)
+        return .init(id: handle.id, operation: "generation_job_snapshot", profileName: nil, events: handle.events)
     }
 
     func listGenerationJobs() async -> RuntimeRequestHandle {
         let handle = await runtime.jobs.list()
-        return .init(id: handle.id, operation: "list_generation_jobs", profileName: nil, events: handle.events)
+        return .init(id: handle.id, operation: "generation_jobs_snapshot", profileName: nil, events: handle.events)
     }
 
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle {

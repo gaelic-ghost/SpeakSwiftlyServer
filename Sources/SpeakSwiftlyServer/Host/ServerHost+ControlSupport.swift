@@ -4,25 +4,6 @@ import SpeakSwiftly
 extension ServerHost {
     // MARK: - Playback Control Helpers
 
-    func playbackStateResponse(
-        handle: RuntimeRequestHandle,
-        requestName: String,
-    ) async throws -> PlaybackStateResponse {
-        let completion = try await awaitImmediateCompletion(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
-        )
-        guard case let .playbackSnapshot(playbackState) = completion else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback snapshot payload.",
-            )
-        }
-
-        return .init(playback: .init(summary: playbackState))
-    }
-
     func playbackControlResponse(
         handle: RuntimeRequestHandle,
         requestName: String,
@@ -39,15 +20,18 @@ extension ServerHost {
             return response
         }
         let response = try await settledPlaybackStateResponse(
-            for: requestName,
             expectedState: expectedState,
         )
         await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
         return response
     }
 
+    func playbackSnapshotResponse() async -> PlaybackStateResponse {
+        let snapshot = await runtime.playbackSnapshot()
+        return .init(playback: .init(summary: snapshot))
+    }
+
     func settledPlaybackStateResponse(
-        for requestName: String,
         expectedState: SpeakSwiftly.PlaybackState,
     ) async throws -> PlaybackStateResponse {
         let clock = ContinuousClock()
@@ -55,11 +39,7 @@ extension ServerHost {
         var lastResponse: PlaybackStateResponse?
 
         while true {
-            let snapshotHandle = await syntheticPlaybackSnapshotHandle()
-            let response = try await playbackStateResponse(
-                handle: snapshotHandle,
-                requestName: requestName,
-            )
+            let response = await playbackSnapshotResponse()
             lastResponse = response
             if response.playback.state == expectedState.rawValue {
                 return response
@@ -152,20 +132,6 @@ extension ServerHost {
         return .init(
             runtime: runtimeSnapshot,
             runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
-        )
-    }
-
-    func syntheticPlaybackSnapshotHandle() async -> RuntimeRequestHandle {
-        let snapshot = await runtime.playbackSnapshot()
-        let stream = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(.playbackSnapshot(snapshot)))
-            continuation.finish()
-        }
-        return .init(
-            id: UUID().uuidString,
-            operation: "get_playback_snapshot",
-            profileName: snapshot.activeRequest?.voiceProfile,
-            events: stream,
         )
     }
 

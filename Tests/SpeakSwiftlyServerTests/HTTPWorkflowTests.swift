@@ -93,17 +93,6 @@ extension ServerTests {
             #expect(updateChatterboxRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
             #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
 
-            let updateLegacyQwenRuntimeConfigResponse = try await client.execute(
-                uri: "/configuration",
-                method: .put,
-                headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"qwen3_custom_voice"}"#),
-            )
-            let updateLegacyQwenRuntimeConfigJSON = try jsonObject(from: updateLegacyQwenRuntimeConfigResponse.body)
-            #expect(updateLegacyQwenRuntimeConfigResponse.status == .ok)
-            #expect(updateLegacyQwenRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3")
-            #expect(updateLegacyQwenRuntimeConfigJSON["persisted_speech_backend"] as? String == "qwen3")
-
             let profilesResponse = try await client.execute(uri: "/voices", method: .get)
             let profilesJSON = try jsonObject(from: profilesResponse.body)
             let profiles = try #require(profilesJSON["profiles"] as? [[String: Any]])
@@ -543,7 +532,7 @@ extension ServerTests {
             #expect(persistMessage.contains("qwen3"))
             #expect(persistMessage.contains("chatterbox_turbo"))
             #expect(persistMessage.contains("marvis"))
-            #expect(persistMessage.contains("qwen3_custom_voice"))
+            #expect(persistMessage.contains("qwen3_custom_voice") == false)
 
             let switchResponse = try await client.execute(
                 uri: "/backend",
@@ -560,7 +549,7 @@ extension ServerTests {
             #expect(switchMessage.contains("qwen3"))
             #expect(switchMessage.contains("chatterbox_turbo"))
             #expect(switchMessage.contains("marvis"))
-            #expect(switchMessage.contains("qwen3_custom_voice"))
+            #expect(switchMessage.contains("qwen3_custom_voice") == false)
         }
 
         await host.shutdown()

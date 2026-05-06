@@ -75,7 +75,7 @@ extension MockRuntime {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_generation_queue", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "generation_queue_snapshot", profileName: nil, events: events)
     }
 
     func playbackQueue() async -> RuntimeRequestHandle {
@@ -93,7 +93,7 @@ extension MockRuntime {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_playback_queue", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "playback_queue_snapshot", profileName: nil, events: events)
     }
 
     func pausePlayback() async -> RuntimeRequestHandle {

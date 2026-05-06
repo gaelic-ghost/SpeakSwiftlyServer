@@ -25,7 +25,7 @@ Completed decisions:
 
 - Prefer MCP resources for read-only inspection and tools for commands or mutations.
 - Keep top-level MCP runtime resources under `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
-- Keep read-only MCP tools such as `get_runtime_overview` and `get_runtime_status` as compatibility read tools, with descriptions pointing clients toward resources first.
+- Remove read-only MCP compatibility tools in the v6 alignment pass so resources are the only MCP read contract where a resource exists.
 - Collapse cancellation around `DELETE /requests/{request_id}` and `cancel_request`, with optional queue scope only when the caller needs protection.
 - Prefer `runtime configuration` wording, with `active_*`, `next_*`, `persisted_*`, and `environment_*_override` fields carrying the precise state.
 - Move retained generated output reads toward one generation artifact family instead of separate file and batch read families.

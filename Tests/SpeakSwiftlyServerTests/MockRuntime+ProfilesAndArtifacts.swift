@@ -160,7 +160,7 @@ extension MockRuntime {
             let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
                 continuation.finish(throwing: SpeakSwiftly.Error(code: .internalError, message: message))
             }
-            return RuntimeRequestHandle(id: requestID, operation: "list_voice_profiles", profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "voice_profiles_snapshot", profileName: nil, events: events)
         }
         if !scriptedProfileRefreshSnapshots.isEmpty {
             profiles = scriptedProfileRefreshSnapshots.removeFirst()
@@ -170,7 +170,7 @@ extension MockRuntime {
             continuation.yield(.completed(.voiceProfiles(profiles)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_voice_profiles", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "voice_profiles_snapshot", profileName: nil, events: events)
     }
 
     func voiceProfileRefreshCount() -> Int {
@@ -255,14 +255,14 @@ extension MockRuntime {
                     ),
                 )
             }
-            return RuntimeRequestHandle(id: requestID, operation: "get_generation_job", profileName: nil, events: events)
+            return RuntimeRequestHandle(id: requestID, operation: "generation_job_snapshot", profileName: nil, events: events)
         }
 
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(.completed(.generationJob(job)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "get_generation_job", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "generation_job_snapshot", profileName: nil, events: events)
     }
 
     func listGenerationJobs() async -> RuntimeRequestHandle {
@@ -272,7 +272,7 @@ extension MockRuntime {
             continuation.yield(.completed(.generationJobs(jobs)))
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_generation_jobs", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "generation_jobs_snapshot", profileName: nil, events: events)
     }
 
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle {

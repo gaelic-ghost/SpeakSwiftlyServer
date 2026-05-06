@@ -110,6 +110,17 @@ func mcpToolPayload(from envelope: [String: Any]) throws -> [String: Any] {
     return try jsonObject(from: Data(text.utf8))
 }
 
+func mcpResourcePayload(from envelope: [String: Any]) throws -> Any {
+    let result = try #require(mcpResultPayload(from: envelope))
+    let contents = try #require(result["contents"] as? [[String: Any]])
+    let text = try #require(contents.first?["text"] as? String)
+    return try JSONSerialization.jsonObject(with: Data(text.utf8))
+}
+
+func mcpResourceObjectPayload(from envelope: [String: Any]) throws -> [String: Any] {
+    try #require(mcpResourcePayload(from: envelope) as? [String: Any])
+}
+
 func mcpResultPayload(from envelope: [String: Any]) -> [String: Any]? {
     (envelope["result"] as? [String: Any]) ?? envelope
 }
