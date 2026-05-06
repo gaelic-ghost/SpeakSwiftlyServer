@@ -95,7 +95,7 @@ import Testing
     }
 
     #expect(
-        options.configFilePath == nil
+        options.configFilePath == nil,
     )
     #expect(
         options.runtimeProfileRootPath

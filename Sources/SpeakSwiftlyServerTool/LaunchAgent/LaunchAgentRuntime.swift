@@ -90,12 +90,12 @@ struct LaunchAgentStatusOptions {
             }
             print("Removed LaunchAgent plist '\(plistPath)' for label '\(label)'.")
             ToolLog.launchAgent.notice(
-                "Removed LaunchAgent plist '\(self.plistPath, privacy: .public)' for label '\(self.label, privacy: .public)'.",
+                "Removed LaunchAgent plist '\(plistPath, privacy: .public)' for label '\(label, privacy: .public)'.",
             )
         } else {
             print("LaunchAgent plist '\(plistPath)' was already absent for label '\(label)'.")
             ToolLog.launchAgent.notice(
-                "LaunchAgent plist '\(self.plistPath, privacy: .public)' was already absent for label '\(self.label, privacy: .public)'.",
+                "LaunchAgent plist '\(plistPath, privacy: .public)' was already absent for label '\(label, privacy: .public)'.",
             )
         }
     }

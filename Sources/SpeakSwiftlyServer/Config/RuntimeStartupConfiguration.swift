@@ -43,23 +43,20 @@ struct RuntimeStartupConfiguration {
             ?? Self.normalized(fallbackDefaultVoiceProfileName)
     }
 
-    func speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil) -> SpeakSwiftly.Configuration {
-        .init(
-            speechBackend: speechBackend,
-            qwenResidentModel: qwenResidentModel,
-            marvisResidentPolicy: marvisResidentPolicy,
-            defaultVoiceProfile: defaultVoiceProfileName
-                ?? Self.normalized(configuredDefaultVoiceProfileName)
-                ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
-        )
+    static func normalized(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+
+        return trimmed
     }
 
-    private static func optionalRawValue<Value>(
+    private static func optionalRawValue<Value: RawRepresentable>(
         _ config: ConfigReader,
         key: ConfigKey,
         fallback: Value,
         label: String,
-    ) throws -> Value where Value: RawRepresentable, Value.RawValue == String {
+    ) throws -> Value where Value.RawValue == String {
         guard let rawValue = try optionalString(config, key: key) else {
             return fallback
         }
@@ -68,6 +65,7 @@ struct RuntimeStartupConfiguration {
                 "Configuration value 'APP_RUNTIME_\(String(describing: key).uppercased())' has unsupported \(label) '\(rawValue)'.",
             )
         }
+
         return value
     }
 
@@ -86,11 +84,14 @@ struct RuntimeStartupConfiguration {
         }
     }
 
-    static func normalized(_ value: String?) -> String? {
-        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
-            return nil
-        }
-
-        return trimmed
+    func speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil) -> SpeakSwiftly.Configuration {
+        .init(
+            speechBackend: speechBackend,
+            qwenResidentModel: qwenResidentModel,
+            marvisResidentPolicy: marvisResidentPolicy,
+            defaultVoiceProfile: defaultVoiceProfileName
+                ?? Self.normalized(configuredDefaultVoiceProfileName)
+                ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
+        )
     }
 }

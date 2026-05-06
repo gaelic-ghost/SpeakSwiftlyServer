@@ -82,9 +82,9 @@ extension LaunchAgentOptions {
         )
         ToolLog.launchAgent.notice(
             """
-            Installed LaunchAgent '\(self.label, privacy: .public)' at '\(self.plistPath, privacy: .public)' \
-            and bootstrapped it into '\(self.userDomain, privacy: .public)'. \
-            Active tool executable: \(self.toolExecutablePath, privacy: .public)
+            Installed LaunchAgent '\(label, privacy: .public)' at '\(plistPath, privacy: .public)' \
+            and bootstrapped it into '\(userDomain, privacy: .public)'. \
+            Active tool executable: \(toolExecutablePath, privacy: .public)
             """,
         )
     }

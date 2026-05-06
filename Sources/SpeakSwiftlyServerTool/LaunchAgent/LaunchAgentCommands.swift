@@ -46,6 +46,7 @@ package struct ServeOptions {
                             "\(speakSwiftlyServerToolName) did not recognize serve default profile '\(rawValue)'. Supported values are: \(supportedProfiles).",
                         )
                     }
+
                     defaultProfile = parsedProfile
                     index += 2
 

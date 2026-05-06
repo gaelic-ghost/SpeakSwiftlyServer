@@ -98,9 +98,9 @@ struct ServerConfigStore {
         defaultProfile: ServerConfigDefaultProfile,
         configurationURL: URL,
     ) async throws -> AppConfig {
-        let providers: [any ConfigProvider] = [
+        let providers: [any ConfigProvider] = try await [
             EnvironmentVariablesProvider(environmentVariables: environment),
-            try await yamlProvider(fileURL: configurationURL),
+            yamlProvider(fileURL: configurationURL),
             InMemoryProvider(values: defaultProfile.configDefaults),
         ]
         return try AppConfig(config: ConfigReader(providers: providers).scoped(to: "app"))

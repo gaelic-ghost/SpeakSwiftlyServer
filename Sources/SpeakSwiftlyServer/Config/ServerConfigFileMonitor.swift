@@ -20,6 +20,33 @@ final class ServerConfigFileMonitor: Service, @unchecked Sendable {
         source = try Self.loadSource(from: self.fileURL)
     }
 
+    private static func loadSource(from fileURL: URL) throws -> FileSource {
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: fileURL.path) else {
+            throw ServerConfigurationError(
+                "Configuration file '\(fileURL.path)' does not exist. Use a server-owned config URL that has been seeded from the bundled default, or pass APP_CONFIG_FILE with an existing YAML config path.",
+            )
+        }
+
+        let attributes: [FileAttributeKey: Any]
+        do {
+            attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
+        } catch {
+            throw ServerConfigurationError(
+                "Configuration file '\(fileURL.path)' exists but its file attributes could not be read. Likely cause: \(error.localizedDescription)",
+            )
+        }
+
+        guard let modifiedAt = attributes[.modificationDate] as? Date else {
+            throw ServerConfigurationError(
+                "Configuration file '\(fileURL.path)' is missing a modification timestamp, so reload checks cannot track it safely.",
+            )
+        }
+
+        let size = (attributes[.size] as? NSNumber)?.uint64Value ?? 0
+        return FileSource(modifiedAt: modifiedAt, size: size)
+    }
+
     func updates() -> AsyncThrowingStream<Void, Error> {
         AsyncThrowingStream { continuation in
             let (stream, streamContinuation) = AsyncStream<Void>
@@ -62,33 +89,6 @@ final class ServerConfigFileMonitor: Service, @unchecked Sendable {
                 continuation.yield(())
             }
         }
-    }
-
-    private static func loadSource(from fileURL: URL) throws -> FileSource {
-        let fileManager = FileManager.default
-        guard fileManager.fileExists(atPath: fileURL.path) else {
-            throw ServerConfigurationError(
-                "Configuration file '\(fileURL.path)' does not exist. Use a server-owned config URL that has been seeded from the bundled default, or pass APP_CONFIG_FILE with an existing YAML config path.",
-            )
-        }
-
-        let attributes: [FileAttributeKey: Any]
-        do {
-            attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
-        } catch {
-            throw ServerConfigurationError(
-                "Configuration file '\(fileURL.path)' exists but its file attributes could not be read. Likely cause: \(error.localizedDescription)",
-            )
-        }
-
-        guard let modifiedAt = attributes[.modificationDate] as? Date else {
-            throw ServerConfigurationError(
-                "Configuration file '\(fileURL.path)' is missing a modification timestamp, so reload checks cannot track it safely.",
-            )
-        }
-
-        let size = (attributes[.size] as? NSNumber)?.uint64Value ?? 0
-        return FileSource(modifiedAt: modifiedAt, size: size)
     }
 }
 

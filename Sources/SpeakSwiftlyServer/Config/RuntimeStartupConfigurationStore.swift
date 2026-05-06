@@ -49,7 +49,7 @@ struct RuntimeStartupConfigurationStore {
             resolvedConfigurationURL = (configurationURL ?? ServerStorageDefaults.defaultForCurrentUser(fileManager: fileManager).configurationURL)
                 .standardizedFileURL
         } else if let profileRootOverride,
-           profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                  profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
             let overriddenProfileRootURL = URL(fileURLWithPath: profileRootOverride, isDirectory: true)
             resolvedConfigurationURL = (configurationURL ?? overriddenProfileRootURL
                 .deletingLastPathComponent()

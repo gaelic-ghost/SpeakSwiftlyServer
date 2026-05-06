@@ -23,6 +23,38 @@ public struct ServerConfigPersistence: @unchecked Sendable {
         ServerConfigPersistence(fileManager: fileManager)
     }
 
+    static func renderYAML(appConfig: AppConfig, runtime: RuntimeStartupConfiguration? = nil) -> String {
+        let runtime = runtime ?? appConfig.runtime
+        let defaultVoiceProfileName = runtime.defaultVoiceProfileName.map { "'\($0)'" } ?? ""
+        return """
+        app:
+          name: \(appConfig.server.name)
+          environment: \(appConfig.server.environment)
+          host: \(appConfig.server.host)
+          port: \(appConfig.server.port)
+          sseHeartbeatSeconds: \(appConfig.server.sseHeartbeatSeconds.cleanYAMLNumber)
+          completedJobTTLSeconds: \(appConfig.server.completedJobTTLSeconds.cleanYAMLNumber)
+          completedJobMaxCount: \(appConfig.server.completedJobMaxCount)
+          jobPruneIntervalSeconds: \(appConfig.server.jobPruneIntervalSeconds.cleanYAMLNumber)
+          runtime:
+            speechBackend: \(runtime.speechBackend.rawValue)
+            qwenResidentModel: \(runtime.qwenResidentModel.rawValue)
+            marvisResidentPolicy: \(runtime.marvisResidentPolicy.rawValue)
+            defaultVoiceProfileName: \(defaultVoiceProfileName)
+          http:
+            enabled: \(appConfig.http.enabled ? "true" : "false")
+            host: \(appConfig.http.host)
+            port: \(appConfig.http.port)
+            sseHeartbeatSeconds: \(appConfig.http.sseHeartbeatSeconds.cleanYAMLNumber)
+          mcp:
+            enabled: \(appConfig.mcp.enabled ? "true" : "false")
+            path: \(appConfig.mcp.path)
+            serverName: \(appConfig.mcp.serverName)
+            title: \(appConfig.mcp.title)
+
+        """
+    }
+
     @discardableResult
     public func seedIfMissing() throws -> Bool {
         guard fileManager.fileExists(atPath: configurationURL.path) == false else {
@@ -89,38 +121,6 @@ public struct ServerConfigPersistence: @unchecked Sendable {
                 "SpeakSwiftlyServer could not save persisted runtime configuration to '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
             )
         }
-    }
-
-    static func renderYAML(appConfig: AppConfig, runtime: RuntimeStartupConfiguration? = nil) -> String {
-        let runtime = runtime ?? appConfig.runtime
-        let defaultVoiceProfileName = runtime.defaultVoiceProfileName.map { "'\($0)'" } ?? ""
-        return """
-        app:
-          name: \(appConfig.server.name)
-          environment: \(appConfig.server.environment)
-          host: \(appConfig.server.host)
-          port: \(appConfig.server.port)
-          sseHeartbeatSeconds: \(appConfig.server.sseHeartbeatSeconds.cleanYAMLNumber)
-          completedJobTTLSeconds: \(appConfig.server.completedJobTTLSeconds.cleanYAMLNumber)
-          completedJobMaxCount: \(appConfig.server.completedJobMaxCount)
-          jobPruneIntervalSeconds: \(appConfig.server.jobPruneIntervalSeconds.cleanYAMLNumber)
-          runtime:
-            speechBackend: \(runtime.speechBackend.rawValue)
-            qwenResidentModel: \(runtime.qwenResidentModel.rawValue)
-            marvisResidentPolicy: \(runtime.marvisResidentPolicy.rawValue)
-            defaultVoiceProfileName: \(defaultVoiceProfileName)
-          http:
-            enabled: \(appConfig.http.enabled ? "true" : "false")
-            host: \(appConfig.http.host)
-            port: \(appConfig.http.port)
-            sseHeartbeatSeconds: \(appConfig.http.sseHeartbeatSeconds.cleanYAMLNumber)
-          mcp:
-            enabled: \(appConfig.mcp.enabled ? "true" : "false")
-            path: \(appConfig.mcp.path)
-            serverName: \(appConfig.mcp.serverName)
-            title: \(appConfig.mcp.title)
-
-        """
     }
 }
 

@@ -233,13 +233,13 @@ public final class EmbeddedServer {
     @ObservationIgnored private var stopCoordinator = EmbeddedServerStopCoordinator()
     @ObservationIgnored private var isLiftingOff = false
 
+    var bootstrapOptions: Options {
+        options
+    }
+
     /// Creates an app-owned embedded server model with optional bootstrap overrides.
     public init(options: Options = .init()) {
         self.options = options
-    }
-
-    var bootstrapOptions: Options {
-        options
     }
 
     /// Starts the embedded server if it is not already running.
