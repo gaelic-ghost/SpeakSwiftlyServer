@@ -158,6 +158,30 @@ extension ServerHost {
         )
     }
 
+    func queueStatusSnapshot(from summary: SpeakSwiftly.GenerateSnapshot) -> QueueStatusSnapshot {
+        let activeRequests = summary.activeRequests.map(ActiveRequestSnapshot.init(summary:))
+        return .init(
+            queueType: SpeakSwiftly.QueueType.generation.rawValue,
+            activeCount: activeRequests.count,
+            queuedCount: summary.queuedRequests.count,
+            activeRequest: activeRequests.first,
+            activeRequests: activeRequests,
+            queuedRequests: summary.queuedRequests.map(QueuedRequestSnapshot.init(summary:)),
+        )
+    }
+
+    func queueStatusSnapshot(from summary: SpeakSwiftly.PlaybackSnapshot) -> QueueStatusSnapshot {
+        let activeRequests = summary.activeRequest.map { [ActiveRequestSnapshot(summary: $0)] } ?? []
+        return .init(
+            queueType: SpeakSwiftly.QueueType.playback.rawValue,
+            activeCount: activeRequests.count,
+            queuedCount: summary.queuedRequests.count,
+            activeRequest: activeRequests.first,
+            activeRequests: activeRequests,
+            queuedRequests: summary.queuedRequests.map(QueuedRequestSnapshot.init(summary:)),
+        )
+    }
+
     func queueSnapshotResponse(from snapshot: QueueStatusSnapshot) -> QueueSnapshotResponse {
         .init(snapshot: snapshot)
     }
@@ -186,7 +210,7 @@ extension ServerHost {
         id: String,
         _ completion: SpeakSwiftly.RequestCompletion,
         acknowledged: Bool = false,
-    ) -> ServerJobEvent {
+    ) async -> ServerJobEvent {
         let success: ServerSuccessEvent = switch completion {
             case let .artifact(value):
                 .init(id: id, artifact: value)
@@ -220,12 +244,12 @@ extension ServerHost {
                     activeRequests: active.map(ActiveRequestSnapshot.init(summary:)),
                     queue: queued.map(QueuedRequestSnapshot.init(summary:)),
                 )
-            case let .playbackState(value):
+            case let .playbackSnapshot(value):
                 .init(id: id, playbackState: PlaybackStatusSnapshot(summary: value))
-            case .runtimeOverview:
-                .init(id: id)
-            case let .runtimeStatus(status: value, speechBackend: backend):
-                .init(id: id, status: value, speechBackend: backend?.rawValue)
+            case let .runtimeSnapshot(value):
+                .init(id: id, runtime: value, speechBackend: value.speechBackend.rawValue)
+            case .runtimeUpdate:
+                await runtimeSnapshotSuccessEvent(id: id)
             case let .defaultVoiceProfile(name):
                 .init(id: id, profileName: name)
             case let .queueCleared(count: count):
@@ -236,6 +260,11 @@ extension ServerHost {
                 .init(id: id)
         }
         return acknowledged ? .acknowledged(success) : .completed(success)
+    }
+
+    func runtimeSnapshotSuccessEvent(id: String) async -> ServerSuccessEvent {
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+        return .init(id: id, runtime: runtimeSnapshot, speechBackend: runtimeSnapshot.speechBackend.rawValue)
     }
 
     func encodeSSEBuffer(for event: ServerJobEvent) -> ByteBuffer {

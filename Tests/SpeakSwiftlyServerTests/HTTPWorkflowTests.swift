@@ -45,7 +45,7 @@ extension ServerTests {
             #expect(runtimeHostJSON["default_voice_profile_name"] as? String == "default")
             let runtimeRefresh = try #require(runtimeHostJSON["runtime_refresh"] as? [String: Any])
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
-            #expect(runtimeRefresh["source"] as? String == "runtime_overview")
+            #expect(runtimeRefresh["source"] as? String == "runtime_snapshots")
             #expect((runtimeRefresh["started_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["generation_queue_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["playback_queue_refreshed_at"] as? String)?.isEmpty == false)
@@ -92,17 +92,6 @@ extension ServerTests {
             #expect(updateChatterboxRuntimeConfigResponse.status == .ok)
             #expect(updateChatterboxRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
             #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
-
-            let updateLegacyQwenRuntimeConfigResponse = try await client.execute(
-                uri: "/configuration",
-                method: .put,
-                headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"qwen3_custom_voice"}"#),
-            )
-            let updateLegacyQwenRuntimeConfigJSON = try jsonObject(from: updateLegacyQwenRuntimeConfigResponse.body)
-            #expect(updateLegacyQwenRuntimeConfigResponse.status == .ok)
-            #expect(updateLegacyQwenRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3")
-            #expect(updateLegacyQwenRuntimeConfigJSON["persisted_speech_backend"] as? String == "qwen3")
 
             let profilesResponse = try await client.execute(uri: "/voices", method: .get)
             let profilesJSON = try jsonObject(from: profilesResponse.body)
@@ -423,7 +412,14 @@ extension ServerTests {
             #expect(queuedTransition.waitingReason == "waiting_for_active_request")
 
             await runtime.finishHeldSpeak(id: speakJobID)
-            _ = try await waitForJobSnapshot(switchJobID, on: host)
+            let switchSnapshot = try await waitForJobSnapshot(switchJobID, on: host)
+            switch switchSnapshot.terminalEvent {
+                case let .completed(event):
+                    #expect(event.speechBackend == "marvis")
+                    #expect(event.runtime?.speechBackend == .marvis)
+                default:
+                    Issue.record("Expected speech-backend switch request to complete with runtime snapshot details.")
+            }
 
             let finalHostResponse = try await client.execute(uri: "/overview", method: .get)
             let finalHostJSON = try jsonObject(from: finalHostResponse.body)
@@ -543,7 +539,7 @@ extension ServerTests {
             #expect(persistMessage.contains("qwen3"))
             #expect(persistMessage.contains("chatterbox_turbo"))
             #expect(persistMessage.contains("marvis"))
-            #expect(persistMessage.contains("qwen3_custom_voice"))
+            #expect(persistMessage.contains("qwen3_custom_voice") == false)
 
             let switchResponse = try await client.execute(
                 uri: "/backend",
@@ -560,7 +556,7 @@ extension ServerTests {
             #expect(switchMessage.contains("qwen3"))
             #expect(switchMessage.contains("chatterbox_turbo"))
             #expect(switchMessage.contains("marvis"))
-            #expect(switchMessage.contains("qwen3_custom_voice"))
+            #expect(switchMessage.contains("qwen3_custom_voice") == false)
         }
 
         await host.shutdown()

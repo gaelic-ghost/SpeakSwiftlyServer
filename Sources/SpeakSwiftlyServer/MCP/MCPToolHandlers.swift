@@ -29,16 +29,6 @@ private func acceptedRequestToolResult(
     )
 }
 
-private func mappedTextProfileToolResult(
-    _ operation: () async throws -> some Encodable,
-) async throws -> CallTool.Result {
-    do {
-        return try await toolResult(operation())
-    } catch {
-        throw mapTextProfileToolError(error)
-    }
-}
-
 private func notifyingTextProfileToolResult(
     on server: Server,
     subscriptionBroker: MCPSubscriptionBroker,
@@ -167,9 +157,6 @@ extension MCPSurface {
                         message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
-                case "list_voice_profiles":
-                    return try await toolResult(host.cachedProfiles())
-
                 case "inspect_builtin_voice_seed":
                     let seedID = try requiredString("seed_id", in: arguments)
                     guard let seed = try DefaultVoiceCatalog.load().first(where: { $0.seedID == seedID }) else {
@@ -208,15 +195,6 @@ extension MCPSurface {
                         message: "SpeakSwiftlyServer accepted the voice-profile deletion request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
-                case "get_runtime_overview":
-                    return try await toolResult(host.statusSnapshot())
-
-                case "get_runtime_status":
-                    return try await toolResult(host.runtimeStatus())
-
-                case "get_runtime_configuration":
-                    return try await toolResult(host.runtimeConfigurationSnapshot())
-
                 case "set_runtime_configuration":
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
@@ -240,14 +218,6 @@ extension MCPSurface {
 
                 case "unload_models":
                     return try await toolResult(host.unloadModels())
-
-                case "get_text_normalizer_snapshot":
-                    return try await mappedTextProfileToolResult {
-                        try await host.textProfilesSnapshot()
-                    }
-
-                case "get_text_profile_style":
-                    return try await toolResult(host.textProfileStyleSnapshot())
 
                 case "set_text_profile_style":
                     return try await notifyingTextProfileToolResult(
@@ -369,15 +339,6 @@ extension MCPSurface {
                         )
                     }
 
-                case "list_generation_queue":
-                    return try await toolResult(host.generationQueueSnapshot())
-
-                case "list_playback_queue":
-                    return try await toolResult(host.playbackQueueSnapshot())
-
-                case "get_playback_state":
-                    return try await toolResult(host.playbackStateSnapshot())
-
                 case "pause_playback":
                     return try await toolResult(host.pausePlayback())
 
@@ -397,15 +358,6 @@ extension MCPSurface {
                             scope: optionalRequestCancellationScope("scope", in: arguments),
                         ),
                     )
-
-                case "list_active_requests":
-                    return try await toolResult(host.jobSnapshots())
-
-                case "list_generation_jobs":
-                    return try await toolResult(host.listGenerationJobs())
-
-                case "get_generation_job":
-                    return try await toolResult(host.generationJob(id: requiredString("job_id", in: arguments)))
 
                 case "expire_generation_job":
                     return try await toolResult(host.expireGenerationJob(id: requiredString("job_id", in: arguments)))

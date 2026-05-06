@@ -4,25 +4,6 @@ import SpeakSwiftly
 extension ServerHost {
     // MARK: - Playback Control Helpers
 
-    func playbackStateResponse(
-        handle: RuntimeRequestHandle,
-        requestName: String,
-    ) async throws -> PlaybackStateResponse {
-        let completion = try await awaitImmediateCompletion(
-            handle: handle,
-            missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
-            unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
-        )
-        guard case let .playbackState(playbackState) = completion else {
-            throw SpeakSwiftly.Error(
-                code: .internalError,
-                message: "SpeakSwiftly accepted the '\(requestName)' control request, but it did not return a playback state payload.",
-            )
-        }
-
-        return .init(playback: .init(summary: playbackState))
-    }
-
     func playbackControlResponse(
         handle: RuntimeRequestHandle,
         requestName: String,
@@ -33,21 +14,24 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the '\(handle.operation)' control request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the '\(handle.operation)' control request.",
         )
-        if case let .playbackState(playbackState) = completion, playbackState.state == expectedState {
+        if case let .playbackSnapshot(playbackState) = completion, playbackState.state == expectedState {
             let response = PlaybackStateResponse(playback: .init(summary: playbackState))
             await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
             return response
         }
         let response = try await settledPlaybackStateResponse(
-            for: requestName,
             expectedState: expectedState,
         )
         await applyPlaybackControlSnapshot(response.playback, expectedState: expectedState)
         return response
     }
 
+    func playbackSnapshotResponse() async -> PlaybackStateResponse {
+        let snapshot = await runtime.playbackSnapshot()
+        return .init(playback: .init(summary: snapshot))
+    }
+
     func settledPlaybackStateResponse(
-        for requestName: String,
         expectedState: SpeakSwiftly.PlaybackState,
     ) async throws -> PlaybackStateResponse {
         let clock = ContinuousClock()
@@ -55,10 +39,7 @@ extension ServerHost {
         var lastResponse: PlaybackStateResponse?
 
         while true {
-            let response = try await playbackStateResponse(
-                handle: runtime.playbackState(),
-                requestName: requestName,
-            )
+            let response = await playbackSnapshotResponse()
             lastResponse = response
             if response.playback.state == expectedState.rawValue {
                 return response
@@ -138,15 +119,20 @@ extension ServerHost {
             missingTerminalMessage: "SpeakSwiftly finished the \(requestName) request without yielding a terminal success payload.",
             unexpectedFailureMessagePrefix: "SpeakSwiftly failed while processing the \(requestName) request.",
         )
-        guard case let .runtimeStatus(status: status?, speechBackend: _) = completion else {
+        guard case let .runtimeUpdate(runtimeUpdate) = completion else {
             throw SpeakSwiftly.Error(
                 code: .internalError,
-                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a status payload.",
+                message: "SpeakSwiftly accepted the \(requestName) request, but it did not return a runtime update payload.",
             )
         }
 
-        await self.handle(status: status)
-        return .init(status: status, runtimeBackendTransition: runtimeBackendTransitionSnapshot())
+        await self.handle(runtimeUpdate: runtimeUpdate)
+        let runtimeSnapshot = await runtime.runtimeSnapshot()
+
+        return .init(
+            runtime: runtimeSnapshot,
+            runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
+        )
     }
 
     func awaitImmediateCompletion(

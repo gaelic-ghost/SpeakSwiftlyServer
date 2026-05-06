@@ -260,13 +260,13 @@ extension ServerE2E {
     static func waitForPlaybackState(
         using client: E2EHTTPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool,
-    ) async throws -> E2EPlaybackStateSnapshot {
+        matching predicate: @escaping (E2EPlaybackSnapshot) -> Bool,
+    ) async throws -> E2EPlaybackSnapshot {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
             let response = try await client.request(path: "/playback/state", method: "GET")
             guard response.statusCode == 200 else { return nil }
 
-            let snapshot = try decode(E2EPlaybackStateResponse.self, from: response.data).playback
+            let snapshot = try decode(E2EPlaybackResponse.self, from: response.data).playback
             return predicate(snapshot) ? snapshot : nil
         }
     }

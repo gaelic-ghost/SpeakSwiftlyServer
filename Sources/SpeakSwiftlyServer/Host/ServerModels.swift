@@ -11,10 +11,6 @@ func supportedSpeechBackendDescription() -> String {
     exposedSpeechBackendIdentifiers().joined(separator: ", ")
 }
 
-func legacySpeechBackendNormalizationNote() -> String {
-    "The legacy value '\(SpeakSwiftly.SpeechBackend.legacyQwenCustomVoiceRawValue)' is still accepted and normalized to 'qwen3'."
-}
-
 func exposedQwenResidentModelIdentifiers() -> [String] {
     SpeakSwiftly.QwenResidentModel.allCases.map(\.rawValue)
 }
@@ -272,12 +268,65 @@ struct RequestListResponse: ResponseEncodable {
 }
 
 struct RuntimeStatusResponse: ResponseEncodable {
-    let status: SpeakSwiftly.StatusEvent
+    let sequence: Int
+    let capturedAt: Date
+    let state: String
+    let speechBackend: String
+    let residentState: String
+    let defaultVoiceProfile: String
+    let storage: RuntimeStorageObservationSnapshot
     let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
 
+    init(
+        runtime: SpeakSwiftly.RuntimeSnapshot,
+        runtimeBackendTransition: RuntimeBackendTransitionSnapshot,
+    ) {
+        sequence = runtime.sequence
+        capturedAt = runtime.capturedAt
+        state = runtime.state.rawValue
+        speechBackend = runtime.speechBackend.rawValue
+        residentState = runtime.residentState.rawValue
+        defaultVoiceProfile = runtime.defaultVoiceProfile
+        storage = .init(runtime.storage)
+        self.runtimeBackendTransition = runtimeBackendTransition
+    }
+
     enum CodingKeys: String, CodingKey {
-        case status
+        case sequence
+        case capturedAt = "captured_at"
+        case state
+        case speechBackend = "speech_backend"
+        case residentState = "resident_state"
+        case defaultVoiceProfile = "default_voice_profile"
+        case storage
         case runtimeBackendTransition = "runtime_backend_transition"
+    }
+}
+
+struct RuntimeStorageObservationSnapshot: Encodable {
+    let stateRootPath: String
+    let profileStoreRootPath: String
+    let configurationPath: String
+    let textProfilesPath: String
+    let generatedFilesRootPath: String
+    let generationJobsRootPath: String
+
+    init(_ snapshot: SpeakSwiftly.RuntimeStorageSnapshot) {
+        stateRootPath = snapshot.stateRootPath
+        profileStoreRootPath = snapshot.profileStoreRootPath
+        configurationPath = snapshot.configurationPath
+        textProfilesPath = snapshot.textProfilesPath
+        generatedFilesRootPath = snapshot.generatedFilesRootPath
+        generationJobsRootPath = snapshot.generationJobsRootPath
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case stateRootPath = "state_root_path"
+        case profileStoreRootPath = "profile_store_root_path"
+        case configurationPath = "configuration_path"
+        case textProfilesPath = "text_profiles_path"
+        case generatedFilesRootPath = "generated_files_root_path"
+        case generationJobsRootPath = "generation_jobs_root_path"
     }
 }
 
@@ -353,10 +402,10 @@ private func resolveSpeechBackend(
     _ rawValue: String,
     fieldName: String,
 ) throws -> SpeakSwiftly.SpeechBackend {
-    guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
+    guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
         throw HTTPError(
             .badRequest,
-            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()). \(legacySpeechBackendNormalizationNote())",
+            message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
         )
     }
 

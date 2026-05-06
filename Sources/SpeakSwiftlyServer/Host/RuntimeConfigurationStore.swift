@@ -106,12 +106,15 @@ struct RuntimeConfigurationStore {
         defaultActiveMarvisResidentPolicy = activeMarvisResidentPolicy
     }
 
-    func startupConfiguration() -> SpeakSwiftly.Configuration {
+    func startupConfiguration(configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil) -> SpeakSwiftly.Configuration {
         let configuration = resolvedPersistedConfiguration()
         return .init(
             speechBackend: configuration.speechBackend,
             qwenResidentModel: configuration.qwenResidentModel,
             marvisResidentPolicy: configuration.marvisResidentPolicy,
+            defaultVoiceProfile: configuration.defaultVoiceProfileName
+                ?? configuredDefaultVoiceProfileName
+                ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
         )
     }
 

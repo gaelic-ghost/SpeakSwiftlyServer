@@ -179,15 +179,12 @@ extension ServerTests {
             let listTextProfilesEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(
-                            name: "get_text_normalizer_snapshot",
-                            arguments: [:],
-                        ),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles"),
                         sessionID: sessionID,
                     ),
                 ),
             )
-            let listTextProfilesPayload = try mcpToolPayload(from: listTextProfilesEnvelope)
+            let listTextProfilesPayload = try mcpResourceObjectPayload(from: listTextProfilesEnvelope)
             #expect(listTextProfilesPayload["built_in_style"] as? String == "balanced")
             let listTextStoredProfiles = try #require(listTextProfilesPayload["stored_profiles"] as? [[String: Any]])
             #expect(listTextStoredProfiles.contains { $0["profile_id"] as? String == "mcp-text" })
@@ -195,12 +192,12 @@ extension ServerTests {
             let getTextProfileStyleEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(name: "get_text_profile_style", arguments: [:]),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/style"),
                         sessionID: sessionID,
                     ),
                 ),
             )
-            let getTextProfileStylePayload = try mcpToolPayload(from: getTextProfileStyleEnvelope)
+            let getTextProfileStylePayload = try mcpResourceObjectPayload(from: getTextProfileStyleEnvelope)
             #expect(getTextProfileStylePayload["built_in_style"] as? String == "balanced")
 
             let setTextProfileStyleEnvelope = try await mcpEnvelope(
@@ -244,32 +241,32 @@ extension ServerTests {
             #expect(persistenceActionCounts.load == 1)
             #expect(persistenceActionCounts.save == 1)
 
-            let statusToolEnvelope = try await mcpEnvelope(
+            let statusResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(name: "get_runtime_overview", arguments: [:]),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                         sessionID: sessionID,
                     ),
                 ),
             )
-            let statusToolPayload = try mcpToolPayload(from: statusToolEnvelope)
-            #expect(statusToolPayload["worker_mode"] as? String == "ready")
-            let statusRuntimeConfiguration = try #require(statusToolPayload["runtime_configuration"] as? [String: Any])
+            let statusResourcePayload = try mcpResourceObjectPayload(from: statusResourceEnvelope)
+            #expect(statusResourcePayload["worker_mode"] as? String == "ready")
+            let statusRuntimeConfiguration = try #require(statusResourcePayload["runtime_configuration"] as? [String: Any])
             #expect(statusRuntimeConfiguration["active_runtime_speech_backend"] as? String == "qwen3")
             #expect(statusRuntimeConfiguration["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(statusRuntimeConfiguration["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            let transports = try #require(statusToolPayload["transports"] as? [[String: Any]])
+            let transports = try #require(statusResourcePayload["transports"] as? [[String: Any]])
             #expect(transports.contains { $0["name"] as? String == "mcp" && $0["state"] as? String == "listening" })
 
-            let getRuntimeConfigEnvelope = try await mcpEnvelope(
+            let runtimeConfigResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(name: "get_runtime_configuration", arguments: [:]),
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://configuration"),
                         sessionID: sessionID,
                     ),
                 ),
             )
-            let getRuntimeConfigPayload = try mcpToolPayload(from: getRuntimeConfigEnvelope)
+            let getRuntimeConfigPayload = try mcpResourceObjectPayload(from: runtimeConfigResourceEnvelope)
             #expect(getRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")
             #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3")
             #expect(getRuntimeConfigPayload["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
@@ -333,21 +330,6 @@ extension ServerTests {
             let setChatterboxRuntimeConfigPayload = try mcpToolPayload(from: setChatterboxRuntimeConfigEnvelope)
             #expect(setChatterboxRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
             #expect(setChatterboxRuntimeConfigPayload["persisted_speech_backend"] as? String == "chatterbox_turbo")
-
-            let setLegacyQwenRuntimeConfigEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(
-                            name: "set_runtime_configuration",
-                            arguments: ["speech_backend": "qwen3_custom_voice"],
-                        ),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let setLegacyQwenRuntimeConfigPayload = try mcpToolPayload(from: setLegacyQwenRuntimeConfigEnvelope)
-            #expect(setLegacyQwenRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3")
-            #expect(setLegacyQwenRuntimeConfigPayload["persisted_speech_backend"] as? String == "qwen3")
         }
     }
 }

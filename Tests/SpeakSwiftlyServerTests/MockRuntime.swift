@@ -87,7 +87,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var profiles: [SpeakSwiftly.ProfileSummary]
     var speakBehavior: SpeakBehavior
     var mutationRefreshBehavior: MutationRefreshBehavior
-    var statusContinuation: AsyncStream<SpeakSwiftly.StatusEvent>.Continuation?
+    var runtimeUpdateContinuation: AsyncStream<SpeakSwiftly.RuntimeUpdate>.Continuation?
     var activeRequest: MockRequest?
     var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     var queuedRequests = [QueuedRequestState]()
@@ -97,6 +97,7 @@ actor MockRuntime: ServerRuntimeProtocol {
     var renameProfileInvocations = [RenameProfileInvocation]()
     var rerollProfileInvocations = [RerollProfileInvocation]()
     var playbackState: SpeakSwiftly.PlaybackState = .idle
+    var runtimeState: SpeakSwiftly.RuntimeState = .residentModelReady
     var activeSpeechBackend: SpeakSwiftly.SpeechBackend = .qwen3
     var textRuntime: TextForSpeech.Runtime
     let textRuntimePersistenceURL: URL
@@ -173,7 +174,7 @@ actor MockRuntime: ServerRuntimeProtocol {
 
     func shutdown() async {
         shutdownCallCount += 1
-        statusContinuation?.finish()
+        runtimeUpdateContinuation?.finish()
         activeContinuation?.finish()
         activeContinuation = nil
         activeRequest = nil
@@ -184,10 +185,25 @@ actor MockRuntime: ServerRuntimeProtocol {
         queuedRequests.removeAll()
     }
 
-    func statusEvents() async -> AsyncStream<SpeakSwiftly.StatusEvent> {
+    func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate> {
         AsyncStream { continuation in
-            self.statusContinuation = continuation
+            self.runtimeUpdateContinuation = continuation
         }
+    }
+
+    func runtimeSnapshot() async -> SpeakSwiftly.RuntimeSnapshot {
+        runtimeSnapshotSummary()
+    }
+
+    func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot {
+        generationQueueRequestCount += 1
+        return generationSnapshotSummary()
+    }
+
+    func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot {
+        playbackQueueRequestCount += 1
+        playbackStateRequestCount += 1
+        return playbackSnapshotSummary()
     }
 
     func lifecycleCounts() -> (start: Int, shutdown: Int) {

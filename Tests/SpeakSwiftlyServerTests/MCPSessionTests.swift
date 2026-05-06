@@ -76,12 +76,12 @@ extension ServerTests {
         let firstStatusEnvelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
-                    body: mcpRuntimeOverviewToolRequestJSON(),
+                    body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                     sessionID: firstSessionID,
                 ),
             ),
         )
-        let firstStatusPayload = try mcpToolPayload(from: firstStatusEnvelope)
+        let firstStatusPayload = try mcpResourceObjectPayload(from: firstStatusEnvelope)
         #expect(firstStatusPayload["worker_mode"] as? String == "ready")
 
         let secondToolsEnvelope = try await mcpEnvelope(
@@ -94,7 +94,8 @@ extension ServerTests {
         )
         let secondToolsResult = try #require(mcpResultPayload(from: secondToolsEnvelope))
         let secondTools = try #require(secondToolsResult["tools"] as? [[String: Any]])
-        #expect(secondTools.contains { $0["name"] as? String == "get_runtime_overview" })
+        #expect(secondTools.contains { $0["name"] as? String == "generate_speech" })
+        #expect(secondTools.contains { $0["name"] as? String == "get_runtime_overview" } == false)
 
         let deleteFirstSessionResponse = await mcpSurface.handle(
             mcpDELETERequest(sessionID: firstSessionID),
@@ -103,7 +104,7 @@ extension ServerTests {
 
         let deletedSessionResponse = await mcpSurface.handle(
             mcpPOSTRequest(
-                body: mcpRuntimeOverviewToolRequestJSON(),
+                body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                 sessionID: firstSessionID,
             ),
         )
@@ -112,12 +113,12 @@ extension ServerTests {
         let survivingSessionEnvelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
-                    body: mcpRuntimeOverviewToolRequestJSON(),
+                    body: mcpReadResourceRequestJSON(uri: "speak-swiftly://overview"),
                     sessionID: secondSessionID,
                 ),
             ),
         )
-        let survivingSessionPayload = try mcpToolPayload(from: survivingSessionEnvelope)
+        let survivingSessionPayload = try mcpResourceObjectPayload(from: survivingSessionEnvelope)
         #expect(survivingSessionPayload["worker_mode"] as? String == "ready")
 
         await mcpSurface.stop()

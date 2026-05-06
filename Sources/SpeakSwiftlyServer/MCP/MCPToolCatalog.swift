@@ -82,12 +82,6 @@ enum MCPToolCatalog {
             ],
         ),
         Tool(
-            name: "list_voice_profiles",
-            description: "Compatibility read tool for cached SpeakSwiftly voice profiles. Prefer reading speak-swiftly://voices when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
             name: "inspect_builtin_voice_seed",
             description: "Developer-only read tool for inspecting package-owned built-in voice seed metadata, including source text and voice-design prompt. Normal users should read speak-swiftly://voices and select a built-in by profile_name instead.",
             inputSchema: [
@@ -134,24 +128,6 @@ enum MCPToolCatalog {
             ],
         ),
         Tool(
-            name: "get_runtime_overview",
-            description: "Compatibility read tool for the shared-host runtime overview. Prefer reading speak-swiftly://overview for readiness, queues, playback state, transports, and recent errors.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_runtime_status",
-            description: "Compatibility read tool for the underlying SpeakSwiftly runtime status event. Prefer reading speak-swiftly://status for stage, resident model state, and active speech backend.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_runtime_configuration",
-            description: "Compatibility read tool for runtime configuration. Prefer reading speak-swiftly://configuration for active and next-start backend, Qwen resident model, Marvis resident policy, and environment overrides.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
             name: "set_runtime_configuration",
             description: "Persist runtime startup choices for the next runtime start without hot-swapping the current worker. speech_backend stays required; qwen_resident_model and marvis_resident_policy are optional startup-only refinements.",
             inputSchema: [
@@ -184,18 +160,6 @@ enum MCPToolCatalog {
             name: "unload_models",
             description: "Ask the already-running SpeakSwiftly runtime to unload its resident models.",
             inputSchema: ["type": "object", "properties": [:]],
-        ),
-        Tool(
-            name: "get_text_normalizer_snapshot",
-            description: "Compatibility read tool for the full SpeakSwiftly text-normalizer snapshot. Prefer reading speak-swiftly://text-profiles for built-in style plus base, active, stored, and effective profiles.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_text_profile_style",
-            description: "Compatibility read tool for the current built-in SpeakSwiftly text-profile style. Prefer reading speak-swiftly://text-profiles/style when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "set_text_profile_style",
@@ -317,31 +281,13 @@ enum MCPToolCatalog {
             ],
         ),
         Tool(
-            name: "list_generation_queue",
-            description: "Compatibility read tool for the generation queue snapshot. Prefer reading speak-swiftly://overview for queue state when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "list_playback_queue",
-            description: "Compatibility read tool for the playback queue snapshot. Prefer reading speak-swiftly://overview for queue state when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_playback_state",
-            description: "Compatibility read tool for the current SpeakSwiftly playback state snapshot. Prefer reading speak-swiftly://overview for playback state when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
             name: "pause_playback",
-            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Pause the current SpeakSwiftly playback stream and return the resulting playback snapshot.",
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
             name: "resume_playback",
-            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback state snapshot.",
+            description: "Resume the current SpeakSwiftly playback stream and return the resulting playback snapshot.",
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
@@ -372,30 +318,6 @@ enum MCPToolCatalog {
                 ],
             ],
             annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
-        ),
-        Tool(
-            name: "list_active_requests",
-            description: "Compatibility read tool for shared-host retained request snapshots. Prefer reading speak-swiftly://requests for active and recently tracked live server operations.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "list_generation_jobs",
-            description: "Compatibility read tool for retained v2 generation jobs. Prefer reading speak-swiftly://generation/jobs when the client supports MCP resources.",
-            inputSchema: ["type": "object", "properties": [:]],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
-            name: "get_generation_job",
-            description: "Compatibility read tool for one retained v2 generation job. Prefer reading speak-swiftly://generation/jobs/{job_id} when the client supports MCP resources.",
-            inputSchema: [
-                "type": "object",
-                "required": ["job_id"],
-                "properties": [
-                    "job_id": ["type": "string"],
-                ],
-            ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
         ),
         Tool(
             name: "expire_generation_job",

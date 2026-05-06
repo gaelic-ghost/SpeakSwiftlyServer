@@ -39,9 +39,9 @@ func canonicalOperationName(_ operation: String) -> String {
         case "queue_speech_batch":
             "generate_batch"
         case "get_text_profiles_state":
-            "get_text_normalizer_snapshot"
+            "text_profiles_snapshot"
         case "list_requests":
-            "list_active_requests"
+            "requests_snapshot"
         default:
             operation
     }
@@ -50,7 +50,10 @@ func canonicalOperationName(_ operation: String) -> String {
 protocol ServerRuntimeProtocol: Actor {
     func start() async
     func shutdown() async
-    func statusEvents() async -> AsyncStream<SpeakSwiftly.StatusEvent>
+    func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate>
+    func runtimeSnapshot() async -> SpeakSwiftly.RuntimeSnapshot
+    func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot
+    func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot
     func queueSpeechLive(
         text: String,
         with profileName: String,
@@ -103,12 +106,9 @@ protocol ServerRuntimeProtocol: Actor {
     func expireGenerationJob(id jobID: String) async -> RuntimeRequestHandle
     func generationArtifact(id artifactID: String) async -> RuntimeRequestHandle
     func listGenerationArtifacts() async -> RuntimeRequestHandle
-    func runtimeStatus() async -> RuntimeRequestHandle
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle
     func reloadModels() async -> RuntimeRequestHandle
     func unloadModels() async -> RuntimeRequestHandle
-    func runtimeOverview() async -> RuntimeRequestHandle
-    func playbackState() async -> RuntimeRequestHandle
     func pausePlayback() async -> RuntimeRequestHandle
     func resumePlayback() async -> RuntimeRequestHandle
     func clearQueue() async -> RuntimeRequestHandle

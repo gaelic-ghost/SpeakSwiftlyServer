@@ -103,13 +103,22 @@ public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
         self.stableBufferTargetMS = stableBufferTargetMS
     }
 
-    init(summary: SpeakSwiftly.PlaybackStateSnapshot) {
+    init(summary: SpeakSwiftly.PlaybackSnapshot) {
         state = summary.state.rawValue
         activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
         isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
         isRebuffering = summary.isRebuffering
         stableBufferedAudioMS = summary.stableBufferedAudioMS
         stableBufferTargetMS = summary.stableBufferTargetMS
+    }
+}
+
+private extension SpeakSwiftly.PlaybackSnapshot {
+    var isStableForConcurrentGeneration: Bool {
+        guard state == .playing, !isRebuffering else { return false }
+        guard let stableBufferedAudioMS, let stableBufferTargetMS else { return false }
+
+        return stableBufferedAudioMS >= stableBufferTargetMS
     }
 }
 

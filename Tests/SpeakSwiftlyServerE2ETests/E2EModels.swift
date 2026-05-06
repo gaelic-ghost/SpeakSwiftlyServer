@@ -168,15 +168,15 @@ struct E2EQueueSnapshotResponse: Decodable {
     }
 }
 
-// MARK: - E2EPlaybackStateResponse
+// MARK: - E2EPlaybackResponse
 
-struct E2EPlaybackStateResponse: Decodable {
-    let playback: E2EPlaybackStateSnapshot
+struct E2EPlaybackResponse: Decodable {
+    let playback: E2EPlaybackSnapshot
 }
 
-// MARK: - E2EPlaybackStateSnapshot
+// MARK: - E2EPlaybackSnapshot
 
-struct E2EPlaybackStateSnapshot: Decodable {
+struct E2EPlaybackSnapshot: Decodable {
     let state: String
     let activeRequest: E2EActiveRequestSnapshot?
 

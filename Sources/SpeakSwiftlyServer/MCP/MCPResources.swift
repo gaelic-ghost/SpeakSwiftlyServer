@@ -37,7 +37,7 @@ enum MCPResourceCatalog {
 
     static let resources: [Resource] = [
         .init(name: "Runtime Overview", uri: "speak-swiftly://overview", description: "Shared-host runtime overview with readiness, queues, transports, and recent errors.", mimeType: "application/json"),
-        .init(name: "Runtime Status", uri: "speak-swiftly://status", description: "Underlying SpeakSwiftly runtime status event, including stage, resident-model state, and speech backend.", mimeType: "application/json"),
+        .init(name: "Runtime Status", uri: "speak-swiftly://status", description: "Underlying SpeakSwiftly runtime snapshot, including state, resident-model state, speech backend, storage paths, and default voice profile.", mimeType: "application/json"),
         .init(name: "Runtime Configuration", uri: "speak-swiftly://configuration", description: "Persisted runtime configuration snapshot for the next runtime start, including backend, Qwen resident model, and Marvis resident policy.", mimeType: "application/json"),
         .init(name: "Voice Profiles", uri: "speak-swiftly://voices", description: "Current cached SpeakSwiftly voice profiles.", mimeType: "application/json"),
         .init(name: "Voice Profile Guide", uri: "speak-swiftly://voices/guide", description: "Operator guidance for creating, cloning, renaming, rerolling, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
@@ -312,7 +312,7 @@ private func voiceProfilesGuideMarkdown() -> String {
 
     Recommended workflow:
 
-    1. Read `speak-swiftly://voices` to inspect the currently cached voice profiles. Use `list_voice_profiles` only for compatibility clients that cannot read resources cleanly.
+    1. Read `speak-swiftly://voices` to inspect the currently cached voice profiles.
     2. Use the runtime overview's `default_voice_profile_name` value to see which profile will be used when a speech request omits `profile_name`.
     3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request.
     4. Treat system-authored built-ins such as `swift-signal` and `swift-anchor` as list-and-select profiles for ordinary users. They are package-owned defaults, not user-editable profile designs.

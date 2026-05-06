@@ -25,10 +25,10 @@ extension ServerHost {
             }
         }
 
-        let statusStream = await runtime.statusEvents()
+        let statusStream = await runtime.runtimeUpdates()
         statusTask = Task {
-            for await status in statusStream {
-                await self.handle(status: status)
+            for await update in statusStream {
+                await self.handle(runtimeUpdate: update)
             }
         }
 

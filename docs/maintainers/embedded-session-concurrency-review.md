@@ -146,5 +146,5 @@ That keeps the main actor fix and the service-lifecycle cleanup as separate deci
 - [x] Remove unnecessary `@MainActor` coupling from lifecycle hooks.
 - [x] Narrow the action-plumbing isolation so host work is not modeled as UI-owned.
 - [x] Land the follow-on `ServiceLifecycle` composition pass for host, config-watch, and MCP
-      lifecycle cleanup, using `docs/maintainers/embedded-service-lifecycle-plan.md` as the
-      design reference.
+      lifecycle cleanup. The completed design summary now lives in
+      `docs/maintainers/implementation-history.md`.

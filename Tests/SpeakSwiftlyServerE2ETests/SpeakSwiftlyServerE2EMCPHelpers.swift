@@ -91,7 +91,7 @@ extension ServerE2E {
         using client: E2EMCPClient,
         profileName: String,
     ) async throws {
-        let payload = try await client.callToolJSON(name: "list_voice_profiles", arguments: [:])
+        let payload = try await client.readResourceJSON(uri: "speak-swiftly://voices")
         let profiles = try requireProfiles(from: payload)
         #expect(profiles.contains { $0.profileName == profileName })
     }
@@ -272,17 +272,14 @@ extension ServerE2E {
     static func waitForMCPPlaybackState(
         using client: E2EMCPClient,
         timeout: Duration,
-        matching predicate: @escaping (E2EPlaybackStateSnapshot) -> Bool,
-    ) async throws -> E2EPlaybackStateSnapshot {
+        matching predicate: @escaping (E2EPlaybackSnapshot) -> Bool,
+    ) async throws -> E2EPlaybackSnapshot {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let payload = try await requireObjectPayload(
-                from: client.callToolJSON(name: "get_playback_state", arguments: [:]),
+            let payload = try await ServerE2E.requireObjectPayload(
+                from: client.readResourceJSON(uri: "speak-swiftly://overview"),
             )
-            let snapshot: E2EPlaybackStateSnapshot = if let playback = payload["playback"] as? [String: Any] {
-                try decodePayload(E2EPlaybackStateSnapshot.self, from: playback)
-            } else {
-                try decodePayload(E2EPlaybackStateSnapshot.self, from: payload)
-            }
+            let playback = try #require(payload["playback"] as? [String: Any])
+            let snapshot = try decodePayload(E2EPlaybackSnapshot.self, from: playback)
             return predicate(snapshot) ? snapshot : nil
         }
     }
@@ -293,10 +290,11 @@ extension ServerE2E {
         matching predicate: @escaping (E2EQueueSnapshotResponse) -> Bool,
     ) async throws -> E2EQueueSnapshotResponse {
         try await e2eWaitUntil(timeout: timeout, pollInterval: .milliseconds(200)) {
-            let payload = try await requireObjectPayload(
-                from: client.callToolJSON(name: "list_generation_queue", arguments: [:]),
+            let payload = try await ServerE2E.requireObjectPayload(
+                from: client.readResourceJSON(uri: "speak-swiftly://overview"),
             )
-            let snapshot = try decodePayload(E2EQueueSnapshotResponse.self, from: payload)
+            let generationQueue = try #require(payload["generation_queue"] as? [String: Any])
+            let snapshot = try decodePayload(E2EQueueSnapshotResponse.self, from: generationQueue)
             return predicate(snapshot) ? snapshot : nil
         }
     }

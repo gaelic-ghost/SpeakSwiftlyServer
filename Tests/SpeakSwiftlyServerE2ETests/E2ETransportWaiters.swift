@@ -39,11 +39,13 @@ func waitUntilWorkerReady(
     let _: Bool = try await e2eWaitUntil(timeout: timeout, pollInterval: .seconds(1)) {
         guard server.isStillRunning else {
             throw E2ETransportError(
-                "The live SpeakSwiftlyServer process exited before the MCP status tool reported readiness.\n\(server.combinedOutput)",
+                "The live SpeakSwiftlyServer process exited before the MCP overview resource reported readiness.\n\(server.combinedOutput)",
             )
         }
 
-        let payload = try await client.callTool(name: "get_runtime_overview", arguments: [:])
+        let payload = try await ServerE2E.requireObjectPayload(
+            from: client.readResourceJSON(uri: "speak-swiftly://overview"),
+        )
         guard payload["worker_mode"] as? String == "ready" else { return nil }
 
         return true

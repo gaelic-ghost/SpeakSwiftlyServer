@@ -113,6 +113,45 @@ import Testing
     #expect(queueJSON["queued_requests"] == nil)
 }
 
+@Test func `playback snapshots derive concurrent generation stability from buffer telemetry`() throws {
+    struct PlaybackPayload: Encodable {
+        let sequence = 1
+        let capturedAt = Date(timeIntervalSinceReferenceDate: 0)
+        let state = "playing"
+        let activeRequest: String? = nil
+        let queuedRequests: [String] = []
+        let isRebuffering: Bool
+        let stableBufferedAudioMS: Int?
+        let stableBufferTargetMS: Int?
+    }
+
+    let stableSnapshot = try JSONDecoder().decode(
+        SpeakSwiftly.PlaybackSnapshot.self,
+        from: JSONEncoder().encode(
+            PlaybackPayload(
+                isRebuffering: false,
+                stableBufferedAudioMS: 320,
+                stableBufferTargetMS: 250,
+            ),
+        ),
+    )
+    let stableStatus = PlaybackStatusSnapshot(summary: stableSnapshot)
+    #expect(stableStatus.isStableForConcurrentGeneration == true)
+
+    let rebufferingSnapshot = try JSONDecoder().decode(
+        SpeakSwiftly.PlaybackSnapshot.self,
+        from: JSONEncoder().encode(
+            PlaybackPayload(
+                isRebuffering: true,
+                stableBufferedAudioMS: 320,
+                stableBufferTargetMS: 250,
+            ),
+        ),
+    )
+    let rebufferingStatus = PlaybackStatusSnapshot(summary: rebufferingSnapshot)
+    #expect(rebufferingStatus.isStableForConcurrentGeneration == false)
+}
+
 @available(macOS 14, *)
 @Test func `state completes queued speech jobs and prunes expired entries`() async throws {
     let runtime = MockRuntime()
@@ -268,7 +307,7 @@ import Testing
     let runtimeRefresh = try #require(liveState.runtimeRefresh)
     #expect(liveState.playback.state == "playing")
     #expect(runtimeRefresh.sequenceID > 0)
-    #expect(runtimeRefresh.source == "runtime_overview")
+    #expect(runtimeRefresh.source == "runtime_snapshots")
     #expect(runtimeRefresh.startedAt.isEmpty == false)
     #expect(runtimeRefresh.completedAt.isEmpty == false)
     #expect(liveState.transports.contains { $0.name == "http" && $0.advertisedAddress == "http://127.0.0.1:7337" })
@@ -317,7 +356,7 @@ import Testing
     ) {
         let snapshot = await host.hostStateSnapshot()
         guard
-            snapshot.runtimeRefresh?.source == "runtime_overview",
+            snapshot.runtimeRefresh?.source == "runtime_snapshots",
             snapshot.playback.activeRequest?.id == firstJobID,
             snapshot.playbackQueue.activeRequest?.id == firstJobID,
             snapshot.generationQueue.queuedCount == 1,
@@ -431,7 +470,7 @@ import Testing
     await host.start()
     await runtime.publishStatus(.residentModelReady)
     await runtime.waitUntilVoiceProfileRefreshIsHeld()
-    await host.handle(status: workerStatus(.residentModelReady))
+    await host.handle(runtimeUpdate: workerStatus(.residentModelReady))
 
     let readinessWhileInstalling = await host.readinessSnapshot()
     #expect(readinessWhileInstalling.0 == false)
@@ -461,11 +500,11 @@ import Testing
     )
 
     let readyTask = Task {
-        await host.handle(status: workerStatus(.residentModelReady))
+        await host.handle(runtimeUpdate: workerStatus(.residentModelReady))
     }
     await runtime.waitUntilVoiceProfileRefreshIsHeld()
 
-    await host.handle(status: workerStatus(.residentModelFailed))
+    await host.handle(runtimeUpdate: workerStatus(.residentModelFailed))
     let failedStatus = await host.statusSnapshot()
     #expect(failedStatus.workerMode == "failed")
 
@@ -474,7 +513,7 @@ import Testing
 
     let finalStatus = await host.statusSnapshot()
     #expect(finalStatus.workerMode == "failed")
-    #expect(finalStatus.workerStage == SpeakSwiftly.StatusStage.residentModelFailed.rawValue)
+    #expect(finalStatus.workerStage == SpeakSwiftly.RuntimeState.residentModelFailed.rawValue)
 }
 
 @available(macOS 14, *)
@@ -488,12 +527,12 @@ import Testing
         state: MainActor.run { EmbeddedServer() },
     )
 
-    await host.handle(status: workerStatus(.residentModelReady))
+    await host.handle(runtimeUpdate: workerStatus(.residentModelReady))
     let degradedStatus = await host.statusSnapshot()
     #expect(degradedStatus.profileCacheState == "stale")
     #expect(degradedStatus.cachedProfiles.isEmpty)
 
-    await host.handle(status: workerStatus(.residentModelReady))
+    await host.handle(runtimeUpdate: workerStatus(.residentModelReady))
 
     let recoveredStatus = await host.statusSnapshot()
     #expect(recoveredStatus.profileCacheState == "fresh")

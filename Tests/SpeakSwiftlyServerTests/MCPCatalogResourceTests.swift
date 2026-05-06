@@ -93,7 +93,7 @@ extension ServerTests {
             #expect(runtimeTransports.contains { $0["name"] as? String == "mcp" && $0["advertised_address"] as? String == "http://127.0.0.1:7337/mcp" })
             let runtimeRefresh = try #require(runtimePayload["runtime_refresh"] as? [String: Any])
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
-            #expect(runtimeRefresh["source"] as? String == "runtime_overview")
+            #expect(runtimeRefresh["source"] as? String == "runtime_snapshots")
 
             let runtimeStatusResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -107,8 +107,8 @@ extension ServerTests {
             let runtimeStatusContents = try #require(runtimeStatusResourceResult["contents"] as? [[String: Any]])
             let runtimeStatusText = try #require(runtimeStatusContents.first?["text"] as? String)
             let runtimeStatusPayload = try jsonObject(from: Data(runtimeStatusText.utf8))
-            let runtimeStatus = try #require(runtimeStatusPayload["status"] as? [String: Any])
-            #expect(runtimeStatus["speech_backend"] as? String == "qwen3")
+            #expect(runtimeStatusPayload["speech_backend"] as? String == "qwen3")
+            #expect(runtimeStatusPayload["runtime_backend_transition"] is [String: Any])
 
             let runtimeConfigResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -247,7 +247,7 @@ extension ServerTests {
             #expect(voiceProfilesGuideText.contains("update_voice_profile_name"))
             #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
-            #expect(voiceProfilesGuideText.contains("Use `list_voice_profiles` only for compatibility clients"))
+            #expect(voiceProfilesGuideText.contains("Read `speak-swiftly://voices` to inspect the currently cached voice profiles."))
             #expect(voiceProfilesGuideText.contains("inspect_builtin_voice_seed"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
@@ -291,8 +291,8 @@ extension ServerTests {
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
             #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
-            #expect(chooseActionPromptText.contains("for read-only inspection, prefer a speak-swiftly:// resource first"))
-            #expect(chooseActionPromptText.contains("compatibility read tools"))
+            #expect(chooseActionPromptText.contains("for read-only inspection, use a speak-swiftly:// resource"))
+            #expect(chooseActionPromptText.contains("Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes."))
 
             let storedTextProfileEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

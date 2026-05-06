@@ -218,7 +218,7 @@ extension MCPSurface {
                     User goal: \(userGoal)
                     Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                     \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
-                    Selection rule: for read-only inspection, prefer a speak-swiftly:// resource first. Use compatibility read tools only when the client cannot read resources cleanly. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
+                    Selection rule: for read-only inspection, use a speak-swiftly:// resource. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
                     Available action families:
                     - voice profile reads: speak-swiftly://voices, speak-swiftly://voices/{profile_name}, speak-swiftly://voices/guide
                     - voice profile actions: create_voice_profile_from_description, create_voice_profile_from_audio, update_voice_profile_name, reroll_voice_profile, delete_voice_profile

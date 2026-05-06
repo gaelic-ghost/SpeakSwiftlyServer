@@ -6,16 +6,6 @@ import SpeakSwiftly
 
 @available(macOS 14, *)
 extension MockRuntime {
-    func runtimeStatus() async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "get_runtime_status", profileName: nil, events: events)
-    }
-
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let request = MockRequest(
@@ -51,9 +41,9 @@ extension MockRuntime {
 
     func reloadModels() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelReady, residentState: .ready, speechBackend: activeSpeechBackend)
+        runtimeState = .residentModelReady
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
+            continuation.yield(.completed(.runtimeUpdate(self.runtimeUpdate(.residentModelReady))))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "reload_models", profileName: nil, events: events)
@@ -61,29 +51,12 @@ extension MockRuntime {
 
     func unloadModels() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
-        let status = SpeakSwiftly.StatusEvent(stage: .residentModelsUnloaded, residentState: .unloaded, speechBackend: activeSpeechBackend)
+        runtimeState = .residentModelsUnloaded
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(.runtimeStatus(status: status, speechBackend: activeSpeechBackend)))
+            continuation.yield(.completed(.runtimeUpdate(self.runtimeUpdate(.residentModelsUnloaded))))
             continuation.finish()
         }
         return RuntimeRequestHandle(id: requestID, operation: "unload_models", profileName: nil, events: events)
-    }
-
-    func runtimeOverview() async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        generationQueueRequestCount += 1
-        playbackQueueRequestCount += 1
-        playbackStateRequestCount += 1
-        let overview = runtimeOverviewSummary()
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(
-                .completed(
-                    .runtimeOverview(overview),
-                ),
-            )
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "get_runtime_overview", profileName: nil, events: events)
     }
 
     func generationQueue() async -> RuntimeRequestHandle {
@@ -102,7 +75,7 @@ extension MockRuntime {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_generation_queue", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "generation_queue_snapshot", profileName: nil, events: events)
     }
 
     func playbackQueue() async -> RuntimeRequestHandle {
@@ -120,22 +93,7 @@ extension MockRuntime {
             )
             continuation.finish()
         }
-        return RuntimeRequestHandle(id: requestID, operation: "list_playback_queue", profileName: nil, events: events)
-    }
-
-    func playbackState() async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        playbackStateRequestCount += 1
-        let playbackState = playbackStateSummary()
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(
-                .completed(
-                    .playbackState(playbackState),
-                ),
-            )
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "get_playback_state", profileName: nil, events: events)
+        return RuntimeRequestHandle(id: requestID, operation: "playback_queue_snapshot", profileName: nil, events: events)
     }
 
     func pausePlayback() async -> RuntimeRequestHandle {
@@ -146,7 +104,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    .playbackState(self.playbackStateSummary()),
+                    .playbackSnapshot(self.playbackSnapshotSummary()),
                 ),
             )
             continuation.finish()
@@ -162,7 +120,7 @@ extension MockRuntime {
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             continuation.yield(
                 .completed(
-                    .playbackState(self.playbackStateSummary()),
+                    .playbackSnapshot(self.playbackSnapshotSummary()),
                 ),
             )
             continuation.finish()
