@@ -18,7 +18,6 @@ import Testing
         launchAgentConfigAliasURL: tempDirectory.appendingPathComponent("Caches/launch-agent-server.yaml", isDirectory: false),
         runtimeBaseDirectoryURL: tempDirectory.appendingPathComponent("Application Support/runtime", isDirectory: true),
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
-        runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
         standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
@@ -70,7 +69,6 @@ import Testing
         launchAgentConfigAliasURL: tempDirectory.appendingPathComponent("Caches/launch-agent-server.yaml", isDirectory: false),
         runtimeBaseDirectoryURL: tempDirectory.appendingPathComponent("Application Support/runtime", isDirectory: true),
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
-        runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
         standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
@@ -92,7 +90,7 @@ import Testing
     )
 }
 
-@Test func `launch agent environment uses canonical config path when it contains spaces`() throws {
+@Test func `launch agent environment keeps reload interval only`() throws {
     let tempDirectory = try makeTemporaryDirectory()
     let layout = ServerInstallLayout(
         launchAgentLabel: "com.example.test",
@@ -106,18 +104,17 @@ import Testing
         launchAgentConfigAliasURL: tempDirectory.appendingPathComponent("Caches/launch-agent-server.yaml", isDirectory: false),
         runtimeBaseDirectoryURL: tempDirectory.appendingPathComponent("Application Support/runtime", isDirectory: true),
         runtimeProfileRootURL: tempDirectory.appendingPathComponent("Application Support/runtime/profiles", isDirectory: true),
-        runtimeConfigurationFileURL: tempDirectory.appendingPathComponent("Application Support/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: tempDirectory.appendingPathComponent("Logs/stdout.log", isDirectory: false),
         standardErrorLogURL: tempDirectory.appendingPathComponent("Logs/stderr.log", isDirectory: false),
     )
 
     let environmentVariables = layout.launchAgentEnvironmentVariables(
-        configFilePath: layout.serverConfigFileURL.path,
-        reloadIntervalSeconds: nil,
+        reloadIntervalSeconds: "0.25",
     )
 
-    #expect(environmentVariables["APP_CONFIG_FILE"] == layout.serverConfigFileURL.standardizedFileURL.path)
-    #expect(environmentVariables["SPEAKSWIFTLY_PROFILE_ROOT"] == layout.runtimeProfileRootURL.path)
+    #expect(environmentVariables["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] == "0.25")
+    #expect(environmentVariables["APP_CONFIG_FILE"] == nil)
+    #expect(environmentVariables["SPEAKSWIFTLY_PROFILE_ROOT"] == nil)
 }
 
 private func makeTemporaryDirectory() throws -> URL {

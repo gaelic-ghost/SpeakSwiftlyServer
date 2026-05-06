@@ -1,7 +1,7 @@
 import Configuration
 import Foundation
 
-enum AppRuntimeDefaultProfile: String {
+public enum AppRuntimeDefaultProfile: String, CaseIterable, Sendable {
     case standaloneExecutable = "standalone-executable"
     case launchAgent = "launch-agent"
     case embeddedSession = "embedded-session"

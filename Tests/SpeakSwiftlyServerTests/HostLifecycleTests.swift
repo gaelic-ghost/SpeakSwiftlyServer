@@ -21,7 +21,7 @@ import Testing
             #expect(environment["APP_ENV"] == "test")
             #expect(environment["APP_PORT"] == "7811")
             #expect(environment["APP_HTTP_PORT"] == "7811")
-            #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == runtimeProfileRootURL.standardizedFileURL.path)
+            #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == nil)
             #expect(environment[AppRuntimeDefaultProfile.environmentKey] == AppRuntimeDefaultProfile.embeddedSession.rawValue)
 
             await MainActor.run {

@@ -58,11 +58,11 @@ import Testing
     #expect(repositoryRootPath == tempDirectory.path)
 }
 
-@Test func `tool parses serve profile root option`() throws {
+@Test func `tool parses serve config file and profile root options`() throws {
     let tempDirectory = try makeTemporaryDirectory()
 
     let command = try SpeakSwiftlyServerToolCommand.parse(
-        arguments: ["serve", "--profile-root", "./runtime/profiles"],
+        arguments: ["serve", "--config-file", "./config/server.yaml", "--profile-root", "./runtime/profiles"],
         currentDirectoryPath: tempDirectory.path,
     )
 
@@ -71,6 +71,10 @@ import Testing
         return
     }
 
+    #expect(
+        options.configFilePath
+            == tempDirectory.appendingPathComponent("config/server.yaml").standardizedFileURL.path,
+    )
     #expect(
         options.runtimeProfileRootPath
             == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path,
@@ -90,6 +94,9 @@ import Testing
         return
     }
 
+    #expect(
+        options.configFilePath == nil
+    )
     #expect(
         options.runtimeProfileRootPath
             == tempDirectory.appendingPathComponent("runtime/profiles").standardizedFileURL.path,
@@ -156,13 +163,21 @@ import Testing
     let arguments = try #require(propertyList["ProgramArguments"] as? [String])
     let environment = try #require(propertyList["EnvironmentVariables"] as? [String: String])
 
-    #expect(arguments == [executableURL.path, "serve"])
+    #expect(arguments == [
+        executableURL.path,
+        "serve",
+        "--default-profile",
+        "launch-agent",
+        "--config-file",
+        tempDirectory.appendingPathComponent("config/server.yaml").path,
+        "--profile-root",
+        tempDirectory.appendingPathComponent("runtime/profiles").path,
+    ])
     #expect(propertyList["RunAtLoad"] as? Bool == true)
     #expect(propertyList["KeepAlive"] as? Bool == true)
-    #expect(environment["APP_CONFIG_FILE"] == tempDirectory.appendingPathComponent("config/server.yaml").path)
     #expect(environment["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] == "0.5")
-    #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == tempDirectory.appendingPathComponent("runtime/profiles").path)
-    #expect(environment[LaunchAgentDefaults.defaultProfileEnvironmentKey] == LaunchAgentDefaults.defaultProfileRawValue)
+    #expect(environment["APP_CONFIG_FILE"] == nil)
+    #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == nil)
 }
 
 @Test func `launch agent install writes plist and bootstraps service`() throws {

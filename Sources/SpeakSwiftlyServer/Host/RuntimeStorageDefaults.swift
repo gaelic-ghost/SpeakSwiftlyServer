@@ -11,8 +11,8 @@ enum RuntimeStorageDefaults {
             .appendingPathComponent("runtime", isDirectory: true)
         let runtimeProfileRootURL = runtimeBaseDirectoryURL
             .appendingPathComponent("profiles", isDirectory: true)
-        let runtimeConfigurationFileURL = runtimeBaseDirectoryURL
-            .appendingPathComponent("configuration.json", isDirectory: false)
+        let runtimeConfigurationFileURL = applicationSupportDirectoryURL
+            .appendingPathComponent("server.yaml", isDirectory: false)
 
         return (runtimeProfileRootURL, runtimeConfigurationFileURL)
     }

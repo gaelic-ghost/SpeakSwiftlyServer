@@ -42,7 +42,7 @@ final class URLReloadingYAMLConfigProvider: ConfigProvider, Service, @unchecked 
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: fileURL.path) else {
             throw ServerConfigurationError(
-                "Configuration file '\(fileURL.path)' does not exist. Set APP_CONFIG_FILE to an existing YAML file or run launch-agent install to seed the default Application Support config.",
+                "Configuration file '\(fileURL.path)' does not exist. Use a server-owned config URL that has been seeded from the bundled default, or run launch-agent install to seed the default Application Support config.",
             )
         }
 

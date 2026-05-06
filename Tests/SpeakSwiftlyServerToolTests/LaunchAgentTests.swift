@@ -208,8 +208,6 @@ import Testing
             .appendingPathComponent("Library/Application Support/SpeakSwiftlyServer/runtime", isDirectory: true),
         runtimeProfileRootURL: homeDirectoryURL
             .appendingPathComponent("Library/Application Support/SpeakSwiftlyServer/runtime/profiles", isDirectory: true),
-        runtimeConfigurationFileURL: homeDirectoryURL
-            .appendingPathComponent("Library/Application Support/SpeakSwiftlyServer/runtime/configuration.json", isDirectory: false),
         standardOutLogURL: homeDirectoryURL.appendingPathComponent("Library/Logs/SpeakSwiftlyServer/stdout.log"),
         standardErrorLogURL: homeDirectoryURL.appendingPathComponent("Library/Logs/SpeakSwiftlyServer/stderr.log"),
     )

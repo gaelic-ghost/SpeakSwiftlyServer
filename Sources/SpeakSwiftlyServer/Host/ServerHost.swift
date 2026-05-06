@@ -249,10 +249,17 @@ actor ServerHost {
         appConfig: AppConfig,
         state: EmbeddedServer,
         environment: [String: String] = ProcessInfo.processInfo.environment,
+        configurationURL: URL? = nil,
+        profileRootURL: URL? = nil,
     ) async -> ServerHost {
-        let runtimeConfigurationStore = RuntimeConfigurationStore(environment: environment)
+        let runtimeConfigurationStore = RuntimeConfigurationStore(
+            environment: environment,
+            configurationURL: configurationURL,
+            profileRootURL: profileRootURL,
+        )
         let startupConfiguration = runtimeConfigurationStore.startupConfiguration(
-            configuredDefaultVoiceProfileName: appConfig.server.defaultVoiceProfileName,
+            configuredDefaultVoiceProfileName: appConfig.runtime.defaultVoiceProfileName
+                ?? appConfig.server.defaultVoiceProfileName,
         )
         let runtime = await ServerRuntimeAdapter(
             runtime: SpeakSwiftlyRuntimeLauncher.shared.launch(

@@ -59,6 +59,7 @@ let package = Package(
             path: "Sources/SpeakSwiftlyServer",
             resources: [
                 .copy("Resources/DefaultVoiceProfiles"),
+                .process("Resources/default-server.yaml"),
             ],
         ),
         .executableTarget(
@@ -67,9 +68,6 @@ let package = Package(
                 "SpeakSwiftlyServer",
             ],
             path: "Sources/SpeakSwiftlyServerTool",
-            resources: [
-                .process("Resources/default-server.yaml"),
-            ],
         ),
         .testTarget(
             name: "SpeakSwiftlyServerTests",

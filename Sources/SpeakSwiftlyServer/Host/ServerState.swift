@@ -27,9 +27,20 @@ public final class EmbeddedServer {
         /// Application Support subdirectory or an App Group container path.
         public var runtimeProfileRootURL: URL?
 
-        public init(port: Int? = nil, runtimeProfileRootURL: URL? = nil) {
+        /// Optional persisted server config URL.
+        ///
+        /// When omitted, the server uses its default Application Support config path and seeds
+        /// that file from the bundled package resource the first time it is needed.
+        public var configurationURL: URL?
+
+        public init(
+            port: Int? = nil,
+            runtimeProfileRootURL: URL? = nil,
+            configurationURL: URL? = nil,
+        ) {
             self.port = port
             self.runtimeProfileRootURL = runtimeProfileRootURL
+            self.configurationURL = configurationURL
         }
     }
 
@@ -225,6 +236,10 @@ public final class EmbeddedServer {
     /// Creates an app-owned embedded server model with optional bootstrap overrides.
     public init(options: Options = .init()) {
         self.options = options
+    }
+
+    var bootstrapOptions: Options {
+        options
     }
 
     /// Starts the embedded server if it is not already running.

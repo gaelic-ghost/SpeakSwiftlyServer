@@ -1,12 +1,23 @@
 import Foundation
+import SpeakSwiftlyServer
 
 // MARK: - Launch Agent Installation Support
 
 extension LaunchAgentOptions {
     func propertyList() -> [String: Any] {
+        let layout = ServerInstallLayout.defaultForCurrentUser(launchAgentLabel: label)
         var propertyList: [String: Any] = [
             "Label": label,
-            "ProgramArguments": [toolExecutablePath, "serve"],
+            "ProgramArguments": [
+                toolExecutablePath,
+                "serve",
+                "--default-profile",
+                AppRuntimeDefaultProfile.launchAgent.rawValue,
+                "--config-file",
+                effectiveConfigFilePath(layout: layout),
+                "--profile-root",
+                profileRootPath,
+            ],
             "RunAtLoad": true,
             "KeepAlive": true,
             "WorkingDirectory": workingDirectory,
@@ -14,17 +25,9 @@ extension LaunchAgentOptions {
             "StandardErrorPath": standardErrorPath,
         ]
 
-        let layout = ServerInstallLayout.defaultForCurrentUser(launchAgentLabel: label)
         let environmentVariables = layout.launchAgentEnvironmentVariables(
-            configFilePath: effectiveConfigFilePath(layout: layout),
             reloadIntervalSeconds: reloadIntervalSeconds,
         )
-        .merging(
-            [
-                "SPEAKSWIFTLY_PROFILE_ROOT": profileRootPath,
-                LaunchAgentDefaults.defaultProfileEnvironmentKey: LaunchAgentDefaults.defaultProfileRawValue,
-            ],
-        ) { _, rhs in rhs }
         if !environmentVariables.isEmpty {
             propertyList["EnvironmentVariables"] = environmentVariables
         }

@@ -37,17 +37,17 @@ Use the foreground entrypoint when you want the process attached to the current 
 xcrun swift run SpeakSwiftlyServerTool serve
 ```
 
-This is the simplest path for local operator checks, debugging, and temporary runs where you do not want launchd to own the process lifecycle. The foreground executable defaults to `127.0.0.1:7338` unless environment or YAML config overrides that port.
+This is the simplest path for local operator checks, debugging, and temporary runs where you do not want launchd to own the process lifecycle. The foreground executable uses the server-owned Application Support config by default, seeding it from the bundled package resource when needed.
 
-If the foreground run should own a specific runtime persistence root, pass `--profile-root`:
+If the foreground run should own a specific persisted config and runtime profile root, pass both paths:
 
 ```bash
 xcrun swift run SpeakSwiftlyServerTool serve \
+  --config-file ./config/server.yaml \
   --profile-root ./runtime/profiles
 ```
 
-That flag feeds the same `SPEAKSWIFTLY_PROFILE_ROOT` startup override the LaunchAgent and embedded-app paths use, so the foreground server can point its runtime configuration, text-profile persistence, and generated artifacts at one explicit root.
-Inside `SpeakSwiftlyServer`, that value still names the profile-store root. The startup bridge translates it into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime so the launched worker does not accidentally nest `profiles/profiles/`.
+Those flags are explicit inputs to the server bootstrap path. The config file stores server, transport, and runtime startup choices; the profile root points generated profiles and artifacts at one explicit runtime state tree.
 
 ### LaunchAgent Maintenance
 
@@ -57,7 +57,7 @@ Use the `launch-agent` subcommands when the server should become a user-owned ba
 xcrun swift run SpeakSwiftlyServerTool launch-agent print-plist
 ```
 
-That subcommand renders the property list the package would install, including the staged executable path, working directory, profile-root environment, and stdout and stderr log paths. The LaunchAgent-owned runtime keeps its own default port, `127.0.0.1:7337`, so the live background service does not have to collide with an ad hoc foreground shell session by default.
+That subcommand renders the property list the package would install, including the staged executable path, working directory, `serve --default-profile launch-agent --config-file ... --profile-root ...` invocation, and stdout and stderr log paths. The LaunchAgent-owned persisted config defaults to `127.0.0.1:7337`; use an explicit config file for foreground runs that should avoid the shared installed-service port.
 
 For the install, promotion, status, and uninstall flow, continue with <doc:LaunchAgent-Workflow>.
 

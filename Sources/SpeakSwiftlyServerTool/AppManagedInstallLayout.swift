@@ -27,8 +27,6 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
     public let runtimeBaseDirectoryURL: URL
     /// The profile storage root exposed to the installed speech runtime.
     public let runtimeProfileRootURL: URL
-    /// The persisted runtime configuration file used for next-start state.
-    public let runtimeConfigurationFileURL: URL
     /// The retained stdout log file for the installed service.
     public let standardOutLogURL: URL
     /// The retained stderr log file for the installed service.
@@ -47,7 +45,6 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
         launchAgentConfigAliasURL: URL,
         runtimeBaseDirectoryURL: URL,
         runtimeProfileRootURL: URL,
-        runtimeConfigurationFileURL: URL,
         standardOutLogURL: URL,
         standardErrorLogURL: URL,
     ) {
@@ -62,7 +59,6 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
         self.launchAgentConfigAliasURL = launchAgentConfigAliasURL
         self.runtimeBaseDirectoryURL = runtimeBaseDirectoryURL
         self.runtimeProfileRootURL = runtimeProfileRootURL
-        self.runtimeConfigurationFileURL = runtimeConfigurationFileURL
         self.standardOutLogURL = standardOutLogURL
         self.standardErrorLogURL = standardErrorLogURL
     }
@@ -95,8 +91,6 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
             .appendingPathComponent("runtime", isDirectory: true)
         let runtimeProfileRootURL = runtimeBaseDirectoryURL
             .appendingPathComponent("profiles", isDirectory: true)
-        let runtimeConfigurationFileURL = runtimeBaseDirectoryURL
-            .appendingPathComponent("configuration.json", isDirectory: false)
 
         return .init(
             launchAgentLabel: launchAgentLabel,
@@ -111,29 +105,19 @@ public struct ServerInstallLayout: Codable, Sendable, Equatable {
                 .appendingPathComponent("launch-agent-server.yaml", isDirectory: false),
             runtimeBaseDirectoryURL: runtimeBaseDirectoryURL,
             runtimeProfileRootURL: runtimeProfileRootURL,
-            runtimeConfigurationFileURL: runtimeConfigurationFileURL,
             standardOutLogURL: logsDirectoryURL.appendingPathComponent("stdout.log", isDirectory: false),
             standardErrorLogURL: logsDirectoryURL.appendingPathComponent("stderr.log", isDirectory: false),
         )
     }
 
     func launchAgentEnvironmentVariables(
-        configFilePath: String?,
         reloadIntervalSeconds: String?,
     ) -> [String: String] {
         var environmentVariables = [String: String]()
-        if let configFilePath, !configFilePath.isEmpty {
-            environmentVariables["APP_CONFIG_FILE"] = launchAgentConfigPath(for: configFilePath)
-        }
         if let reloadIntervalSeconds, !reloadIntervalSeconds.isEmpty {
             environmentVariables["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] = reloadIntervalSeconds
         }
-        environmentVariables["SPEAKSWIFTLY_PROFILE_ROOT"] = runtimeProfileRootURL.path
         return environmentVariables
-    }
-
-    func launchAgentConfigPath(for configFilePath: String) -> String {
-        URL(fileURLWithPath: configFilePath).standardizedFileURL.path
     }
 }
 

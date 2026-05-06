@@ -63,12 +63,15 @@ visible to maintainers. Completed implementation plans belong in
 - `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/catalog.json`
   Holds the package-owned default voice seed catalog. Keep this as bundled seed metadata, not as
   user profile storage.
+- `Sources/SpeakSwiftlyServer/Resources/default-server.yaml`
+  Holds the bundled default server config. The library seeds the persisted Application Support
+  config from this resource and stores runtime startup choices in the same YAML document.
+- `Sources/SpeakSwiftlyServer/Config/ServerConfigPersistence.swift`
+  Owns the library-level default-config seed, load, and save behavior for the persisted YAML file.
 - `Sources/SpeakSwiftlyServerTool/HealthcheckCommand.swift` and `HealthcheckCommand+Transport.swift`
   Keep CLI-facing healthcheck option parsing and high-level probe orchestration separate from the low-level HTTP transport helpers and probe response models.
 - `Sources/SpeakSwiftlyServerTool/AppManagedInstallLayout.swift`
   Holds the tool-managed per-user filesystem contract for the bundled helper and LaunchAgent install surface, including config, runtime state, plist, and retained log paths.
-- `Sources/SpeakSwiftlyServerTool/Resources/default-server.yaml`
-  Holds the default YAML config that the tool seeds for LaunchAgent installs. Keep this with the tool target because it is an operator seed file, not the library's embedded runtime default model.
 - `Sources/SpeakSwiftlyServerTool/LaunchAgent/LaunchAgentCommands.swift`
   Holds the top-level command parsing and dispatch for `serve`, `healthcheck`, and `launch-agent`.
 - `Sources/SpeakSwiftlyServerTool/LaunchAgent/LaunchAgentOptions.swift` and `LaunchAgentOptions+Installation.swift`

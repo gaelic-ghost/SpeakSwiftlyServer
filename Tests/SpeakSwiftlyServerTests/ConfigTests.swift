@@ -339,13 +339,13 @@ import Testing
         .appendingPathComponent("profiles", isDirectory: true)
     let configurationURL = runtimeProfileRootURL
         .deletingLastPathComponent()
-        .appendingPathComponent("configuration.json", isDirectory: false)
+        .appendingPathComponent("server.yaml", isDirectory: false)
     try FileManager.default.createDirectory(
         at: configurationURL.deletingLastPathComponent(),
         withIntermediateDirectories: true,
     )
     try """
-    { this is not valid json }
+    { this is not valid yaml
     """.write(to: configurationURL, atomically: true, encoding: .utf8)
 
     let store = RuntimeConfigurationStore(
@@ -362,7 +362,7 @@ import Testing
     #expect(snapshot.persistedConfigurationState == "invalid")
     #expect(snapshot.persistedSpeechBackend == nil)
     #expect(snapshot.persistedDefaultVoiceProfileName == nil)
-    #expect(snapshot.persistedConfigurationError?.contains("configuration.json") == true)
+    #expect(snapshot.persistedConfigurationError?.contains("server.yaml") == true)
     #expect(snapshot.persistedConfigurationError?.contains("Likely cause") == true)
 }
 

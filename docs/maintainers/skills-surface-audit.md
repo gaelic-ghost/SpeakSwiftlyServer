@@ -51,7 +51,7 @@ The public HTTP and MCP guidance now treats request-context metadata as transpor
 
 ## Healthy Constraints To Preserve
 
-- Keep `.mcp.json` pointed at the LaunchAgent default service URL, `http://127.0.0.1:7337/mcp`; direct foreground runs default to `7338`, and embedded app-owned sessions default to `7339`.
+- Keep `.mcp.json` pointed at the LaunchAgent default service URL, `http://127.0.0.1:7337/mcp`; the shared Application Support config is LaunchAgent-oriented, while in-memory fallback profiles still reserve `7338` for ad hoc standalone configs and `7339` for embedded app-owned configs.
 - Keep skills focused on MCP/operator behavior. Do not turn them into general package-maintenance docs; `AGENTS.md`, `README.md`, `API.md`, and maintainer docs own that broader guidance.
 - Keep destructive queue and profile operations behind exact-id or exact-name confirmation guidance.
 - Trust the current MCP source files over older prose when a tool, resource, prompt, or request field appears to disagree.

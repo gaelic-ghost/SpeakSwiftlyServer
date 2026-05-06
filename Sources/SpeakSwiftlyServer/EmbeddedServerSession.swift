@@ -31,9 +31,6 @@ func embeddedServerEffectiveEnvironment(
         resolvedEnvironment["APP_PORT"] = String(port)
         resolvedEnvironment["APP_HTTP_PORT"] = String(port)
     }
-    if let runtimeProfileRootURL = options.runtimeProfileRootURL {
-        resolvedEnvironment["SPEAKSWIFTLY_PROFILE_ROOT"] = runtimeProfileRootURL.standardizedFileURL.path
-    }
     return resolvedEnvironment
 }
 
@@ -41,12 +38,23 @@ func embeddedServerLiveBootstrap(
     environment: [String: String],
     server: EmbeddedServer,
 ) async throws -> EmbeddedServerLifecycleHooks {
+    let bootstrapOptions = await MainActor.run { server.bootstrapOptions }
+    let defaultPersistence = ServerConfigPersistence.defaultForCurrentUser()
+    let configurationURL = bootstrapOptions.configurationURL ?? defaultPersistence.configurationURL
+    let profileRootURL = bootstrapOptions.runtimeProfileRootURL ?? defaultPersistence.profileRootURL
     let configStore = try await ConfigStore(
         environment: environment,
-        defaultProfile: .embeddedSession,
+        defaultProfile: nil,
+        configurationURL: configurationURL,
     )
     let config = try configStore.loadAppConfig()
-    let host = await ServerHost.makeLive(appConfig: config, state: server, environment: environment)
+    let host = await ServerHost.makeLive(
+        appConfig: config,
+        state: server,
+        environment: environment,
+        configurationURL: configurationURL,
+        profileRootURL: profileRootURL,
+    )
     await MainActor.run {
         server.configureActions(
             .init(

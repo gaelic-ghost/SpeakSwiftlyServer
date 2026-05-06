@@ -179,15 +179,19 @@ extension ServerHost {
         }
 
         let runtimeSnapshot = await runtime.runtimeSnapshot()
-        activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
+        let resolvedSpeechBackend = runtimeSnapshot.speechBackend == speechBackend
+            ? runtimeSnapshot.speechBackend
+            : speechBackend
+        activeRuntimeSpeechBackend = resolvedSpeechBackend
         let runtimeConfigurationSnapshot = runtimeConfigurationStore.snapshot(
-            activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
+            activeRuntimeSpeechBackend: resolvedSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
-        return .init(speechBackend: runtimeSnapshot.speechBackend.rawValue)
+        activeRuntimeSpeechBackend = resolvedSpeechBackend
+        return .init(speechBackend: resolvedSpeechBackend.rawValue)
     }
 
     func reloadModels() async throws -> RuntimeStatusResponse {

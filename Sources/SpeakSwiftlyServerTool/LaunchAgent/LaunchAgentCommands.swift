@@ -4,20 +4,49 @@ import SpeakSwiftlyServer
 let speakSwiftlyServerToolName = "SpeakSwiftlyServerTool"
 
 package struct ServeOptions {
+    let configFilePath: String?
     let runtimeProfileRootPath: String?
+    let defaultProfile: AppRuntimeDefaultProfile?
 
     static func parse(arguments: [String], currentDirectoryPath: String) throws -> ServeOptions {
+        var configFilePath: String?
         var runtimeProfileRootPath: String?
+        var defaultProfile: AppRuntimeDefaultProfile?
         var index = 0
 
         while index < arguments.count {
             switch arguments[index] {
+                case "--config-file":
+                    configFilePath = try LaunchAgentOptions.requireValue(
+                        after: arguments,
+                        index: index,
+                        option: "--config-file",
+                    )
+                    index += 2
+
                 case "--profile-root":
                     runtimeProfileRootPath = try LaunchAgentOptions.requireValue(
                         after: arguments,
                         index: index,
                         option: "--profile-root",
                     )
+                    index += 2
+
+                case "--default-profile":
+                    let rawValue = try LaunchAgentOptions.requireValue(
+                        after: arguments,
+                        index: index,
+                        option: "--default-profile",
+                    )
+                    guard let parsedProfile = AppRuntimeDefaultProfile(rawValue: rawValue) else {
+                        let supportedProfiles = AppRuntimeDefaultProfile.allCases
+                            .map(\.rawValue)
+                            .joined(separator: ", ")
+                        throw SpeakSwiftlyServerToolCommandError(
+                            "\(speakSwiftlyServerToolName) did not recognize serve default profile '\(rawValue)'. Supported values are: \(supportedProfiles).",
+                        )
+                    }
+                    defaultProfile = parsedProfile
                     index += 2
 
                 default:
@@ -28,9 +57,13 @@ package struct ServeOptions {
         }
 
         return .init(
+            configFilePath: configFilePath.map {
+                LaunchAgentOptions.resolvePath($0, relativeTo: currentDirectoryPath)
+            },
             runtimeProfileRootPath: runtimeProfileRootPath.map {
                 LaunchAgentOptions.resolvePath($0, relativeTo: currentDirectoryPath)
             },
+            defaultProfile: defaultProfile,
         )
     }
 }
@@ -65,7 +98,9 @@ package enum SpeakSwiftlyServerToolCommand {
       --stderr-path <path>
 
     Serve options:
+      --config-file <path>
       --profile-root <path>
+      --default-profile <standalone-executable|launch-agent|embedded-session>
 
     Healthcheck options:
       --base-url <url>
@@ -82,7 +117,7 @@ package enum SpeakSwiftlyServerToolCommand {
         currentExecutablePath: String = CommandLine.arguments[0],
     ) throws -> SpeakSwiftlyServerToolCommand {
         guard let first = arguments.first else {
-            return .serve(.init(runtimeProfileRootPath: nil))
+            return .serve(.init(configFilePath: nil, runtimeProfileRootPath: nil, defaultProfile: nil))
         }
 
         switch first {
@@ -131,7 +166,11 @@ package enum SpeakSwiftlyServerToolCommand {
         switch self {
             case let .serve(options):
                 try await ServerRuntimeEntrypoint.run(
-                    options: .init(runtimeProfileRootPath: options.runtimeProfileRootPath),
+                    options: .init(
+                        configurationPath: options.configFilePath,
+                        runtimeProfileRootPath: options.runtimeProfileRootPath,
+                        defaultProfile: options.defaultProfile,
+                    ),
                 )
 
             case let .healthcheck(options):

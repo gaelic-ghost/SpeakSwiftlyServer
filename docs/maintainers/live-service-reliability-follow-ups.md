@@ -11,8 +11,8 @@
 
 The live service had two separate issues that combined into one confusing operator symptom:
 
-1. The LaunchAgent had been installed without `APP_CONFIG_FILE`, so the service fell back to built-in defaults and kept the MCP transport disabled.
-2. Once a real config file was supplied, the current config-loading path failed when `APP_CONFIG_FILE` pointed at `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`, because that path contains spaces.
+1. The LaunchAgent had previously been installed without an explicit config handoff, so the service fell back to built-in defaults and kept the MCP transport disabled.
+2. Once a real config file was supplied, the older config-loading path failed when the path pointed at `~/Library/Application Support/SpeakSwiftlyServer/server.yaml`, because that path contains spaces.
 
 The `v2.0.4` fix kept the canonical config file in Application Support, but staged a copied LaunchAgent-owned alias config under `~/Library/Caches/SpeakSwiftlyServer/launch-agent-server.yaml` whenever the canonical path contained spaces. The LaunchAgent environment pointed at that cache copy instead of the spaced canonical path.
 
@@ -24,7 +24,7 @@ The Application Support cleanup is implemented on the `runtime/application-suppo
 
 ### 1. Add a full LaunchAgent smoke test for the real per-user install layout
 
-The current unit coverage now proves that LaunchAgent installs point `APP_CONFIG_FILE` directly at the canonical Application Support config path, even when the path contains spaces. That should be extended into an end-to-end smoke test that verifies the whole app-managed install contract, not only the environment shaping.
+The current unit coverage now proves that LaunchAgent installs pass `serve --config-file ... --profile-root ...` directly, even when the canonical Application Support config path contains spaces. That should be extended into an end-to-end smoke test that verifies the whole tool-managed install contract, not only the argument shaping.
 
 The intended flow is:
 

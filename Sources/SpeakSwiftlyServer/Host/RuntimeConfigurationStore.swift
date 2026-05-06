@@ -21,59 +21,9 @@ struct RuntimeConfigurationStore {
         }
     }
 
-    private struct PersistedRuntimeConfiguration: Codable {
-        enum CodingKeys: String, CodingKey {
-            case speechBackend
-            case qwenResidentModel
-            case marvisResidentPolicy
-            case defaultVoiceProfileName
-        }
-
-        let speechBackend: SpeakSwiftly.SpeechBackend
-        let qwenResidentModel: SpeakSwiftly.QwenResidentModel
-        let marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy
-        let defaultVoiceProfileName: SpeakSwiftly.Name?
-
-        init(
-            speechBackend: SpeakSwiftly.SpeechBackend,
-            qwenResidentModel: SpeakSwiftly.QwenResidentModel,
-            marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy,
-            defaultVoiceProfileName: SpeakSwiftly.Name?,
-        ) {
-            self.speechBackend = speechBackend
-            self.qwenResidentModel = qwenResidentModel
-            self.marvisResidentPolicy = marvisResidentPolicy
-            self.defaultVoiceProfileName = Self.normalized(defaultVoiceProfileName)
-        }
-
-        init(from decoder: any Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            speechBackend = try container.decode(SpeakSwiftly.SpeechBackend.self, forKey: .speechBackend)
-            qwenResidentModel = try container.decodeIfPresent(
-                SpeakSwiftly.QwenResidentModel.self,
-                forKey: .qwenResidentModel,
-            ) ?? .base06B8Bit
-            marvisResidentPolicy = try container.decodeIfPresent(
-                SpeakSwiftly.MarvisResidentPolicy.self,
-                forKey: .marvisResidentPolicy,
-            ) ?? .dualResidentSerialized
-            defaultVoiceProfileName = try Self.normalized(
-                container.decodeIfPresent(SpeakSwiftly.Name.self, forKey: .defaultVoiceProfileName),
-            )
-        }
-
-        static func normalized(_ profileName: SpeakSwiftly.Name?) -> SpeakSwiftly.Name? {
-            guard let profileName else {
-                return nil
-            }
-
-            let trimmed = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
-    }
-
     private let environment: [String: String]
     private let fileSystem: FileSystem
+    private let persistence: ServerConfigPersistence
     private let configurationURL: URL
     private let profileRootURL: URL
     private let defaultActiveRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend?
@@ -83,6 +33,8 @@ struct RuntimeConfigurationStore {
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         fileManager: FileManager = .default,
+        configurationURL: URL? = nil,
+        profileRootURL: URL? = nil,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
@@ -90,17 +42,32 @@ struct RuntimeConfigurationStore {
         let profileRootOverride = environment["SPEAKSWIFTLY_PROFILE_ROOT"]
         self.environment = environment
         fileSystem = FileSystem(fileManager: fileManager)
-        if let profileRootOverride,
+        let resolvedProfileRootURL: URL
+        let resolvedConfigurationURL: URL
+        if let profileRootURL {
+            resolvedProfileRootURL = profileRootURL.standardizedFileURL
+            resolvedConfigurationURL = (configurationURL ?? RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager).configurationURL)
+                .standardizedFileURL
+        } else if let profileRootOverride,
            profileRootOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-            profileRootURL = URL(fileURLWithPath: profileRootOverride, isDirectory: true)
-            configurationURL = profileRootURL
+            let overriddenProfileRootURL = URL(fileURLWithPath: profileRootOverride, isDirectory: true)
+            resolvedConfigurationURL = (configurationURL ?? overriddenProfileRootURL
                 .deletingLastPathComponent()
-                .appendingPathComponent("configuration.json", isDirectory: false)
+                .appendingPathComponent("server.yaml", isDirectory: false))
+                .standardizedFileURL
+            resolvedProfileRootURL = overriddenProfileRootURL.standardizedFileURL
         } else {
             let defaults = RuntimeStorageDefaults.defaultForCurrentUser(fileManager: fileManager)
-            profileRootURL = defaults.profileRootURL
-            configurationURL = defaults.configurationURL
+            resolvedProfileRootURL = defaults.profileRootURL.standardizedFileURL
+            resolvedConfigurationURL = (configurationURL ?? defaults.configurationURL).standardizedFileURL
         }
+        self.profileRootURL = resolvedProfileRootURL
+        self.configurationURL = resolvedConfigurationURL
+        persistence = ServerConfigPersistence(
+            configurationURL: self.configurationURL,
+            profileRootURL: self.profileRootURL,
+            fileManager: fileManager,
+        )
         defaultActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend
         defaultActiveQwenResidentModel = activeQwenResidentModel
         defaultActiveMarvisResidentPolicy = activeMarvisResidentPolicy
@@ -108,14 +75,13 @@ struct RuntimeConfigurationStore {
 
     func startupConfiguration(configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil) -> SpeakSwiftly.Configuration {
         let configuration = resolvedPersistedConfiguration()
-        return .init(
+        return RuntimeStartupConfiguration(
             speechBackend: configuration.speechBackend,
             qwenResidentModel: configuration.qwenResidentModel,
             marvisResidentPolicy: configuration.marvisResidentPolicy,
-            defaultVoiceProfile: configuration.defaultVoiceProfileName
-                ?? configuredDefaultVoiceProfileName
-                ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
+            defaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
+        .speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName)
     }
 
     func initialActiveRuntimeSpeechBackend() -> SpeakSwiftly.SpeechBackend {
@@ -194,7 +160,7 @@ struct RuntimeConfigurationStore {
         let current = loadPersistedRuntimeConfiguration()
         do {
             try savePersistedConfiguration(
-                .init(
+                RuntimeStartupConfiguration(
                     speechBackend: speechBackend,
                     qwenResidentModel: qwenResidentModel
                         ?? current?.qwenResidentModel
@@ -229,7 +195,7 @@ struct RuntimeConfigurationStore {
         let current = loadPersistedRuntimeConfiguration()
         do {
             try savePersistedConfiguration(
-                .init(
+                RuntimeStartupConfiguration(
                     speechBackend: current?.speechBackend ?? resolvedPersistedConfiguration().speechBackend,
                     qwenResidentModel: current?.qwenResidentModel ?? resolvedPersistedConfiguration().qwenResidentModel,
                     marvisResidentPolicy: current?.marvisResidentPolicy
@@ -246,7 +212,7 @@ struct RuntimeConfigurationStore {
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
-            activeDefaultVoiceProfileName: PersistedRuntimeConfiguration.normalized(defaultVoiceProfileName)
+            activeDefaultVoiceProfileName: RuntimeStartupConfiguration.normalized(defaultVoiceProfileName)
                 ?? configuredDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,
         )
@@ -257,25 +223,26 @@ struct RuntimeConfigurationStore {
             environment: environment,
             configurationURL: configurationURL,
             fileSystem: fileSystem,
+            persistence: persistence,
         )
     }
 
-    private func loadPersistedRuntimeConfiguration() -> PersistedRuntimeConfiguration? {
+    private func loadPersistedRuntimeConfiguration() -> RuntimeStartupConfiguration? {
         let configurationExists = fileSystem.fileExists(atPath: configurationURL.path)
         return Self.loadPersistedConfiguration(
             from: configurationURL,
             configurationExists: configurationExists,
+            persistence: persistence,
         )
         .persistedConfiguration
     }
 
-    private func savePersistedConfiguration(_ configuration: PersistedRuntimeConfiguration) throws {
-        let directoryURL = configurationURL.deletingLastPathComponent()
-        try fileSystem.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(configuration)
-        try data.write(to: configurationURL, options: .atomic)
+    private func savePersistedConfiguration(_ configuration: RuntimeStartupConfiguration) throws {
+        try fileSystem.createDirectory(
+            at: configurationURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+        )
+        try persistence.saveRuntimeConfiguration(configuration)
     }
 }
 
@@ -304,11 +271,13 @@ private extension RuntimeConfigurationStore {
         environment: [String: String],
         configurationURL: URL,
         fileSystem: FileSystem,
+        persistence: ServerConfigPersistence,
     ) -> Resolution {
         let configurationExists = fileSystem.fileExists(atPath: configurationURL.path)
         let persistedState = loadPersistedConfiguration(
             from: configurationURL,
             configurationExists: configurationExists,
+            persistence: persistence,
         )
 
         if let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment) {
@@ -367,8 +336,9 @@ private extension RuntimeConfigurationStore {
     private static func loadPersistedConfiguration(
         from configurationURL: URL,
         configurationExists: Bool,
+        persistence: ServerConfigPersistence,
     ) -> (
-        persistedConfiguration: PersistedRuntimeConfiguration?,
+        persistedConfiguration: RuntimeStartupConfiguration?,
         persistedSpeechBackend: SpeakSwiftly.SpeechBackend?,
         persistedQwenResidentModel: SpeakSwiftly.QwenResidentModel?,
         persistedMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy?,
@@ -381,8 +351,7 @@ private extension RuntimeConfigurationStore {
         }
 
         do {
-            let data = try Data(contentsOf: configurationURL)
-            let configuration = try JSONDecoder().decode(PersistedRuntimeConfiguration.self, from: data)
+            let configuration = try persistence.loadAppConfig().runtime
             return (
                 configuration,
                 configuration.speechBackend,
@@ -400,7 +369,7 @@ private extension RuntimeConfigurationStore {
                 nil,
                 nil,
                 .invalid,
-                "SpeakSwiftlyServer could not decode the persisted runtime configuration at '\(configurationURL.path)'. Likely cause: \(error.localizedDescription)",
+                "SpeakSwiftlyServer could not decode the persisted runtime configuration at '\(configurationURL.path)'. Likely cause: \(error)",
             )
         }
     }

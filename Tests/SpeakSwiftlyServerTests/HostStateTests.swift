@@ -87,7 +87,7 @@ import Testing
                     persistedMarvisResidentPolicy: nil,
                     persistedDefaultVoiceProfileName: nil,
                     profileRootPath: "/tmp/profiles",
-                    persistedConfigurationPath: "/tmp/profiles/configuration.json",
+                    persistedConfigurationPath: "/tmp/SpeakSwiftlyServer/server.yaml",
                     persistedConfigurationExists: false,
                     persistedConfigurationState: "missing",
                     persistedConfigurationError: nil,

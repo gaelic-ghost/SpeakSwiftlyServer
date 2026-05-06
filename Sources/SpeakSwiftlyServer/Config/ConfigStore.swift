@@ -18,6 +18,7 @@ struct ConfigStore {
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         defaultProfile: AppRuntimeDefaultProfile? = nil,
+        configurationURL: URL? = nil,
     ) async throws {
         var services = [any Service]()
         var providers: [any ConfigProvider] = [
@@ -30,7 +31,17 @@ struct ConfigStore {
 
         var reloadingProvider: URLReloadingYAMLConfigProvider?
 
-        if let configFilePath = environment["APP_CONFIG_FILE"], !configFilePath.isEmpty {
+        if let configurationURL {
+            let persistence = ServerConfigPersistence(configurationURL: configurationURL)
+            try persistence.seedIfMissing()
+            let provider = try await URLReloadingYAMLConfigProvider(
+                fileURL: persistence.configurationURL,
+                pollInterval: Self.reloadPollInterval(from: environment),
+            )
+            providers.append(provider)
+            services.append(provider)
+            reloadingProvider = provider
+        } else if let configFilePath = environment["APP_CONFIG_FILE"], !configFilePath.isEmpty {
             let provider = try await URLReloadingYAMLConfigProvider(
                 fileURL: URL(fileURLWithPath: configFilePath),
                 pollInterval: Self.reloadPollInterval(from: environment),

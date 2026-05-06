@@ -7,6 +7,11 @@ app:
   completedJobTTLSeconds: 900
   completedJobMaxCount: 200
   jobPruneIntervalSeconds: 60
+  runtime:
+    speechBackend: qwen3
+    qwenResidentModel: base_0_6b_8bit
+    marvisResidentPolicy: dual_resident_serialized
+    defaultVoiceProfileName:
   http:
     enabled: true
     host: 127.0.0.1
