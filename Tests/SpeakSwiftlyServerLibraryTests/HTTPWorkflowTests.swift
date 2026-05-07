@@ -474,7 +474,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `speak route rejects missing profile when no server default is configured`() async throws {
+    @Test func `speak route uses runtime default voice when profile is omitted`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
@@ -497,10 +497,12 @@ extension ServerTests {
                 headers: [.contentType: "application/json"],
                 body: byteBuffer(#"{"text":"Route test without a profile"}"#),
             )
-            let body = string(from: response.body)
-            #expect(response.status == .badRequest)
-            #expect(body.contains("did not include 'profile_name'"))
-            #expect(body.contains("app.defaultVoiceProfileName"))
+            let responseJSON = try jsonObject(from: response.body)
+            let requestID = try #require(responseJSON["request_id"] as? String)
+            #expect(response.status == .accepted)
+            #expect(requestID.isEmpty == false)
+            let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
+            #expect(queuedSpeechInvocation.profileName == "default")
         }
 
         await host.shutdown()

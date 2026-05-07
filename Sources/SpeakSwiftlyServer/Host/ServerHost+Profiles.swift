@@ -14,17 +14,25 @@ extension ServerHost {
         profileCache.first { $0.profileName == profileName }
     }
 
-    func resolvedRequestedVoiceProfileName(_ requestedProfileName: String?) -> String? {
+    func resolvedRequestedVoiceProfileName(_ requestedProfileName: String?) async -> String? {
         let explicitProfileName = requestedProfileName?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let explicitProfileName, !explicitProfileName.isEmpty {
             return explicitProfileName
         }
-        return activeDefaultVoiceProfileName
+
+        if let activeDefaultVoiceProfileName {
+            return activeDefaultVoiceProfileName
+        }
+
+        let runtimeDefaultVoiceProfile = await runtime.runtimeSnapshot()
+            .defaultVoiceProfile
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return runtimeDefaultVoiceProfile.isEmpty ? nil : runtimeDefaultVoiceProfile
     }
 
     func missingVoiceProfileNameMessage(for operation: String) -> String {
-        "SpeakSwiftlyServer could not queue \(operation) because the request did not include 'profile_name' and the server does not have 'app.defaultVoiceProfileName' configured."
+        "SpeakSwiftlyServer could not queue \(operation) because the request did not include 'profile_name', the server does not have 'app.defaultVoiceProfileName' configured, and the runtime did not report a default voice profile."
     }
 
     func defaultVoiceProfileName() -> SpeakSwiftly.Name? {
