@@ -397,6 +397,26 @@ import Testing
     #expect(snapshot.activeRuntimeMatchesNextRuntime == true)
 }
 
+@Test func `runtime startup configuration store preserves explicit v7 qwen backend over legacy qwen field`() throws {
+    let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        .appendingPathComponent("profiles", isDirectory: true)
+    let store = RuntimeStartupConfigurationStore(
+        environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
+        activeRuntimeSpeechBackend: .qwen3_smol,
+    )
+
+    let snapshot = try store.save(
+        speechBackend: .qwen3_smol_6bit,
+        qwenSpeechBackend: .qwen3_BIG,
+    )
+
+    #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol_6bit")
+    #expect(snapshot.nextQwenResidentModel == "base_0_6b_8bit")
+    #expect(snapshot.persistedSpeechBackend == "qwen3_smol_6bit")
+    #expect(snapshot.persistedQwenResidentModel == "base_0_6b_8bit")
+}
+
 @Test func `runtime startup configuration store normalizes blank default voice profile name`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -419,6 +439,7 @@ import Testing
     let store = RuntimeStartupConfigurationStore(profileRootURL: profileRootURL)
 
     #expect(store.runtimeStateRootURL() == profileRootURL.deletingLastPathComponent())
+    #expect(store.profileStoreRootURL() == profileRootURL)
 }
 
 @Test func `runtime startup configuration leaves non-profiles state root paths unchanged`() {
@@ -427,4 +448,5 @@ import Testing
     let store = RuntimeStartupConfigurationStore(profileRootURL: runtimeRootURL)
 
     #expect(store.runtimeStateRootURL() == runtimeRootURL)
+    #expect(store.profileStoreRootURL() == runtimeRootURL.appendingPathComponent("profiles", isDirectory: true))
 }

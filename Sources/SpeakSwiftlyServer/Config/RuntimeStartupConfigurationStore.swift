@@ -89,7 +89,11 @@ struct RuntimeStartupConfigurationStore {
     }
 
     func profileStoreRootURL() -> URL {
-        profileRootURL
+        guard profileRootURL.lastPathComponent != "profiles" else {
+            return profileRootURL
+        }
+
+        return profileRootURL.appendingPathComponent("profiles", isDirectory: true)
     }
 
     func initialActiveRuntimeSpeechBackend() -> SpeakSwiftly.SpeechBackend {
@@ -157,7 +161,7 @@ struct RuntimeStartupConfigurationStore {
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
         let current = loadPersistedRuntimeConfiguration()
-        let persistedSpeechBackend = RuntimeStartupConfiguration.isQwenSpeechBackend(speechBackend)
+        let persistedSpeechBackend = speechBackend == .qwen3_smol
             ? qwenSpeechBackend ?? speechBackend
             : speechBackend
         do {

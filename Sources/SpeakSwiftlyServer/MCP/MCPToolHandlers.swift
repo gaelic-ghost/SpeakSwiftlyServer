@@ -196,10 +196,15 @@ extension MCPSurface {
                     )
 
                 case "set_runtime_configuration":
+                    let rawSpeechBackend = try requiredString("speech_backend", in: arguments)
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
-                            speechBackend: requiredSpeechBackend("speech_backend", in: arguments),
-                            qwenSpeechBackend: optionalQwenSpeechBackend("qwen_resident_model", in: arguments),
+                            speechBackend: requiredSpeechBackend(rawSpeechBackend, key: "speech_backend"),
+                            qwenSpeechBackend: optionalQwenSpeechBackend(
+                                "qwen_resident_model",
+                                in: arguments,
+                                rawSpeechBackend: rawSpeechBackend,
+                            ),
                             marvisResidentPolicy: optionalMarvisResidentPolicy("marvis_resident_policy", in: arguments),
                         ),
                     )

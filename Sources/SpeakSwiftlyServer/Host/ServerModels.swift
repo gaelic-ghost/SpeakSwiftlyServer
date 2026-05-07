@@ -239,7 +239,11 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
     }
 
     func qwenSpeechBackendModel() throws -> SpeakSwiftly.SpeechBackend? {
-        try qwenResidentModel.map {
+        guard Self.usesLegacyQwenResidentModelOverride(speechBackend) else {
+            return nil
+        }
+
+        return try qwenResidentModel.map {
             try resolveLegacyQwenResidentModel($0, fieldName: "qwen_resident_model")
         }
     }
@@ -248,6 +252,10 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
         try marvisResidentPolicy.map {
             try resolveMarvisResidentPolicy($0, fieldName: "marvis_resident_policy")
         }
+    }
+
+    private static func usesLegacyQwenResidentModelOverride(_ rawSpeechBackend: String) -> Bool {
+        rawSpeechBackend.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == SpeakSwiftly.SpeechBackend.legacyQwenRawValue
     }
 }
 

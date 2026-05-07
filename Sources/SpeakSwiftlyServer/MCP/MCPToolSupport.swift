@@ -145,6 +145,13 @@ func requiredSpeechBackend(
     in arguments: [String: Value],
 ) throws -> SpeakSwiftly.SpeechBackend {
     let rawValue = try requiredString(key, in: arguments)
+    return try requiredSpeechBackend(rawValue, key: key)
+}
+
+func requiredSpeechBackend(
+    _ rawValue: String,
+    key: String,
+) throws -> SpeakSwiftly.SpeechBackend {
     guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
         throw MCPError.invalidParams(
             "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
@@ -157,7 +164,13 @@ func requiredSpeechBackend(
 func optionalQwenSpeechBackend(
     _ key: String,
     in arguments: [String: Value],
+    rawSpeechBackend: String,
 ) throws -> SpeakSwiftly.SpeechBackend? {
+    guard rawSpeechBackend.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        == SpeakSwiftly.SpeechBackend.legacyQwenRawValue
+    else {
+        return nil
+    }
     guard let rawValue = optionalString(key, in: arguments) else {
         return nil
     }
