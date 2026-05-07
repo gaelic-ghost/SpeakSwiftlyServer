@@ -43,7 +43,7 @@ Only the host-safe subset reloads live today:
 
 Changes to bind addresses, ports, HTTP enablement, MCP enablement, MCP path, or MCP server metadata are detected and reported, but they still require a process restart before they can take effect.
 
-`SPEAKSWIFTLY_PROFILE_ROOT` is also a startup-only setting. On the `SpeakSwiftlyServer` side, it still refers to the server-owned profile-store root. During startup, the server bridges that value into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime so the launched runtime can derive `profiles/`, `configuration.json`, and `text-profiles.json` consistently. Because that setting changes filesystem ownership rather than hot runtime state, it is intentionally not part of the live-reloaded YAML surface.
+`SPEAKSWIFTLY_PROFILE_ROOT` is also a startup-only setting. On the `SpeakSwiftlyServer` side, it refers to the server-owned profile-store root. During startup, the server resolves that profile-store root to the containing state root and passes it directly to `SpeakSwiftly.liftoff(configuration:stateRootURL:)` so the launched runtime can derive `profiles/`, `configuration.json`, and `text-profiles.json` consistently. Because that setting changes filesystem ownership rather than hot runtime state, it is intentionally not part of the live-reloaded YAML surface.
 
 Runtime model selection is startup-only as well. Persisted runtime configuration and the matching HTTP/MCP surfaces use `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`. `SPEAKSWIFTLY_SPEECH_BACKEND` and `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` override the persisted next-start values while building the explicit `SpeakSwiftly.Configuration` passed into runtime startup.
 
