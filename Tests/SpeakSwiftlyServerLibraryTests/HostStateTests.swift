@@ -155,7 +155,7 @@ extension ServerTests {
 
     @available(macOS 14, *)
     @Test func `state completes queued speech jobs and prunes expired entries`() async throws {
-        let runtime = MockRuntime()
+        let runtime = MockRuntime(speakBehavior: .holdOpen)
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
             configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
@@ -169,6 +169,8 @@ extension ServerTests {
         try await waitUntilReady(host)
 
         let jobID = try await host.submitSpeak(text: "Hello from the test suite", profileName: "default")
+        #expect(try await waitForActiveRequestID(on: host) == jobID)
+        await runtime.finishHeldSpeak(id: jobID)
         let snapshot = try await waitForJobSnapshot(jobID, on: host)
 
         #expect(snapshot.jobID == jobID)
