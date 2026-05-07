@@ -143,7 +143,7 @@ xcrun swift package plugin --allow-writing-to-package-directory upsert-system-vo
 The `upsert-system-voice-profile` command plugin is the normal authoring surface for
 `Sources/SpeakSwiftlyServer/Resources/SystemProfiles/profiles/<profile-name>/`. Do not manually copy
 profiles out of a live runtime profile store or hand-edit generated manifests to make them appear
-system-authored. If `swift package plugin --list` does not show the `upsert-system-voice-profile`
+system-authored. If `xcrun swift package plugin --list` does not show the `upsert-system-voice-profile`
 verb, treat that as a package/plugin exposure issue to fix before generating resources.
 
 Profile generation uses MLX/Metal. If a Codex sandboxed process cannot see the default Metal GPU,

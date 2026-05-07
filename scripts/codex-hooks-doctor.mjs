@@ -16,9 +16,6 @@ const pluginNames = [canonicalPluginName, legacyPluginName];
 const preferredPluginKey = `${canonicalPluginName}@socket`;
 const pluginMarketplaces = ["socket", "SpeakSwiftlyServer"];
 const knownPluginKeys = pluginNames.flatMap((name) => pluginMarketplaces.map((marketplace) => `${name}@${marketplace}`));
-const socketCachedHookPath = "~/.codex/plugins/cache/socket/speak-swiftly/6.1.4/hooks";
-const expectedStopHookCommand = `node ${socketCachedHookPath}/stop-tts.mjs`;
-const expectedPermissionHookCommand = `node ${socketCachedHookPath}/permission-request-log.mjs`;
 const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
 
 const checks = [];
@@ -31,6 +28,20 @@ function normalizeProfileName(value) {
 
 function addCheck(status, title, detail = "") {
   checks.push({ status, title, detail });
+}
+
+function expectedSocketHookCommands(pluginManifest) {
+  const pluginVersion = typeof pluginManifest?.version === "string" ? pluginManifest.version.trim() : "";
+  if (!pluginVersion) {
+    addCheck("fail", "Repo plugin manifest does not expose a valid version string");
+  }
+
+  const versionSegment = pluginVersion || "unknown";
+  const socketCachedHookPath = `~/.codex/plugins/cache/socket/speak-swiftly/${versionSegment}/hooks`;
+  return {
+    stop: `node ${socketCachedHookPath}/stop-tts.mjs`,
+    permissionRequest: `node ${socketCachedHookPath}/permission-request-log.mjs`,
+  };
 }
 
 function marker(status) {
@@ -368,11 +379,12 @@ async function main() {
   } else {
     addCheck("fail", "Repo plugin manifest does not declare ./hooks/hooks.json", pluginManifestPath);
   }
+  const expectedHookCommands = expectedSocketHookCommands(pluginManifest);
 
   const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
-  validatePluginCommand("Stop", pluginStopHookCommands, expectedStopHookCommand);
+  validatePluginCommand("Stop", pluginStopHookCommands, expectedHookCommands.stop);
   const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
-  validatePluginCommand("PermissionRequest", pluginPermissionHookCommands, expectedPermissionHookCommand);
+  validatePluginCommand("PermissionRequest", pluginPermissionHookCommands, expectedHookCommands.permissionRequest);
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
   if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-log.mjs"))) {
