@@ -19,14 +19,14 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state. Do not add a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs.
-- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/6.1.1/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
+- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/6.1.2/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
 - Treat `PermissionRequest` as logging-only unless the user explicitly asks to make approval prompts speakable. The probe must not approve, reject, or print text to `stdout`.
 
 ## Doctor Interpretation
 
 - Warn on user-level hooks that point at `.codex/hooks/stop-tts.mjs`, include `CODEX_HOOK_TTS_DATA_DIR`, or duplicate the plugin-managed `Stop` hook. Treat them as duplicate or legacy repair targets, not fallback hooks.
 - Warn on duplicate enabled plugin entries. Keep the canonical Socket entry and disable or remove duplicate standalone or legacy plugin entries after confirmation.
-- Runtime default voice mismatch is not automatically a hook failure. The hook uses `CODEX_HOOK_TTS_PROFILE_NAME` or `default-femme`; confirm the profile exists in the cached voice inventory.
+- Runtime default voice mismatch is not automatically a hook failure. The hook uses the runtime default voice unless `CODEX_HOOK_TTS_PROFILE_NAME` is set; when an override is configured, confirm that profile exists in the cached voice inventory.
 
 ## Validation
 
