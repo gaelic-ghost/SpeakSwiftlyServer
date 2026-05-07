@@ -126,7 +126,9 @@ The `Stop` hook script also accepts:
 - `CODEX_HOOK_TTS_BASE_URL`
   Override the default `http://127.0.0.1:7337`.
 - `CODEX_HOOK_TTS_PROFILE_NAME`
-  Override the default voice profile name `default-femme`.
+  Force a specific voice profile for hook speech. When unset, the hook omits
+  `profile_name` and lets the running SpeakSwiftlyServer runtime default choose
+  the voice.
 - `CODEX_HOOK_TTS_SKIP_CONTINUATIONS`
   Defaults to `true`. Set to `false` if continued `Stop` turns should be read
   aloud too.
@@ -176,7 +178,7 @@ The doctor reports:
 - `plugin_hooks = true`, which is required by current Codex builds before
   installed plugin lifecycle hooks become runnable
 - live runtime reachability through `GET /overview`
-- runtime default voice profile versus the hook's configured profile
+- runtime default voice profile and any hook voice-profile override
 - cached voice profiles
 - recent centralized user/plugin and repo-local hook log outcomes
 - recent centralized and repo-local permission-request probe outcomes

@@ -116,9 +116,9 @@ test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
       model: "gpt-test",
       hook_event_name: "Stop",
     },
-    "default-femme",
   );
 
+  assert.equal(body.profile_name, undefined);
   assert.equal(body.cwd, "/tmp/project");
   assert.equal(body.request_context.source, "Codex Hook");
   assert.equal(body.request_context.topic, "project");
@@ -131,13 +131,18 @@ test("speechRequestBody labels Stop hook speech with Codex Hook source", () => {
   });
 });
 
+test("speechRequestBody includes a configured voice profile override", () => {
+  const body = speechRequestBody("Answer\n\nDone.", { cwd: "/tmp/project" }, " swift-signal ");
+
+  assert.equal(body.profile_name, "swift-signal");
+});
+
 test("speechRequestBody labels Codex document workspaces as Codex Chat", () => {
   const body = speechRequestBody(
     "Answer\n\nDone.",
     {
       cwd: "/Users/gale/Documents/Codex/heya-codex",
-    },
-    "default-femme",
+    }
   );
 
   assert.equal(body.request_context.source, "Codex");
@@ -149,8 +154,7 @@ test("speechRequestBody labels dated Codex document workspaces as Codex Chat", (
     "Answer\n\nDone.",
     {
       cwd: "/Users/gale/Documents/Codex/2026-05-04/heya-codex",
-    },
-    "default-femme",
+    }
   );
 
   assert.equal(body.request_context.source, "Codex");
@@ -158,7 +162,7 @@ test("speechRequestBody labels dated Codex document workspaces as Codex Chat", (
 });
 
 test("speechRequestBody falls back to assistant final reply topic when cwd has no basename", () => {
-  const body = speechRequestBody("Answer\n\nDone.", { cwd: "/" }, "default-femme");
+  const body = speechRequestBody("Answer\n\nDone.", { cwd: "/" });
 
   assert.equal(body.request_context.topic, "assistant-final-reply");
 });

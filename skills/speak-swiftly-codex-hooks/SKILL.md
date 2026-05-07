@@ -26,7 +26,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 - Warn on user-level hooks that point at `.codex/hooks/stop-tts.mjs`, include `CODEX_HOOK_TTS_DATA_DIR`, or duplicate the plugin-managed `Stop` hook. Treat them as duplicate or legacy repair targets, not fallback hooks.
 - Warn on duplicate enabled plugin entries. Keep the canonical Socket entry and disable or remove duplicate standalone or legacy plugin entries after confirmation.
-- Runtime default voice mismatch is not automatically a hook failure. The hook uses `CODEX_HOOK_TTS_PROFILE_NAME` or `default-femme`; confirm the profile exists in the cached voice inventory.
+- Runtime default voice mismatch is not automatically a hook failure. The hook uses the runtime default voice unless `CODEX_HOOK_TTS_PROFILE_NAME` is set; when an override is configured, confirm that profile exists in the cached voice inventory.
 
 ## Validation
 

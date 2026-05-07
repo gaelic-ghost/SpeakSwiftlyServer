@@ -17,7 +17,7 @@ const logPath = path.join(logDir, "stop-tts.jsonl");
 
 const runtimeBaseUrl = process.env.CODEX_HOOK_TTS_BASE_URL ?? "http://127.0.0.1:7337";
 const liveSpeechEndpoint = new URL("/speech/live", runtimeBaseUrl).toString();
-const defaultProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-femme";
+const configuredProfileName = normalizeProfileName(process.env.CODEX_HOOK_TTS_PROFILE_NAME);
 const skipContinuedTurns = (process.env.CODEX_HOOK_TTS_SKIP_CONTINUATIONS ?? "true") !== "false";
 const skipStructuredMessages = (process.env.CODEX_HOOK_TTS_SKIP_STRUCTURED_MESSAGES ?? "true") !== "false";
 const logFullPayload = (process.env.CODEX_HOOK_TTS_LOG_FULL_PAYLOAD ?? "false") === "true";
@@ -103,6 +103,12 @@ async function appendLog(entry) {
 }
 
 function normalizeMessage(input) {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeProfileName(input) {
   if (typeof input !== "string") return null;
   const trimmed = input.trim();
   return trimmed.length > 0 ? trimmed : null;
@@ -305,7 +311,7 @@ function requestContextIdentity(cwd) {
   };
 }
 
-export function speechRequestBody(message, payload, profileName) {
+export function speechRequestBody(message, payload, profileName = null) {
   const {
     session_id: sessionId = null,
     turn_id: turnId = null,
@@ -329,15 +335,21 @@ export function speechRequestBody(message, payload, profileName) {
       .filter(([, value]) => value !== null),
   );
 
-  return {
+  const body = {
     text: message,
-    profile_name: profileName,
     cwd: typeof cwd === "string" && cwd.length > 0 ? cwd : undefined,
     request_context: {
       ...requestContextIdentity(cwd),
       attributes,
     },
   };
+
+  const normalizedProfileName = normalizeProfileName(profileName);
+  if (normalizedProfileName) {
+    body.profile_name = normalizedProfileName;
+  }
+
+  return body;
 }
 
 async function main() {
@@ -473,7 +485,7 @@ async function main() {
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(speechRequestBody(speechMessage, payload, defaultProfileName)),
+      body: JSON.stringify(speechRequestBody(speechMessage, payload, configuredProfileName)),
     });
   } catch (error) {
     await appendLog({
@@ -485,7 +497,7 @@ async function main() {
       transcriptPath,
       cwd,
       model,
-      profileName: defaultProfileName,
+      profileName: configuredProfileName,
       endpoint: liveSpeechEndpoint,
       preview: speechMessage.slice(0, 160),
       presentSections: speechProjection.presentSections,
@@ -511,7 +523,7 @@ async function main() {
       status: response.status,
       statusText: response.statusText,
       responseBody,
-      profileName: defaultProfileName,
+      profileName: configuredProfileName,
       endpoint: liveSpeechEndpoint,
       preview: speechMessage.slice(0, 160),
       presentSections: speechProjection.presentSections,
@@ -538,7 +550,7 @@ async function main() {
     cwd,
     model,
     endpoint: liveSpeechEndpoint,
-    profileName: defaultProfileName,
+    profileName: configuredProfileName,
     request: parsedResponse,
     preview: speechMessage.slice(0, 160),
     presentSections: speechProjection.presentSections,

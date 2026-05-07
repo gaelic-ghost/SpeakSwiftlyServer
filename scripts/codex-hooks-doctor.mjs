@@ -9,7 +9,7 @@ const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(scriptPath), "..");
 const codexHome = process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
 const runtimeBaseUrl = process.env.CODEX_HOOK_TTS_BASE_URL ?? "http://127.0.0.1:7337";
-const expectedProfileName = process.env.CODEX_HOOK_TTS_PROFILE_NAME ?? "default-femme";
+const configuredProfileName = normalizeProfileName(process.env.CODEX_HOOK_TTS_PROFILE_NAME);
 const canonicalPluginName = "speak-swiftly";
 const legacyPluginName = "speak-swiftly-server";
 const pluginNames = [canonicalPluginName, legacyPluginName];
@@ -22,6 +22,12 @@ const expectedPermissionHookCommand = `node ${socketCachedHookPath}/permission-r
 const repairMode = process.argv.includes("--repair") || process.argv.includes("--repair-plan");
 
 const checks = [];
+
+function normalizeProfileName(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
 
 function addCheck(status, title, detail = "") {
   checks.push({ status, title, detail });
@@ -440,21 +446,35 @@ async function main() {
       : "unknown";
     addCheck("ok", "Runtime host endpoint is reachable", runtime.url);
     addCheck("info", "Runtime worker/server state", `worker=${overview.worker_mode ?? "unknown"} server=${overview.server_mode ?? "unknown"} backend=${overview.runtime_backend_transition?.active_speech_backend ?? overview.runtime_configuration?.active_runtime_speech_backend ?? "unknown"}`);
-    addCheck(
-      overview.default_voice_profile_name === expectedProfileName ? "ok" : "warn",
-      "Runtime default voice profile",
-      `runtime=${overview.default_voice_profile_name ?? "unset"} hook=${expectedProfileName}`,
-    );
-    addCheck(profileNames.includes(expectedProfileName) ? "ok" : "fail", "Expected hook voice profile is cached", profileNames);
+    if (configuredProfileName) {
+      addCheck(profileNames.includes(configuredProfileName) ? "ok" : "fail", "Configured hook voice profile is cached", profileNames);
+    } else {
+      addCheck("ok", "Hook voice profile override is not configured", "The hook will omit profile_name and let the runtime default choose the voice.");
+    }
   } else {
     addCheck("warn", "Runtime host endpoint is not reachable", runtime.error ?? `${runtime.status}: ${runtime.text}`);
+  }
+
+  const status = await fetchJSON("/status");
+  if (status.ok) {
+    addCheck(
+      status.value.default_voice_profile ? "ok" : "warn",
+      "Runtime default voice profile",
+      `runtime=${status.value.default_voice_profile ?? "unset"} hook=${configuredProfileName ?? "runtime-default"}`,
+    );
+  } else {
+    addCheck("warn", "Runtime status endpoint is not reachable", status.error ?? `${status.status}: ${status.text}`);
   }
 
   const voices = await fetchJSON("/voices");
   if (voices.ok) {
     const profiles = Array.isArray(voices.value.profiles) ? voices.value.profiles : voices.value;
     const names = Array.isArray(profiles) ? profiles.map((profile) => profile.profile_name).join(", ") : "unknown";
-    addCheck(names.includes(expectedProfileName) ? "ok" : "fail", "Voice profile inventory includes hook profile", names);
+    if (configuredProfileName) {
+      addCheck(names.includes(configuredProfileName) ? "ok" : "fail", "Voice profile inventory includes configured hook profile", names);
+    } else {
+      addCheck("info", "Voice profile inventory", names);
+    }
   } else {
     addCheck("warn", "Voice profile endpoint is not reachable", voices.error ?? `${voices.status}: ${voices.text}`);
   }
