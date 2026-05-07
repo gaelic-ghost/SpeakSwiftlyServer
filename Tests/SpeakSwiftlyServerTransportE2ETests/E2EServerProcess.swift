@@ -101,6 +101,11 @@ final class ServerProcess: @unchecked Sendable {
         }
         environment["DYLD_FRAMEWORK_PATH"] = executableURL.deletingLastPathComponent().path
         process.environment = environment
+        process.arguments = [
+            "serve",
+            "--profile-root",
+            profileRootURL.path,
+        ]
     }
 
     deinit {
