@@ -77,6 +77,37 @@ func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     )
 }
 
+func sampleSystemProfiles() -> [SpeakSwiftly.ProfileSummary] {
+    [
+        .init(
+            profileName: "swift-signal",
+            vibe: .femme,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_100),
+            voiceDescription: "Bundled SpeakSwiftly signal voice.",
+            sourceText: "Bundled system profile source text.",
+            author: .system,
+            seedID: "swift.signal",
+            seedVersion: "1",
+            transcriptSource: nil,
+            transcriptResolvedAt: nil,
+            transcriptionModelRepo: nil,
+        ),
+        .init(
+            profileName: "swift-anchor",
+            vibe: .masc,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_200),
+            voiceDescription: "Bundled SpeakSwiftly anchor voice.",
+            sourceText: "Bundled system profile source text.",
+            author: .system,
+            seedID: "swift.anchor",
+            seedVersion: "1",
+            transcriptSource: nil,
+            transcriptResolvedAt: nil,
+            transcriptionModelRepo: nil,
+        ),
+    ]
+}
+
 // MARK: - GenerationArtifactFixture
 
 struct GenerationArtifactFixture: Codable {

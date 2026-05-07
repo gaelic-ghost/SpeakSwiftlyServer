@@ -12,20 +12,20 @@ without requiring a local runtime first.
 
 ## Current Shape
 
-- `SpeakSwiftly` owns stored voice-profile creation, profile manifests, canonical reference audio,
-  and reroll behavior.
+- `SpeakSwiftly` owns stored voice-profile creation, system-profile resource installation, profile
+  manifests, canonical reference audio, and reroll behavior.
 - `SpeakSwiftlyServer` owns the local HTTP, MCP, embedded, LaunchAgent, and operator-facing default
   profile selection surfaces.
-- `Package.swift` already processes `Sources/SpeakSwiftlyServer/Resources` into the
-  `SpeakSwiftlyServer` target bundle.
+- `SpeakSwiftlyServer` can ship server-owned generated system-profile resources under
+  `Sources/SpeakSwiftlyServer/Resources/SystemProfiles/`.
 - The live user profile root stays outside the package and is selected through the runtime profile-root path.
 - `docs/media/` is documentation content, not a SwiftPM module resource.
 
 SwiftPM resources are scoped to a target, and resources that should be available through
 `Bundle.module` must live under the owning target directory and be declared on that target. The
-package manifest already uses that supported shape with `.process("Resources")`, so package-owned
-seed metadata belongs under `Sources/SpeakSwiftlyServer/Resources`, while public preview audio
-belongs under `docs/media/`.
+upstream `SpeakSwiftly` package owns the resource shape and seeding behavior. This server can bundle
+its own generated system-profile resources in its target resources, while public preview audio
+belongs under this repository's `docs/media/`.
 
 Reference: [Swift Package Manager PackageDescription resources][swiftpm-resources].
 
@@ -38,27 +38,29 @@ The first two package-owned default voices are:
 - `swift-anchor`: a grounded, steady, warm voice with strong articulation, calm pacing, and a
   reassuring technical-narrator tone.
 
-The package treats these as built-in seed profiles, not Gale's personal default profiles. When the
-runtime first reports resident-model readiness, the server installs missing seeds from package-owned
-metadata into the user's profile store, then exposes them as normal selectable voice names.
+The package treats these as built-in system profiles, not Gale's personal default profiles. During
+runtime startup, `SpeakSwiftly` seeds configured system-profile resources into the user's profile
+store. `SpeakSwiftlyServer` passes its bundled `SystemProfiles` resource root through the
+`SpeakSwiftly.Configuration` it uses for liftoff. After the runtime first reports resident-model
+readiness, the server refreshes its profile cache and exposes installed built-ins as normal
+selectable voice names.
 
-If an existing user profile already occupies a preferred built-in name, startup should try a
-`-builtin` fallback for the package seed. For example, if `swift-signal` already exists and is not
-recognized as the same package seed, install the package voice as `swift-signal-builtin`. If both
-names are occupied, skip that seed and print a clear message that names both occupied profile names.
+If an existing user profile already occupies a preferred built-in name, `SpeakSwiftly` decides
+whether to skip, refresh, or otherwise handle the conflict. The server should report the installed
+profile cache truth instead of re-implementing package seed conflict policy.
 
 The startup installer should not change the active default voice unless the operator explicitly asks
 for that behavior.
 
 ## Built-In Profile Identity
 
-The user-facing profile name is not enough to support future refresh behavior. Each built-in seed
-needs stable package identity metadata from the beginning:
+The user-facing profile name is not enough to support future refresh behavior. Each built-in system
+profile needs stable package identity metadata from the beginning:
 
 - seed id, such as `swift.signal` or `swift.anchor`
 - seed version
 - intended profile name
-- fallback profile name
+- fallback profile name when the upstream resource workflow supports one
 - author, where normal creation flows produce `.user` and package-owned defaults use `.system`
 - created or installed timestamp
 - voice description
@@ -73,19 +75,16 @@ should be immutable to ordinary user mutation wherever the runtime can enforce t
 The server should not add extra public HTTP, MCP, or embedded fields unless application consumers
 need them to make good decisions. Ordinary user-facing profile reads should expose enough metadata to
 list and choose a built-in, such as author and seed identity, while redacting system seed source text
-and voice-design prompts. Contributor-facing docs and maintainer-only tools can describe or expose
-the seed catalog and immutability policy without forcing those details into every end-user response
-payload.
+and voice-design prompts. Contributor-facing upstream docs can describe or expose the resource
+workflow and immutability policy without forcing those details into every end-user response payload.
 
 ## System Voice Mutation Policy
 
 System-authored built-ins should not be renamed, deleted, or rerolled in place by ordinary user
 flows. If a user asks to reroll a system voice, the runtime should create a user-owned copy instead:
 
-- `swift-signal` reroll creates or targets a `.user` copy named `swift-signal` when the installed
-  system profile had to use `swift-signal-builtin`.
 - `swift-signal` reroll creates or targets a `.user` copy with a clear conflict-safe name when the
-  system profile already owns `swift-signal`.
+  system profile owns `swift-signal`.
 - the original `.system` profile remains intact.
 
 That behavior keeps built-ins refreshable while still letting users personalize them without losing
@@ -93,9 +92,8 @@ the package-owned baseline.
 
 ## Option 1: Seed Profiles From Package Resources
 
-Add package-owned seed profile definitions under
-`Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`, then add an explicit install or seed
-operation that copies missing defaults into the active runtime profile root.
+Add package-owned seed profile definitions under package resources, then add an explicit install or
+seed operation that copies missing defaults into the active runtime profile root.
 
 This is the most durable building-block change. The package owns a small catalog of public defaults,
 and the runtime profile root still owns the user's mutable installed copies. Personal profiles stay
@@ -113,13 +111,12 @@ Near-term work this unlocks:
 
 Main design choice:
 
-- decide whether the resource is a compact server-owned seed manifest that calls the normal
-  `SpeakSwiftly` create/import APIs, or a complete stored-profile directory that gets validated and
-  copied into the runtime profile root.
+- keep the resource as a complete upstream stored-profile directory that gets validated and copied
+  into the runtime profile root.
 
-I would start with a compact seed manifest plus generated preview media, then add stored-profile
-import support only if the normal runtime creation path is too slow or too nondeterministic for
-first-run setup.
+This is the current server path, backed by upstream `SpeakSwiftly` resource-root seeding. The server
+bundles generated profile resources; `SpeakSwiftly` validates and installs them into the writable
+runtime profile store.
 
 ## Option 2: Keep Defaults As Documentation Samples First
 
@@ -145,16 +142,16 @@ Main limitation:
 Teach the `SpeakSwiftly` package to expose built-in voice seeds directly, then let
 `SpeakSwiftlyServer` surface them through existing HTTP, MCP, embedded, and operator commands.
 
-This is a broader architecture change. It may be right if non-server consumers such as app
-embeddings should get the same defaults without depending on server-specific resources. It also
-moves the default-voice catalog closer to the profile store format and generation APIs.
+This is the current upstream architecture for the resource workflow. Non-server consumers can bundle
+their own generated system profiles without depending on server-specific resources. This server still
+owns its own default voice resource payload when it wants server-specific built-ins.
 
 Practical consequence:
 
-- `SpeakSwiftlyServer` becomes a consumer of upstream package defaults rather than the owner of the seed catalog.
-- the release order changes because `SpeakSwiftly` must tag the default catalog before this server can depend on it.
-
-I would only choose this first if SayBar or another direct `SpeakSwiftly` consumer needs the same defaults immediately.
+- `SpeakSwiftlyServer` becomes a consumer of upstream system-profile resource seeding rather than
+  the owner of profile-store installation behavior.
+- the release order changes because `SpeakSwiftly` must tag the bundled profile workflow before this
+  server can depend on it.
 
 ## Media Layout
 
@@ -187,19 +184,23 @@ pronunciation, pacing, and noise floor.
 
 1. Add upstream `SpeakSwiftly` support for profile author metadata, system immutability, and
    reroll-as-user-copy behavior. Done in `SpeakSwiftly` `v4.2.0`.
-2. Add a server-owned seed manifest under `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/`. Done.
-3. Install `swift-signal` and `swift-anchor` from the seed catalog with `-builtin` fallback behavior. Done at startup after the runtime first reports resident-model readiness, using the upstream system-authored profile creation API.
+2. Add upstream `SpeakSwiftly` command-plugin support for creating system-profile resources into
+   bundled consumer package resources. Done in `SpeakSwiftly` `v7.2.5`; this server should invoke
+   it with `xcrun swift package plugin --allow-writing-to-package-directory
+   upsert-system-voice-profile --target SpeakSwiftlyServer ...`.
+3. Let `SpeakSwiftly` seed bundled system profiles during runtime startup, then let
+   `SpeakSwiftlyServer` refresh and expose the installed profile cache. Done in the server after
+   adopting `SpeakSwiftly` `v7.2.5`.
 4. Generate short preview audio for each installed candidate and place it under
    `docs/media/default-voices/`. Done for `swift-signal.wav` and `swift-anchor.wav`.
 5. Add transcript and provenance notes beside the samples. Done in
    `docs/media/default-voices/README.md`.
-6. Redact system seed source text and voice-design prompts from ordinary encoded profile JSON while
-   exposing an explicit maintainer/development MCP tool for deep seed inspection. Done with
-   `inspect_builtin_voice_seed`.
-7. Decide whether an explicit operator install or refresh command should exist beyond startup
-   maintenance.
-7. Add focused tests for seed discovery, no-overwrite behavior, default/user profile separation,
-   and system-profile mutation behavior.
+6. Keep system profile authorship metadata visible in installed profile summaries while leaving
+   system-profile resource authoring to the upstream `SpeakSwiftly` command plugin.
+7. Decide whether this server needs an explicit operator refresh command beyond upstream startup
+   seeding.
+8. Add focused tests for startup profile-cache refresh, default/user profile separation, and
+   system-profile mutation behavior.
 
 The first implementation should not silently mutate existing user profiles. The safe behavior is to
 install package defaults only when missing, emit a clear message for every skipped existing profile,

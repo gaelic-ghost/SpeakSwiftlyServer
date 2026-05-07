@@ -126,6 +126,31 @@ When testing Codex plugin payload behavior, keep Gale's personal Codex scope res
 
 Before any live end-to-end run, make sure the LaunchAgent-backed live service has released resident model memory through the live-service model unload preflight. Leave the installed service in place; the E2E helper runs on its own random ports and only needs comfortable memory headroom.
 
+### System Voice Profile Resources
+
+Create package-owned system voice profiles through the upstream `SpeakSwiftly` command plugin from
+this package checkout:
+
+```bash
+xcrun swift package plugin --allow-writing-to-package-directory upsert-system-voice-profile \
+  --target SpeakSwiftlyServer \
+  --name swift-signal \
+  --text "A short source text for the generated system voice." \
+  --vibe femme \
+  --voice-description "A clear, bright, steady technical-assistant voice."
+```
+
+The `upsert-system-voice-profile` command plugin is the normal authoring surface for
+`Sources/SpeakSwiftlyServer/Resources/SystemProfiles/profiles/<profile-name>/`. Do not manually copy
+profiles out of a live runtime profile store or hand-edit generated manifests to make them appear
+system-authored. If `swift package plugin --list` does not show the `upsert-system-voice-profile`
+verb, treat that as a package/plugin exposure issue to fix before generating resources.
+
+Profile generation uses MLX/Metal. If a Codex sandboxed process cannot see the default Metal GPU,
+rerun the command plugin from a normal user shell or an explicitly unsandboxed command. Use the
+lower-level `SpeakSwiftlyTool --system-profile-resource-root` entrypoint only for upstream debugging
+or plugin implementation work, not for ordinary server resource authoring.
+
 ## Development Expectations
 
 ### Naming Conventions

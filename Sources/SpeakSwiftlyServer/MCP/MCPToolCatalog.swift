@@ -82,18 +82,6 @@ enum MCPToolCatalog {
             ],
         ),
         Tool(
-            name: "inspect_builtin_voice_seed",
-            description: "Developer-only read tool for inspecting package-owned built-in voice seed metadata, including source text and voice-design prompt. Normal users should read speak-swiftly://voices and select a built-in by profile_name instead.",
-            inputSchema: [
-                "type": "object",
-                "required": ["seed_id"],
-                "properties": [
-                    "seed_id": ["type": "string"],
-                ],
-            ],
-            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
-        ),
-        Tool(
             name: "update_voice_profile_name",
             description: "Rename one stored SpeakSwiftly voice profile and refresh the cached profile list.",
             inputSchema: [

@@ -1,0 +1,32 @@
+{
+  "author" : "system",
+  "backendMaterializations" : [
+    {
+      "backend" : "qwen3_smol",
+      "createdAt" : "2026-05-07T20:49:00Z",
+      "modelRepo" : "mlx-community\/Qwen3-TTS-12Hz-0.6B-Base-8bit",
+      "referenceAudioFile" : "reference.wav",
+      "referenceText" : "Welcome to SpeakSwiftly. I am here to keep the signal clear: concise enough to follow, warm enough to stay comfortable, and precise enough to make technical work easier. We can inspect the current state, choose the next action, and keep moving with confidence.",
+      "sampleRate" : 24000
+    }
+  ],
+  "createdAt" : "2026-05-07T20:49:00Z",
+  "modelRepo" : "mlx-community\/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16",
+  "profileName" : "swift-signal",
+  "qwenConditioningArtifacts" : [
+
+  ],
+  "sampleRate" : 24000,
+  "seed" : {
+    "installedAt" : "2026-05-07T20:48:44Z",
+    "intendedProfileName" : "swift-signal",
+    "seedID" : "swift.signal",
+    "seedVersion" : "1",
+    "sourcePackage" : "SpeakSwiftlyServer"
+  },
+  "sourceKind" : "generated",
+  "sourceText" : "Welcome to SpeakSwiftly. I am here to keep the signal clear: concise enough to follow, warm enough to stay comfortable, and precise enough to make technical work easier. We can inspect the current state, choose the next action, and keep moving with confidence.",
+  "version" : 5,
+  "vibe" : "femme",
+  "voiceDescription" : "A bright, clear, responsive voice with crisp articulation, quick but controlled pacing, and an accessible technical-assistant tone. Polished and friendly without becoming overly performative."
+}

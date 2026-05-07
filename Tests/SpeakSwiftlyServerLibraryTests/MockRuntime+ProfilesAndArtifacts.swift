@@ -52,53 +52,6 @@ extension MockRuntime {
         return RuntimeRequestHandle(id: requestID, operation: "create_voice_profile_from_description", profileName: profileName, events: events)
     }
 
-    func createSystemVoiceProfileFromDescription(
-        profileName: String,
-        vibe: SpeakSwiftly.Vibe,
-        from text: String,
-        voice voiceDescription: String,
-        seed: SpeakSwiftly.ProfileSeed,
-        outputPath: String?,
-        cwd: String?,
-    ) async -> RuntimeRequestHandle {
-        let requestID = UUID().uuidString
-        createProfileInvocations.append(
-            .init(
-                profileName: profileName,
-                vibe: vibe,
-                text: text,
-                voiceDescription: voiceDescription,
-                author: .system,
-                seedID: seed.seedID,
-                seedVersion: seed.seedVersion,
-                outputPath: outputPath,
-                cwd: cwd,
-            ),
-        )
-        if mutationRefreshBehavior == .applyMutations {
-            profiles.append(
-                SpeakSwiftly.ProfileSummary(
-                    profileName: profileName,
-                    vibe: vibe,
-                    createdAt: Date(),
-                    voiceDescription: voiceDescription,
-                    sourceText: text,
-                    author: .system,
-                    seedID: seed.seedID,
-                    seedVersion: seed.seedVersion,
-                    transcriptSource: nil,
-                    transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil,
-                ),
-            )
-        }
-        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
-            continuation.yield(.completed(.voiceProfile(name: profileName, path: nil)))
-            continuation.finish()
-        }
-        return RuntimeRequestHandle(id: requestID, operation: "create_system_voice_profile_from_description", profileName: profileName, events: events)
-    }
-
     func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,

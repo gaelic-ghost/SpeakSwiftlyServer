@@ -143,26 +143,6 @@ actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         return .init(id: handle.id, operation: "create_voice_profile_from_description", profileName: profileName, events: handle.events)
     }
 
-    func createSystemVoiceProfileFromDescription(
-        profileName: String,
-        vibe: SpeakSwiftly.Vibe,
-        from text: String,
-        voice voiceDescription: String,
-        seed: SpeakSwiftly.ProfileSeed,
-        outputPath: String?,
-        cwd: String?,
-    ) async -> RuntimeRequestHandle {
-        let handle = await runtime.voices.create(
-            builtInDesign: profileName,
-            from: text,
-            vibe: vibe,
-            voiceDescription: voiceDescription,
-            seed: seed,
-            outputPath: resolvedAbsoluteFilesystemPath(outputPath, cwd: cwd),
-        )
-        return .init(id: handle.id, operation: "create_system_voice_profile_from_description", profileName: profileName, events: handle.events)
-    }
-
     func createVoiceProfileFromAudio(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,

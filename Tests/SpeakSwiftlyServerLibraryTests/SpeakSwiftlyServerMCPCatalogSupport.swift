@@ -15,7 +15,7 @@ extension ServerTests {
             String,
         ) async throws -> Void,
     ) async throws {
-        let runtime = MockRuntime(speakBehavior: .holdOpen)
+        let runtime = MockRuntime(profiles: [sampleProfile()] + sampleSystemProfiles(), speakBehavior: .holdOpen)
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
         let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())

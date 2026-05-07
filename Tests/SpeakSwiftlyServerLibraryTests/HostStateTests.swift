@@ -461,7 +461,7 @@ extension ServerTests {
 
     @available(macOS 14, *)
     @Test func `startup readiness waits for default voice install to finish`() async throws {
-        let runtime = MockRuntime(profiles: [])
+        let runtime = MockRuntime(profiles: sampleSystemProfiles())
         await runtime.holdNextVoiceProfileRefresh()
         let host = await ServerHost(
             configuration: testConfiguration(),
@@ -485,15 +485,14 @@ extension ServerTests {
         try await waitUntilReady(host)
 
         let status = await host.statusSnapshot()
-        #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal" })
-        #expect(status.cachedProfiles.contains { $0.profileName == "swift-anchor" })
+        #expect(status.cachedProfiles.map(\.profileName).sorted() == ["swift-anchor", "swift-signal"])
 
         await host.shutdown()
     }
 
     @available(macOS 14, *)
     @Test func `stale startup readiness does not overwrite newer worker status`() async {
-        let runtime = MockRuntime(profiles: [])
+        let runtime = MockRuntime(profiles: sampleSystemProfiles())
         await runtime.holdNextVoiceProfileRefresh()
         let host = await ServerHost(
             configuration: testConfiguration(),
@@ -520,8 +519,8 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `startup default voice install retries after transient refresh failure`() async {
-        let runtime = MockRuntime(profiles: [])
+    @Test func `startup profile refresh retries after transient refresh failure`() async {
+        let runtime = MockRuntime(profiles: sampleSystemProfiles())
         await runtime.failNextVoiceProfileRefresh(message: "temporary profile list transport failure")
         let host = await ServerHost(
             configuration: testConfiguration(),
@@ -752,8 +751,8 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `startup installs bundled default voice seeds when profiles are missing`() async throws {
-        let runtime = MockRuntime(profiles: [])
+    @Test func `startup refreshes profiles already seeded by SpeakSwiftly`() async throws {
+        let runtime = MockRuntime(profiles: sampleSystemProfiles())
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
             configuration: testConfiguration(),
@@ -773,11 +772,7 @@ extension ServerTests {
                 : nil
         }
         let invocationNames = await runtime.createProfileInvocationNames()
-        let latestInvocation = try #require(await runtime.latestCreateProfileInvocation())
-        #expect(invocationNames == ["swift-signal", "swift-anchor"])
-        #expect(latestInvocation.author == .system)
-        #expect(latestInvocation.seedID == "swift.anchor")
-        #expect(latestInvocation.seedVersion == "1")
+        #expect(invocationNames.isEmpty)
         #expect(status.cachedProfiles.map(\.profileName).sorted() == ["swift-anchor", "swift-signal"])
         #expect(status.cachedProfiles.allSatisfy { $0.isSystemAuthored })
         #expect(status.recentErrors.isEmpty)
@@ -837,144 +832,6 @@ extension ServerTests {
 
         #expect(status.cachedProfiles.first?.voiceDescription == "Warm guide voice (rerolled)")
         #expect(status.cachedProfiles.first?.sourceText == "Original training text (rerolled)")
-        #expect(status.recentErrors.isEmpty)
-
-        await host.shutdown()
-    }
-
-    @available(macOS 14, *)
-    @Test func `startup installs bundled default voice seed with fallback name when preferred name is occupied`() async throws {
-        let runtime = MockRuntime(
-            profiles: [
-                SpeakSwiftly.ProfileSummary(
-                    profileName: "swift-signal",
-                    vibe: .femme,
-                    createdAt: Date(timeIntervalSince1970: 1_700_000_000),
-                    voiceDescription: "User-owned signal voice",
-                    sourceText: "This is a user-owned profile occupying the preferred built-in name.",
-                    transcriptSource: nil,
-                    transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil,
-                ),
-            ],
-        )
-        let state = await MainActor.run { EmbeddedServer() }
-        let host = ServerHost(
-            configuration: testConfiguration(),
-            runtime: runtime,
-            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
-            state: state,
-        )
-
-        await host.start()
-        await runtime.publishStatus(.residentModelReady)
-
-        let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-            let status = await host.statusSnapshot()
-            return status.cachedProfiles.contains { $0.profileName == "swift-signal-builtin" }
-                && status.cachedProfiles.contains { $0.profileName == "swift-anchor" }
-                ? status
-                : nil
-        }
-        let invocationNames = await runtime.createProfileInvocationNames()
-        #expect(invocationNames == ["swift-signal-builtin", "swift-anchor"])
-        #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal" })
-        #expect(status.recentErrors.isEmpty)
-
-        await host.shutdown()
-    }
-
-    @available(macOS 14, *)
-    @Test func `startup reuses existing fallback default voice when preferred name becomes free`() async throws {
-        let signalSeed = try #require(BuiltInVoiceSeedCatalog.load().first { $0.profileName == "swift-signal" })
-        let runtime = MockRuntime(
-            profiles: [
-                SpeakSwiftly.ProfileSummary(
-                    profileName: "swift-signal-builtin",
-                    vibe: signalSeed.vibe,
-                    createdAt: Date(timeIntervalSince1970: 1_700_000_000),
-                    voiceDescription: signalSeed.voiceDescription,
-                    sourceText: signalSeed.sourceText,
-                    transcriptSource: nil,
-                    transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil,
-                ),
-            ],
-        )
-        let state = await MainActor.run { EmbeddedServer() }
-        let host = ServerHost(
-            configuration: testConfiguration(),
-            runtime: runtime,
-            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
-            state: state,
-        )
-
-        await host.start()
-        await runtime.publishStatus(.residentModelReady)
-
-        let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-            let status = await host.statusSnapshot()
-            return status.cachedProfiles.contains { $0.profileName == "swift-anchor" }
-                ? status
-                : nil
-        }
-        let invocationNames = await runtime.createProfileInvocationNames()
-        #expect(invocationNames == ["swift-anchor"])
-        #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal-builtin" })
-        #expect(status.cachedProfiles.contains { $0.profileName == "swift-signal" } == false)
-        #expect(status.recentErrors.isEmpty)
-
-        await host.shutdown()
-    }
-
-    @available(macOS 14, *)
-    @Test func `startup installs fallback default voice when unrelated profile matches seed metadata`() async throws {
-        let signalSeed = try #require(BuiltInVoiceSeedCatalog.load().first { $0.profileName == "swift-signal" })
-        let runtime = MockRuntime(
-            profiles: [
-                SpeakSwiftly.ProfileSummary(
-                    profileName: "swift-signal",
-                    vibe: .femme,
-                    createdAt: Date(timeIntervalSince1970: 1_700_000_000),
-                    voiceDescription: "User-owned signal voice",
-                    sourceText: "This is a user-owned profile occupying the preferred built-in name.",
-                    transcriptSource: nil,
-                    transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil,
-                ),
-                SpeakSwiftly.ProfileSummary(
-                    profileName: "renamed-signal-copy",
-                    vibe: signalSeed.vibe,
-                    createdAt: Date(timeIntervalSince1970: 1_700_000_100),
-                    voiceDescription: signalSeed.voiceDescription,
-                    sourceText: signalSeed.sourceText,
-                    transcriptSource: nil,
-                    transcriptResolvedAt: nil,
-                    transcriptionModelRepo: nil,
-                ),
-            ],
-        )
-        let state = await MainActor.run { EmbeddedServer() }
-        let host = ServerHost(
-            configuration: testConfiguration(),
-            runtime: runtime,
-            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
-            state: state,
-        )
-
-        await host.start()
-        await runtime.publishStatus(.residentModelReady)
-
-        let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
-            let status = await host.statusSnapshot()
-            return status.cachedProfiles.contains { $0.profileName == "swift-signal-builtin" }
-                && status.cachedProfiles.contains { $0.profileName == "swift-anchor" }
-                ? status
-                : nil
-        }
-        let invocationNames = await runtime.createProfileInvocationNames()
-        #expect(invocationNames == ["swift-signal-builtin", "swift-anchor"])
-        #expect(status.cachedProfiles.contains { $0.profileName == "renamed-signal-copy" })
         #expect(status.recentErrors.isEmpty)
 
         await host.shutdown()

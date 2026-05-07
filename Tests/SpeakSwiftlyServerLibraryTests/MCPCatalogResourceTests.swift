@@ -170,22 +170,6 @@ extension ServerTests {
             #expect((builtInProfilePayload["source_text"] as? String)?.contains("maintainer/tool surfaces") == true)
             #expect((builtInProfilePayload["voice_description"] as? String)?.contains("maintainer/tool surfaces") == true)
 
-            let builtInSeedToolEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpCallToolRequestJSON(
-                            name: "inspect_builtin_voice_seed",
-                            arguments: ["seed_id": "swift.signal"],
-                        ),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let builtInSeedPayload = try mcpToolPayload(from: builtInSeedToolEnvelope)
-            #expect(builtInSeedPayload["seed_id"] as? String == "swift.signal")
-            #expect(builtInSeedPayload["profile_name"] as? String == "swift-signal")
-            #expect((builtInSeedPayload["source_text"] as? String)?.contains("signal clear") == true)
-
             let textProfilesResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -248,7 +232,7 @@ extension ServerTests {
             #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
             #expect(voiceProfilesGuideText.contains("Read `speak-swiftly://voices` to inspect the currently cached voice profiles."))
-            #expect(voiceProfilesGuideText.contains("inspect_builtin_voice_seed"))
+            #expect(voiceProfilesGuideText.contains("SpeakSwiftly's bundled system-profile install"))
 
             let playbackGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

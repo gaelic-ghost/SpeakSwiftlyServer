@@ -308,7 +308,7 @@ private func voiceProfilesGuideMarkdown() -> String {
     """
     # SpeakSwiftly Voice Profile Guide
 
-    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable user-owned speaking voices. Package-owned built-ins are ordinary list-and-select choices for users, and maintainer-only seed details stay behind explicit tool calls.
+    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable user-owned speaking voices. Package-owned built-ins are ordinary list-and-select choices for users; their bundled resource workflow is owned by SpeakSwiftly.
 
     Recommended workflow:
 
@@ -316,14 +316,13 @@ private func voiceProfilesGuideMarkdown() -> String {
     2. Read `speak-swiftly://status` when the user asks which voice an omitted `profile_name` will use. Speech requests use the configured app default voice when present, then the runtime's built-in default voice.
     3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request.
     4. Treat system-authored built-ins such as `swift-signal` and `swift-anchor` as list-and-select profiles for ordinary users. They are package-owned defaults, not user-editable profile designs.
-    5. Use `inspect_builtin_voice_seed` only for maintainer or development work that needs to examine package seed source text, prompt, or provenance.
-    6. Use `create_voice_profile_from_description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
-    7. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.
-    8. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
-    9. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
-    10. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    11. Pass `source_format` to `generate_speech` when source-like input needs explicit format-aware normalization instead of automatic detection. The MCP surface fills client and tool provenance in `request_context` by default; pass `cwd`, `repo_root`, or `request_context` only when path or caller metadata needs to be more specific.
-    12. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by package seed install and refresh behavior.
+    5. Use `create_voice_profile_from_description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
+    6. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.
+    7. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
+    8. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
+    9. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    10. Pass `source_format` to `generate_speech` when source-like input needs explicit format-aware normalization instead of automatic detection. The MCP surface fills client and tool provenance in `request_context` by default; pass `cwd`, `repo_root`, or `request_context` only when path or caller metadata needs to be more specific.
+    11. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by SpeakSwiftly's bundled system-profile install and refresh behavior.
 
     Drafting guidance:
 

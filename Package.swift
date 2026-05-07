@@ -29,7 +29,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
-        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "7.1.0"),
+        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "7.2.5"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.3"),
         .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.21.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
@@ -58,7 +58,7 @@ let package = Package(
             ],
             path: "Sources/SpeakSwiftlyServer",
             resources: [
-                .copy("Resources/DefaultVoiceProfiles"),
+                .copy("Resources/SystemProfiles"),
                 .process("Resources/default-server.yaml"),
             ],
         ),

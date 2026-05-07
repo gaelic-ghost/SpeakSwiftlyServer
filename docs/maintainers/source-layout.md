@@ -40,8 +40,6 @@ visible to maintainers. Completed implementation plans belong in
   Holds transport-status helpers, recent-error emission, event mapping, SSE encoding, and shared host-event helpers.
 - `Sources/SpeakSwiftlyServer/Host/ServerHost+ControlResponses.swift`
   Holds playback-control settling, optimistic playback snapshots, and immediate runtime-success helpers.
-- `Sources/SpeakSwiftlyServer/Host/ServerHost+BuiltInVoices.swift`
-  Holds the temporary server-side built-in voice seed installation behavior. This should shrink or disappear when built-in voice seeds move into `SpeakSwiftly`.
 - `Sources/SpeakSwiftlyServer/Host/SpeakSwiftlyRuntimeServing.swift`
   Holds the narrow runtime seam and the request-handle wrapper type used by the host.
 - `Sources/SpeakSwiftlyServer/Host/SpeakSwiftlyRuntimeAdapter.swift`
@@ -55,8 +53,6 @@ visible to maintainers. Completed implementation plans belong in
   Request payloads, shared normalization-format helpers, and transport-owned `SpeakSwiftly.RequestContext` default merging for HTTP and MCP speech requests.
 - `Sources/SpeakSwiftlyServer/Host/ProfileModels.swift`
   Voice-profile snapshots plus text-profile and replacement transport models.
-- `Sources/SpeakSwiftlyServer/Host/BuiltInVoiceSeedCatalog.swift`
-  Package-owned built-in voice seed catalog loading and validation models. This is a temporary server-side home until SpeakSwiftly owns its built-in voice seeds directly.
 - `Sources/SpeakSwiftlyServer/Host/QueueResponseModels.swift`
   Queue response envelopes plus health, readiness, and status snapshots. Keep playback state itself in `EmbeddedServerSnapshots.swift` so app state, HTTP, and MCP event payloads do not grow parallel playback snapshot shapes.
 - `Sources/SpeakSwiftlyServer/Host/RequestEventModels.swift`
@@ -68,9 +64,6 @@ visible to maintainers. Completed implementation plans belong in
 
 ## Operator Sources
 
-- `Sources/SpeakSwiftlyServer/Resources/DefaultVoiceProfiles/catalog.json`
-  Holds the package-owned built-in voice seed catalog. Keep this as bundled seed metadata, not as
-  user profile storage.
 - `Sources/SpeakSwiftlyServer/Resources/default-server.yaml`
   Holds the bundled default server config. The library seeds the persisted Application Support
   config from this resource and stores runtime startup choices in the same YAML document.
