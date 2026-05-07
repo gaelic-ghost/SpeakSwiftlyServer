@@ -372,12 +372,11 @@ extension ServerHost {
                     isRunningStartupProfileRefresh = true
                     do {
                         let profiles = try await refreshProfiles(reason: "startup")
-                        let rebuiltProfiles = try await rebuildOutdatedUserProfiles(after: profiles)
-                        _ = try await installMissingBuiltInVoices(after: rebuiltProfiles)
+                        _ = try await rebuildOutdatedUserProfiles(after: profiles)
                         hasRequestedStartupProfileRefresh = true
                     } catch {
                         profileCacheState = "stale"
-                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache, rebuild outdated user voice profiles, or install bundled default voices. Likely cause: \(error.localizedDescription)"
+                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache or rebuild outdated user voice profiles. Likely cause: \(error.localizedDescription)"
                         emitProfileCacheChanged()
                     }
                     isRunningStartupProfileRefresh = false

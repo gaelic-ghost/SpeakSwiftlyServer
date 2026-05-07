@@ -20,7 +20,7 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 - Use `update_voice_profile_name` for a pure rename.
 - Use `reroll_voice_profile` when the user wants the same stored name rebuilt from its original inputs.
 - Use `delete_voice_profile` only after confirming the exact stored `profile_name`.
-- The package-owned built-in defaults are `swift-signal` and `swift-anchor`. Treat them as system seed voices, not user-authored example names. Normal users should list and select them; use `inspect_builtin_voice_seed` only for maintainer or development work that truly needs the built-in seed source text, voice-design prompt, or provenance.
+- The package-owned built-in defaults are `swift-signal` and `swift-anchor` when installed by upstream `SpeakSwiftly` bundled system-profile resources. Treat them as system voices, not user-authored example names. Normal users should list and select them.
 - When a user wants broad-appeal user-authored example profiles, suggest names and voice directions such as:
   - `swift-lumen`: luminous, clean, gentle, and polished
   - `swift-arc`: compact, focused, modern, and precise

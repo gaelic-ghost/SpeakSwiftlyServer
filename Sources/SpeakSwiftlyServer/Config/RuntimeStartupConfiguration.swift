@@ -147,12 +147,17 @@ struct RuntimeStartupConfiguration {
     }
 
     func speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil) -> SpeakSwiftly.Configuration {
-        .init(
+        let systemProfileResourceRoots = SpeakSwiftly.SupportResources
+            .systemProfileRootURL(in: .module)
+            .map { [$0] } ?? []
+
+        return .init(
             speechBackend: speechBackend,
             marvisResidentPolicy: marvisResidentPolicy,
             defaultVoiceProfile: defaultVoiceProfileName
                 ?? Self.normalized(configuredDefaultVoiceProfileName)
                 ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
+            systemProfileResourceRoots: systemProfileResourceRoots,
         )
     }
 }

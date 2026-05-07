@@ -46,6 +46,14 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Do not retarget the package to a local `SpeakSwiftly` checkout unless that manifest change is the explicit task.
 - If unreleased `SpeakSwiftly` behavior is needed, prefer stabilizing and tagging it upstream first, then updating this package to that release.
 - Keep package resources under the owning target tree and load them through `Bundle.module`.
+- Create bundled system voice profiles with the upstream `SpeakSwiftly` command plugin, not by
+  manually copying live runtime profiles or hand-editing generated manifests. From this package
+  checkout, the intended authoring path is `xcrun swift package plugin
+  --allow-writing-to-package-directory upsert-system-voice-profile --target SpeakSwiftlyServer ...`.
+  If the command plugin is not discoverable with `xcrun swift package plugin --list`, stop and
+  surface that as a package/plugin exposure issue before generating resources. Use
+  `SpeakSwiftlyTool --system-profile-resource-root` only for upstream debugging or plugin
+  implementation work.
 - Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference over adding another translation path.
 
 ### Documentation Ownership
@@ -184,6 +192,9 @@ No deeper `AGENTS.md` files are currently checked in below this repository root.
 - Use `sync-swift-package-guidance` when this repo guidance drifts and needs a deliberate refresh against the current Swift package baseline.
 - Use `swift-package-build-run-workflow` for manifest, dependency, build, run, resource, and packaging work when `Package.swift` is the source of truth.
 - Use `swift-package-testing-workflow` for Swift Testing, XCTest holdouts, fixtures, and package test diagnosis.
+- When generating `Resources/SystemProfiles` voice resources, prefer the upstream
+  `upsert-system-voice-profile` SwiftPM command plugin. Run it from a normal user shell or an
+  explicitly unsandboxed agent command if the Codex sandbox cannot access the default Metal GPU.
 - Prefer `xcode-build-run-workflow` or `xcode-testing-workflow` only when package work genuinely needs Xcode-managed SDK, toolchain, Metal, or test behavior that SwiftPM does not cover cleanly.
 - Read relevant SwiftPM, Swift, and Apple documentation before proposing package-structure, dependency, concurrency, or architecture changes, and prefer Dash or local docs first when available.
 

@@ -1,0 +1,32 @@
+{
+  "author" : "system",
+  "backendMaterializations" : [
+    {
+      "backend" : "qwen3_smol",
+      "createdAt" : "2026-05-07T20:49:32Z",
+      "modelRepo" : "mlx-community\/Qwen3-TTS-12Hz-0.6B-Base-8bit",
+      "referenceAudioFile" : "reference.wav",
+      "referenceText" : "Welcome to SpeakSwiftly. I will keep the explanation steady, name the important details, and make each step easy to track. When the system is noisy, we can slow down, read the evidence, and choose the path that keeps the work understandable.",
+      "sampleRate" : 24000
+    }
+  ],
+  "createdAt" : "2026-05-07T20:49:32Z",
+  "modelRepo" : "mlx-community\/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16",
+  "profileName" : "swift-anchor",
+  "qwenConditioningArtifacts" : [
+
+  ],
+  "sampleRate" : 24000,
+  "seed" : {
+    "installedAt" : "2026-05-07T20:49:14Z",
+    "intendedProfileName" : "swift-anchor",
+    "seedID" : "swift.anchor",
+    "seedVersion" : "1",
+    "sourcePackage" : "SpeakSwiftlyServer"
+  },
+  "sourceKind" : "generated",
+  "sourceText" : "Welcome to SpeakSwiftly. I will keep the explanation steady, name the important details, and make each step easy to track. When the system is noisy, we can slow down, read the evidence, and choose the path that keeps the work understandable.",
+  "version" : 5,
+  "vibe" : "masc",
+  "voiceDescription" : "A grounded, steady, warm voice with strong articulation, calm pacing, and a reassuring technical-narrator tone. Patient and readable for longer explanations, logs, and documentation."
+}

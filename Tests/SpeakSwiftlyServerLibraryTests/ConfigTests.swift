@@ -433,6 +433,52 @@ import Testing
     #expect(snapshot.persistedConfigurationState == "loaded")
 }
 
+@Test func `runtime startup configuration includes bundled system profile resources`() {
+    let configuration = RuntimeStartupConfiguration(
+        speechBackend: .qwen3_smol,
+        marvisResidentPolicy: .dualResidentSerialized,
+        defaultVoiceProfileName: nil,
+    )
+    .speakSwiftlyConfiguration()
+
+    #expect(configuration.systemProfileResourceRoots.count == 1)
+    #expect(configuration.systemProfileResourceRoots.first?.lastPathComponent == "profiles")
+    #expect(configuration.systemProfileResourceRoots.first?.deletingLastPathComponent().lastPathComponent == "SystemProfiles")
+}
+
+@Test func `bundled system profile resources include default voices`() throws {
+    let configuration = RuntimeStartupConfiguration(
+        speechBackend: .qwen3_smol,
+        marvisResidentPolicy: .dualResidentSerialized,
+        defaultVoiceProfileName: nil,
+    )
+    .speakSwiftlyConfiguration()
+    let resourceRoot = try #require(configuration.systemProfileResourceRoots.first)
+
+    let expectedProfiles = [
+        "swift-signal": "swift.signal",
+        "swift-anchor": "swift.anchor",
+    ]
+
+    for (profileName, seedID) in expectedProfiles {
+        let profileDirectoryURL = resourceRoot.appendingPathComponent(profileName, isDirectory: true)
+        let manifestURL = profileDirectoryURL
+            .appendingPathComponent("profile.json", isDirectory: false)
+        let referenceURL = profileDirectoryURL.appendingPathComponent("reference.wav", isDirectory: false)
+        let data = try Data(contentsOf: manifestURL)
+        let manifest = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let seed = try #require(manifest["seed"] as? [String: Any])
+
+        #expect(manifest["author"] as? String == "system")
+        #expect(manifest["profileName"] as? String == profileName)
+        #expect(seed["seedID"] as? String == seedID)
+        #expect(FileManager.default.fileExists(atPath: referenceURL.path))
+    }
+
+    let lockURL = resourceRoot.appendingPathComponent(".profile-store.lock", isDirectory: false)
+    #expect(!FileManager.default.fileExists(atPath: lockURL.path))
+}
+
 @Test func `runtime startup configuration resolves profile root to broader SpeakSwiftly state root`() {
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent("speakswiftly-runtime/profiles", isDirectory: true)

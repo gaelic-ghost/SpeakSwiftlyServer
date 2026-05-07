@@ -70,14 +70,14 @@ Runtime model selection is startup-only as well. Persisted runtime configuration
 - `PUT /voices/{profile_name}/name`
 - `DELETE /voices/{profile_name}`
 
-When the runtime first becomes ready, `SpeakSwiftlyServer` installs any missing bundled default voice
-seeds into the active profile store before exposing the refreshed profile cache. `GET /voices`
-therefore includes `swift-signal` and `swift-anchor` on a fresh store, or their `-builtin` fallback
-names when a user-owned profile already occupies a preferred seed name. Those profiles are
-system-authored built-ins: ordinary users should list them and select one as the default or per-request
-voice, not edit their seed inputs. Encoded profile JSON exposes only narrow authorship metadata for
-system profiles (`author`, `seed_id`, and `seed_version`) and redacts the built-in source text and
-voice-design prompt from ordinary read surfaces.
+`SpeakSwiftly` owns system-profile installation from configured resource roots into the active
+profile store during runtime startup. `SpeakSwiftlyServer` passes its bundled `SystemProfiles`
+resource root into `SpeakSwiftly`, then refreshes its profile cache after the runtime becomes ready,
+so `GET /voices` includes installed server-bundled profiles such as `swift-signal` and
+`swift-anchor` when those resources are present. Those profiles are system-authored built-ins:
+ordinary users should list them and select one as the default or per-request voice, not edit their
+package-owned inputs. Encoded profile JSON exposes narrow authorship metadata for system profiles
+(`author`, `seed_id`, and `seed_version`) alongside the installed profile summary.
 
 ### Text Profile Endpoints
 
@@ -191,7 +191,6 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 
 - `create_voice_profile_from_description`
 - `create_voice_profile_from_audio`
-- `inspect_builtin_voice_seed`
 - `update_voice_profile_name`
 - `reroll_voice_profile`
 - `delete_voice_profile`
@@ -263,10 +262,6 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; generated artifact reads are resources-only in the next major surface so clients do not have two names for the same retained media records.
 
 Speech-generation MCP tools fill default `request_context` provenance from the MCP surface, tool name, server identity attributes, and the session's MCP `clientInfo` when the client supplied it during `initialize`. A client such as Codex can therefore omit `request_context` for ordinary calls and still leave TextForSpeech with caller-origin metadata in attributes such as `mcp.client.display_name`; callers only need to provide `request_context` when they want to override or enrich those defaults.
-
-`inspect_builtin_voice_seed` is a maintainer/development tool for package-owned built-in voice seed
-inspection. Normal agent and user workflows should read `speak-swiftly://voices`, choose a profile name, and
-use `generate_speech` or the default-voice configuration path instead of inspecting seed prompts.
 
 Accepted-request MCP tool results return `request_id`, `request_resource_uri`, and `status_resource_uri` so coding agents can follow one tracked request immediately while still having an obvious top-level status resource for orientation.
 

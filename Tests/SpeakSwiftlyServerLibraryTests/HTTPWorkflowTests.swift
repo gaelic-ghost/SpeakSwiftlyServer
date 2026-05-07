@@ -12,7 +12,7 @@ import TextForSpeech
 extension ServerTests {
     @available(macOS 14, *)
     @Test func `routes expose health profiles and queued speech job lifecycle`() async throws {
-        let runtime = MockRuntime()
+        let runtime = MockRuntime(profiles: [sampleProfile()] + sampleSystemProfiles())
         let configuration = testConfiguration(defaultVoiceProfileName: "default")
         let state = await MainActor.run { EmbeddedServer() }
         let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())

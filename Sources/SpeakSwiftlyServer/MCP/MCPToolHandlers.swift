@@ -157,16 +157,6 @@ extension MCPSurface {
                         message: "SpeakSwiftlyServer accepted the voice-clone creation request. Read the returned request resource for progress or read speak-swiftly://voices to monitor the refreshed cache.",
                     )
 
-                case "inspect_builtin_voice_seed":
-                    let seedID = try requiredString("seed_id", in: arguments)
-                    guard let seed = try BuiltInVoiceSeedCatalog.load().first(where: { $0.seedID == seedID }) else {
-                        throw MCPError.invalidRequest(
-                            "SpeakSwiftlyServer could not inspect built-in voice seed '\(seedID)' because the package catalog does not contain that seed id. Read speak-swiftly://voices to inspect installed profile names, or use one of the bundled seed ids from the default voice catalog.",
-                        )
-                    }
-
-                    return try toolResult(seed)
-
                 case "update_voice_profile_name":
                     let requestID = try await host.submitRenameVoiceProfile(
                         profileName: requiredString("profile_name", in: arguments),
