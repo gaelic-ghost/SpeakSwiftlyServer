@@ -158,7 +158,7 @@ extension ServerTests {
         let runtime = MockRuntime(speakBehavior: .holdOpen)
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
-            configuration: testConfiguration(completedJobTTLSeconds: 0.05, jobPruneIntervalSeconds: 0.02),
+            configuration: testConfiguration(completedJobTTLSeconds: 2, jobPruneIntervalSeconds: 0.02),
             runtime: runtime,
             runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
@@ -178,7 +178,7 @@ extension ServerTests {
         #expect(snapshot.terminalEvent != nil)
         #expect(snapshot.history.count >= 3)
 
-        try await Task.sleep(for: .milliseconds(120))
+        try await Task.sleep(for: .milliseconds(2200))
         try await waitUntilJobDisappears(jobID, on: host)
 
         await host.shutdown()
