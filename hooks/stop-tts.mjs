@@ -213,7 +213,7 @@ function sectionNotice(skippedSections, mode) {
   if (mode === "verbose") {
     return `${sectionList} ${skippedSections.length === 1 ? "section is" : "sections are"} present in the written reply but skipped for speech.`;
   }
-  return `Skipped sections present: ${sectionList}.`;
+  return `Note: The following sections were present, but skipped. ${sectionList}.`;
 }
 
 export function speakableMessageProjection(message, options = {}) {

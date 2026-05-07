@@ -65,7 +65,7 @@ test("speakableMessageProjection skips configured sections and keeps a brief not
   assert.match(projection.text, /Yes\./);
   assert.doesNotMatch(projection.text, /Dense command output/);
   assert.doesNotMatch(projection.text, /A long file list/);
-  assert.match(projection.text, /Skipped sections present: Evidence and Details\./);
+  assert.match(projection.text, /Note: The following sections were present, but skipped\. Evidence and Details\./);
 });
 
 test("speakableMessageProjection supports verbose section notices", () => {

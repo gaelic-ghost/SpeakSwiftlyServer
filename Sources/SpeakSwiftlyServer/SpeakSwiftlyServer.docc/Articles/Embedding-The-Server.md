@@ -70,6 +70,6 @@ When you need the whole current picture at once, use ``HostStateSnapshot`` as th
 
 Use the embedded session when an app owns the process and wants direct observable state. Use the standalone executable and the HTTP or MCP surfaces when another process, a LaunchAgent, or an external operator should own runtime startup and shutdown.
 
-If the app needs explicit ownership of where the runtime persists profiles, generated artifacts, and staged runtime configuration, pass `runtimeProfileRootURL` on the embedded session options. `SpeakSwiftlyServer` keeps that value as the profile-store root on its side and bridges it into the broader persistence root expected by the current pinned `SpeakSwiftly` startup path so the embedded app does not have to manage those two persistence layers separately.
+If the app needs explicit ownership of where the runtime persists profiles, generated artifacts, and staged runtime configuration, pass `runtimeProfileRootURL` on the embedded session options. `SpeakSwiftlyServer` keeps that value as the profile-store root on its side, resolves it to the containing state root, and passes that URL directly into `SpeakSwiftly.liftoff(configuration:stateRootURL:)` so the embedded app does not have to manage those two persistence paths separately.
 
 For the transport inventory and command-line surface, see <doc:Operator-Surfaces>.

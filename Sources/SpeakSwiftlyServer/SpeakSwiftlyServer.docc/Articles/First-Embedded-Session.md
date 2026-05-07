@@ -37,7 +37,7 @@ cancels that startup attempt and proceeds through the same orderly teardown path
 runtime startup stalls completely, the embedded lifecycle also times out that startup attempt and
 surfaces a clear failure instead of staying stuck in startup indefinitely.
 
-If you pass `runtimeProfileRootURL`, the embedded host uses that explicit profile-store root for its own persisted runtime configuration bookkeeping and bridges it into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime. Use that when the app wants an explicit app-owned or App Group-owned runtime root instead of relying on the default Application Support lookup.
+If you pass `runtimeProfileRootURL`, the embedded host uses that explicit profile-store root for its own persisted runtime configuration bookkeeping, resolves it to the containing runtime state root, and passes that URL directly into `SpeakSwiftly.liftoff(configuration:stateRootURL:)`. Use that when the app wants an explicit app-owned or App Group-owned runtime root instead of relying on the default Application Support lookup.
 
 ## Read The App-Facing State
 

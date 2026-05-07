@@ -414,22 +414,18 @@ import Testing
     #expect(snapshot.persistedConfigurationState == "loaded")
 }
 
-@Test func `runtime launcher bridges a profiles directory override onto the broader SpeakSwiftly runtime root`() {
+@Test func `runtime startup configuration resolves profile root to broader SpeakSwiftly state root`() {
     let profileRootURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent("speakswiftly-runtime/profiles", isDirectory: true)
+    let store = RuntimeStartupConfigurationStore(profileRootURL: profileRootURL)
 
-    #expect(
-        SpeakSwiftlyRuntimeLauncher.bridgedSpeakSwiftlyProfileRoot(profileRootURL.path)
-            == profileRootURL.deletingLastPathComponent().path,
-    )
+    #expect(store.runtimeStateRootURL() == profileRootURL.deletingLastPathComponent())
 }
 
-@Test func `runtime launcher leaves non-profiles override paths unchanged`() {
+@Test func `runtime startup configuration leaves non-profiles state root paths unchanged`() {
     let runtimeRootURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent("SpeakSwiftlyRuntime", isDirectory: true)
+    let store = RuntimeStartupConfigurationStore(profileRootURL: runtimeRootURL)
 
-    #expect(
-        SpeakSwiftlyRuntimeLauncher.bridgedSpeakSwiftlyProfileRoot(runtimeRootURL.path)
-            == runtimeRootURL.path,
-    )
+    #expect(store.runtimeStateRootURL() == runtimeRootURL)
 }

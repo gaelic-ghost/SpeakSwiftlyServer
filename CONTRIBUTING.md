@@ -195,7 +195,7 @@ The supported public embedding surface is `EmbeddedServer`, defined in `Sources/
 
 Embedded app callers should pass `SpeakSwiftly.RequestContext` directly when the app has richer caller, project, or origin metadata than the server can infer. HTTP and MCP speech surfaces add transport defaults for that context automatically.
 
-If callers do not pass `EmbeddedServer.Options(port:)`, the embedded host defaults to `127.0.0.1:7339`. If callers pass `EmbeddedServer.Options(runtimeProfileRootURL:)`, the server treats that as its profile-store root and bridges it at startup into the broader persistence root expected by the current pinned `SpeakSwiftly` runtime, while keeping the server's own runtime-configuration snapshot aligned with the same on-disk state.
+If callers do not pass `EmbeddedServer.Options(port:)`, the embedded host defaults to `127.0.0.1:7339`. If callers pass `EmbeddedServer.Options(runtimeProfileRootURL:)`, the server treats that as its profile-store root, resolves it to the containing state root, and passes that state root directly into `SpeakSwiftly.liftoff(configuration:stateRootURL:)`, while keeping the server's own runtime-configuration snapshot aligned with the same on-disk state.
 
 ### Codex Plugin
 
