@@ -38,7 +38,6 @@ extension ServerHost {
     func runtimeConfigurationSnapshot() -> RuntimeConfigurationSnapshot {
         runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
@@ -47,15 +46,14 @@ extension ServerHost {
 
     func saveRuntimeConfiguration(
         speechBackend: SpeakSwiftly.SpeechBackend,
-        qwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
+        qwenSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
     ) async throws -> RuntimeConfigurationSnapshot {
         let snapshot = try runtimeStartupConfigurationStore.save(
             speechBackend: speechBackend,
-            qwenResidentModel: qwenResidentModel,
+            qwenSpeechBackend: qwenSpeechBackend,
             marvisResidentPolicy: marvisResidentPolicy,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
@@ -185,7 +183,6 @@ extension ServerHost {
         activeRuntimeSpeechBackend = resolvedSpeechBackend
         let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: resolvedSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)

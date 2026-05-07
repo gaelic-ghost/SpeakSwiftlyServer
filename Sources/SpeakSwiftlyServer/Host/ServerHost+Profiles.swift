@@ -43,7 +43,6 @@ extension ServerHost {
         let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             normalizedProfileName,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -58,7 +57,6 @@ extension ServerHost {
         let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             nil,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )

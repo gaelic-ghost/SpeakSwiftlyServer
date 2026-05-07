@@ -95,7 +95,6 @@ actor ServerHost {
     let encoder = JSONEncoder()
     let byteBufferAllocator = ByteBufferAllocator()
     var activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend
-    var activeQwenResidentModel: SpeakSwiftly.QwenResidentModel
     var activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy
 
     var statusTask: Task<Void, Never>?
@@ -157,7 +156,6 @@ actor ServerHost {
         runtime: any SpeakSwiftlyRuntimeServing,
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         state: EmbeddedServer,
     ) {
@@ -197,8 +195,6 @@ actor ServerHost {
         self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeStartupConfigurationStore.initialActiveRuntimeSpeechBackend()
-        self.activeQwenResidentModel = activeQwenResidentModel
-            ?? runtimeStartupConfigurationStore.initialActiveQwenResidentModel()
         self.activeMarvisResidentPolicy = activeMarvisResidentPolicy
             ?? runtimeStartupConfigurationStore.initialActiveMarvisResidentPolicy()
         activeDefaultVoiceProfileName = runtimeStartupConfigurationStore.initialActiveDefaultVoiceProfileName(
@@ -274,7 +270,6 @@ actor ServerHost {
             runtime: runtime,
             runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
-            activeQwenResidentModel: startupConfiguration.qwenResidentModel,
             activeMarvisResidentPolicy: startupConfiguration.marvisResidentPolicy,
             state: state,
         )

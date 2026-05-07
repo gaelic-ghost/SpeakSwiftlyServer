@@ -57,7 +57,18 @@ extension ServerTests {
             let setRuntimeConfigurationProperties = try #require(setRuntimeConfigurationSchema["properties"] as? [String: Any])
             let setRuntimeConfigurationBackend = try #require(setRuntimeConfigurationProperties["speech_backend"] as? [String: Any])
             let setRuntimeConfigurationBackendEnum = try #require(setRuntimeConfigurationBackend["enum"] as? [String])
-            #expect(setRuntimeConfigurationBackendEnum == ["qwen3", "chatterbox_turbo", "marvis"])
+            #expect(setRuntimeConfigurationBackendEnum == [
+                "qwen3_smol",
+                "qwen3_smol_6bit",
+                "qwen3_smol_8bit",
+                "qwen3_smol_bf16",
+                "qwen3_big",
+                "qwen3_big_6bit",
+                "qwen3_big_8bit",
+                "qwen3_big_bf16",
+                "chatterbox_turbo",
+                "marvis",
+            ])
             let setRuntimeConfigurationQwenModel = try #require(setRuntimeConfigurationProperties["qwen_resident_model"] as? [String: Any])
             let setRuntimeConfigurationQwenModelEnum = try #require(setRuntimeConfigurationQwenModel["enum"] as? [String])
             #expect(setRuntimeConfigurationQwenModelEnum == ["base_0_6b_8bit", "base_1_7b_8bit"])

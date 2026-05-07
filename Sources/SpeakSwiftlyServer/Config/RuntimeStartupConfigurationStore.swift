@@ -27,7 +27,6 @@ struct RuntimeStartupConfigurationStore {
     private let configurationURL: URL
     private let profileRootURL: URL
     private let defaultActiveRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend?
-    private let defaultActiveQwenResidentModel: SpeakSwiftly.QwenResidentModel?
     private let defaultActiveMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy?
 
     init(
@@ -36,7 +35,6 @@ struct RuntimeStartupConfigurationStore {
         configurationURL: URL? = nil,
         profileRootURL: URL? = nil,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
     ) {
         let profileRootOverride = environment["SPEAKSWIFTLY_PROFILE_ROOT"]
@@ -69,7 +67,6 @@ struct RuntimeStartupConfigurationStore {
             fileManager: fileManager,
         )
         defaultActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend
-        defaultActiveQwenResidentModel = activeQwenResidentModel
         defaultActiveMarvisResidentPolicy = activeMarvisResidentPolicy
     }
 
@@ -77,7 +74,6 @@ struct RuntimeStartupConfigurationStore {
         let configuration = resolvedPersistedConfiguration()
         return RuntimeStartupConfiguration(
             speechBackend: configuration.speechBackend,
-            qwenResidentModel: configuration.qwenResidentModel,
             marvisResidentPolicy: configuration.marvisResidentPolicy,
             defaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -92,12 +88,12 @@ struct RuntimeStartupConfigurationStore {
         return profileRootURL.deletingLastPathComponent()
     }
 
-    func initialActiveRuntimeSpeechBackend() -> SpeakSwiftly.SpeechBackend {
-        defaultActiveRuntimeSpeechBackend ?? resolvedPersistedConfiguration().speechBackend
+    func profileStoreRootURL() -> URL {
+        profileRootURL
     }
 
-    func initialActiveQwenResidentModel() -> SpeakSwiftly.QwenResidentModel {
-        defaultActiveQwenResidentModel ?? resolvedPersistedConfiguration().qwenResidentModel
+    func initialActiveRuntimeSpeechBackend() -> SpeakSwiftly.SpeechBackend {
+        defaultActiveRuntimeSpeechBackend ?? resolvedPersistedConfiguration().speechBackend
     }
 
     func initialActiveMarvisResidentPolicy() -> SpeakSwiftly.MarvisResidentPolicy {
@@ -112,33 +108,31 @@ struct RuntimeStartupConfigurationStore {
 
     func snapshot(
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) -> RuntimeConfigurationSnapshot {
         let resolution = resolvedPersistedConfiguration()
         let resolvedActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend ?? initialActiveRuntimeSpeechBackend()
-        let resolvedActiveQwenResidentModel = activeQwenResidentModel ?? initialActiveQwenResidentModel()
         let resolvedActiveMarvisResidentPolicy = activeMarvisResidentPolicy ?? initialActiveMarvisResidentPolicy()
         let resolvedActiveDefaultVoiceProfileName = activeDefaultVoiceProfileName
             ?? initialActiveDefaultVoiceProfileName(configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName)
         let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment)
-        let qwenResidentModelEnvironmentOverride = SpeakSwiftly.QwenResidentModel.configured(in: environment)
+            ?? SpeakSwiftly.SpeechBackend.configuredFromLegacyQwenResidentModelEnvironment(in: environment)
 
         return .init(
             activeRuntimeSpeechBackend: resolvedActiveRuntimeSpeechBackend.rawValue,
             nextRuntimeSpeechBackend: resolution.speechBackend.rawValue,
-            activeQwenResidentModel: resolvedActiveQwenResidentModel.rawValue,
-            nextQwenResidentModel: resolution.qwenResidentModel.rawValue,
+            activeQwenResidentModel: RuntimeStartupConfiguration.legacyQwenResidentModelRawValue(for: resolvedActiveRuntimeSpeechBackend),
+            nextQwenResidentModel: RuntimeStartupConfiguration.legacyQwenResidentModelRawValue(for: resolution.speechBackend),
             activeMarvisResidentPolicy: resolvedActiveMarvisResidentPolicy.rawValue,
             nextMarvisResidentPolicy: resolution.marvisResidentPolicy.rawValue,
             activeDefaultVoiceProfileName: resolvedActiveDefaultVoiceProfileName,
             nextDefaultVoiceProfileName: resolution.defaultVoiceProfileName,
             environmentSpeechBackendOverride: environmentOverride?.rawValue,
-            environmentQwenResidentModelOverride: qwenResidentModelEnvironmentOverride?.rawValue,
+            environmentQwenResidentModelOverride: nil,
             persistedSpeechBackend: resolution.persistedSpeechBackend?.rawValue,
-            persistedQwenResidentModel: resolution.persistedQwenResidentModel?.rawValue,
+            persistedQwenResidentModel: resolution.persistedSpeechBackend.map(RuntimeStartupConfiguration.legacyQwenResidentModelRawValue(for:)),
             persistedMarvisResidentPolicy: resolution.persistedMarvisResidentPolicy?.rawValue,
             persistedDefaultVoiceProfileName: resolution.persistedDefaultVoiceProfileName,
             profileRootPath: profileRootURL.path,
@@ -148,31 +142,28 @@ struct RuntimeStartupConfigurationStore {
             persistedConfigurationError: resolution.configurationError,
             persistedConfigurationAppliesOnRestart: true,
             activeRuntimeMatchesNextRuntime: resolvedActiveRuntimeSpeechBackend == resolution.speechBackend
-                && resolvedActiveQwenResidentModel == resolution.qwenResidentModel
                 && resolvedActiveMarvisResidentPolicy == resolution.marvisResidentPolicy,
-            persistedConfigurationWillAffectNextRuntimeStart: environmentOverride == nil
-                && qwenResidentModelEnvironmentOverride == nil,
+            persistedConfigurationWillAffectNextRuntimeStart: environmentOverride == nil,
         )
     }
 
     func save(
         speechBackend: SpeakSwiftly.SpeechBackend,
-        qwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
+        qwenSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
         let current = loadPersistedRuntimeConfiguration()
+        let persistedSpeechBackend = RuntimeStartupConfiguration.isQwenSpeechBackend(speechBackend)
+            ? qwenSpeechBackend ?? speechBackend
+            : speechBackend
         do {
             try savePersistedConfiguration(
                 RuntimeStartupConfiguration(
-                    speechBackend: speechBackend,
-                    qwenResidentModel: qwenResidentModel
-                        ?? current?.qwenResidentModel
-                        ?? resolvedPersistedConfiguration().qwenResidentModel,
+                    speechBackend: persistedSpeechBackend,
                     marvisResidentPolicy: marvisResidentPolicy
                         ?? current?.marvisResidentPolicy
                         ?? resolvedPersistedConfiguration().marvisResidentPolicy,
@@ -186,7 +177,6 @@ struct RuntimeStartupConfigurationStore {
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,
@@ -196,7 +186,6 @@ struct RuntimeStartupConfigurationStore {
     func saveDefaultVoiceProfileName(
         _ defaultVoiceProfileName: SpeakSwiftly.Name?,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeQwenResidentModel: SpeakSwiftly.QwenResidentModel? = nil,
         activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
@@ -205,7 +194,6 @@ struct RuntimeStartupConfigurationStore {
             try savePersistedConfiguration(
                 RuntimeStartupConfiguration(
                     speechBackend: current?.speechBackend ?? resolvedPersistedConfiguration().speechBackend,
-                    qwenResidentModel: current?.qwenResidentModel ?? resolvedPersistedConfiguration().qwenResidentModel,
                     marvisResidentPolicy: current?.marvisResidentPolicy
                         ?? resolvedPersistedConfiguration().marvisResidentPolicy,
                     defaultVoiceProfileName: defaultVoiceProfileName,
@@ -218,7 +206,6 @@ struct RuntimeStartupConfigurationStore {
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
             activeDefaultVoiceProfileName: RuntimeStartupConfiguration.normalized(defaultVoiceProfileName)
                 ?? configuredDefaultVoiceProfileName,
@@ -263,11 +250,9 @@ private extension RuntimeStartupConfigurationStore {
 
     struct Resolution {
         let speechBackend: SpeakSwiftly.SpeechBackend
-        let qwenResidentModel: SpeakSwiftly.QwenResidentModel
         let marvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy
         let defaultVoiceProfileName: SpeakSwiftly.Name?
         let persistedSpeechBackend: SpeakSwiftly.SpeechBackend?
-        let persistedQwenResidentModel: SpeakSwiftly.QwenResidentModel?
         let persistedMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy?
         let persistedDefaultVoiceProfileName: SpeakSwiftly.Name?
         let configurationExists: Bool
@@ -288,51 +273,16 @@ private extension RuntimeStartupConfigurationStore {
             persistence: persistence,
         )
 
-        if let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment) {
-            return .init(
-                speechBackend: environmentOverride,
-                qwenResidentModel: SpeakSwiftly.QwenResidentModel.configured(in: environment)
-                    ?? persistedState.persistedQwenResidentModel
-                    ?? .base06B8Bit,
-                marvisResidentPolicy: persistedState.persistedMarvisResidentPolicy ?? .dualResidentSerialized,
-                defaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
-                persistedSpeechBackend: persistedState.persistedSpeechBackend,
-                persistedQwenResidentModel: persistedState.persistedQwenResidentModel,
-                persistedMarvisResidentPolicy: persistedState.persistedMarvisResidentPolicy,
-                persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
-                configurationExists: configurationExists,
-                configurationState: persistedState.configurationState,
-                configurationError: persistedState.configurationError,
-            )
-        }
-
-        if let persistedSpeechBackend = persistedState.persistedSpeechBackend {
-            return .init(
-                speechBackend: persistedSpeechBackend,
-                qwenResidentModel: SpeakSwiftly.QwenResidentModel.configured(in: environment)
-                    ?? persistedState.persistedQwenResidentModel
-                    ?? .base06B8Bit,
-                marvisResidentPolicy: persistedState.persistedMarvisResidentPolicy ?? .dualResidentSerialized,
-                defaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
-                persistedSpeechBackend: persistedSpeechBackend,
-                persistedQwenResidentModel: persistedState.persistedQwenResidentModel,
-                persistedMarvisResidentPolicy: persistedState.persistedMarvisResidentPolicy,
-                persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
-                configurationExists: configurationExists,
-                configurationState: .loaded,
-                configurationError: nil,
-            )
-        }
+        let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment)
+            ?? SpeakSwiftly.SpeechBackend.configuredFromLegacyQwenResidentModelEnvironment(in: environment)
 
         return .init(
-            speechBackend: .qwen3,
-            qwenResidentModel: SpeakSwiftly.QwenResidentModel.configured(in: environment)
-                ?? persistedState.persistedQwenResidentModel
-                ?? .base06B8Bit,
+            speechBackend: environmentOverride
+                ?? persistedState.persistedSpeechBackend
+                ?? .qwen3_smol,
             marvisResidentPolicy: persistedState.persistedMarvisResidentPolicy ?? .dualResidentSerialized,
             defaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
-            persistedSpeechBackend: nil,
-            persistedQwenResidentModel: persistedState.persistedQwenResidentModel,
+            persistedSpeechBackend: persistedState.persistedSpeechBackend,
             persistedMarvisResidentPolicy: persistedState.persistedMarvisResidentPolicy,
             persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
             configurationExists: configurationExists,
@@ -348,14 +298,13 @@ private extension RuntimeStartupConfigurationStore {
     ) -> (
         persistedConfiguration: RuntimeStartupConfiguration?,
         persistedSpeechBackend: SpeakSwiftly.SpeechBackend?,
-        persistedQwenResidentModel: SpeakSwiftly.QwenResidentModel?,
         persistedMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy?,
         persistedDefaultVoiceProfileName: SpeakSwiftly.Name?,
         configurationState: ConfigurationState,
         configurationError: String?,
     ) {
         guard configurationExists else {
-            return (nil, nil, nil, nil, nil, .missing, nil)
+            return (nil, nil, nil, nil, .missing, nil)
         }
 
         do {
@@ -363,7 +312,6 @@ private extension RuntimeStartupConfigurationStore {
             return (
                 configuration,
                 configuration.speechBackend,
-                configuration.qwenResidentModel,
                 configuration.marvisResidentPolicy,
                 configuration.defaultVoiceProfileName,
                 .loaded,
@@ -371,7 +319,6 @@ private extension RuntimeStartupConfigurationStore {
             )
         } catch {
             return (
-                nil,
                 nil,
                 nil,
                 nil,

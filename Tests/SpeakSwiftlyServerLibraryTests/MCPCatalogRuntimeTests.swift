@@ -252,7 +252,7 @@ extension ServerTests {
             let statusResourcePayload = try mcpResourceObjectPayload(from: statusResourceEnvelope)
             #expect(statusResourcePayload["worker_mode"] as? String == "ready")
             let statusRuntimeConfiguration = try #require(statusResourcePayload["runtime_configuration"] as? [String: Any])
-            #expect(statusRuntimeConfiguration["active_runtime_speech_backend"] as? String == "qwen3")
+            #expect(statusRuntimeConfiguration["active_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(statusRuntimeConfiguration["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(statusRuntimeConfiguration["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
             let transports = try #require(statusResourcePayload["transports"] as? [[String: Any]])
@@ -267,8 +267,8 @@ extension ServerTests {
                 ),
             )
             let getRuntimeConfigPayload = try mcpResourceObjectPayload(from: runtimeConfigResourceEnvelope)
-            #expect(getRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")
-            #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3")
+            #expect(getRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
+            #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(getRuntimeConfigPayload["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(getRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(getRuntimeConfigPayload["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
@@ -290,14 +290,14 @@ extension ServerTests {
                 ),
             )
             let setRuntimeConfigPayload = try mcpToolPayload(from: setRuntimeConfigEnvelope)
-            #expect(setRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")
+            #expect(setRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(setRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "marvis")
             #expect(setRuntimeConfigPayload["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(setRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(setRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(setRuntimeConfigPayload["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
             #expect(setRuntimeConfigPayload["next_marvis_resident_policy"] as? String == "single_resident_dynamic")
             #expect(setRuntimeConfigPayload["persisted_speech_backend"] as? String == "marvis")
-            #expect(setRuntimeConfigPayload["persisted_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(setRuntimeConfigPayload["persisted_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(setRuntimeConfigPayload["persisted_marvis_resident_policy"] as? String == "single_resident_dynamic")
 
             let switchBackendEnvelope = try await mcpEnvelope(

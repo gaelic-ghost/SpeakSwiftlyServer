@@ -199,7 +199,7 @@ extension MCPSurface {
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
                             speechBackend: requiredSpeechBackend("speech_backend", in: arguments),
-                            qwenResidentModel: optionalQwenResidentModel("qwen_resident_model", in: arguments),
+                            qwenSpeechBackend: optionalQwenSpeechBackend("qwen_resident_model", in: arguments),
                             marvisResidentPolicy: optionalMarvisResidentPolicy("marvis_resident_policy", in: arguments),
                         ),
                     )

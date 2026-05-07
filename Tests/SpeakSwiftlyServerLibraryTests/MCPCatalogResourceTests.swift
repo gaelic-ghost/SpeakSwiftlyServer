@@ -107,7 +107,7 @@ extension ServerTests {
             let runtimeStatusContents = try #require(runtimeStatusResourceResult["contents"] as? [[String: Any]])
             let runtimeStatusText = try #require(runtimeStatusContents.first?["text"] as? String)
             let runtimeStatusPayload = try jsonObject(from: Data(runtimeStatusText.utf8))
-            #expect(runtimeStatusPayload["speech_backend"] as? String == "qwen3")
+            #expect(runtimeStatusPayload["speech_backend"] as? String == "qwen3_smol")
             #expect(runtimeStatusPayload["runtime_backend_transition"] is [String: Any])
 
             let runtimeConfigResourceEnvelope = try await mcpEnvelope(
@@ -122,7 +122,7 @@ extension ServerTests {
             let runtimeConfigContents = try #require(runtimeConfigResourceResult["contents"] as? [[String: Any]])
             let runtimeConfigText = try #require(runtimeConfigContents.first?["text"] as? String)
             let runtimeConfigPayload = try jsonObject(from: Data(runtimeConfigText.utf8))
-            #expect(runtimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3")
+            #expect(runtimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
 
             let jobsResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -350,7 +350,7 @@ extension ServerTests {
             runtime: runtime,
             runtimeStartupConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-                activeRuntimeSpeechBackend: .qwen3,
+                activeRuntimeSpeechBackend: .qwen3_smol,
             ),
             state: state,
         )

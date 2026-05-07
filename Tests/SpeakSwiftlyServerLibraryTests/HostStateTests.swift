@@ -63,7 +63,7 @@ extension ServerTests {
                     playback: playback,
                     runtimeBackendTransition: .init(
                         state: "idle",
-                        activeSpeechBackend: "qwen3",
+                        activeSpeechBackend: "qwen3_smol",
                         requestedSpeechBackend: nil,
                         requestID: nil,
                         operation: nil,
@@ -73,8 +73,8 @@ extension ServerTests {
                     ),
                     currentGenerationJobs: [],
                     runtimeConfiguration: .init(
-                        activeRuntimeSpeechBackend: "qwen3",
-                        nextRuntimeSpeechBackend: "qwen3",
+                        activeRuntimeSpeechBackend: "qwen3_smol",
+                        nextRuntimeSpeechBackend: "qwen3_smol",
                         activeQwenResidentModel: "base_0_6b_8bit",
                         nextQwenResidentModel: "base_0_6b_8bit",
                         activeMarvisResidentPolicy: "dual_resident_serialized",
@@ -782,6 +782,63 @@ extension ServerTests {
         #expect(latestInvocation.seedVersion == "1")
         #expect(status.cachedProfiles.map(\.profileName).sorted() == ["swift-anchor", "swift-signal"])
         #expect(status.cachedProfiles.allSatisfy { $0.isSystemAuthored })
+        #expect(status.recentErrors.isEmpty)
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
+    @Test func `startup rerolls user voice profiles with pre v7_1 manifests`() async throws {
+        let originalCreatedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            .appendingPathComponent("profiles", isDirectory: true)
+        let staleProfileURL = runtimeProfileRootURL.appendingPathComponent("default", isDirectory: true)
+        try FileManager.default.createDirectory(at: staleProfileURL, withIntermediateDirectories: true)
+        let manifestData = try #require(#"{"version":4}"#.data(using: .utf8))
+        try manifestData.write(
+            to: staleProfileURL.appendingPathComponent("profile.json", isDirectory: false),
+        )
+
+        let runtime = MockRuntime(
+            profiles: [
+                SpeakSwiftly.ProfileSummary(
+                    profileName: "default",
+                    vibe: .femme,
+                    createdAt: originalCreatedAt,
+                    voiceDescription: "Warm guide voice",
+                    sourceText: "Original training text",
+                    transcriptSource: nil,
+                    transcriptResolvedAt: nil,
+                    transcriptionModelRepo: nil,
+                ),
+            ],
+        )
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: testConfiguration(),
+            runtime: runtime,
+            runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore(profileRootURL: runtimeProfileRootURL),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+
+        let status = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+            let invocationNames = await runtime.rerollProfileInvocationNames()
+            let status = await host.statusSnapshot()
+            return invocationNames == ["default"]
+                && status.cachedProfiles.contains { profile in
+                    profile.profileName == "default"
+                        && profile.createdAt == TimestampFormatter.string(from: originalCreatedAt.addingTimeInterval(60))
+                }
+                ? status
+                : nil
+        }
+
+        #expect(status.cachedProfiles.first?.voiceDescription == "Warm guide voice (rerolled)")
+        #expect(status.cachedProfiles.first?.sourceText == "Original training text (rerolled)")
         #expect(status.recentErrors.isEmpty)
 
         await host.shutdown()

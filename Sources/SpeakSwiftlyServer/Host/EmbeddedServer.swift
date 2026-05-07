@@ -185,7 +185,7 @@ public final class EmbeddedServer {
     /// Live backend-switch progress for the running runtime.
     public internal(set) var runtimeBackendTransition = RuntimeBackendTransitionSnapshot(
         state: "idle",
-        activeSpeechBackend: "qwen3",
+        activeSpeechBackend: "qwen3_smol",
         requestedSpeechBackend: nil,
         requestID: nil,
         operation: nil,
@@ -197,8 +197,8 @@ public final class EmbeddedServer {
     public internal(set) var currentGenerationJobs = [CurrentGenerationJobSnapshot]()
     /// The active and next-start runtime configuration state.
     public internal(set) var runtimeConfiguration = RuntimeConfigurationSnapshot(
-        activeRuntimeSpeechBackend: "qwen3",
-        nextRuntimeSpeechBackend: "qwen3",
+        activeRuntimeSpeechBackend: "qwen3_smol",
+        nextRuntimeSpeechBackend: "qwen3_smol",
         activeQwenResidentModel: "base_0_6b_8bit",
         nextQwenResidentModel: "base_0_6b_8bit",
         activeMarvisResidentPolicy: "dual_resident_serialized",

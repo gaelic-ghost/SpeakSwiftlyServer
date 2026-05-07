@@ -145,7 +145,7 @@ func requiredSpeechBackend(
     in arguments: [String: Value],
 ) throws -> SpeakSwiftly.SpeechBackend {
     let rawValue = try requiredString(key, in: arguments)
-    guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
+    guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
         throw MCPError.invalidParams(
             "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
         )
@@ -154,15 +154,21 @@ func requiredSpeechBackend(
     return speechBackend
 }
 
-func optionalQwenResidentModel(
+func optionalQwenSpeechBackend(
     _ key: String,
     in arguments: [String: Value],
-) throws -> SpeakSwiftly.QwenResidentModel? {
+) throws -> SpeakSwiftly.SpeechBackend? {
     guard let rawValue = optionalString(key, in: arguments) else {
         return nil
     }
 
-    return try decodeStringEnum(rawValue, fieldName: key, valueType: SpeakSwiftly.QwenResidentModel.self)
+    do {
+        return try RuntimeStartupConfiguration.speechBackend(forLegacyQwenResidentModel: rawValue)
+    } catch {
+        throw MCPError.invalidParams(
+            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedQwenResidentModelDescription()).",
+        )
+    }
 }
 
 func optionalMarvisResidentPolicy(
