@@ -698,15 +698,13 @@ extension ServerTests {
         let overviewAfterClear = await MainActor.run { state.overview }
         #expect(overviewAfterClear.defaultVoiceProfileName == nil)
         #expect(await host.defaultVoiceProfileName() == nil)
-        #expect(await host.resolvedRequestedVoiceProfileName(nil) == nil)
+        #expect(await host.resolvedRequestedVoiceProfileName(nil) == "default")
 
-        do {
-            _ = try await state.queueLiveSpeech(text: "This should fail without a default")
-            Issue.record("Expected live speech submission to fail when neither profileName nor app.defaultVoiceProfileName is available.")
-        } catch {
-            let message = String(describing: error)
-            #expect(message.contains("app.defaultVoiceProfileName"))
-        }
+        let runtimeDefaultQueuedRequestID = try await state.queueLiveSpeech(text: "Use the runtime default")
+        let runtimeDefaultQueuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
+        #expect(runtimeDefaultQueuedSpeechInvocation.profileName == "default")
+        await runtime.finishHeldSpeak(id: runtimeDefaultQueuedRequestID)
+        _ = try await waitForJobSnapshot(runtimeDefaultQueuedRequestID, on: host)
 
         let switchedSnapshot = try await state.switchSpeechBackend(to: .chatterboxTurbo)
         #expect(switchedSnapshot.runtimeConfiguration.activeRuntimeSpeechBackend == "chatterbox_turbo")

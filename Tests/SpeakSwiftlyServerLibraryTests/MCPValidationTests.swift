@@ -155,7 +155,7 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `embedded MCP rejects missing profile when no server default is configured`() async throws {
+    @Test func `embedded MCP uses runtime default voice when profile name is omitted`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
@@ -203,7 +203,7 @@ extension ServerTests {
         )
         #expect(mcpStatusCode(from: initializedNotificationResponse) == 202)
 
-        let errorEnvelope = try await mcpEnvelope(
+        let successEnvelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpCallToolRequestJSON(
@@ -216,10 +216,12 @@ extension ServerTests {
                 ),
             ),
         )
-        let error = try #require(errorEnvelope["error"] as? [String: Any])
-        let message = try #require(error["message"] as? String)
-        #expect(message.contains("did not include 'profile_name'"))
-        #expect(message.contains("app.defaultVoiceProfileName"))
+        let result = try #require(successEnvelope["result"] as? [String: Any])
+        let content = try #require(result["content"] as? [[String: Any]])
+        let firstContent = try #require(content.first)
+        #expect((firstContent["text"] as? String)?.contains("accepted the live speech request") == true)
+        let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
+        #expect(queuedSpeechInvocation.profileName == "default")
 
         await mcpSurface.stop()
         await host.shutdown()
