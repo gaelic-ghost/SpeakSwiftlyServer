@@ -62,7 +62,7 @@ The runtime profile root override was made explicit across embedded sessions, fo
 - embedded apps use `EmbeddedServerSession.Options.runtimeProfileRootURL`
 - foreground operator runs can use `serve --profile-root`
 - LaunchAgent installs can use `launch-agent install --profile-root`; installed plists pass `serve --default-profile launch-agent --config-file ... --profile-root ...`
-- runtime launch still bridges an explicit profile root into the `SPEAKSWIFTLY_PROFILE_ROOT` override understood by `SpeakSwiftly`
+- runtime launch resolves the explicit profile root to its containing state root and passes that URL directly to `SpeakSwiftly.liftoff(configuration:stateRootURL:)`
 
 This kept startup ownership policy out of live-reload YAML config.
 

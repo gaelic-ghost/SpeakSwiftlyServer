@@ -20,8 +20,7 @@ library surface.
 The core runtime layers were already off-main:
 
 - `ServerHost` is an actor and owns transport, runtime, and state publication.
-- `SpeakSwiftlyRuntimeLauncher` is an actor and keeps the temporary startup-environment bridge
-  serialized.
+- runtime startup passes the resolved state root directly into `SpeakSwiftly.liftoff(...)`.
 - the UI-facing `ServerState` publish hop is already narrow and explicit, using `MainActor.run`
   only for the final observable snapshot assignment.
 

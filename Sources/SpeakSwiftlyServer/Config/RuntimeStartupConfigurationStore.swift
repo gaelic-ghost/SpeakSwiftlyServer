@@ -84,6 +84,14 @@ struct RuntimeStartupConfigurationStore {
         .speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName)
     }
 
+    func runtimeStateRootURL() -> URL {
+        guard profileRootURL.lastPathComponent == "profiles" else {
+            return profileRootURL
+        }
+
+        return profileRootURL.deletingLastPathComponent()
+    }
+
     func initialActiveRuntimeSpeechBackend() -> SpeakSwiftly.SpeechBackend {
         defaultActiveRuntimeSpeechBackend ?? resolvedPersistedConfiguration().speechBackend
     }

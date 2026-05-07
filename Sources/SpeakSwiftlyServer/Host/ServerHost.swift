@@ -262,12 +262,9 @@ actor ServerHost {
                 ?? appConfig.server.defaultVoiceProfileName,
         )
         let runtime = await SpeakSwiftlyRuntimeAdapter(
-            runtime: SpeakSwiftlyRuntimeLauncher.shared.launch(
+            runtime: SpeakSwiftly.liftoff(
                 configuration: startupConfiguration,
-                environment: environment,
-                makeRuntime: { configuration in
-                    await SpeakSwiftly.liftoff(configuration: configuration)
-                },
+                stateRootURL: runtimeStartupConfigurationStore.runtimeStateRootURL(),
             ),
         )
         return ServerHost(
