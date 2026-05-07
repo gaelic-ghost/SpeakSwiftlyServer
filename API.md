@@ -45,7 +45,7 @@ Changes to bind addresses, ports, HTTP enablement, MCP enablement, MCP path, or 
 
 `SPEAKSWIFTLY_PROFILE_ROOT` is also a startup-only setting. On the `SpeakSwiftlyServer` side, it refers to the server-owned profile-store root. During startup, the server resolves that profile-store root to the containing state root and passes it directly to `SpeakSwiftly.liftoff(configuration:stateRootURL:)` so the launched runtime can derive `profiles/`, `configuration.json`, and `text-profiles.json` consistently. Because that setting changes filesystem ownership rather than hot runtime state, it is intentionally not part of the live-reloaded YAML surface.
 
-Runtime model selection is startup-only as well. Persisted runtime configuration and the matching HTTP/MCP surfaces use `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`. `SPEAKSWIFTLY_SPEECH_BACKEND` and `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` override the persisted next-start values while building the explicit `SpeakSwiftly.Configuration` passed into runtime startup.
+Runtime model selection is startup-only as well. Persisted runtime configuration and the matching HTTP/MCP surfaces use `speech_backend` and `marvis_resident_policy`. `qwen_resident_model` remains accepted as a legacy Qwen-family compatibility field and maps to the matching v7.1 `speech_backend` value when the requested backend is Qwen-based. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start value while building the explicit `SpeakSwiftly.Configuration` passed into runtime startup; the legacy `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` override maps to a Qwen backend only when no explicit speech-backend override is present.
 
 ## HTTP Surface
 
@@ -164,7 +164,7 @@ The runtime routes are also state-oriented.
 
 - `GET /overview` returns the shared-host overview with readiness, queues, transports, cached profiles, recent errors, and any live backend-switch transition.
 - `GET /status` returns direct `SpeakSwiftly.RuntimeSnapshot` fields plus the same live backend-switch transition summary.
-- `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while the Qwen resident model and Marvis resident policy apply on the next runtime start.
+- `GET /configuration` and `PUT /configuration` expose saved next-start runtime configuration. This is startup intent, not a live transition feed. The current transport fields are `speech_backend`, legacy-compatible `qwen_resident_model`, and `marvis_resident_policy`; `speech_backend` can also be switched live through `POST /backend`, while Marvis resident policy applies on the next runtime start.
 - `POST /backend` accepts an ordered backend-switch request and returns `202 Accepted` with the retained request URL and event URL. While the runtime waits for active work to settle, clients should read `GET /overview`, `GET /status`, or the returned request resource to observe the requested backend, current active backend, request ID, and waiting reason.
 - `POST /models/reload` and `POST /models/unload` follow the current runtime-control verbs directly.
 
@@ -223,7 +223,7 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `clear_playback_queue`
 - `cancel_request`
 
-`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
+`cancel_request` accepts required `request_id` and optional `scope` (`generation` or `playback`). Omit `scope` for the primary general cancel path. `generate_speech` accepts `qwen_pre_model_text_chunking` as an opt-in boolean for Qwen live playback. `set_runtime_configuration` changes persisted next-start runtime choices with `speech_backend`, optional legacy-compatible `qwen_resident_model`, and optional `marvis_resident_policy`. `switch_speech_backend` queues live runtime work and returns an accepted request payload; read `speak-swiftly://overview`, `speak-swiftly://status`, or `speak-swiftly://requests/{request_id}` to observe the pending and active backend state.
 
 ### MCP Resources
 

@@ -33,7 +33,7 @@ extension ServerTests {
             runtime: runtime,
             runtimeStartupConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-                activeRuntimeSpeechBackend: .qwen3,
+                activeRuntimeSpeechBackend: .qwen3_smol,
             ),
             state: state,
         )

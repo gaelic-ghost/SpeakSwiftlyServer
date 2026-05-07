@@ -23,7 +23,7 @@ extension ServerTests {
             runtime: runtime,
             runtimeStartupConfigurationStore: .init(
                 environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
-                activeRuntimeSpeechBackend: .qwen3,
+                activeRuntimeSpeechBackend: .qwen3_smol,
             ),
             state: state,
         )
@@ -55,8 +55,8 @@ extension ServerTests {
             let runtimeConfigResponse = try await client.execute(uri: "/configuration", method: .get)
             let runtimeConfigJSON = try jsonObject(from: runtimeConfigResponse.body)
             #expect(runtimeConfigResponse.status == .ok)
-            #expect(runtimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3")
-            #expect(runtimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3")
+            #expect(runtimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3_smol")
+            #expect(runtimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(runtimeConfigJSON["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(runtimeConfigJSON["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(runtimeConfigJSON["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
@@ -71,14 +71,14 @@ extension ServerTests {
             )
             let updateRuntimeConfigJSON = try jsonObject(from: updateRuntimeConfigResponse.body)
             #expect(updateRuntimeConfigResponse.status == .ok)
-            #expect(updateRuntimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3")
+            #expect(updateRuntimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(updateRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "marvis")
             #expect(updateRuntimeConfigJSON["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(updateRuntimeConfigJSON["next_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(updateRuntimeConfigJSON["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(updateRuntimeConfigJSON["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
             #expect(updateRuntimeConfigJSON["next_marvis_resident_policy"] as? String == "single_resident_dynamic")
             #expect(updateRuntimeConfigJSON["persisted_speech_backend"] as? String == "marvis")
-            #expect(updateRuntimeConfigJSON["persisted_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(updateRuntimeConfigJSON["persisted_qwen_resident_model"] as? String == "base_0_6b_8bit")
             #expect(updateRuntimeConfigJSON["persisted_marvis_resident_policy"] as? String == "single_resident_dynamic")
             #expect(updateRuntimeConfigJSON["persisted_configuration_state"] as? String == "loaded")
 
@@ -406,7 +406,7 @@ extension ServerTests {
 
                 return transition
             }
-            #expect(queuedTransition.activeSpeechBackend == "qwen3")
+            #expect(queuedTransition.activeSpeechBackend == "qwen3_smol")
             #expect(queuedTransition.requestedSpeechBackend == "marvis")
             #expect(queuedTransition.operation == "switch_speech_backend")
             #expect(queuedTransition.waitingReason == "waiting_for_active_request")
@@ -428,7 +428,7 @@ extension ServerTests {
             #expect(finalTransition["active_speech_backend"] as? String == "marvis")
             let finalConfig = try #require(finalHostJSON["runtime_configuration"] as? [String: Any])
             #expect(finalConfig["active_runtime_speech_backend"] as? String == "marvis")
-            #expect(finalConfig["next_runtime_speech_backend"] as? String == "qwen3")
+            #expect(finalConfig["next_runtime_speech_backend"] as? String == "qwen3_smol")
         }
 
         await host.shutdown()
@@ -536,7 +536,7 @@ extension ServerTests {
             #expect(persistResponse.status == .badRequest)
             #expect(persistMessage.contains("speech_backend"))
             #expect(persistMessage.contains("totally_invalid"))
-            #expect(persistMessage.contains("qwen3"))
+            #expect(persistMessage.contains("qwen3_smol"))
             #expect(persistMessage.contains("chatterbox_turbo"))
             #expect(persistMessage.contains("marvis"))
             #expect(persistMessage.contains("qwen3_custom_voice") == false)
@@ -553,7 +553,7 @@ extension ServerTests {
             #expect(switchResponse.status == .badRequest)
             #expect(switchMessage.contains("speech_backend"))
             #expect(switchMessage.contains("totally_invalid"))
-            #expect(switchMessage.contains("qwen3"))
+            #expect(switchMessage.contains("qwen3_smol"))
             #expect(switchMessage.contains("chatterbox_turbo"))
             #expect(switchMessage.contains("marvis"))
             #expect(switchMessage.contains("qwen3_custom_voice") == false)

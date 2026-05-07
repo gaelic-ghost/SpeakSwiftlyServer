@@ -98,7 +98,7 @@ actor MockRuntime: SpeakSwiftlyRuntimeServing {
     var rerollProfileInvocations = [RerollProfileInvocation]()
     var playbackState: SpeakSwiftly.PlaybackState = .idle
     var runtimeState: SpeakSwiftly.RuntimeState = .residentModelReady
-    var activeSpeechBackend: SpeakSwiftly.SpeechBackend = .qwen3
+    var activeSpeechBackend: SpeakSwiftly.SpeechBackend = .qwen3_smol
     var textRuntime: TextForSpeech.Runtime
     let textRuntimePersistenceURL: URL
     var loadTextProfilesCallCount = 0

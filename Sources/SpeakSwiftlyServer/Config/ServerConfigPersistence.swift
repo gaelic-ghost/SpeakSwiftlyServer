@@ -38,7 +38,6 @@ public struct ServerConfigPersistence: @unchecked Sendable {
           jobPruneIntervalSeconds: \(appConfig.server.jobPruneIntervalSeconds.cleanYAMLNumber)
           runtime:
             speechBackend: \(runtime.speechBackend.rawValue)
-            qwenResidentModel: \(runtime.qwenResidentModel.rawValue)
             marvisResidentPolicy: \(runtime.marvisResidentPolicy.rawValue)
             defaultVoiceProfileName: \(defaultVoiceProfileName)
           http:

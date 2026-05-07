@@ -12,7 +12,7 @@ func supportedSpeechBackendDescription() -> String {
 }
 
 func exposedQwenResidentModelIdentifiers() -> [String] {
-    SpeakSwiftly.QwenResidentModel.allCases.map(\.rawValue)
+    ["base_0_6b_8bit", "base_1_7b_8bit"]
 }
 
 func supportedQwenResidentModelDescription() -> String {
@@ -238,9 +238,13 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
         try resolveSpeechBackend(speechBackend, fieldName: "speech_backend")
     }
 
-    func qwenResidentModelModel() throws -> SpeakSwiftly.QwenResidentModel? {
-        try qwenResidentModel.map {
-            try resolveQwenResidentModel($0, fieldName: "qwen_resident_model")
+    func qwenSpeechBackendModel() throws -> SpeakSwiftly.SpeechBackend? {
+        guard Self.usesLegacyQwenResidentModelOverride(speechBackend) else {
+            return nil
+        }
+
+        return try qwenResidentModel.map {
+            try resolveLegacyQwenResidentModel($0, fieldName: "qwen_resident_model")
         }
     }
 
@@ -248,6 +252,10 @@ struct RuntimeConfigurationUpdatePayload: Decodable {
         try marvisResidentPolicy.map {
             try resolveMarvisResidentPolicy($0, fieldName: "marvis_resident_policy")
         }
+    }
+
+    private static func usesLegacyQwenResidentModelOverride(_ rawSpeechBackend: String) -> Bool {
+        rawSpeechBackend.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == SpeakSwiftly.SpeechBackend.legacyQwenRawValue
     }
 }
 
@@ -402,7 +410,7 @@ private func resolveSpeechBackend(
     _ rawValue: String,
     fieldName: String,
 ) throws -> SpeakSwiftly.SpeechBackend {
-    guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
+    guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
         throw HTTPError(
             .badRequest,
             message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
@@ -412,18 +420,18 @@ private func resolveSpeechBackend(
     return speechBackend
 }
 
-private func resolveQwenResidentModel(
+private func resolveLegacyQwenResidentModel(
     _ rawValue: String,
     fieldName: String,
-) throws -> SpeakSwiftly.QwenResidentModel {
-    guard let qwenResidentModel = SpeakSwiftly.QwenResidentModel(rawValue: rawValue) else {
+) throws -> SpeakSwiftly.SpeechBackend {
+    do {
+        return try RuntimeStartupConfiguration.speechBackend(forLegacyQwenResidentModel: rawValue)
+    } catch {
         throw HTTPError(
             .badRequest,
             message: "Runtime configuration field '\(fieldName)' used unsupported value '\(rawValue)'. Expected one of: \(supportedQwenResidentModelDescription()).",
         )
     }
-
-    return qwenResidentModel
 }
 
 private func resolveMarvisResidentPolicy(

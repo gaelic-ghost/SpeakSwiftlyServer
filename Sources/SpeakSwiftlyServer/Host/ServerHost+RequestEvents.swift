@@ -167,7 +167,6 @@ extension ServerHost {
         activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
         let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
-            activeQwenResidentModel: activeQwenResidentModel,
             activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
@@ -373,11 +372,12 @@ extension ServerHost {
                     isRunningStartupProfileRefresh = true
                     do {
                         let profiles = try await refreshProfiles(reason: "startup")
-                        _ = try await installMissingBuiltInVoices(after: profiles)
+                        let rebuiltProfiles = try await rebuildOutdatedUserProfiles(after: profiles)
+                        _ = try await installMissingBuiltInVoices(after: rebuiltProfiles)
                         hasRequestedStartupProfileRefresh = true
                     } catch {
                         profileCacheState = "stale"
-                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache or install bundled default voices. Likely cause: \(error.localizedDescription)"
+                        profileCacheWarning = "SpeakSwiftly became ready, but the server could not refresh the initial profile cache, rebuild outdated user voice profiles, or install bundled default voices. Likely cause: \(error.localizedDescription)"
                         emitProfileCacheChanged()
                     }
                     isRunningStartupProfileRefresh = false

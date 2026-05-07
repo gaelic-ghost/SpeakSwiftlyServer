@@ -107,7 +107,7 @@ extension MockRuntime {
                     updatedAt: createdAt,
                     voiceProfile: profileName,
                     textProfile: textProfileID,
-                    speechBackend: "qwen3",
+                    speechBackend: "qwen3_smol",
                     state: "completed",
                     items: items,
                     artifacts: artifacts,
@@ -164,7 +164,7 @@ extension MockRuntime {
                 updatedAt: createdAt,
                 voiceProfile: profileName,
                 textProfile: items.first?.textProfile,
-                speechBackend: "qwen3",
+                speechBackend: "qwen3_smol",
                 state: "completed",
                 items: batchItems,
                 artifacts: artifacts.map {

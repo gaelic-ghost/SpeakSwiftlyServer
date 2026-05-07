@@ -60,6 +60,10 @@ extension MockRuntime {
         rerollProfileInvocations.last
     }
 
+    func rerollProfileInvocationNames() -> [String] {
+        rerollProfileInvocations.map(\.profileName)
+    }
+
     func textProfilePersistenceActionCounts() -> (load: Int, save: Int) {
         (loadTextProfilesCallCount, saveTextProfilesCallCount)
     }

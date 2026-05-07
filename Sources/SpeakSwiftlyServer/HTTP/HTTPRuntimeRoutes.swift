@@ -31,7 +31,7 @@ func registerHTTPRuntimeRoutes(
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
         return try await host.saveRuntimeConfiguration(
             speechBackend: payload.speechBackendModel(),
-            qwenResidentModel: payload.qwenResidentModelModel(),
+            qwenSpeechBackend: payload.qwenSpeechBackendModel(),
             marvisResidentPolicy: payload.marvisResidentPolicyModel(),
         )
     }

@@ -145,7 +145,14 @@ func requiredSpeechBackend(
     in arguments: [String: Value],
 ) throws -> SpeakSwiftly.SpeechBackend {
     let rawValue = try requiredString(key, in: arguments)
-    guard let speechBackend = SpeakSwiftly.SpeechBackend(rawValue: rawValue) else {
+    return try requiredSpeechBackend(rawValue, key: key)
+}
+
+func requiredSpeechBackend(
+    _ rawValue: String,
+    key: String,
+) throws -> SpeakSwiftly.SpeechBackend {
+    guard let speechBackend = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
         throw MCPError.invalidParams(
             "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedSpeechBackendDescription()).",
         )
@@ -154,15 +161,27 @@ func requiredSpeechBackend(
     return speechBackend
 }
 
-func optionalQwenResidentModel(
+func optionalQwenSpeechBackend(
     _ key: String,
     in arguments: [String: Value],
-) throws -> SpeakSwiftly.QwenResidentModel? {
+    rawSpeechBackend: String,
+) throws -> SpeakSwiftly.SpeechBackend? {
+    guard rawSpeechBackend.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        == SpeakSwiftly.SpeechBackend.legacyQwenRawValue
+    else {
+        return nil
+    }
     guard let rawValue = optionalString(key, in: arguments) else {
         return nil
     }
 
-    return try decodeStringEnum(rawValue, fieldName: key, valueType: SpeakSwiftly.QwenResidentModel.self)
+    do {
+        return try RuntimeStartupConfiguration.speechBackend(forLegacyQwenResidentModel: rawValue)
+    } catch {
+        throw MCPError.invalidParams(
+            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedQwenResidentModelDescription()).",
+        )
+    }
 }
 
 func optionalMarvisResidentPolicy(
