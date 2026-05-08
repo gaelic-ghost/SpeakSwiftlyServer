@@ -53,6 +53,7 @@ protocol SpeakSwiftlyRuntimeServing: Actor {
     func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate>
     func runtimeSnapshot() async -> SpeakSwiftly.RuntimeSnapshot
     func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot
+    func playbackUpdates() async -> AsyncStream<SpeakSwiftly.PlaybackUpdate>
     func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot
     func queueSpeechLive(
         text: String,

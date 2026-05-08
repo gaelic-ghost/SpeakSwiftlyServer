@@ -93,6 +93,17 @@ extension ServerTests {
             #expect(updateChatterboxRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
             #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
 
+            let updateQuantizedRuntimeConfigResponse = try await client.execute(
+                uri: "/configuration",
+                method: .put,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"speech_backend":"marvis_4bit"}"#),
+            )
+            let updateQuantizedRuntimeConfigJSON = try jsonObject(from: updateQuantizedRuntimeConfigResponse.body)
+            #expect(updateQuantizedRuntimeConfigResponse.status == .ok)
+            #expect(updateQuantizedRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "marvis_4bit")
+            #expect(updateQuantizedRuntimeConfigJSON["persisted_speech_backend"] as? String == "marvis_4bit")
+
             let profilesResponse = try await client.execute(uri: "/voices", method: .get)
             let profilesJSON = try jsonObject(from: profilesResponse.body)
             let profiles = try #require(profilesJSON["profiles"] as? [[String: Any]])

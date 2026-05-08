@@ -32,12 +32,20 @@ extension ServerHost {
             }
         }
 
+        let playbackStream = await runtime.playbackUpdates()
+        playbackTask = Task {
+            for await update in playbackStream {
+                await self.handle(playbackUpdate: update)
+            }
+        }
+
         await runtime.start()
         await requestPublish(mode: .immediate, refreshRuntimeState: true)
     }
 
     func shutdown() async {
         statusTask?.cancel()
+        playbackTask?.cancel()
         let requestMonitorTasks = requestMonitorTasks
         self.requestMonitorTasks.removeAll()
         for task in requestMonitorTasks.values {

@@ -42,6 +42,20 @@ struct ServerProgressEvent: Encodable, Equatable {
     let id: String
     let event = "progress"
     let stage: String
+    let playbackEvent: PlaybackEventSnapshot?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case event
+        case stage
+        case playbackEvent = "playback_event"
+    }
+
+    init(id: String, stage: String, playbackEvent: PlaybackEventSnapshot? = nil) {
+        self.id = id
+        self.stage = stage
+        self.playbackEvent = playbackEvent
+    }
 }
 
 /// Success-shaped event payload used for acknowledgements and completions.

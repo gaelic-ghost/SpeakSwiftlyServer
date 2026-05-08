@@ -330,6 +330,22 @@ extension ServerTests {
             let setChatterboxRuntimeConfigPayload = try mcpToolPayload(from: setChatterboxRuntimeConfigEnvelope)
             #expect(setChatterboxRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
             #expect(setChatterboxRuntimeConfigPayload["persisted_speech_backend"] as? String == "chatterbox_turbo")
+
+            let setQuantizedRuntimeConfigEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "set_runtime_configuration",
+                            arguments: ["speech_backend": "qwen3_big_4bit"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let setQuantizedRuntimeConfigPayload = try mcpToolPayload(from: setQuantizedRuntimeConfigEnvelope)
+            #expect(setQuantizedRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_big_4bit")
+            #expect(setQuantizedRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(setQuantizedRuntimeConfigPayload["persisted_speech_backend"] as? String == "qwen3_big_4bit")
         }
     }
 }

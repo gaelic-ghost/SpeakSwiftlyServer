@@ -10,6 +10,10 @@ extension MockRuntime {
         runtimeUpdateContinuation?.yield(runtimeUpdate(state))
     }
 
+    func publishPlaybackUpdate(_ event: SpeakSwiftly.PlaybackEvent) {
+        playbackUpdateContinuation?.yield(playbackUpdate(event))
+    }
+
     func finishHeldSpeak(id: String) {
         guard activeRequest?.id == id, let continuation = activeContinuation else { return }
 
@@ -209,6 +213,18 @@ extension MockRuntime {
         )
     }
 
+    func playbackUpdate(_ event: SpeakSwiftly.PlaybackEvent) -> SpeakSwiftly.PlaybackUpdate {
+        decodedSpeakSwiftlyValue(
+            SpeakSwiftly.PlaybackUpdate.self,
+            from: PlaybackUpdatePayload(
+                sequence: 1,
+                date: Date(),
+                state: playbackState,
+                event: event,
+            ),
+        )
+    }
+
     func residentState(for state: SpeakSwiftly.RuntimeState) -> SpeakSwiftly.ResidentModelState {
         switch state {
             case .warmingResidentModel:
@@ -285,6 +301,13 @@ private struct PlaybackSnapshotPayload: Encodable {
     let isRebuffering: Bool
     let stableBufferedAudioMS: Int?
     let stableBufferTargetMS: Int?
+}
+
+private struct PlaybackUpdatePayload: Encodable {
+    let sequence: Int
+    let date: Date
+    let state: SpeakSwiftly.PlaybackState
+    let event: SpeakSwiftly.PlaybackEvent
 }
 
 private struct RuntimeSnapshotPayload: Encodable {

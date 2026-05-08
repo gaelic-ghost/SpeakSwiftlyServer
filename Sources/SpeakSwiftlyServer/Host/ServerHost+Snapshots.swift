@@ -155,7 +155,7 @@ extension ServerHost {
 
         generationQueueStatus = queueStatusSnapshot(from: generationSnapshot)
         playbackQueueStatus = queueStatusSnapshot(from: playbackSnapshot)
-        playbackStatus = PlaybackStatusSnapshot(summary: playbackSnapshot)
+        playbackStatus = PlaybackStatusSnapshot(summary: playbackSnapshot, latestEvent: playbackStatus.latestEvent)
         activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
     }
 

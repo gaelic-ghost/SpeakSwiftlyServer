@@ -73,6 +73,10 @@ actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         await runtime.generate.snapshot()
     }
 
+    func playbackUpdates() async -> AsyncStream<SpeakSwiftly.PlaybackUpdate> {
+        await runtime.playback.updates()
+    }
+
     func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot {
         await runtime.playback.snapshot()
     }

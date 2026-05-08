@@ -88,6 +88,7 @@ actor MockRuntime: SpeakSwiftlyRuntimeServing {
     var speakBehavior: SpeakBehavior
     var mutationRefreshBehavior: MutationRefreshBehavior
     var runtimeUpdateContinuation: AsyncStream<SpeakSwiftly.RuntimeUpdate>.Continuation?
+    var playbackUpdateContinuation: AsyncStream<SpeakSwiftly.PlaybackUpdate>.Continuation?
     var activeRequest: MockRequest?
     var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     var queuedRequests = [QueuedRequestState]()
@@ -175,6 +176,7 @@ actor MockRuntime: SpeakSwiftlyRuntimeServing {
     func shutdown() async {
         shutdownCallCount += 1
         runtimeUpdateContinuation?.finish()
+        playbackUpdateContinuation?.finish()
         activeContinuation?.finish()
         activeContinuation = nil
         activeRequest = nil
@@ -198,6 +200,12 @@ actor MockRuntime: SpeakSwiftlyRuntimeServing {
     func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot {
         generationQueueRequestCount += 1
         return generationSnapshotSummary()
+    }
+
+    func playbackUpdates() async -> AsyncStream<SpeakSwiftly.PlaybackUpdate> {
+        AsyncStream { continuation in
+            self.playbackUpdateContinuation = continuation
+        }
     }
 
     func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot {

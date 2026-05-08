@@ -72,45 +72,95 @@ public struct QueueStatusSnapshot: Codable, Sendable, Equatable {
 /// App-facing playback state reported by the shared runtime.
 public struct PlaybackStatusSnapshot: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
+        case sequence
+        case updatedAt = "updated_at"
         case state
         case activeRequest = "active_request"
         case isStableForConcurrentGeneration = "is_stable_for_concurrent_generation"
         case isRebuffering = "is_rebuffering"
         case stableBufferedAudioMS = "stable_buffered_audio_ms"
         case stableBufferTargetMS = "stable_buffer_target_ms"
+        case latestEvent = "latest_event"
     }
 
+    public let sequence: Int?
+    public let updatedAt: String?
     public let state: String
     public let activeRequest: ActiveRequestSnapshot?
     public let isStableForConcurrentGeneration: Bool
     public let isRebuffering: Bool
     public let stableBufferedAudioMS: Int?
     public let stableBufferTargetMS: Int?
+    public let latestEvent: PlaybackEventSnapshot?
 
     init(
+        sequence: Int? = nil,
+        updatedAt: String? = nil,
         state: String,
         activeRequest: ActiveRequestSnapshot?,
         isStableForConcurrentGeneration: Bool,
         isRebuffering: Bool,
         stableBufferedAudioMS: Int?,
         stableBufferTargetMS: Int?,
+        latestEvent: PlaybackEventSnapshot? = nil,
     ) {
+        self.sequence = sequence
+        self.updatedAt = updatedAt
         self.state = state
         self.activeRequest = activeRequest
         self.isStableForConcurrentGeneration = isStableForConcurrentGeneration
         self.isRebuffering = isRebuffering
         self.stableBufferedAudioMS = stableBufferedAudioMS
         self.stableBufferTargetMS = stableBufferTargetMS
+        self.latestEvent = latestEvent
     }
 
-    init(summary: SpeakSwiftly.PlaybackSnapshot) {
+    init(summary: SpeakSwiftly.PlaybackSnapshot, latestEvent: PlaybackEventSnapshot? = nil) {
+        sequence = summary.sequence
+        updatedAt = TimestampFormatter.string(from: summary.capturedAt)
         state = summary.state.rawValue
         activeRequest = summary.activeRequest.map(ActiveRequestSnapshot.init(summary:))
         isStableForConcurrentGeneration = summary.isStableForConcurrentGeneration
         isRebuffering = summary.isRebuffering
         stableBufferedAudioMS = summary.stableBufferedAudioMS
         stableBufferTargetMS = summary.stableBufferTargetMS
+        self.latestEvent = latestEvent
     }
+}
+
+/// The most recent stable playback milestone reported by the runtime.
+public struct PlaybackEventSnapshot: Codable, Sendable, Equatable {
+    enum CodingKeys: String, CodingKey {
+        case sequence
+        case publishedAt = "published_at"
+        case event
+        case state
+        case requestID = "request_id"
+        case activeRequest = "active_request"
+        case queuedRequests = "queued_requests"
+        case bufferedAudioMS = "buffered_audio_ms"
+        case queuedAudioMS = "queued_audio_ms"
+        case bufferTargetMS = "buffer_target_ms"
+        case previousDevice = "previous_device"
+        case currentDevice = "current_device"
+        case isInterrupted = "is_interrupted"
+        case shouldResume = "should_resume"
+    }
+
+    public let sequence: Int
+    public let publishedAt: String
+    public let event: String
+    public let state: String
+    public let requestID: String?
+    public let activeRequest: ActiveRequestSnapshot?
+    public let queuedRequests: [QueuedRequestSnapshot]?
+    public let bufferedAudioMS: Int?
+    public let queuedAudioMS: Int?
+    public let bufferTargetMS: Int?
+    public let previousDevice: String?
+    public let currentDevice: String?
+    public let isInterrupted: Bool?
+    public let shouldResume: Bool?
 }
 
 private extension SpeakSwiftly.PlaybackSnapshot {

@@ -406,6 +406,32 @@ extension ServerHost {
         await requestPublish(mode: .immediate, refreshRuntimeState: true)
     }
 
+    func handle(playbackUpdate: SpeakSwiftly.PlaybackUpdate) async {
+        let latestEvent = mapPlaybackEvent(playbackUpdate)
+        let playbackSnapshot = await runtime.playbackSnapshot()
+        playbackQueueStatus = queueStatusSnapshot(from: playbackSnapshot)
+        playbackStatus = PlaybackStatusSnapshot(summary: playbackSnapshot, latestEvent: latestEvent)
+        hostEventContinuation.yield(.playbackChanged(playbackStatus))
+
+        if let requestID = latestEvent.requestID,
+           let job = jobs[requestID],
+           job.terminalEvent == nil {
+            await record(
+                .progress(
+                    .init(
+                        id: requestID,
+                        stage: "playback_\(latestEvent.event)",
+                        playbackEvent: latestEvent,
+                    ),
+                ),
+                for: requestID,
+                terminal: false,
+            )
+        } else {
+            await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        }
+    }
+
     func record(_ event: ServerJobEvent, for jobID: String, terminal: Bool) async {
         guard var job = jobs[jobID] else { return }
 

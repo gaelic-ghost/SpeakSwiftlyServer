@@ -59,15 +59,21 @@ extension ServerTests {
             let setRuntimeConfigurationBackendEnum = try #require(setRuntimeConfigurationBackend["enum"] as? [String])
             #expect(setRuntimeConfigurationBackendEnum == [
                 "qwen3_smol",
+                "qwen3_smol_4bit",
+                "qwen3_smol_5bit",
                 "qwen3_smol_6bit",
                 "qwen3_smol_8bit",
                 "qwen3_smol_bf16",
                 "qwen3_big",
+                "qwen3_big_4bit",
+                "qwen3_big_5bit",
                 "qwen3_big_6bit",
                 "qwen3_big_8bit",
                 "qwen3_big_bf16",
                 "chatterbox_turbo",
                 "marvis",
+                "marvis_4bit",
+                "marvis_6bit",
             ])
             let setRuntimeConfigurationQwenModel = try #require(setRuntimeConfigurationProperties["qwen_resident_model"] as? [String: Any])
             let setRuntimeConfigurationQwenModelEnum = try #require(setRuntimeConfigurationQwenModel["enum"] as? [String])
@@ -99,6 +105,8 @@ extension ServerTests {
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://text-profiles/style" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://voices/guide" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://text-profiles/guide" })
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback" })
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback/queue" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback/guide" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://requests" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://configuration" })

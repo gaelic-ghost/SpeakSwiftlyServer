@@ -84,8 +84,14 @@ actor MCPSubscriptionBroker {
 
     private func resourceURIsToNotify(for event: HostEvent) -> [String] {
         let candidateURIs: Set<String> = switch event {
-            case .transportChanged, .playbackChanged, .recentErrorRecorded:
+            case .transportChanged, .recentErrorRecorded:
                 ["speak-swiftly://overview"]
+            case .playbackChanged:
+                [
+                    "speak-swiftly://overview",
+                    "speak-swiftly://playback",
+                    "speak-swiftly://playback/queue",
+                ]
             case .jobEvent:
                 []
             case let .jobChanged(snapshot):
