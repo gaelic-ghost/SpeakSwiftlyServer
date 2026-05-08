@@ -149,17 +149,20 @@ extension ServerTests {
         #expect(latestEvent.bufferedAudioMS == 240)
         #expect(latestEvent.bufferTargetMS == 400)
 
-        let snapshot = try await host.jobSnapshot(id: jobID)
-        let playbackProgress = snapshot.history.compactMap { event -> ServerProgressEvent? in
-            guard case let .progress(progress) = event else { return nil }
+        let progressWasRecorded: Bool = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+            let snapshot = try await host.jobSnapshot(id: jobID)
+            let playbackProgress = snapshot.history.compactMap { event -> ServerProgressEvent? in
+                guard case let .progress(progress) = event else { return nil }
 
-            return progress
+                return progress
+            }
+            return playbackProgress.contains { progress in
+                progress.stage == "playback_preroll_ready"
+                    && progress.playbackEvent?.requestID == jobID
+                    && progress.playbackEvent?.bufferedAudioMS == 240
+            } ? true : nil
         }
-        #expect(playbackProgress.contains { progress in
-            progress.stage == "playback_preroll_ready"
-                && progress.playbackEvent?.requestID == jobID
-                && progress.playbackEvent?.bufferedAudioMS == 240
-        })
+        #expect(progressWasRecorded)
 
         await host.shutdown()
     }
