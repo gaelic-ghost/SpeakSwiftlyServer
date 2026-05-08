@@ -98,6 +98,7 @@ actor ServerHost {
     var activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy
 
     var statusTask: Task<Void, Never>?
+    var playbackTask: Task<Void, Never>?
     var publishTask: Task<Void, Never>?
     var requestMonitorTasks = [String: Task<Void, Never>]()
     var workerMode = "starting"
@@ -125,12 +126,15 @@ actor ServerHost {
         queuedRequests: [],
     )
     var playbackStatus = PlaybackStatusSnapshot(
+        sequence: nil,
+        updatedAt: nil,
         state: SpeakSwiftly.PlaybackState.idle.rawValue,
         activeRequest: nil,
         isStableForConcurrentGeneration: false,
         isRebuffering: false,
         stableBufferedAudioMS: nil,
         stableBufferTargetMS: nil,
+        latestEvent: nil,
     )
     var runtimeRefreshSnapshot: RuntimeRefreshSnapshot?
     var transportStatuses = [String: TransportStatusSnapshot]()

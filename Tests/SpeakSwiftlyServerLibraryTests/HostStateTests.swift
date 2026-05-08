@@ -114,6 +114,56 @@ extension ServerTests {
         #expect(queueJSON["queued_requests"] == nil)
     }
 
+    @available(macOS 14, *)
+    @Test func `playback updates publish latest event and request progress details`() async throws {
+        let runtime = MockRuntime(speakBehavior: .holdOpen)
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: testConfiguration(),
+            runtime: runtime,
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let jobID = try await host.submitSpeak(text: "Playback events matter", profileName: "default")
+        #expect(try await waitForActiveRequestID(on: host) == jobID)
+
+        await runtime.publishPlaybackUpdate(
+            .prerollReady(
+                requestID: jobID,
+                bufferedAudioMS: 240,
+                startupBufferTargetMS: 400,
+            ),
+        )
+
+        let playback = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+            let response = await host.playbackStateSnapshot()
+            return response.playback.latestEvent?.event == "preroll_ready" ? response.playback : nil
+        }
+        let latestEvent = try #require(playback.latestEvent)
+        #expect(latestEvent.requestID == jobID)
+        #expect(latestEvent.bufferedAudioMS == 240)
+        #expect(latestEvent.bufferTargetMS == 400)
+
+        let snapshot = try await host.jobSnapshot(id: jobID)
+        let playbackProgress = snapshot.history.compactMap { event -> ServerProgressEvent? in
+            guard case let .progress(progress) = event else { return nil }
+
+            return progress
+        }
+        #expect(playbackProgress.contains { progress in
+            progress.stage == "playback_preroll_ready"
+                && progress.playbackEvent?.requestID == jobID
+                && progress.playbackEvent?.bufferedAudioMS == 240
+        })
+
+        await host.shutdown()
+    }
+
     @Test func `playback snapshots derive concurrent generation stability from buffer telemetry`() throws {
         struct PlaybackPayload: Encodable {
             let sequence = 1

@@ -47,6 +47,8 @@ Changes to bind addresses, ports, HTTP enablement, MCP enablement, MCP path, or 
 
 Runtime model selection is startup-only as well. Persisted runtime configuration and the matching HTTP/MCP surfaces use `speech_backend` and `marvis_resident_policy`. `qwen_resident_model` remains accepted as a legacy Qwen-family compatibility field and maps to the matching v7.1 `speech_backend` value when the requested backend is Qwen-based. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start value while building the explicit `SpeakSwiftly.Configuration` passed into runtime startup; the legacy `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` override maps to a Qwen backend only when no explicit speech-backend override is present.
 
+Supported `speech_backend` values are read from the current `SpeakSwiftly.SpeechBackend` enum and include Qwen, Chatterbox Turbo, and Marvis variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, and `marvis_6bit`.
+
 ## HTTP Surface
 
 ### Health And Runtime Endpoints
@@ -157,8 +159,10 @@ The queue and playback control routes are immediate control operations rather th
 - `GET /generation/queue` and `GET /playback/queue` expose the generation and playback queues separately so the HTTP layer matches the runtime's split control surface.
 - `DELETE /generation/queue` clears queued generation work and returns the number of cancelled queued requests.
 - `DELETE /requests/{request_id}` cancels one active or queued request wherever it currently lives and returns the cancelled request ID. Add `?scope=generation` or `?scope=playback` only when the caller deliberately wants to constrain cancellation to one queue.
-- `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly.
+- `GET /playback/state`, `POST /playback/pause`, and `POST /playback/resume` expose the current playback state and let clients control it directly. Playback state includes the runtime sequence, update timestamp, active request, buffer stability, and latest playback milestone when the runtime has published one.
 - `DELETE /playback/queue` clears queued playback work and returns the number of cancelled queued requests.
+
+Playback milestones come from `SpeakSwiftly.Playback.updates()`. They are normalized into snake-case event names such as `active_request_changed`, `queue_changed`, `first_chunk`, `preroll_ready`, `rebuffer_started`, `rebuffer_resumed`, `completed`, `output_device_changed`, and `interruption_changed`. Request-specific playback milestones also appear as retained request `progress` events with `playback_event` details, so HTTP clients following `events_url` can see live playback progress without separately polling playback state.
 
 The runtime routes are also state-oriented.
 
@@ -257,9 +261,11 @@ The MCP resource URI scheme is `speak-swiftly://`. Runtime state resources are i
 - `speak-swiftly://generation/jobs/{job_id}`
 - `speak-swiftly://generation/artifacts`
 - `speak-swiftly://generation/artifacts/{artifact_id}`
+- `speak-swiftly://playback`
+- `speak-swiftly://playback/queue`
 - `speak-swiftly://playback/guide`
 
-Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; generated artifact reads are resources-only in the next major surface so clients do not have two names for the same retained media records.
+Those MCP tools and resources are intentionally thin adapters over the same `ServerHost` snapshots and mutations used by the HTTP API and the app-facing `ServerState`. Resources are the canonical MCP read surface; generated artifact and playback reads are resources-only in the next major surface so clients do not have two names for the same retained media or playback state records.
 
 Speech-generation MCP tools fill default `request_context` provenance from the MCP surface, tool name, server identity attributes, and the session's MCP `clientInfo` when the client supplied it during `initialize`. A client such as Codex can therefore omit `request_context` for ordinary calls and still leave TextForSpeech with caller-origin metadata in attributes such as `mcp.client.display_name`; callers only need to provide `request_context` when they want to override or enrich those defaults.
 
@@ -281,13 +287,15 @@ The text-profile prompts and the `speak-swiftly://text-profiles/guide` resource 
 
 ### MCP Resource Subscriptions
 
-The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates. Playback resource freshness is currently host-event-driven; the upstream `SpeakSwiftly` follow-up for runtime-level playback event streams will let this become more direct once it lands.
+The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates. Playback freshness is driven by the upstream `SpeakSwiftly.Playback.updates()` stream, so playback resource subscribers receive update notifications for direct playback milestones instead of waiting only for broad host refreshes.
 
 Clients connected to the standalone MCP event stream can subscribe to:
 
 - `speak-swiftly://overview`
 - `speak-swiftly://status`
 - `speak-swiftly://configuration`
+- `speak-swiftly://playback`
+- `speak-swiftly://playback/queue`
 - `speak-swiftly://voices`
 - `speak-swiftly://voices/{profile_name}`
 - `speak-swiftly://requests`

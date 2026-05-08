@@ -28,7 +28,7 @@ extension ServerHost {
 
     func playbackSnapshotResponse() async -> PlaybackStateResponse {
         let snapshot = await runtime.playbackSnapshot()
-        return .init(playback: .init(summary: snapshot))
+        return .init(playback: .init(summary: snapshot, latestEvent: playbackStatus.latestEvent))
     }
 
     func settledPlaybackStateResponse(
@@ -59,6 +59,8 @@ extension ServerHost {
         expectedState: SpeakSwiftly.PlaybackState,
     ) -> PlaybackStateResponse {
         let status = PlaybackStatusSnapshot(
+            sequence: response.playback.sequence,
+            updatedAt: response.playback.updatedAt,
             state: expectedState.rawValue,
             activeRequest: response.playback.activeRequest ?? playbackStatus.activeRequest,
             isStableForConcurrentGeneration: expectedState == .playing
@@ -73,6 +75,7 @@ extension ServerHost {
             stableBufferTargetMS: expectedState == .playing
                 ? response.playback.stableBufferTargetMS
                 : nil,
+            latestEvent: response.playback.latestEvent,
         )
         return .init(playback: status)
     }

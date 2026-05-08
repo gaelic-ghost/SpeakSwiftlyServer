@@ -29,6 +29,8 @@ enum MCPResourceCatalog {
         "speak-swiftly://text-profiles/base",
         "speak-swiftly://text-profiles/active",
         "speak-swiftly://text-profiles/effective",
+        "speak-swiftly://playback",
+        "speak-swiftly://playback/queue",
         "speak-swiftly://playback/guide",
         "speak-swiftly://requests",
         "speak-swiftly://generation/jobs",
@@ -47,6 +49,8 @@ enum MCPResourceCatalog {
         .init(name: "Base Text Profile", uri: "speak-swiftly://text-profiles/base", description: "Built-in-style-derived base SpeakSwiftly text profile.", mimeType: "application/json"),
         .init(name: "Active Text Profile", uri: "speak-swiftly://text-profiles/active", description: "Current active custom SpeakSwiftly text profile.", mimeType: "application/json"),
         .init(name: "Effective Text Profile", uri: "speak-swiftly://text-profiles/effective", description: "Default effective SpeakSwiftly text profile after merging base and active custom state.", mimeType: "application/json"),
+        .init(name: "Playback State", uri: "speak-swiftly://playback", description: "Current playback state, active request, buffer stability, and latest playback milestone.", mimeType: "application/json"),
+        .init(name: "Playback Queue", uri: "speak-swiftly://playback/queue", description: "Current active and queued playback work.", mimeType: "application/json"),
         .init(name: "Playback Guide", uri: "speak-swiftly://playback/guide", description: "Operator guidance for reading queues, controlling playback, and choosing the least destructive action.", mimeType: "text/markdown"),
         .init(name: "Tracked Requests", uri: "speak-swiftly://requests", description: "Retained shared-host request snapshots for live server operations.", mimeType: "application/json"),
         .init(name: "Generation Jobs", uri: "speak-swiftly://generation/jobs", description: "Retained v2 generation jobs known to the SpeakSwiftly runtime.", mimeType: "application/json"),
@@ -137,6 +141,12 @@ extension MCPSurface {
                             ),
                         ],
                     )
+
+                case "speak-swiftly://playback":
+                    return try await resourceResult(uri: params.uri, payload: host.playbackStateSnapshot())
+
+                case "speak-swiftly://playback/queue":
+                    return try await resourceResult(uri: params.uri, payload: host.playbackQueueSnapshot())
 
                 case "speak-swiftly://playback/guide":
                     return .init(

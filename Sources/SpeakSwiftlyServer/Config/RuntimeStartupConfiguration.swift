@@ -77,16 +77,22 @@ struct RuntimeStartupConfiguration {
     static func isQwenSpeechBackend(_ speechBackend: SpeakSwiftly.SpeechBackend) -> Bool {
         switch speechBackend {
             case .qwen3_smol,
+                 .qwen3_smol_4bit,
+                 .qwen3_smol_5bit,
                  .qwen3_smol_6bit,
                  .qwen3_smol_8bit,
                  .qwen3_smol_bf16,
                  .qwen3_BIG,
+                 .qwen3_BIG_4bit,
+                 .qwen3_BIG_5bit,
                  .qwen3_BIG_6bit,
                  .qwen3_BIG_8bit,
                  .qwen3_BIG_bf16:
                 true
             case .chatterboxTurbo,
-                 .marvis:
+                 .marvis,
+                 .marvis_4bit,
+                 .marvis_6bit:
                 false
         }
     }
@@ -106,7 +112,7 @@ struct RuntimeStartupConfiguration {
 
     static func legacyQwenResidentModelRawValue(for speechBackend: SpeakSwiftly.SpeechBackend) -> String {
         switch speechBackend {
-            case .qwen3_BIG, .qwen3_BIG_6bit, .qwen3_BIG_8bit, .qwen3_BIG_bf16:
+            case .qwen3_BIG, .qwen3_BIG_4bit, .qwen3_BIG_5bit, .qwen3_BIG_6bit, .qwen3_BIG_8bit, .qwen3_BIG_bf16:
                 "base_1_7b_8bit"
             default:
                 "base_0_6b_8bit"

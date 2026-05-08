@@ -96,25 +96,11 @@ func embeddedServerLiveBootstrap(
                 },
                 pausePlayback: {
                     let response = try await host.pausePlayback()
-                    return PlaybackStatusSnapshot(
-                        state: response.playback.state,
-                        activeRequest: response.playback.activeRequest,
-                        isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
-                        isRebuffering: response.playback.isRebuffering,
-                        stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
-                    )
+                    return response.playback
                 },
                 resumePlayback: {
                     let response = try await host.resumePlayback()
-                    return PlaybackStatusSnapshot(
-                        state: response.playback.state,
-                        activeRequest: response.playback.activeRequest,
-                        isStableForConcurrentGeneration: response.playback.isStableForConcurrentGeneration,
-                        isRebuffering: response.playback.isRebuffering,
-                        stableBufferedAudioMS: response.playback.stableBufferedAudioMS,
-                        stableBufferTargetMS: response.playback.stableBufferTargetMS,
-                    )
+                    return response.playback
                 },
                 clearPlaybackQueue: {
                     let response = try await host.clearQueue(.playback)

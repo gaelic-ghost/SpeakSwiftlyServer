@@ -295,6 +295,7 @@ In Progress
 - [x] Remove remaining next-major compatibility aliases: older active/stored text-profile replacement routes, scoped HTTP cancel routes, scoped MCP cancel tools, staged runtime-configuration MCP tools, and nested `/runtime/...` HTTP routes.
 - [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request and text-profile model directly: remove server-local speech normalization context shaping, keep `source_format` as the one explicit request format field, merge `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and delete the text-profile JSON bridge adapter.
 - [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
+- [ ] Add client compatibility-gated MCP progress updates so newer clients can subscribe to direct request/playback progress notifications without breaking existing MCP clients that only expect resource-updated notifications and retained request resources.
 
 ### Exit Criteria
 

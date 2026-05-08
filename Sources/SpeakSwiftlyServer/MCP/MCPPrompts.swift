@@ -225,7 +225,7 @@ extension MCPSurface {
                     - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak-swiftly://requests/{request_id}, speak-swiftly://generation/jobs, speak-swiftly://generation/artifacts
                     - text profile reads: speak-swiftly://text-profiles, speak-swiftly://text-profiles/style, speak-swiftly://text-profiles/base, speak-swiftly://text-profiles/active, speak-swiftly://text-profiles/effective, speak-swiftly://text-profiles/guide
                     - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
-                    - playback and queue reads: speak-swiftly://overview, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
+                    - playback and queue reads: speak-swiftly://overview, speak-swiftly://playback, speak-swiftly://playback/queue, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
                     - playback and queue actions: pause_playback, resume_playback, clear_generation_queue, clear_playback_queue, cancel_request
                     - runtime reads: speak-swiftly://overview, speak-swiftly://status, speak-swiftly://configuration
                     - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models

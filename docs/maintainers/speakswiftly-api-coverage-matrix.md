@@ -24,7 +24,7 @@ Current baseline checked against the `SpeakSwiftly` package state resolved by th
 
 The server's normalized backend contract is now:
 
-- published backend identifiers: `qwen3_smol`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`
+- published backend identifiers: `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, `marvis_6bit`
 - legacy Qwen resident-model identifiers: `base_0_6b_8bit`, `base_1_7b_8bit`
 - staged Marvis resident-policy identifiers: `dual_resident_serialized`, `single_resident_dynamic`
 - opt-in Qwen live request chunking field: `qwen_pre_model_text_chunking`
@@ -46,6 +46,7 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.start()` / `runtime.shutdown()` | Indirect | None | None | Owned by process or embedded-session lifecycle, not by clients. |
 | `runtime.updates()` | Adapted | `GET /healthz`, `GET /readyz`, `GET /overview`, `GET /status`, `GET /requests/{request_id}/events` | live resources and subscriptions | Exposed through host snapshots, retained request history, and typed resource updates instead of raw streams. |
 | `runtime.snapshot()` / `runtime.generate.snapshot()` / `runtime.playback.snapshot()` | Full | `GET /overview` | `speak-swiftly://overview` | The host refreshes the three runtime-owned snapshots together instead of reconstructing queue or playback state through older request-style reads. |
+| `runtime.playback.updates()` | Adapted | `GET /playback/state`, `GET /requests/{request_id}/events` | `speak-swiftly://playback`, `speak-swiftly://playback/queue`, playback resource subscriptions | The host subscribes to sequenced playback updates, stores the latest stable playback milestone in shared playback state, and mirrors request-specific playback milestones into retained request progress events. |
 | `runtime.snapshot()` | Full | `GET /status` | `speak-swiftly://status` | Returned as direct runtime snapshot fields plus server-owned live backend-transition state so clients can observe queued backend switches without treating persisted configuration as live state. |
 | Qwen-family `SpeakSwiftly.Configuration.speechBackend` values | Full | `GET /configuration`, `PUT /configuration` with `speech_backend` or legacy `qwen_resident_model` | `set_runtime_configuration` with `speech_backend` or legacy `qwen_resident_model`, `speak-swiftly://configuration` | Startup-only configuration. v7.1 removed the separate Qwen resident-model setting, so `base_0_6b_8bit` maps to `qwen3_smol` and `base_1_7b_8bit` maps to `qwen3_big` when the active requested backend is Qwen-family. `SPEAKSWIFTLY_QWEN_RESIDENT_MODEL` remains a legacy environment fallback only when `SPEAKSWIFTLY_SPEECH_BACKEND` is absent. |
 | `SpeakSwiftly.Configuration.marvisResidentPolicy` | Full | `GET /configuration`, `PUT /configuration` with `marvis_resident_policy` | `set_runtime_configuration` with `marvis_resident_policy`, `speak-swiftly://configuration` | Startup-only configuration. Accepts `dual_resident_serialized` and `single_resident_dynamic`, and reports both active and next-start values. |
@@ -68,8 +69,8 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.generate.snapshot()` | Full | `GET /generation/queue` | `speak-swiftly://overview` | Exposed directly from runtime-owned generation queue data. |
 | `runtime.jobs.list()` / `job(id:)` / `expire(id:)` | Full | `GET /generation/jobs`, `GET /generation/jobs/{job_id}`, `DELETE` equivalent via expiry route family when present in HTTP flow | `expire_generation_job`, `speak-swiftly://generation/jobs`, `speak-swiftly://generation/jobs/{job_id}` | Retained generation-job reads use resources; expiry remains a tool because it mutates retained runtime state. |
 | `runtime.artifacts()` / `artifact(id:)` | Full | `GET /generation/artifacts`, `GET /generation/artifacts/{artifact_id}` | `speak-swiftly://generation/artifacts`, `speak-swiftly://generation/artifacts/{artifact_id}` | Saved artifact reads use one retained artifact family; batch membership is read through generation jobs instead of a separate batch read family. |
-| `runtime.playback.snapshot()` | Full | `GET /playback/queue` | `speak-swiftly://overview` | Exposed as the playback queue read model. |
-| `runtime.playback.snapshot()` | Full | `GET /playback/state` | `speak-swiftly://overview` | Used directly for playback state reads and control settling. |
+| `runtime.playback.snapshot()` | Full | `GET /playback/queue` | `speak-swiftly://overview`, `speak-swiftly://playback/queue` | Exposed as the playback queue read model. |
+| `runtime.playback.snapshot()` | Full | `GET /playback/state` | `speak-swiftly://overview`, `speak-swiftly://playback` | Used directly for playback state reads and control settling. |
 | `runtime.playback.pause()` / `resume()` | Full | `POST /playback/pause`, `POST /playback/resume` | `pause_playback`, `resume_playback` | The server now aligns its cached playback snapshot with these accepted control responses. |
 | `runtime.playback.clearQueue()` | Full | `DELETE /playback/queue` | `clear_playback_queue` | Returns cleared queued-count information rather than forcing clients to infer it. |
 | `runtime.cancelRequest(_:)` / queue-scoped cancellation | Full | `DELETE /requests/{request_id}` with optional `?scope=generation\|playback` | `cancel_request` with optional `scope` | Cancels one active or queued request by id, with scope only when the caller deliberately needs queue-specific protection. |
@@ -83,7 +84,7 @@ These are transport-local choices, not missing library support:
 - snake_case HTTP fields and MCP argument names instead of Swift method labels
 - retained request snapshots and event history instead of exposing raw request-event streams directly
 - product-shaped MCP tool names such as `generate_speech`, `generate_audio_file`, `generate_batch`, `set_runtime_configuration`, and `set_text_profile_style`
-- read-oriented MCP resources for runtime, text-profile, request, generation-job, and artifact state
+- read-oriented MCP resources for runtime, text-profile, request, generation-job, artifact, and playback state
 
 Those adaptations are deliberate because HTTP and MCP consumers need stable, navigable, inspectable contracts more than they need a perfect transcription of Swift declarations.
 

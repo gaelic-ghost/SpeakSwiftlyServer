@@ -124,6 +124,35 @@ extension ServerTests {
             let runtimeConfigPayload = try jsonObject(from: Data(runtimeConfigText.utf8))
             #expect(runtimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
 
+            let playbackResourceEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://playback"),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let playbackResourceResult = try #require(mcpResultPayload(from: playbackResourceEnvelope))
+            let playbackContents = try #require(playbackResourceResult["contents"] as? [[String: Any]])
+            let playbackText = try #require(playbackContents.first?["text"] as? String)
+            let playbackPayload = try jsonObject(from: Data(playbackText.utf8))
+            let playbackState = try #require(playbackPayload["playback"] as? [String: Any])
+            #expect(playbackState["state"] as? String != nil)
+
+            let playbackQueueResourceEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://playback/queue"),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let playbackQueueResourceResult = try #require(mcpResultPayload(from: playbackQueueResourceEnvelope))
+            let playbackQueueContents = try #require(playbackQueueResourceResult["contents"] as? [[String: Any]])
+            let playbackQueueText = try #require(playbackQueueContents.first?["text"] as? String)
+            let playbackQueuePayload = try jsonObject(from: Data(playbackQueueText.utf8))
+            #expect(playbackQueuePayload["queue_type"] as? String == "playback")
+
             let jobsResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -275,6 +304,8 @@ extension ServerTests {
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
             #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
+            #expect(chooseActionPromptText.contains("speak-swiftly://playback"))
+            #expect(chooseActionPromptText.contains("speak-swiftly://playback/queue"))
             #expect(chooseActionPromptText.contains("for read-only inspection, use a speak-swiftly:// resource"))
             #expect(chooseActionPromptText.contains("Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes."))
 
