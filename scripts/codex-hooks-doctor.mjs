@@ -217,6 +217,83 @@ export function pluginConfigEntries(configText) {
   });
 }
 
+export function hookReviewStateEntries(configText) {
+  if (!configText) return [];
+
+  const sectionPattern = /^\[hooks\.state\."([^"]+)"\]([\s\S]*?)(?=^\[|(?![\s\S]))/gm;
+  const entries = [];
+  let match;
+  while ((match = sectionPattern.exec(configText)) !== null) {
+    const key = match[1];
+    const body = match[2] ?? "";
+    const hashMatch = body.match(/^\s*trusted_hash\s*=\s*"([^"]+)"\s*$/m);
+    entries.push({
+      key,
+      trustedHash: hashMatch?.[1] ?? null,
+    });
+  }
+
+  return entries;
+}
+
+export function expectedHookReviewStateKeys(root = repoRoot) {
+  return [
+    {
+      label: "Repo dev-only PermissionRequest hook",
+      key: `${path.join(root, ".codex", "hooks.json")}:permission_request:0:0`,
+    },
+    {
+      label: "Repo dev-only Stop hook",
+      key: `${path.join(root, ".codex", "hooks.json")}:stop:0:0`,
+    },
+    {
+      label: "Socket plugin PermissionRequest hook",
+      key: "speak-swiftly@socket:hooks/hooks.json:permission_request:0:0",
+    },
+    {
+      label: "Socket plugin Stop hook",
+      key: "speak-swiftly@socket:hooks/hooks.json:stop:0:0",
+    },
+  ];
+}
+
+function summarizeHookReviewState(configText) {
+  const entries = hookReviewStateEntries(configText);
+  if (!configText) {
+    addCheck("warn", "Could not inspect Codex hook review state", `${path.join(codexHome, "config.toml")} is not readable.`);
+    return;
+  }
+
+  if (entries.length === 0) {
+    addCheck(
+      "warn",
+      "Codex hook review state is not present in config.toml",
+      "Codex 0.129.0 stores approved hook command hashes under [hooks.state]. Open the Codex hooks settings panel and review the Speak Swiftly hooks before expecting them to run.",
+    );
+    return;
+  }
+
+  const entriesByKey = new Map(entries.map((entry) => [entry.key, entry]));
+  for (const expected of expectedHookReviewStateKeys()) {
+    const entry = entriesByKey.get(expected.key);
+    if (!entry) {
+      addCheck(
+        "warn",
+        `${expected.label} needs review in Codex settings`,
+        `${expected.key} is missing from [hooks.state]. Open the Codex hooks settings panel and approve the hook if the command is expected.`,
+      );
+    } else if (!entry.trustedHash) {
+      addCheck(
+        "warn",
+        `${expected.label} review entry has no trusted hash`,
+        `${expected.key} exists but does not include trusted_hash.`,
+      );
+    } else {
+      addCheck("ok", `${expected.label} has Codex hook review trust state`, expected.key);
+    }
+  }
+}
+
 function summarizePluginConfig(configText) {
   const entries = pluginConfigEntries(configText);
   const presentEntries = entries.filter((entry) => entry.present);
@@ -411,7 +488,10 @@ async function main() {
   } else {
     addCheck("ok", "Global user Speak Swiftly Stop hook is not configured", globalHookClassification.message);
   }
-  const globalPermissionHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "PermissionRequest");
+  const globalPermissionHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "PermissionRequest", {
+    missingSeverity: "info",
+    missingEventSeverity: "info",
+  });
   if (globalPermissionHookCommands.some((command) => command.includes("hooks/permission-request-log.mjs") && !command.includes("CODEX_HOOK_TTS_DATA_DIR"))) {
     addCheck("ok", "Global user PermissionRequest logging probe is centralized", "Logs default to ~/.codex/speak-swiftly-server/hooks/logs/permission-request.jsonl.");
   } else if (globalPermissionHookCommands.length > 0) {
@@ -439,6 +519,7 @@ async function main() {
   }
   const pluginConfig = summarizePluginConfig(configText);
   reportRepairPlan(pluginConfig);
+  summarizeHookReviewState(configText);
 
   const installedManifests = await findInstalledPluginManifests(path.join(codexHome, "plugins", "cache"));
   if (installedManifests.length === 0) {

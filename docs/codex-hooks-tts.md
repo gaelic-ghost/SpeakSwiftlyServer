@@ -59,9 +59,27 @@ configuration includes:
 
 ```toml
 [features]
-codex_hooks = true
+hooks = true
 plugin_hooks = true
 ```
+
+Codex 0.129.0 also stores per-hook review decisions in `~/.codex/config.toml`
+under `[hooks.state]`. The keys identify the hook source, event, matcher-group
+index, and command index, and each reviewed command gets a `trusted_hash`.
+For the Socket-managed Speak Swiftly plugin, the expected review keys are:
+
+```toml
+[hooks.state."speak-swiftly@socket:hooks/hooks.json:permission_request:0:0"]
+trusted_hash = "sha256:..."
+
+[hooks.state."speak-swiftly@socket:hooks/hooks.json:stop:0:0"]
+trusted_hash = "sha256:..."
+```
+
+If Codex says hooks need review, use the Codex hooks settings panel to review
+the plugin-managed Speak Swiftly `Stop` and `PermissionRequest` hooks. Do not
+add a user-level `~/.codex/hooks.json` fallback to bypass review; review is
+per hook command and lives beside the active Codex configuration.
 
 OpenAI's [Codex hooks documentation](https://developers.openai.com/codex/hooks#where-codex-looks-for-hooks)
 lists `~/.codex/hooks.json` as one of the main hook locations and says
@@ -76,7 +94,7 @@ dedupe state in the shared hook data directory.
 ## Development Harness
 
 - `.codex/config.toml`
-  Enables `features.codex_hooks = true` for this trusted project and wires a
+  Enables `features.hooks = true` for this trusted project and wires a
   `notify` probe command.
 - `.codex/hooks.json`
   Registers the same `Stop` hook script and `PermissionRequest` logging probe
@@ -170,11 +188,13 @@ The doctor reports:
 
 - repo plugin hook metadata
 - repo development-harness hook metadata
+- per-hook Codex review trust state from `[hooks.state]` in
+  `~/.codex/config.toml`
 - user-level `~/.codex/hooks.json` Speak Swiftly hook wiring, when present, as
   duplicate or legacy state to repair
 - legacy or dev-only global hook entries that split state into `.codex/`
 - installed plugin-cache manifests and whether they declare hooks
-- `codex_hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
+- `hooks = true` and enabled Speak Swiftly plugin entries such as `speak-swiftly@socket`
 - `plugin_hooks = true`, which is required by current Codex builds before
   installed plugin lifecycle hooks become runnable
 - live runtime reachability through `GET /overview`
@@ -187,6 +207,10 @@ Warnings are expected if a user-level hook points at the repo-local development
 harness, sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`, or duplicates the
 plugin-managed `Stop` hook. A missing user-level `Stop` hook is the healthy
 state when the installed plugin-managed hook is the intended live speech path.
+
+Warnings about missing hook review state mean Codex has discovered the hook but
+has not recorded a trusted command hash for that hook source. Open the Codex
+hooks settings panel and approve the expected Speak Swiftly hook commands.
 
 ## Runtime Insights
 

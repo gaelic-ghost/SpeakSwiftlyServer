@@ -13,7 +13,8 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 - Verify the live service before changing hook config: read `speak-swiftly://overview` or run `node scripts/codex-hooks-doctor.mjs --repair-plan` from the repository root.
 - Treat `speak-swiftly@socket` as the preferred plugin entry when both Socket and standalone marketplaces are present.
 - Keep the legacy `speak-swiftly-server@socket` config entry disabled unless the user explicitly asks for legacy-plugin investigation.
-- For plugin-managed hooks, confirm both `features.codex_hooks = true` and `features.plugin_hooks = true` in `~/.codex/config.toml`; current Codex CLI source gates runnable plugin hooks behind the separate `plugin_hooks` feature.
+- For plugin-managed hooks, confirm both `features.hooks = true` and `features.plugin_hooks = true` in `~/.codex/config.toml`; current Codex CLI source gates runnable plugin hooks behind the separate `plugin_hooks` feature.
+- Codex 0.129.0 stores per-hook review decisions under `[hooks.state]` in `~/.codex/config.toml`; if Codex says hooks need review, use the hooks settings panel to approve the Speak Swiftly `Stop` and `PermissionRequest` commands instead of adding a user-level fallback hook.
 
 ## Setup Model
 
@@ -26,6 +27,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 - Warn on user-level hooks that point at `.codex/hooks/stop-tts.mjs`, include `CODEX_HOOK_TTS_DATA_DIR`, or duplicate the plugin-managed `Stop` hook. Treat them as duplicate or legacy repair targets, not fallback hooks.
 - Warn on duplicate enabled plugin entries. Keep the canonical Socket entry and disable or remove duplicate standalone or legacy plugin entries after confirmation.
+- Warn when the expected `speak-swiftly@socket:hooks/hooks.json:stop:0:0` or `permission_request:0:0` entries are missing from `[hooks.state]`; that means the new Codex per-hook review gate probably still needs operator approval.
 - Runtime default voice mismatch is not automatically a hook failure. The hook uses the runtime default voice unless `CODEX_HOOK_TTS_PROFILE_NAME` is set; when an override is configured, confirm that profile exists in the cached voice inventory.
 
 ## Validation
