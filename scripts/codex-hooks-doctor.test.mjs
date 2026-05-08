@@ -6,6 +6,8 @@ import test from "node:test";
 import {
   buildRepairPlan,
   classifyGlobalHookCommands,
+  expectedHookReviewStateKeys,
+  hookReviewStateEntries,
   pluginConfigEntries,
 } from "./codex-hooks-doctor.mjs";
 
@@ -119,4 +121,42 @@ test("classifyGlobalHookCommands treats absent Speak Swiftly hook as plugin-only
 
   assert.equal(classification.status, "absent");
   assert.equal(classification.speakSwiftlyCommands.length, 0);
+});
+
+test("hookReviewStateEntries reads trusted hook hashes from config.toml", () => {
+  const entries = hookReviewStateEntries(`
+[hooks.state]
+
+[hooks.state."/repo/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:abc123"
+
+[hooks.state."speak-swiftly@socket:hooks/hooks.json:permission_request:0:0"]
+trusted_hash = "sha256:def456"
+
+[plugins."speak-swiftly@socket"]
+enabled = true
+`);
+
+  assert.deepEqual(entries, [
+    {
+      key: "/repo/.codex/hooks.json:stop:0:0",
+      trustedHash: "sha256:abc123",
+    },
+    {
+      key: "speak-swiftly@socket:hooks/hooks.json:permission_request:0:0",
+      trustedHash: "sha256:def456",
+    },
+  ]);
+});
+
+test("expectedHookReviewStateKeys includes repo and Socket hook identities", () => {
+  assert.deepEqual(
+    expectedHookReviewStateKeys("/repo").map((entry) => entry.key),
+    [
+      "/repo/.codex/hooks.json:permission_request:0:0",
+      "/repo/.codex/hooks.json:stop:0:0",
+      "speak-swiftly@socket:hooks/hooks.json:permission_request:0:0",
+      "speak-swiftly@socket:hooks/hooks.json:stop:0:0",
+    ],
+  );
 });

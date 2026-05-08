@@ -116,7 +116,7 @@ xcrun swift run SpeakSwiftlyServerTool healthcheck
 
 The server-owned Application Support config is LaunchAgent-oriented and defaults to `127.0.0.1:7337`. The in-memory default profiles still reserve `7338` for ad hoc standalone executable configs and `7339` for embedded app-owned configs when a config file omits an explicit port.
 
-For Codex plugin or hook changes, keep end-user behavior plugin-managed and use the repo-local `.codex/` files only as a development harness. Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks run; do not add `~/.codex/hooks.json` as a normal repair path. The hook doctor summarizes the active install, hook feature flags, and voice-profile state:
+For Codex plugin or hook changes, keep end-user behavior plugin-managed and use the repo-local `.codex/` files only as a development harness. Current Codex builds require both `features.hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks run; do not add `~/.codex/hooks.json` as a normal repair path. Codex 0.129.0 stores per-hook review decisions under `[hooks.state]` in `~/.codex/config.toml`; use the hooks settings panel to approve expected Speak Swiftly hooks instead of bypassing review with a user-level hook. The hook doctor summarizes the active install, hook feature flags, hook review state, and voice-profile state:
 
 ```bash
 node scripts/codex-hooks-doctor.mjs
@@ -249,9 +249,9 @@ Marketplace installation gives Codex the plugin payload: skills, MCP registratio
 
 End users should start with plugin-managed hook setup rather than copying repo-local `.codex` files into their own Codex home. User-level `~/.codex/hooks.json` Speak Swiftly entries are duplicate or legacy repair targets, not the healthy default path.
 
-Current Codex builds require both `features.codex_hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `codex_hooks` enables the hook system generally; `plugin_hooks` enables hook sources loaded from installed plugins.
+Current Codex builds require both `features.hooks = true` and `features.plugin_hooks = true` before installed plugin lifecycle hooks become runnable. `hooks` enables the hook system generally; `plugin_hooks` enables hook sources loaded from installed plugins. Codex 0.129.0 also persists per-hook review decisions under `[hooks.state]` in `~/.codex/config.toml`; missing Speak Swiftly entries there mean the operator needs to approve the plugin-managed hooks in Codex settings.
 
-Use the hook doctor as the first audit surface for installed plugin metadata, duplicate user-level hooks, live runtime reachability, and recent hook logs:
+Use the hook doctor as the first audit surface for installed plugin metadata, duplicate user-level hooks, hook review state, live runtime reachability, and recent hook logs:
 
 ```bash
 node scripts/codex-hooks-doctor.mjs
