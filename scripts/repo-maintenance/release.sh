@@ -11,6 +11,7 @@ load_env_file "$SELF_DIR/config/release.env"
 mode="${REPO_MAINTENANCE_DEFAULT_RELEASE_MODE:-standard}"
 release_tag=""
 skip_validate="false"
+skip_local_e2e="false"
 skip_gh_release="false"
 skip_version_bump="false"
 skip_live_service_update="false"
@@ -32,6 +33,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --skip-validate)
       skip_validate="true"
+      shift
+      ;;
+    --skip-local-e2e)
+      skip_local_e2e="true"
       shift
       ;;
     --skip-gh-release)
@@ -69,7 +74,7 @@ while [ "$#" -gt 0 ]; do
     -h|--help)
       cat <<'USAGE'
 Usage:
-  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
+  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-local-e2e] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
   release.sh --mode submodule --version <vX.Y.Z> [--skip-validate] [--skip-gh-release] [--dry-run]
 USAGE
       exit 0
@@ -434,6 +439,20 @@ update_live_service() {
   log "Updated and healthchecked the live LaunchAgent-backed service for $RELEASE_TAG."
 }
 
+run_local_e2e_validation() {
+  if [ "$skip_local_e2e" = "true" ]; then
+    log "Skipping local live E2E validation because --skip-local-e2e was requested."
+    return 0
+  fi
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would unload resident models from the live LaunchAgent-backed service, run local live E2E, then reload resident models."
+    return 0
+  fi
+
+  sh "$SELF_DIR/validate-local-e2e.sh"
+}
+
 cleanup_merged_branches() {
   release_branch_name="$1"
 
@@ -470,6 +489,9 @@ run_standard_release() {
 
   if [ "$skip_validate" != "true" ]; then
     sh "$SELF_DIR/validate-all.sh"
+    run_local_e2e_validation
+  else
+    log "Skipping maintainer validation and local live E2E validation because --skip-validate was requested."
   fi
 
   run_version_bump

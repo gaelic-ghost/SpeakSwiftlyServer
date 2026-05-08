@@ -18,7 +18,7 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 
 The standard flow runs `scripts/repo-maintenance/version-bump.sh` before the release PR is pushed. That hook updates the checked-in Codex plugin manifest version to match the release version so plugin consumers, marketplace metadata, and GitHub release tags do not drift silently.
 
-The standard flow is a durable repo-maintenance path. It validates the checkout, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, updates the local LaunchAgent-backed live service from the synced `main` checkout, healthchecks HTTP and MCP, and cleans up merged local branches when safe.
+The standard flow is a durable repo-maintenance path. It validates the checkout, runs the local live E2E gate, pushes the release branch, opens or updates the release PR, watches CI, checks for review comments, merges the PR, fast-forwards local `main`, creates the annotated tag from the reviewed base-branch commit, pushes that tag, creates the GitHub release with `gh release create --verify-tag`, updates the local LaunchAgent-backed live service from the synced `main` checkout, healthchecks HTTP and MCP, and cleans up merged local branches when safe.
 
 When full local validation has already run and the remote CI wait is expected to be long, use deferred remote CI mode:
 
@@ -73,6 +73,7 @@ Key flags:
 - `--version vX.Y.Z`
 - `--base-branch <branch>`
 - `--skip-validate`
+- `--skip-local-e2e`
 - `--skip-version-bump`
 - `--skip-gh-release`
 - `--skip-live-service-update`
@@ -88,13 +89,22 @@ Purpose:
 - one local maintainer validation entrypoint
 - dispatch of repo-maintenance validation scripts under `scripts/repo-maintenance/validations/`
 
+### `scripts/repo-maintenance/validate-local-e2e.sh`
+
+Purpose:
+
+- local release-owned live end-to-end gate
+- resident-model unload preflight against the installed LaunchAgent-backed service
+- serialized `ServerTransportE2ETests` run with `SPEAKSWIFTLYSERVER_E2E=1`
+- resident-model reload cleanup after pass or failure
+
 ### `scripts/repo-maintenance/validate-ci.sh`
 
 Purpose:
 
+- GitHub Actions validation entrypoint
 - local compatibility wrapper for checking CI-oriented repo-maintenance wiring
-- useful when maintainers want a narrower CI-shape check without running the full local maintainer gate
-- not the current GitHub Actions entrypoint
+- narrower CI-shape check that keeps package build and tests without repeating the full local maintainer gate
 
 ## Expected Flow
 
@@ -106,9 +116,10 @@ Purpose:
 scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-4. Let the repo-maintenance validation check run.
+4. Let the repo-maintenance validation check and local live E2E gate run.
 5. Let the script push the branch, open or update the PR, watch CI, check review state, merge, fast-forward `main`, create and push the annotated tag, create the GitHub release, update the live LaunchAgent-backed service from synced local `main`, run `SpeakSwiftlyServerTool healthcheck`, and clean up merged branches.
-6. Use `--skip-live-service-update` only when the release is intentionally metadata-only for this machine or when a maintainer will refresh the live service from a different checkout.
+6. Use `--skip-local-e2e` only when the release intentionally cannot touch the live service on this machine and another concrete live E2E signal exists for the release candidate.
+7. Use `--skip-live-service-update` only when the release is intentionally metadata-only for this machine or when a maintainer will refresh the live service from a different checkout.
 
 For deferred remote CI:
 
@@ -125,12 +136,14 @@ The repository uses one authoritative GitHub validation workflow: `.github/workf
 That workflow runs:
 
 ```bash
-bash scripts/repo-maintenance/validate-all.sh
+bash scripts/repo-maintenance/validate-ci.sh
 ```
 
-The GitHub workflow uses the same full maintainer gate as local release validation. It installs the SwiftFormat and SwiftLint tools before running the gate, then executes the managed toolkit checks and repo-specific package checks under `scripts/repo-maintenance/validations/`, including build, test, DocC, CLI smoke, SwiftFormat, and SwiftLint.
+The GitHub workflow uses the lighter CI wrapper so remote checks stay focused on toolkit layout, agent guidance, Codex plugin fixtures, workflow wiring, package build, and package tests. The full local maintainer gate still lives in `validate-all.sh`, including DocC, CLI smoke, SwiftFormat, and SwiftLint.
 
-Keep new required validation inside `validate-all.sh` unless it belongs specifically to a local CI-wrapper compatibility check.
+Keep new required non-live validation inside `validate-all.sh` unless it belongs specifically to a local CI-wrapper compatibility check.
+
+Local live E2E remains release-owned instead of GitHub-owned because it intentionally touches Gale's installed LaunchAgent-backed live service to unload and reload resident models around the test helper. Keep that behavior in `validate-local-e2e.sh` and call it from `release.sh`; do not add live-service operations to the GitHub Actions maintainer gate.
 
 ## Defaults
 
@@ -149,6 +162,8 @@ The explicit repo-maintenance profile lives in `scripts/repo-maintenance/config/
 - Standard mode requires a named feature branch or worktree.
 - Standard mode refuses to run from the configured base branch.
 - Standard mode requires a clean worktree before release work starts.
+- Standard mode runs local live E2E by default after `validate-all.sh` and before the release branch is pushed.
+- Standard mode can skip that local live E2E gate with `--skip-local-e2e` only when another concrete live E2E signal exists for the release candidate.
 - Standard mode can defer remote CI after initial check discovery with `--remote-ci-mode defer`; deferred mode is a pause point, not a completed release.
 - Standard mode waits for the release PR to pass CI and review-comment checks before it creates the annotated tag.
 - Standard mode dereferences existing annotated tags before comparing them with `HEAD` so reruns do not confuse the tag object SHA for the tagged commit SHA.

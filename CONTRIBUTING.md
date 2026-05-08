@@ -194,6 +194,14 @@ It also owns the repo-specific CLI smoke checks that prove the built tool still 
 authoritative maintainer lane instead of duplicating package build, test, and DocC steps in a
 second workflow.
 
+Remote GitHub Actions intentionally runs the lighter CI wrapper:
+
+```bash
+sh scripts/repo-maintenance/validate-ci.sh
+```
+
+That wrapper keeps the toolkit, plugin, workflow, package build, and package test checks on pull requests and `main` pushes while leaving DocC, CLI smoke, SwiftFormat, SwiftLint, and live E2E to the local maintainer and release gates.
+
 Direct formatter and linter commands are:
 
 ```bash
@@ -205,10 +213,10 @@ swiftlint lint --config .swiftlint.yml
 The live end-to-end gate is intentionally small and should still be run in one foreground process at a time:
 
 ```bash
-curl -X POST http://127.0.0.1:7337/models/unload
-SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter ServerTransportE2ETests
-curl -X POST http://127.0.0.1:7337/models/reload
+sh scripts/repo-maintenance/validate-local-e2e.sh
 ```
+
+The script unloads resident models from the installed LaunchAgent-backed service, runs `SPEAKSWIFTLYSERVER_E2E=1 xcrun swift test --filter ServerTransportE2ETests`, and reloads resident models afterward. The standard release workflow runs this local live E2E gate by default after the normal maintainer validation gate. Use `--skip-local-e2e` on `release.sh` only when the current release intentionally cannot touch the live service on this machine and another concrete live E2E signal exists for the release candidate.
 
 This suite is a transport-owned smoke pass, not a second copy of SpeakSwiftly's broader worker end-to-end coverage. Keep this repo's live E2E focused on proving the shipped server can boot the published runtime, answer over HTTP and MCP, deliver MCP resource updates, and retain completed request state.
 
@@ -271,6 +279,8 @@ scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 Run standard mode from a feature branch or worktree. It validates the checkout, creates the annotated tag, pushes the branch and tag, opens or updates the release PR, watches CI, checks review state, merges the PR, fast-forwards local `main`, creates the GitHub release, and cleans up merged branches when safe.
 
 The release flow runs `scripts/repo-maintenance/version-bump.sh` before tagging so version-bearing repo surfaces move with the release. After the release PR is merged, local `main` is fast-forwarded, the annotated tag is pushed, and the GitHub release exists, the standard flow refreshes the LaunchAgent-backed live service from the synced `main` checkout and runs the HTTP plus MCP healthcheck. Use `--skip-live-service-update` only when this machine should not be touched by that release.
+
+Before the release branch is pushed, the standard flow also runs `scripts/repo-maintenance/validate-local-e2e.sh` after the normal maintainer validation gate. That makes local live transport E2E part of the default release signal instead of a separate manual checklist item.
 
 Use deferred remote CI when full local validation has already passed and GitHub's check wait would otherwise keep a Codex shell process open just to poll:
 

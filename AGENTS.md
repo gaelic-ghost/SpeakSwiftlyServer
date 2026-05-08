@@ -108,7 +108,15 @@ Use the remote CI wrapper lane when checking the GitHub workflow path locally:
 sh scripts/repo-maintenance/validate-ci.sh
 ```
 
-The GitHub Actions workflow itself runs the full maintainer gate through `sh scripts/repo-maintenance/validate-all.sh`; `validate-ci.sh` remains a local compatibility wrapper for checking CI-oriented repo-maintenance wiring.
+The GitHub Actions workflow itself runs the lighter CI wrapper through `sh scripts/repo-maintenance/validate-ci.sh`. Keep the full maintainer gate local through `validate-all.sh` and the release script so release candidates get DocC, CLI smoke, SwiftFormat, SwiftLint, and live E2E before remote handoff without making every remote check repeat that whole local gate.
+
+Use the local live end-to-end release gate when checking the transport smoke suite manually:
+
+```bash
+sh scripts/repo-maintenance/validate-local-e2e.sh
+```
+
+The standard release flow runs this local live end-to-end gate by default after `validate-all.sh`. The gate unloads resident models from the installed LaunchAgent-backed service, runs the live transport E2E suite, and reloads resident models afterward.
 
 Use the default SwiftPM package lane for ordinary source work:
 
@@ -138,10 +146,12 @@ Run repo-maintenance sync and release entrypoints:
 sh scripts/repo-maintenance/sync-shared.sh
 sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --remote-ci-mode defer
+sh scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z --skip-local-e2e
 ```
 
 The release flow runs `scripts/repo-maintenance/version-bump.sh` so version-bearing repo surfaces move with the release before the tag is created.
 Use `--remote-ci-mode defer` when full local validation has already run and the remote CI wait is long enough that Codex should resume from a thread wakeup instead of holding a shell process open just to poll GitHub.
+Use `--skip-local-e2e` only when the release intentionally cannot touch the live LaunchAgent-backed service on this machine and the maintainer has another concrete live E2E signal for the release candidate.
 
 ## Review and Delivery
 
