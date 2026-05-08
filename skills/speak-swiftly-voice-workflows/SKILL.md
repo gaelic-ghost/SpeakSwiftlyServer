@@ -27,6 +27,14 @@ Use this skill for voice selection, voice creation, and speech-generation work o
   - `swift-melody`: warm, expressive, friendly, and persona-ready
   - `swift-foundry`: grounded, maker-like, textured, and steady
 
+## Qwen Voice-Design Prompting
+
+- Treat Qwen3-TTS VoiceDesign prompts as standalone voice designs. The model receives the current spoken text plus the current natural-language instruction, not an audio memory of a previous generated profile.
+- When a user wants a change to an existing synthetic voice, rewrite the full intended voice description with both the preserved traits and the requested change. Avoid relative instructions like "same as before, but warmer" or "this voice with less edge"; they leave the model without the original target voice.
+- Make instructions concrete across timbre, age or gender presentation when explicitly requested, pace, pitch range, affect, accent or dialect only when requested, breath/texture, and performance style. Prefer stable acoustic language over brand names, celebrity names, or vague vibe labels.
+- Keep source text aligned with the desired voice. A reusable profile source passage should exercise the cadence, emotion, and phonetic range the user wants, because Qwen's own design-then-clone workflow starts by creating a short reference clip from a matching text and instruction pair.
+- For consistency across many lines, create or reroll a profile from a strong self-contained design first, then reuse that stored profile for generation. Do not try to get long-term voice identity by sending incremental VoiceDesign instructions line by line.
+
 ## Speech And Artifacts
 
 - Use `generate_speech` when the user wants audible playback now.

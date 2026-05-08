@@ -285,6 +285,8 @@ The embedded MCP prompt catalog currently includes:
 
 The text-profile prompts and the `speak-swiftly://text-profiles/guide` resource are there so an app-hosted or MCP-hosted agent can help a user author replacements deliberately instead of treating normalization rules like hidden implementation detail.
 
+The voice-design prompts and `speak-swiftly://voices/guide` resource treat Qwen3-TTS VoiceDesign instructions as self-contained voice designs. Agents should rewrite the full intended voice when revising a synthetic profile instead of sending relative prompts such as "same as before, but warmer", because the voice-design model receives the current text and instruction rather than a remembered previous generated voice.
+
 ### MCP Resource Subscriptions
 
 The embedded MCP surface supports resource subscriptions for the live state resources and templates backed by shared host updates. Playback freshness is driven by the upstream `SpeakSwiftly.Playback.updates()` stream, so playback resource subscribers receive update notifications for direct playback milestones instead of waiting only for broad host refreshes.

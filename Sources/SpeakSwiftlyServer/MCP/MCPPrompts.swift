@@ -119,7 +119,7 @@ extension MCPSurface {
                     Requested voice traits: \(voiceTraits)
                     \(deliveryStyle.map { "Delivery style guidance: \($0)" } ?? "")
                     \(constraints.map { "Additional constraints: \($0)" } ?? "")
-                    Focus on concrete timbre, affect, pacing, and speaking texture. Mention age or gender presentation only if explicitly requested above. Do not add bullets, labels, surrounding explanation, or more than one candidate.
+                    Focus on concrete timbre, affect, pacing, pitch range, breath texture, and speaking texture. Mention age or gender presentation only if explicitly requested above. Make the description self-contained: if this revises an existing synthetic voice, restate the traits to preserve and the traits to change instead of using relative wording like "same as before" or "this, but warmer". Do not add bullets, labels, surrounding explanation, or more than one candidate.
                     """
                     return .init(
                         description: "Reusable authoring prompt for profile voice descriptions.",
@@ -187,7 +187,7 @@ extension MCPSurface {
                     Target emotion: \(emotion)
                     Delivery style: \(deliveryStyle)
                     \(textIfPresent("constraints", in: arguments).map { "Additional constraints: \($0)" } ?? "")
-                    Describe how the line should sound without rewriting the spoken text. Focus on tone, pacing, emphasis, and prosody. Return only the instruction.
+                    Describe how the line should sound without rewriting the spoken text. Make the instruction self-contained because Qwen-style voice design receives only the current text and instruction, not a remembered prior voice design. If this is a revision, restate the preserved voice traits and the requested change instead of saying "same as before", "this voice", or "like the previous one". Focus on tone, pacing, emphasis, and prosody. Return only the instruction.
                     """
                     return .init(
                         description: "Reusable authoring prompt for future voice-design instructions.",

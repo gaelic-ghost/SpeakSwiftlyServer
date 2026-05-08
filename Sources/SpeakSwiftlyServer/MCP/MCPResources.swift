@@ -340,6 +340,13 @@ private func voiceProfilesGuideMarkdown() -> String {
     - Use `draft_profile_source_text` when the user needs a good source passage for profile creation.
     - Use `draft_voice_design_instruction` when the user is shaping one spoken line rather than a reusable stored profile.
 
+    Qwen voice-design guidance:
+
+    - Treat Qwen3-TTS VoiceDesign instructions as standalone designs. The model receives the current spoken text plus the current natural-language instruction, not a remembered prior generated voice.
+    - When revising a synthetic voice, rewrite the full target voice with both preserved and changed traits. Avoid relative wording such as "same as before", "this voice", or "like the previous one".
+    - Describe concrete acoustic traits: timbre, pitch range, pace, affect, breath or texture, and performance style. Mention age, gender presentation, accent, or dialect only when the user asked for them.
+    - Use source text that naturally exercises the target cadence and emotion. For many lines that need a stable identity, create or reroll a stored profile from a strong self-contained design, then reuse that stored profile.
+
     Broad-appeal example names and directions:
 
     - `swift-lumen`: luminous, clean, gentle, and polished.
