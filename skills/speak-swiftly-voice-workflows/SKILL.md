@@ -41,7 +41,7 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 - Use `generate_audio_file` when the user wants a saved retained artifact instead of immediate playback.
 - Use `generate_batch` when the user wants multiple retained artifacts generated under one voice profile.
 - Pass `text_profile_id` only when the user explicitly wants a stored normalization profile on that request.
-- Pass `source_format` when source-like input needs explicit format-aware normalization. HTTP and MCP speech requests get transport provenance in `request_context` by default; pass `cwd`, `repo_root`, or explicit `request_context` only when path or caller metadata needs to be more specific.
+- HTTP and MCP speech requests get transport provenance in `request_context` by default; pass `cwd`, `repo_root`, or explicit `request_context` only when path or caller metadata needs to be more specific. Do not pass a separate `source_format`; SpeakSwiftly now lets TextForSpeech infer text and source structure from request text plus path context.
 - Pass `qwen_pre_model_text_chunking` only when the user explicitly wants Qwen live playback to chunk before model generation; omitted requests keep the runtime's normal single-pass live path.
 
 ## Tracking

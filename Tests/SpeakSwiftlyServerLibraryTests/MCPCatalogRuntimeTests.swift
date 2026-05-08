@@ -15,7 +15,7 @@ extension ServerTests {
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
-                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","topic":"catalog-runtime","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"mcp"}},"cwd":"./Tests","repo_root":".","source_format":"source_code","qwen_pre_model_text_chunking":true}"#,
+                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","topic":"catalog-runtime","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"mcp"}},"cwd":"./Tests","repo_root":".","qwen_pre_model_text_chunking":true}"#,
                         ),
                         sessionID: sessionID,
                     ),
@@ -27,7 +27,6 @@ extension ServerTests {
             #expect(queueSpeechToolPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(requestID)")
             let queuedSpeechInvocation = try #require(await runtime.latestQueuedSpeechInvocation())
             #expect(queuedSpeechInvocation.textProfileID == "mcp-text")
-            #expect(queuedSpeechInvocation.sourceFormat == .generic)
             #expect(queuedSpeechInvocation.qwenPreModelTextChunking == true)
             #expect(
                 queuedSpeechInvocation.requestContext
@@ -253,8 +252,8 @@ extension ServerTests {
             #expect(statusResourcePayload["worker_mode"] as? String == "ready")
             let statusRuntimeConfiguration = try #require(statusResourcePayload["runtime_configuration"] as? [String: Any])
             #expect(statusRuntimeConfiguration["active_runtime_speech_backend"] as? String == "qwen3_smol")
-            #expect(statusRuntimeConfiguration["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(statusRuntimeConfiguration["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
+            #expect(statusRuntimeConfiguration["active_qwen_resident_model"] == nil)
+            #expect(statusRuntimeConfiguration["next_qwen_resident_model"] == nil)
             let transports = try #require(statusResourcePayload["transports"] as? [[String: Any]])
             #expect(transports.contains { $0["name"] as? String == "mcp" && $0["state"] as? String == "listening" })
 
@@ -269,10 +268,10 @@ extension ServerTests {
             let getRuntimeConfigPayload = try mcpResourceObjectPayload(from: runtimeConfigResourceEnvelope)
             #expect(getRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_smol")
-            #expect(getRuntimeConfigPayload["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(getRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(getRuntimeConfigPayload["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
-            #expect(getRuntimeConfigPayload["next_marvis_resident_policy"] as? String == "dual_resident_serialized")
+            #expect(getRuntimeConfigPayload["active_qwen_resident_model"] == nil)
+            #expect(getRuntimeConfigPayload["next_qwen_resident_model"] == nil)
+            #expect(getRuntimeConfigPayload["active_marvis_resident_policy"] == nil)
+            #expect(getRuntimeConfigPayload["next_marvis_resident_policy"] == nil)
 
             let setRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -281,8 +280,6 @@ extension ServerTests {
                             name: "set_runtime_configuration",
                             arguments: [
                                 "speech_backend": "marvis",
-                                "qwen_resident_model": "base_1_7b_8bit",
-                                "marvis_resident_policy": "single_resident_dynamic",
                             ],
                         ),
                         sessionID: sessionID,
@@ -292,13 +289,9 @@ extension ServerTests {
             let setRuntimeConfigPayload = try mcpToolPayload(from: setRuntimeConfigEnvelope)
             #expect(setRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(setRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "marvis")
-            #expect(setRuntimeConfigPayload["active_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(setRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(setRuntimeConfigPayload["active_marvis_resident_policy"] as? String == "dual_resident_serialized")
-            #expect(setRuntimeConfigPayload["next_marvis_resident_policy"] as? String == "single_resident_dynamic")
             #expect(setRuntimeConfigPayload["persisted_speech_backend"] as? String == "marvis")
-            #expect(setRuntimeConfigPayload["persisted_qwen_resident_model"] as? String == "base_0_6b_8bit")
-            #expect(setRuntimeConfigPayload["persisted_marvis_resident_policy"] as? String == "single_resident_dynamic")
+            #expect(setRuntimeConfigPayload["persisted_qwen_resident_model"] == nil)
+            #expect(setRuntimeConfigPayload["persisted_marvis_resident_policy"] == nil)
 
             let switchBackendEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -344,7 +337,7 @@ extension ServerTests {
             )
             let setQuantizedRuntimeConfigPayload = try mcpToolPayload(from: setQuantizedRuntimeConfigEnvelope)
             #expect(setQuantizedRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_big_4bit")
-            #expect(setQuantizedRuntimeConfigPayload["next_qwen_resident_model"] as? String == "base_1_7b_8bit")
+            #expect(setQuantizedRuntimeConfigPayload["next_qwen_resident_model"] == nil)
             #expect(setQuantizedRuntimeConfigPayload["persisted_speech_backend"] as? String == "qwen3_big_4bit")
         }
     }

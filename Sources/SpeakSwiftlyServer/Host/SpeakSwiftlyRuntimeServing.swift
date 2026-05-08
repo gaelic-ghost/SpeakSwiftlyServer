@@ -59,7 +59,6 @@ protocol SpeakSwiftlyRuntimeServing: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
     ) async -> RuntimeRequestHandle
@@ -67,7 +66,6 @@ protocol SpeakSwiftlyRuntimeServing: Actor {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle
     func queueSpeechBatch(

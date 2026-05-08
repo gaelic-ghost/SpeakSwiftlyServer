@@ -9,7 +9,6 @@ app:
   jobPruneIntervalSeconds: 60
   runtime:
     speechBackend: qwen3_smol
-    marvisResidentPolicy: dual_resident_serialized
     defaultVoiceProfileName:
   http:
     enabled: true

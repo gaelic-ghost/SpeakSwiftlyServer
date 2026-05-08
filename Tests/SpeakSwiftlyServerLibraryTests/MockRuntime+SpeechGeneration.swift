@@ -11,7 +11,6 @@ extension MockRuntime {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
     ) async -> RuntimeRequestHandle {
@@ -22,7 +21,6 @@ extension MockRuntime {
                 text: text,
                 profileName: profileName,
                 textProfileID: textProfileID,
-                sourceFormat: sourceFormat,
                 requestContext: requestContext,
                 qwenPreModelTextChunking: qwenPreModelTextChunking,
             ),
@@ -57,7 +55,6 @@ extension MockRuntime {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
@@ -69,7 +66,7 @@ extension MockRuntime {
                 createdAt: createdAt,
                 voiceProfile: profileName,
                 textProfile: textProfileID,
-                sourceFormat: sourceFormat,
+                sourceFormat: nil,
                 requestContext: requestContext,
                 sampleRate: 24000,
                 filePath: mockArtifactPath("\(artifactID).wav"),
@@ -81,7 +78,7 @@ extension MockRuntime {
                 artifactID: artifactID,
                 text: text,
                 textProfile: textProfileID,
-                sourceFormat: sourceFormat,
+                sourceFormat: nil,
                 requestContext: requestContext,
             ),
         ]
@@ -94,7 +91,7 @@ extension MockRuntime {
                 sampleRate: artifact.sampleRate,
                 voiceProfile: profileName,
                 textProfile: textProfileID,
-                sourceFormat: sourceFormat,
+                sourceFormat: nil,
                 requestContext: requestContext,
             ),
         ]
@@ -139,7 +136,7 @@ extension MockRuntime {
                     createdAt: createdAt,
                     voiceProfile: profileName,
                     textProfile: item.textProfile,
-                    sourceFormat: item.sourceFormat,
+                    sourceFormat: nil,
                     requestContext: item.requestContext,
                     sampleRate: 24000,
                     filePath: mockArtifactPath("\(item.artifactID ?? "\(requestID)-artifact-\(index + 1)").wav"),
@@ -152,7 +149,7 @@ extension MockRuntime {
                 artifactID: item.artifactID ?? "\(requestID)-artifact-\(index + 1)",
                 text: item.text,
                 textProfile: item.textProfile,
-                sourceFormat: item.sourceFormat,
+                sourceFormat: nil,
                 requestContext: item.requestContext,
             )
         }

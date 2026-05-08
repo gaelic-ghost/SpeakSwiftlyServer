@@ -214,10 +214,6 @@ import Testing
     let initialSnapshot = await host.runtimeConfigurationSnapshot()
     #expect(initialSnapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(initialSnapshot.nextRuntimeSpeechBackend == "qwen3_smol")
-    #expect(initialSnapshot.activeQwenResidentModel == "base_0_6b_8bit")
-    #expect(initialSnapshot.nextQwenResidentModel == "base_0_6b_8bit")
-    #expect(initialSnapshot.activeMarvisResidentPolicy == "dual_resident_serialized")
-    #expect(initialSnapshot.nextMarvisResidentPolicy == "dual_resident_serialized")
     #expect(initialSnapshot.activeDefaultVoiceProfileName == nil)
     #expect(initialSnapshot.nextDefaultVoiceProfileName == nil)
     #expect(initialSnapshot.persistedConfigurationExists == false)
@@ -226,20 +222,12 @@ import Testing
 
     let updatedSnapshot = try await host.saveRuntimeConfiguration(
         speechBackend: .marvis,
-        qwenSpeechBackend: .qwen3_BIG,
-        marvisResidentPolicy: .singleResidentDynamic,
     )
     #expect(updatedSnapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(updatedSnapshot.nextRuntimeSpeechBackend == "marvis")
-    #expect(updatedSnapshot.activeQwenResidentModel == "base_0_6b_8bit")
-    #expect(updatedSnapshot.nextQwenResidentModel == "base_0_6b_8bit")
-    #expect(updatedSnapshot.activeMarvisResidentPolicy == "dual_resident_serialized")
-    #expect(updatedSnapshot.nextMarvisResidentPolicy == "single_resident_dynamic")
     #expect(updatedSnapshot.activeDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.nextDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedSpeechBackend == "marvis")
-    #expect(updatedSnapshot.persistedQwenResidentModel == "base_0_6b_8bit")
-    #expect(updatedSnapshot.persistedMarvisResidentPolicy == "single_resident_dynamic")
     #expect(updatedSnapshot.persistedDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedConfigurationExists == true)
     #expect(updatedSnapshot.persistedConfigurationState == "loaded")
@@ -275,8 +263,6 @@ import Testing
     let runtimeConfiguration = await host.runtimeConfigurationSnapshot()
     #expect(runtimeConfiguration.activeRuntimeSpeechBackend == "marvis")
     #expect(runtimeConfiguration.nextRuntimeSpeechBackend == "qwen3_smol")
-    #expect(runtimeConfiguration.activeQwenResidentModel == "base_0_6b_8bit")
-    #expect(runtimeConfiguration.nextQwenResidentModel == "base_0_6b_8bit")
     #expect(runtimeConfiguration.activeDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.nextDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.persistedSpeechBackend == nil)
@@ -356,8 +342,6 @@ import Testing
     let snapshot = store.snapshot()
     #expect(snapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol")
-    #expect(snapshot.activeQwenResidentModel == "base_0_6b_8bit")
-    #expect(snapshot.nextQwenResidentModel == "base_0_6b_8bit")
     #expect(snapshot.persistedConfigurationExists == true)
     #expect(snapshot.persistedConfigurationState == "invalid")
     #expect(snapshot.persistedSpeechBackend == nil)
@@ -374,7 +358,6 @@ import Testing
         environment: [
             "SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path,
             "SPEAKSWIFTLY_SPEECH_BACKEND": "marvis",
-            "SPEAKSWIFTLY_QWEN_RESIDENT_MODEL": "base_1_7b_8bit",
         ],
         activeRuntimeSpeechBackend: .marvis,
     )
@@ -385,10 +368,7 @@ import Testing
     let snapshot = store.snapshot()
     #expect(snapshot.activeRuntimeSpeechBackend == "marvis")
     #expect(snapshot.nextRuntimeSpeechBackend == "marvis")
-    #expect(snapshot.activeQwenResidentModel == "base_0_6b_8bit")
-    #expect(snapshot.nextQwenResidentModel == "base_0_6b_8bit")
     #expect(snapshot.environmentSpeechBackendOverride == "marvis")
-    #expect(snapshot.environmentQwenResidentModelOverride == nil)
     #expect(snapshot.persistedSpeechBackend == "qwen3_smol")
     #expect(snapshot.persistedDefaultVoiceProfileName == "persisted-femme")
     #expect(snapshot.nextDefaultVoiceProfileName == "persisted-femme")
@@ -397,7 +377,7 @@ import Testing
     #expect(snapshot.activeRuntimeMatchesNextRuntime == true)
 }
 
-@Test func `runtime startup configuration store preserves explicit v7 qwen backend over legacy qwen field`() throws {
+@Test func `runtime startup configuration store preserves explicit qwen backend`() throws {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
@@ -408,13 +388,10 @@ import Testing
 
     let snapshot = try store.save(
         speechBackend: .qwen3_smol_6bit,
-        qwenSpeechBackend: .qwen3_BIG,
     )
 
     #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol_6bit")
-    #expect(snapshot.nextQwenResidentModel == "base_0_6b_8bit")
     #expect(snapshot.persistedSpeechBackend == "qwen3_smol_6bit")
-    #expect(snapshot.persistedQwenResidentModel == "base_0_6b_8bit")
 }
 
 @Test func `runtime startup configuration store normalizes blank default voice profile name`() throws {
@@ -436,7 +413,6 @@ import Testing
 @Test func `runtime startup configuration includes bundled system profile resources`() {
     let configuration = RuntimeStartupConfiguration(
         speechBackend: .qwen3_smol,
-        marvisResidentPolicy: .dualResidentSerialized,
         defaultVoiceProfileName: nil,
     )
     .speakSwiftlyConfiguration()
@@ -449,7 +425,6 @@ import Testing
 @Test func `bundled system profile resources include default voices`() throws {
     let configuration = RuntimeStartupConfiguration(
         speechBackend: .qwen3_smol,
-        marvisResidentPolicy: .dualResidentSerialized,
         defaultVoiceProfileName: nil,
     )
     .speakSwiftlyConfiguration()

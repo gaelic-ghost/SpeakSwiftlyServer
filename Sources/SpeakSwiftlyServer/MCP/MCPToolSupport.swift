@@ -100,10 +100,6 @@ func decodeOptionalArgument<T: Decodable>(
     return try decodeValue(value, fieldName: key)
 }
 
-func sourceFormat(in arguments: [String: Value]) throws -> TextForSpeech.SourceFormat? {
-    try requestSourceFormat("source_format", in: arguments)
-}
-
 func requestContext(
     in arguments: [String: Value],
     defaults: SpeechRequestContextDefaults = .init(),
@@ -119,17 +115,6 @@ func requestContext(
         requestContext: decodedContext,
         defaults: defaults,
     )
-}
-
-func requestSourceFormat(
-    _ key: String,
-    in arguments: [String: Value],
-) throws -> TextForSpeech.SourceFormat? {
-    guard let rawValue = optionalString(key, in: arguments) else {
-        return nil
-    }
-
-    return try decodeStringEnum(rawValue, fieldName: key, valueType: TextForSpeech.SourceFormat.self)
 }
 
 func requiredVibe(
@@ -159,40 +144,6 @@ func requiredSpeechBackend(
     }
 
     return speechBackend
-}
-
-func optionalQwenSpeechBackend(
-    _ key: String,
-    in arguments: [String: Value],
-    rawSpeechBackend: String,
-) throws -> SpeakSwiftly.SpeechBackend? {
-    guard rawSpeechBackend.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        == SpeakSwiftly.SpeechBackend.legacyQwenRawValue
-    else {
-        return nil
-    }
-    guard let rawValue = optionalString(key, in: arguments) else {
-        return nil
-    }
-
-    do {
-        return try RuntimeStartupConfiguration.speechBackend(forLegacyQwenResidentModel: rawValue)
-    } catch {
-        throw MCPError.invalidParams(
-            "Tool argument '\(key)' used unsupported value '\(rawValue)'. Expected one of: \(supportedQwenResidentModelDescription()).",
-        )
-    }
-}
-
-func optionalMarvisResidentPolicy(
-    _ key: String,
-    in arguments: [String: Value],
-) throws -> SpeakSwiftly.MarvisResidentPolicy? {
-    guard let rawValue = optionalString(key, in: arguments) else {
-        return nil
-    }
-
-    return try decodeStringEnum(rawValue, fieldName: key, valueType: SpeakSwiftly.MarvisResidentPolicy.self)
 }
 
 func requiredBuiltInTextProfileStyle(

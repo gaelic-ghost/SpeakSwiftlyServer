@@ -1,14 +1,12 @@
 import Foundation
 import Hummingbird
 import SpeakSwiftly
-import TextForSpeech
 
 extension ServerHost {
     func queueSpeechLive(
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
         qwenPreModelTextChunking: Bool = false,
     ) async throws -> String {
@@ -17,7 +15,6 @@ extension ServerHost {
             text: text,
             with: profileName,
             textProfileID: textProfileID,
-            sourceFormat: sourceFormat,
             requestContext: requestContext,
             qwenPreModelTextChunking: qwenPreModelTextChunking,
         )
@@ -28,7 +25,6 @@ extension ServerHost {
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
     ) async throws -> String {
         try ensureWorkerReady()
@@ -36,7 +32,6 @@ extension ServerHost {
             text: text,
             with: profileName,
             textProfileID: textProfileID,
-            sourceFormat: sourceFormat,
             requestContext: requestContext,
         )
         return await enqueuePublicJob(handle)

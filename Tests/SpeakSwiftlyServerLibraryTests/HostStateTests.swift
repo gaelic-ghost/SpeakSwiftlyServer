@@ -75,17 +75,10 @@ extension ServerTests {
                     runtimeConfiguration: .init(
                         activeRuntimeSpeechBackend: "qwen3_smol",
                         nextRuntimeSpeechBackend: "qwen3_smol",
-                        activeQwenResidentModel: "base_0_6b_8bit",
-                        nextQwenResidentModel: "base_0_6b_8bit",
-                        activeMarvisResidentPolicy: "dual_resident_serialized",
-                        nextMarvisResidentPolicy: "dual_resident_serialized",
                         activeDefaultVoiceProfileName: "default",
                         nextDefaultVoiceProfileName: "default",
                         environmentSpeechBackendOverride: nil,
-                        environmentQwenResidentModelOverride: nil,
                         persistedSpeechBackend: nil,
-                        persistedQwenResidentModel: nil,
-                        persistedMarvisResidentPolicy: nil,
                         persistedDefaultVoiceProfileName: nil,
                         profileRootPath: "/tmp/profiles",
                         persistedConfigurationPath: "/tmp/SpeakSwiftlyServer/server.yaml",
@@ -613,7 +606,7 @@ extension ServerTests {
                     refreshVoiceProfiles: {
                         try await host.refreshVoiceProfiles()
                     },
-                    queueLiveSpeech: { text, profileName, textProfileID, sourceFormat, requestContext, qwenPreModelTextChunking in
+                    queueLiveSpeech: { text, profileName, textProfileID, requestContext, qwenPreModelTextChunking in
                         guard let resolvedProfileName = await host.resolvedRequestedVoiceProfileName(profileName) else {
                             let errorMessage = await host.missingVoiceProfileNameMessage(for: "the live speech request")
                             throw ServerConfigurationError(errorMessage)
@@ -623,7 +616,6 @@ extension ServerTests {
                             text: text,
                             profileName: resolvedProfileName,
                             textProfileID: textProfileID,
-                            sourceFormat: sourceFormat,
                             requestContext: requestContext,
                             qwenPreModelTextChunking: qwenPreModelTextChunking,
                         )
@@ -697,7 +689,6 @@ extension ServerTests {
             text: "Read this aloud",
             profileName: "default",
             textProfileID: "swift-docs",
-            sourceFormat: .python,
             requestContext: .init(
                 source: "embedded-session",
                 topic: "state-actions",
@@ -715,7 +706,6 @@ extension ServerTests {
         #expect(firstQueuedSpeechInvocation.text == "Read this aloud")
         #expect(firstQueuedSpeechInvocation.profileName == "default")
         #expect(firstQueuedSpeechInvocation.textProfileID == "swift-docs")
-        #expect(firstQueuedSpeechInvocation.sourceFormat == .python)
         #expect(
             firstQueuedSpeechInvocation.requestContext
                 == SpeakSwiftly.RequestContext(
@@ -1076,7 +1066,7 @@ extension ServerTests {
                     refreshVoiceProfiles: {
                         try await host.refreshVoiceProfiles()
                     },
-                    queueLiveSpeech: { text, profileName, textProfileID, sourceFormat, requestContext, qwenPreModelTextChunking in
+                    queueLiveSpeech: { text, profileName, textProfileID, requestContext, qwenPreModelTextChunking in
                         guard let resolvedProfileName = await host.resolvedRequestedVoiceProfileName(profileName) else {
                             let errorMessage = await host.missingVoiceProfileNameMessage(for: "the live speech request")
                             throw ServerConfigurationError(errorMessage)
@@ -1086,7 +1076,6 @@ extension ServerTests {
                             text: text,
                             profileName: resolvedProfileName,
                             textProfileID: textProfileID,
-                            sourceFormat: sourceFormat,
                             requestContext: requestContext,
                             qwenPreModelTextChunking: qwenPreModelTextChunking,
                         )

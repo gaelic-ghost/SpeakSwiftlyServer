@@ -95,7 +95,6 @@ actor ServerHost {
     let encoder = JSONEncoder()
     let byteBufferAllocator = ByteBufferAllocator()
     var activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend
-    var activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy
 
     var statusTask: Task<Void, Never>?
     var playbackTask: Task<Void, Never>?
@@ -160,7 +159,6 @@ actor ServerHost {
         runtime: any SpeakSwiftlyRuntimeServing,
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
-        activeMarvisResidentPolicy: SpeakSwiftly.MarvisResidentPolicy? = nil,
         state: EmbeddedServer,
     ) {
         let (immediatePublishRequests, immediatePublishContinuation) = AsyncStream.makeStream(
@@ -199,8 +197,6 @@ actor ServerHost {
         self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeStartupConfigurationStore.initialActiveRuntimeSpeechBackend()
-        self.activeMarvisResidentPolicy = activeMarvisResidentPolicy
-            ?? runtimeStartupConfigurationStore.initialActiveMarvisResidentPolicy()
         activeDefaultVoiceProfileName = runtimeStartupConfigurationStore.initialActiveDefaultVoiceProfileName(
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -274,7 +270,6 @@ actor ServerHost {
             runtime: runtime,
             runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
-            activeMarvisResidentPolicy: startupConfiguration.marvisResidentPolicy,
             state: state,
         )
     }
