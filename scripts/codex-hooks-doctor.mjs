@@ -421,10 +421,12 @@ async function main() {
   }
 
   const configText = await readText(path.join(codexHome, "config.toml"));
-  if (configText?.includes("codex_hooks = true")) {
+  if (configText?.includes("hooks = true")) {
     addCheck("ok", "Codex hooks feature flag appears enabled in config.toml");
+  } else if (configText?.includes("codex_hooks = true")) {
+    addCheck("warn", "Codex hooks feature flag uses deprecated codex_hooks key in config.toml");
   } else {
-    addCheck("warn", "Could not confirm codex_hooks = true in config.toml");
+    addCheck("warn", "Could not confirm hooks = true in config.toml");
   }
   if (configText?.includes("plugin_hooks = true")) {
     addCheck("ok", "Codex plugin-managed hooks feature flag appears enabled in config.toml");

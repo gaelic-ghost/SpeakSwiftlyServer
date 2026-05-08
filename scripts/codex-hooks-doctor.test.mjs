@@ -20,7 +20,7 @@ function summarize(configText) {
 
 test("pluginConfigEntries detects current and legacy marketplace entries", () => {
   const config = `
-codex_hooks = true
+hooks = true
 
 [plugins."speak-swiftly@socket"]
 enabled = true

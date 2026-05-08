@@ -38,7 +38,7 @@ Expected result:
 - The plugin manifest declares `name: speak-swiftly`, display name
   `Speak Swiftly`, `mcpServers: ./.mcp.json`, `hooks: ./hooks/hooks.json`, and
   `skills: ./skills/`.
-- The hook doctor reports both `features.codex_hooks = true` and
+- The hook doctor reports both `features.hooks = true` and
   `features.plugin_hooks = true`. `plugin_hooks` is required before Codex runs
   lifecycle hooks loaded from installed plugins.
 - The hook doctor reports one installed-cache dispatcher command for `Stop` and

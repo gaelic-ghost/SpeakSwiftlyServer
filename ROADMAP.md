@@ -258,6 +258,7 @@ Planned
 ### Tickets
 
 - [ ] Review the relationship between `APP_DEFAULT_VOICE_PROFILE_NAME`, startup-installed built-ins, user-owned saved profiles, and fallback `-builtin` names.
+- [ ] Re-evaluate the current built-in voice quality, especially the slightly wonky `swift-signal` default, and decide whether the bundled seed prompts, source text, or sample-selection workflow need another tuning pass.
 - [ ] Decide whether the server should expose a clearer operator command, config default, or MCP guidance for choosing one of the built-ins after startup seeding.
 - [x] Use upstream `SpeakSwiftly` system-authored profile metadata for startup-installed built-ins instead of creating them through the ordinary user-profile design path.
 - [x] Keep ordinary profile reads list-and-select for system built-ins by redacting seed source text and voice-design prompts from normal encoded profile JSON.

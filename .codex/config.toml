@@ -7,4 +7,5 @@
 notify = ["node", ".codex/hooks/notify-dump.mjs"]
 
 [features]
-codex_hooks = true
+hooks = true
+plugin_hooks = true
