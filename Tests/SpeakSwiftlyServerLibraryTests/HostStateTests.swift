@@ -6,7 +6,7 @@ import Testing
 // MARK: - Host State Tests
 
 extension ServerTests {
-    @Test func `speech request context keeps purpose and preface only contexts`() {
+    @Test func `speech request context applies transport purpose and keeps preface only contexts`() throws {
         let purposeOnly = makeSpeechRequestContext(
             cwd: nil,
             repoRoot: nil,
@@ -15,20 +15,30 @@ extension ServerTests {
         )
         #expect(purposeOnly == SpeakSwiftly.RequestContext(reqPurpose: .audioFile))
 
-        let callerPurposeOnly = makeSpeechRequestContext(
+        let callerContextPayload = try JSONDecoder().decode(
+            SpeechRequestContextPayload.self,
+            from: Data(
+                #"{"reqPurpose":"audioStream","source":"caller","prefacePolicy":"never"}"#.utf8,
+            ),
+        )
+        let callerCannotOverridePurpose = makeSpeechRequestContext(
             cwd: nil,
             repoRoot: nil,
-            requestContext: SpeakSwiftly.RequestContext(reqPurpose: .audioStream),
+            requestContext: callerContextPayload,
         )
-        #expect(callerPurposeOnly == SpeakSwiftly.RequestContext(reqPurpose: .audioStream))
+        #expect(
+            callerCannotOverridePurpose
+                == SpeakSwiftly.RequestContext(
+                    reqPurpose: .speech,
+                    source: "caller",
+                    prefacePolicy: .never,
+                ),
+        )
 
         let prefaceOnly = makeSpeechRequestContext(
             cwd: nil,
             repoRoot: nil,
-            requestContext: SpeakSwiftly.RequestContext(
-                reqPurpose: .speech,
-                prefacePolicy: .never,
-            ),
+            requestContext: SpeechRequestContextPayload(prefacePolicy: .never),
         )
         #expect(
             prefaceOnly

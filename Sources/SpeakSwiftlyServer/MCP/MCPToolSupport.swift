@@ -104,7 +104,7 @@ func requestContext(
     in arguments: [String: Value],
     defaults: SpeechRequestContextDefaults = .init(),
 ) throws -> SpeakSwiftly.RequestContext? {
-    let decodedContext: SpeakSwiftly.RequestContext? = if let value = arguments["request_context"] {
+    let decodedContext: SpeechRequestContextPayload? = if let value = arguments["request_context"] {
         try decodeValue(value, fieldName: "request_context")
     } else {
         nil

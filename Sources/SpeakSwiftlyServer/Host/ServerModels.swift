@@ -39,14 +39,63 @@ struct SpeechRequestContextDefaults {
     }
 }
 
+struct SpeechRequestContextPayload: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case source
+        case topic
+        case cwd
+        case repoRoot
+        case repoRootSnake = "repo_root"
+        case attributes
+        case prefacePolicy
+    }
+
+    let source: String?
+    let topic: String?
+    let cwd: String?
+    let repoRoot: String?
+    let attributes: [String: String]
+    let prefacePolicy: SpeakSwiftly.RequestContext.PrefacePolicy?
+
+    init(
+        source: String? = nil,
+        topic: String? = nil,
+        cwd: String? = nil,
+        repoRoot: String? = nil,
+        attributes: [String: String] = [:],
+        prefacePolicy: SpeakSwiftly.RequestContext.PrefacePolicy? = nil,
+    ) {
+        self.source = source
+        self.topic = topic
+        self.cwd = cwd
+        self.repoRoot = repoRoot
+        self.attributes = attributes
+        self.prefacePolicy = prefacePolicy
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        source = try container.decodeIfPresent(String.self, forKey: .source)
+        topic = try container.decodeIfPresent(String.self, forKey: .topic)
+        cwd = try container.decodeIfPresent(String.self, forKey: .cwd)
+        repoRoot = try container.decodeIfPresent(String.self, forKey: .repoRootSnake)
+            ?? container.decodeIfPresent(String.self, forKey: .repoRoot)
+        attributes = try container.decodeIfPresent([String: String].self, forKey: .attributes) ?? [:]
+        prefacePolicy = try container.decodeIfPresent(
+            SpeakSwiftly.RequestContext.PrefacePolicy.self,
+            forKey: .prefacePolicy,
+        )
+    }
+}
+
 func makeSpeechRequestContext(
     cwd: String?,
     repoRoot: String?,
-    requestContext: SpeakSwiftly.RequestContext?,
+    requestContext: SpeechRequestContextPayload?,
     defaults: SpeechRequestContextDefaults = .init(),
 ) -> SpeakSwiftly.RequestContext? {
     let merged = SpeakSwiftly.RequestContext(
-        reqPurpose: requestContext?.reqPurpose ?? defaults.reqPurpose,
+        reqPurpose: defaults.reqPurpose,
         source: requestContext?.source ?? defaults.source,
         topic: requestContext?.topic ?? defaults.topic,
         cwd: cwd ?? requestContext?.cwd ?? defaults.cwd,
@@ -64,7 +113,6 @@ func makeSpeechRequestContext(
         || merged.repoRoot != nil
         || !merged.attributes.isEmpty
         || merged.prefacePolicy != nil
-        || requestContext?.reqPurpose != nil
         || defaults.reqPurpose != .speech
     else {
         return nil
@@ -100,7 +148,7 @@ struct SpeakRequestPayload: Decodable {
     let textProfileID: String?
     let cwd: String?
     let repoRoot: String?
-    let requestContext: SpeakSwiftly.RequestContext?
+    let requestContext: SpeechRequestContextPayload?
     let qwenPreModelTextChunking: Bool?
 
     func resolvedRequestContext(defaults: SpeechRequestContextDefaults = .init()) -> SpeakSwiftly.RequestContext? {
@@ -180,7 +228,7 @@ struct BatchItemRequestPayload: Decodable {
     let textProfileID: String?
     let cwd: String?
     let repoRoot: String?
-    let requestContext: SpeakSwiftly.RequestContext?
+    let requestContext: SpeechRequestContextPayload?
 
     func model(requestContextDefaults: SpeechRequestContextDefaults = .init()) -> SpeakSwiftly.BatchItem {
         .init(

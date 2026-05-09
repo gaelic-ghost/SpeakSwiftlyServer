@@ -169,6 +169,8 @@ Accepted request routes and tools return immediately with request-tracking metad
 
 `POST /speech/live` queues live playback. `POST /speech/files` and `POST /speech/batches` queue retained artifact generation. When `profile_name` is omitted, the server uses the configured app default voice when one exists, then falls back to the runtime default voice.
 
+The server applies request purpose from the route or MCP tool. Callers do not send `reqPurpose`. Caller-provided `request_context` may include `source`, `topic`, `cwd`, `repo_root`, `attributes`, and optional `prefacePolicy`; omit `prefacePolicy` for the default behavior, set it to `always` to force the source/topic preface, or set it to `never` to suppress that preface.
+
 Voice profile creation accepts either a description-backed payload or an audio-backed payload. Text-profile routes accept profile IDs, names, active-style values, and `TextForSpeech.Replacement` payloads. Runtime configuration routes use `speech_backend` for saved next-start backend selection, and `POST /backend` requests a live backend switch.
 
 ### Response Shape
@@ -224,7 +226,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `8.0.0`, `TextForSpeech` from `0.21.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `9.0.0`, `TextForSpeech` from `0.22.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 
