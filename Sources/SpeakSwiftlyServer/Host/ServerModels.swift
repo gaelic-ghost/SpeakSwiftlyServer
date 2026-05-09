@@ -12,24 +12,30 @@ func supportedSpeechBackendDescription() -> String {
 }
 
 struct SpeechRequestContextDefaults {
+    var reqPurpose: SpeakSwiftly.RequestContext.RequestPurpose
     var source: String?
     var topic: String?
     var cwd: String?
     var repoRoot: String?
     var attributes: [String: String]
+    var prefacePolicy: SpeakSwiftly.RequestContext.PrefacePolicy?
 
     init(
+        reqPurpose: SpeakSwiftly.RequestContext.RequestPurpose = .speech,
         source: String? = nil,
         topic: String? = nil,
         cwd: String? = nil,
         repoRoot: String? = nil,
         attributes: [String: String] = [:],
+        prefacePolicy: SpeakSwiftly.RequestContext.PrefacePolicy? = nil,
     ) {
+        self.reqPurpose = reqPurpose
         self.source = source
         self.topic = topic
         self.cwd = cwd
         self.repoRoot = repoRoot
         self.attributes = attributes
+        self.prefacePolicy = prefacePolicy
     }
 }
 
@@ -40,6 +46,7 @@ func makeSpeechRequestContext(
     defaults: SpeechRequestContextDefaults = .init(),
 ) -> SpeakSwiftly.RequestContext? {
     let merged = SpeakSwiftly.RequestContext(
+        reqPurpose: requestContext?.reqPurpose ?? defaults.reqPurpose,
         source: requestContext?.source ?? defaults.source,
         topic: requestContext?.topic ?? defaults.topic,
         cwd: cwd ?? requestContext?.cwd ?? defaults.cwd,
@@ -48,6 +55,7 @@ func makeSpeechRequestContext(
             defaults: defaults.attributes,
             request: requestContext?.attributes ?? [:],
         ),
+        prefacePolicy: requestContext?.prefacePolicy ?? defaults.prefacePolicy,
     )
     guard
         merged.source != nil
@@ -55,6 +63,9 @@ func makeSpeechRequestContext(
         || merged.cwd != nil
         || merged.repoRoot != nil
         || !merged.attributes.isEmpty
+        || merged.prefacePolicy != nil
+        || requestContext?.reqPurpose != nil
+        || defaults.reqPurpose != .speech
     else {
         return nil
     }

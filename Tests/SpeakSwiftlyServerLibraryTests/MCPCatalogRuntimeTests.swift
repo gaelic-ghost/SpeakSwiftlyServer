@@ -15,7 +15,7 @@ extension ServerTests {
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "generate_speech",
-                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"source":"mcp","topic":"catalog-runtime","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"mcp"}},"cwd":"./Tests","repo_root":".","qwen_pre_model_text_chunking":true}"#,
+                            argumentsJSON: #"{"text":"Inspect MCP resources","profile_name":"default","text_profile_id":"mcp-text","request_context":{"reqPurpose":"speech","source":"mcp","topic":"catalog-runtime","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"mcp"}},"cwd":"./Tests","repo_root":".","qwen_pre_model_text_chunking":true}"#,
                         ),
                         sessionID: sessionID,
                     ),
@@ -31,6 +31,7 @@ extension ServerTests {
             #expect(
                 queuedSpeechInvocation.requestContext
                     == SpeakSwiftly.RequestContext(
+                        reqPurpose: .speech,
                         source: "mcp",
                         topic: "catalog-runtime",
                         cwd: "./Tests",
@@ -84,6 +85,7 @@ extension ServerTests {
             #expect(
                 retainedAudioArtifact.requestContext
                     == SpeakSwiftly.RequestContext(
+                        reqPurpose: .audioFile,
                         source: "mcp",
                         topic: "generate_audio_file",
                         attributes: [

@@ -6,6 +6,42 @@ import Testing
 // MARK: - Host State Tests
 
 extension ServerTests {
+    @Test func `speech request context keeps purpose and preface only contexts`() {
+        let purposeOnly = makeSpeechRequestContext(
+            cwd: nil,
+            repoRoot: nil,
+            requestContext: nil,
+            defaults: .init(reqPurpose: .audioFile),
+        )
+        #expect(purposeOnly == SpeakSwiftly.RequestContext(reqPurpose: .audioFile))
+
+        let callerPurposeOnly = makeSpeechRequestContext(
+            cwd: nil,
+            repoRoot: nil,
+            requestContext: SpeakSwiftly.RequestContext(reqPurpose: .audioStream),
+        )
+        #expect(callerPurposeOnly == SpeakSwiftly.RequestContext(reqPurpose: .audioStream))
+
+        let prefaceOnly = makeSpeechRequestContext(
+            cwd: nil,
+            repoRoot: nil,
+            requestContext: SpeakSwiftly.RequestContext(
+                reqPurpose: .speech,
+                prefacePolicy: .never,
+            ),
+        )
+        #expect(
+            prefaceOnly
+                == SpeakSwiftly.RequestContext(
+                    reqPurpose: .speech,
+                    prefacePolicy: .never,
+                ),
+        )
+
+        let defaultSpeech = makeSpeechRequestContext(cwd: nil, repoRoot: nil, requestContext: nil)
+        #expect(defaultSpeech == nil)
+    }
+
     @Test func `shared playback and queue snapshots keep transport response field names`() throws {
         let activeRequest = ActiveRequestSnapshot(id: "request-1", op: "generate_speech", profileName: "default")
         let queuedRequest = QueuedRequestSnapshot(
@@ -690,6 +726,7 @@ extension ServerTests {
             profileName: "default",
             textProfileID: "swift-docs",
             requestContext: .init(
+                reqPurpose: .speech,
                 source: "embedded-session",
                 topic: "state-actions",
                 cwd: "./Sources",
@@ -709,6 +746,7 @@ extension ServerTests {
         #expect(
             firstQueuedSpeechInvocation.requestContext
                 == SpeakSwiftly.RequestContext(
+                    reqPurpose: .speech,
                     source: "embedded-session",
                     topic: "state-actions",
                     cwd: "./Sources",
