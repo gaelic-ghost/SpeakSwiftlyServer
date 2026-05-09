@@ -82,6 +82,11 @@ extension ServerTests {
             let generateSpeechSchema = try #require(generateSpeechTool["inputSchema"] as? [String: Any])
             let generateSpeechProperties = try #require(generateSpeechSchema["properties"] as? [String: Any])
             #expect(generateSpeechProperties["source_format"] == nil)
+            let generateSpeechContext = try #require(generateSpeechProperties["request_context"] as? [String: Any])
+            let generateSpeechContextProperties = try #require(generateSpeechContext["properties"] as? [String: Any])
+            #expect(generateSpeechContextProperties["reqPurpose"] == nil)
+            let prefacePolicy = try #require(generateSpeechContextProperties["prefacePolicy"] as? [String: Any])
+            #expect(prefacePolicy["enum"] as? [String] == ["default", "always", "never"])
             let qwenPreModelTextChunking = try #require(generateSpeechProperties["qwen_pre_model_text_chunking"] as? [String: Any])
             #expect(qwenPreModelTextChunking["type"] as? String == "boolean")
 

@@ -293,7 +293,7 @@ extension ServerTests {
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"reqPurpose":"speech","source":"http","topic":"route-coverage","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"http"}},"cwd":"./Sources","repo_root":".","qwen_pre_model_text_chunking":true}"#),
+                body: byteBuffer(#"{"text":"Route test","text_profile_id":"swift-docs","request_context":{"source":"http","topic":"route-coverage","prefacePolicy":"never","attributes":{"caller.app":"SpeakSwiftlyServerLibraryTests","caller.project":"SpeakSwiftlyServer","surface":"http"}},"cwd":"./Sources","repo_root":".","qwen_pre_model_text_chunking":true}"#),
             )
             let speakJSON = try jsonObject(from: speakResponse.body)
             let speakJobID = try #require(speakJSON["request_id"] as? String)
@@ -320,6 +320,7 @@ extension ServerTests {
                             "server.app": "SpeakSwiftlyServer",
                             "surface": "http",
                         ],
+                        prefacePolicy: .never,
                     ),
             )
             #expect(queuedSpeechInvocation.profileName == "default")

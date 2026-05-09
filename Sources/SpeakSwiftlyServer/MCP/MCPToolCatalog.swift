@@ -5,7 +5,7 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "generate_speech",
-            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now. The server fills MCP client, tool, and request-purpose provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, and repo_root when the input needs richer caller metadata.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now. The server applies live-speech purpose plus MCP client and tool provenance by default; optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, and repo_root when the input needs richer caller metadata. request_context.prefacePolicy may be default, always, or never.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -13,7 +13,7 @@ enum MCPToolCatalog {
                     "text": ["type": "string"],
                     "profile_name": ["type": "string"],
                     "text_profile_id": ["type": "string"],
-                    "request_context": ["type": "object"],
+                    "request_context": requestContextInputSchema,
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
                     "qwen_pre_model_text_chunking": ["type": "boolean"],
@@ -22,7 +22,7 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_audio_file",
-            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later. The server fills MCP client, tool, and request-purpose provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus request_context when the downstream artifact should retain richer caller metadata.",
+            description: "Queue one retained generated-audio file instead of live playback. Use this when the user wants a saved artifact they can inspect or reuse later. The server applies retained-audio purpose plus MCP client and tool provenance by default; optionally provide profile_name to override the server's configured default voice profile plus request_context when the downstream artifact should retain richer caller metadata. request_context.prefacePolicy may be default, always, or never.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -30,7 +30,7 @@ enum MCPToolCatalog {
                     "text": ["type": "string"],
                     "profile_name": ["type": "string"],
                     "text_profile_id": ["type": "string"],
-                    "request_context": ["type": "object"],
+                    "request_context": requestContextInputSchema,
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
                 ],
@@ -38,13 +38,16 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "generate_batch",
-            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together. The server fills MCP client, tool, and request-purpose provenance in each item request_context by default; optionally provide profile_name to override the server's configured default voice profile. Each item may carry its own request_context payload.",
+            description: "Queue a retained generated-audio batch from multiple items under one voice profile. Use this when the user wants several output files produced together. The server applies retained-audio purpose plus MCP client and tool provenance to each item by default; optionally provide profile_name to override the server's configured default voice profile. Each item may carry its own request_context payload, including optional prefacePolicy.",
             inputSchema: [
                 "type": "object",
                 "required": ["items"],
                 "properties": [
                     "profile_name": ["type": "string"],
-                    "items": ["type": "array"],
+                    "items": [
+                        "type": "array",
+                        "items": batchItemInputSchema,
+                    ],
                 ],
             ],
         ),
@@ -315,6 +318,38 @@ enum MCPToolCatalog {
             ],
         ),
     ]
+
+    private static let requestContextInputSchema: Value = .object([
+        "type": "object",
+        "properties": .object([
+            "source": ["type": "string"],
+            "topic": ["type": "string"],
+            "cwd": ["type": "string"],
+            "repo_root": ["type": "string"],
+            "attributes": [
+                "type": "object",
+                "additionalProperties": ["type": "string"],
+            ],
+            "prefacePolicy": [
+                "type": "string",
+                "enum": ["default", "always", "never"],
+            ],
+        ]),
+        "additionalProperties": false,
+    ])
+
+    private static let batchItemInputSchema: Value = .object([
+        "type": "object",
+        "required": ["text"],
+        "properties": .object([
+            "artifact_id": ["type": "string"],
+            "text": ["type": "string"],
+            "text_profile_id": ["type": "string"],
+            "cwd": ["type": "string"],
+            "repo_root": ["type": "string"],
+            "request_context": requestContextInputSchema,
+        ]),
+    ])
 
     private static func stringEnum(_ values: [String]) -> Value {
         .array(values.map { .string($0) })
