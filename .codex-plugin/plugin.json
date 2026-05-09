@@ -32,10 +32,15 @@
       "Write"
     ],
     "websiteURL": "https://github.com/gaelic-ghost/SpeakSwiftlyServer",
+    "screenshots": [
+      "./assets/codex-plugin-directory-socket-speak-swiftly.png"
+    ],
     "defaultPrompt": [
       "Use Speak Swiftly to read this reply aloud.",
       "Set up Speak Swiftly on this machine as a background service.",
-      "Set up automatic Speak Swiftly TTS for Codex replies."
+      "Set up automatic Speak Swiftly TTS for Codex replies.",
+      "Show me the Speak Swiftly runtime, playback queue, and recent request status.",
+      "Help me create a new Speak Swiftly voice profile from a description."
     ]
   }
 }

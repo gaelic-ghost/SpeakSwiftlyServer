@@ -11,6 +11,7 @@ target that owns them.
 
 ```text
 docs/media/
+  speakswiftlyserver-codex-plugin-promo.mp3
   default-voices/
     README.md
     swift-signal.wav
@@ -26,3 +27,13 @@ Each checked-in voice sample should include:
 - the commit or release used to generate it when available
 
 Do not place Gale's personal default voices here unless that is explicitly approved for public repository use.
+
+## Promo Clips
+
+### SpeakSwiftlyServer Codex Plugin Promo
+
+- File: [`speakswiftlyserver-codex-plugin-promo.mp3`](./speakswiftlyserver-codex-plugin-promo.mp3)
+- Format: MPEG Layer III audio, 256 kbps, 44.1 kHz, mono
+- Purpose: public README preview for the Speak Swiftly Codex plugin
+- Provenance: user-authored promo audio provided for this repository
+- Consent and license: provided by the repository owner for public documentation use

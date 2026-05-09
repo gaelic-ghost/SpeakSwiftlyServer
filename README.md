@@ -7,6 +7,7 @@ Local speech synthesis for Codex and all kinds of macOS apps. Packaged as a smal
 - [Overview](#overview)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
+- [Preview](#preview)
 - [Development](#development)
 - [Repo Structure](#repo-structure)
 - [Release Notes](#release-notes)
@@ -61,6 +62,14 @@ Once the service is healthy, agents can use `Speak Swiftly` to:
 The normal end-user path is plugin-managed. Do not copy repo-local hook files into a Codex home directory for ordinary setup.
 
 For the detailed HTTP and MCP contract, see [API.md](./API.md).
+
+## Preview
+
+Listen to the short Speak Swiftly Codex plugin promo:
+
+<audio controls src="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">
+  <a href="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">Download the Speak Swiftly Codex plugin promo audio.</a>
+</audio>
 
 ## Development
 
