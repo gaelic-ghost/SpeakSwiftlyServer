@@ -46,7 +46,7 @@ func makeSpeechRequestContext(
     defaults: SpeechRequestContextDefaults = .init(),
 ) -> SpeakSwiftly.RequestContext? {
     let merged = SpeakSwiftly.RequestContext(
-        reqPurpose: defaults.reqPurpose,
+        reqPurpose: requestContext?.reqPurpose ?? defaults.reqPurpose,
         source: requestContext?.source ?? defaults.source,
         topic: requestContext?.topic ?? defaults.topic,
         cwd: cwd ?? requestContext?.cwd ?? defaults.cwd,
@@ -63,6 +63,9 @@ func makeSpeechRequestContext(
         || merged.cwd != nil
         || merged.repoRoot != nil
         || !merged.attributes.isEmpty
+        || merged.prefacePolicy != nil
+        || requestContext?.reqPurpose != nil
+        || defaults.reqPurpose != .speech
     else {
         return nil
     }
