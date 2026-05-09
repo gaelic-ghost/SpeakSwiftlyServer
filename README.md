@@ -1,6 +1,12 @@
 # SpeakSwiftlyServer
 
-Local speech synthesis for Codex and all kinds of macOS apps. Packaged as a small server, plus the `Speak Swiftly` Codex Plugin and Hook.
+*A local speech platform for Apple systems and developer workflows.*
+
+Listen to the short Speak Swiftly Codex plugin promo:
+
+<audio controls src="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">
+  <a href="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">Download the Speak Swiftly Codex plugin promo audio.</a>
+</audio>
 
 ## Table of Contents
 
@@ -17,15 +23,15 @@ Local speech synthesis for Codex and all kinds of macOS apps. Packaged as a smal
 
 ### Status
 
-`SpeakSwiftlyServer` is active, maintained, and used by Gale daily.
+`SpeakSwiftlyServer` is actively maintained and supported by Gale.
 
 ### What This Project Is
 
-SpeakSwiftlyServer is a high-quality, local-first TTS service built for macOS users on Apple Silicon. It's about a third of the way to where I want it to be, but we'll get there soon enough.
+SpeakSwiftlyServer (*Speak Swiftly*) is a high-quality, local-first speech runtime built for macOS. Custom voices, batch jobs, easy integrations, and more.
 
 ### Motivation
 
-This project was borne of my own need for a decent, customizable, no-cost TTS solution that integrated smoothly with apps I already use. That didn't seem to exist for macOS, frankly, so I built it myself. Having had to drop out of college, in part, due to lack of available and usable TTS options, I'm quite proud of this one.
+This project was borne of my own need for affordable, customizable, high-quality text-to-speech, with easy integration into the apps I already used. I'm quite proud of this one already, and tbh we're just getting started~
 
 ## Quick Start
 
@@ -48,28 +54,22 @@ xcrun swift run SpeakSwiftlyServerTool launch-agent install
 xcrun swift run SpeakSwiftlyServerTool healthcheck
 ```
 
+If using Codex Hooks, review and trust the stop hook from Speak Swiftly in order to have all replies automatically spoken in the order they arrive.
+
 The plugin and the local service are separate on purpose. The plugin gives Codex the skills, MCP connection, and speech hooks. The local service is the native Swift process that actually speaks.
 
 ## Usage
 
 Once the service is healthy, agents can use `Speak Swiftly` to:
 
-- speak final replies through the local voice service
+- speak "final assistant replies" through `Speak Swiftly`
+- queue speech, create new voice profiles, adjust how words are spoken, and control playback
 - inspect the runtime, voice profiles, text profiles, and recent requests
-- queue speech, cancel queued work, clear completed work, and control playback
-- choose between the built-in `swift-signal` and `swift-anchor` voices
+- set default voice and model preferences
 
 The normal end-user path is plugin-managed. Do not copy repo-local hook files into a Codex home directory for ordinary setup.
 
 For the detailed HTTP and MCP contract, see [API.md](./API.md).
-
-## Preview
-
-Listen to the short Speak Swiftly Codex plugin promo:
-
-<audio controls src="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">
-  <a href="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">Download the Speak Swiftly Codex plugin promo audio.</a>
-</audio>
 
 ## Development
 
