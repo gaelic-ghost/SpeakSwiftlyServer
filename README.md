@@ -13,7 +13,6 @@ Listen to the short Speak Swiftly Codex plugin promo:
 - [Overview](#overview)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
-- [Preview](#preview)
 - [Development](#development)
 - [Repo Structure](#repo-structure)
 - [Release Notes](#release-notes)
@@ -54,7 +53,7 @@ xcrun swift run SpeakSwiftlyServerTool launch-agent install
 xcrun swift run SpeakSwiftlyServerTool healthcheck
 ```
 
-If using Codex Hooks, review and trust the stop hook from Speak Swiftly in order to have all replies automatically spoken in the order they arrive.
+If using Codex Hooks, review and trust the stop hook from Speak Swiftly to have all replies automatically spoken in the order they arrive.
 
 The plugin and the local service are separate on purpose. The plugin gives Codex the skills, MCP connection, and speech hooks. The local service is the native Swift process that actually speaks.
 
