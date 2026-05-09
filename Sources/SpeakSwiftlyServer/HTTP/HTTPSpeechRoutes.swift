@@ -1,4 +1,5 @@
 import Hummingbird
+import SpeakSwiftly
 
 func registerHTTPSpeechRoutes(
     on router: Router<BasicRequestContext>,
@@ -21,6 +22,7 @@ func registerHTTPSpeechRoutes(
             requestContext: payload.resolvedRequestContext(
                 defaults: httpSpeechRequestContextDefaults(
                     route: "/speech/live",
+                    reqPurpose: .speech,
                     topic: "live-speech",
                 ),
             ),
@@ -45,6 +47,7 @@ func registerHTTPSpeechRoutes(
             requestContext: payload.resolvedRequestContext(
                 defaults: httpSpeechRequestContextDefaults(
                     route: "/speech/files",
+                    reqPurpose: .audioFile,
                     topic: "retained-audio-file",
                 ),
             ),
@@ -66,6 +69,7 @@ func registerHTTPSpeechRoutes(
                 $0.model(
                     requestContextDefaults: httpSpeechRequestContextDefaults(
                         route: "/speech/batches",
+                        reqPurpose: .audioFile,
                         topic: "retained-audio-batch",
                     ),
                 )
@@ -78,9 +82,11 @@ func registerHTTPSpeechRoutes(
 
 private func httpSpeechRequestContextDefaults(
     route: String,
+    reqPurpose: SpeakSwiftly.RequestContext.RequestPurpose,
     topic: String,
 ) -> SpeechRequestContextDefaults {
     .init(
+        reqPurpose: reqPurpose,
         source: "http",
         topic: topic,
         attributes: [

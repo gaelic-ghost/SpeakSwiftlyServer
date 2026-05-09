@@ -690,6 +690,7 @@ extension ServerTests {
             profileName: "default",
             textProfileID: "swift-docs",
             requestContext: .init(
+                reqPurpose: .speech,
                 source: "embedded-session",
                 topic: "state-actions",
                 cwd: "./Sources",
@@ -709,6 +710,7 @@ extension ServerTests {
         #expect(
             firstQueuedSpeechInvocation.requestContext
                 == SpeakSwiftly.RequestContext(
+                    reqPurpose: .speech,
                     source: "embedded-session",
                     topic: "state-actions",
                     cwd: "./Sources",
