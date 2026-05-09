@@ -87,7 +87,6 @@ actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
     ) async -> RuntimeRequestHandle {
@@ -95,7 +94,6 @@ actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
             text: text,
             voiceProfile: profileName,
             textProfile: textProfileID,
-            sourceFormat: sourceFormat,
             requestContext: requestContext,
             qwenPreModelTextChunking: qwenPreModelTextChunking,
         )
@@ -106,14 +104,12 @@ actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         text: String,
         with profileName: String,
         textProfileID: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
         requestContext: SpeakSwiftly.RequestContext?,
     ) async -> RuntimeRequestHandle {
         let handle = await runtime.generate.audio(
             text: text,
             voiceProfile: profileName,
             textProfile: textProfileID,
-            sourceFormat: sourceFormat,
             requestContext: requestContext,
         )
         return .init(id: handle.id, operation: "generate_audio_file", profileName: profileName, events: handle.events)

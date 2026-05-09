@@ -331,7 +331,7 @@ private func voiceProfilesGuideMarkdown() -> String {
     7. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
     8. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
     9. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
-    10. Pass `source_format` to `generate_speech` when source-like input needs explicit format-aware normalization instead of automatic detection. The MCP surface fills client and tool provenance in `request_context` by default; pass `cwd`, `repo_root`, or `request_context` only when path or caller metadata needs to be more specific.
+    10. The MCP surface fills client and tool provenance in `request_context` by default; pass `cwd`, `repo_root`, or `request_context` only when path or caller metadata needs to be more specific.
     11. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by SpeakSwiftly's bundled system-profile install and refresh behavior.
 
     Drafting guidance:
@@ -339,6 +339,13 @@ private func voiceProfilesGuideMarkdown() -> String {
     - Use `draft_profile_voice_description` when the user is still exploring how a synthetic profile should sound.
     - Use `draft_profile_source_text` when the user needs a good source passage for profile creation.
     - Use `draft_voice_design_instruction` when the user is shaping one spoken line rather than a reusable stored profile.
+
+    Qwen voice-design guidance:
+
+    - Treat Qwen3-TTS VoiceDesign instructions as standalone designs. The model receives the current spoken text plus the current natural-language instruction, not a remembered prior generated voice.
+    - When revising a synthetic voice, rewrite the full target voice with both preserved and changed traits. Avoid relative wording such as "same as before", "this voice", or "like the previous one".
+    - Describe concrete acoustic traits: timbre, pitch range, pace, affect, breath or texture, and performance style. Mention age, gender presentation, accent, or dialect only when the user asked for them.
+    - Use source text that naturally exercises the target cadence and emotion. For many lines that need a stable identity, create or reroll a stored profile from a strong self-contained design, then reuse that stored profile.
 
     Broad-appeal example names and directions:
 

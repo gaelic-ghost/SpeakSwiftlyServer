@@ -167,7 +167,6 @@ extension ServerHost {
         activeRuntimeSpeechBackend = runtimeSnapshot.speechBackend
         let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: runtimeSnapshot.speechBackend,
-            activeMarvisResidentPolicy: activeMarvisResidentPolicy,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         let completionEvent = await mapCompletionEvent(id: requestID, completion)

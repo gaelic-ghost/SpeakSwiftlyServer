@@ -52,7 +52,7 @@ extension ServerTests {
             let cancelRequestScopeEnum = try #require(cancelRequestScope["enum"] as? [String])
             #expect(cancelRequestScopeEnum == ["generation", "playback"])
             let setRuntimeConfigurationTool = try #require(tools.first { $0["name"] as? String == "set_runtime_configuration" })
-            #expect((setRuntimeConfigurationTool["description"] as? String)?.contains("Persist runtime startup choices") == true)
+            #expect((setRuntimeConfigurationTool["description"] as? String)?.contains("Persist the speech backend") == true)
             let setRuntimeConfigurationSchema = try #require(setRuntimeConfigurationTool["inputSchema"] as? [String: Any])
             let setRuntimeConfigurationProperties = try #require(setRuntimeConfigurationSchema["properties"] as? [String: Any])
             let setRuntimeConfigurationBackend = try #require(setRuntimeConfigurationProperties["speech_backend"] as? [String: Any])
@@ -75,16 +75,13 @@ extension ServerTests {
                 "marvis_4bit",
                 "marvis_6bit",
             ])
-            let setRuntimeConfigurationQwenModel = try #require(setRuntimeConfigurationProperties["qwen_resident_model"] as? [String: Any])
-            let setRuntimeConfigurationQwenModelEnum = try #require(setRuntimeConfigurationQwenModel["enum"] as? [String])
-            #expect(setRuntimeConfigurationQwenModelEnum == ["base_0_6b_8bit", "base_1_7b_8bit"])
-            let setRuntimeConfigurationMarvisPolicy = try #require(setRuntimeConfigurationProperties["marvis_resident_policy"] as? [String: Any])
-            let setRuntimeConfigurationMarvisPolicyEnum = try #require(setRuntimeConfigurationMarvisPolicy["enum"] as? [String])
-            #expect(setRuntimeConfigurationMarvisPolicyEnum == ["dual_resident_serialized", "single_resident_dynamic"])
+            #expect(setRuntimeConfigurationProperties["qwen_resident_model"] == nil)
+            #expect(setRuntimeConfigurationProperties["marvis_resident_policy"] == nil)
 
             let generateSpeechTool = try #require(tools.first { $0["name"] as? String == "generate_speech" })
             let generateSpeechSchema = try #require(generateSpeechTool["inputSchema"] as? [String: Any])
             let generateSpeechProperties = try #require(generateSpeechSchema["properties"] as? [String: Any])
+            #expect(generateSpeechProperties["source_format"] == nil)
             let qwenPreModelTextChunking = try #require(generateSpeechProperties["qwen_pre_model_text_chunking"] as? [String: Any])
             #expect(qwenPreModelTextChunking["type"] as? String == "boolean")
 

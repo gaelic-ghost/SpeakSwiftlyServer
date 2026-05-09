@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 import SpeakSwiftly
-import TextForSpeech
 
 /// Main-actor observable app model for an embedded SpeakSwiftly server session.
 ///
@@ -51,7 +50,7 @@ public final class EmbeddedServer {
                     "EmbeddedServer could not refresh voice profiles because no embedded host action performer is configured yet.",
                 )
             },
-            queueLiveSpeech: { _, _, _, _, _, _ in
+            queueLiveSpeech: { _, _, _, _, _ in
                 throw EmbeddedServerActionError.unavailable(
                     "EmbeddedServer could not queue the live speech request because no embedded host action performer is configured yet.",
                 )
@@ -108,7 +107,6 @@ public final class EmbeddedServer {
             String,
             String?,
             String?,
-            TextForSpeech.SourceFormat?,
             SpeakSwiftly.RequestContext?,
             Bool,
         ) async throws -> String
@@ -199,17 +197,10 @@ public final class EmbeddedServer {
     public internal(set) var runtimeConfiguration = RuntimeConfigurationSnapshot(
         activeRuntimeSpeechBackend: "qwen3_smol",
         nextRuntimeSpeechBackend: "qwen3_smol",
-        activeQwenResidentModel: "base_0_6b_8bit",
-        nextQwenResidentModel: "base_0_6b_8bit",
-        activeMarvisResidentPolicy: "dual_resident_serialized",
-        nextMarvisResidentPolicy: "dual_resident_serialized",
         activeDefaultVoiceProfileName: nil,
         nextDefaultVoiceProfileName: nil,
         environmentSpeechBackendOverride: nil,
-        environmentQwenResidentModelOverride: nil,
         persistedSpeechBackend: nil,
-        persistedQwenResidentModel: nil,
-        persistedMarvisResidentPolicy: nil,
         persistedDefaultVoiceProfileName: nil,
         profileRootPath: "",
         persistedConfigurationPath: "",
@@ -284,7 +275,6 @@ public final class EmbeddedServer {
         text: String,
         profileName: String? = nil,
         textProfileID: String? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
         qwenPreModelTextChunking: Bool = false,
     ) async throws -> String {
@@ -292,7 +282,6 @@ public final class EmbeddedServer {
             text,
             profileName,
             textProfileID,
-            sourceFormat,
             requestContext,
             qwenPreModelTextChunking,
         )

@@ -30,7 +30,6 @@ actor MockRuntime: SpeakSwiftlyRuntimeServing {
         let text: String
         let profileName: String
         let textProfileID: String?
-        let sourceFormat: TextForSpeech.SourceFormat?
         let requestContext: SpeakSwiftly.RequestContext?
         let qwenPreModelTextChunking: Bool
     }

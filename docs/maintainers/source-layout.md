@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the maintainer map for the current `SpeakSwiftly 5.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
+This document is the maintainer map for the current `SpeakSwiftly 8.x`-aligned source split. The goal is to keep future cleanup, review, and feature work landing in the smallest file family that already owns the relevant concern, instead of letting `ServerHost.swift`, one host extension, or one mixed test file grow back into a monolith.
 
 Historical release artifacts belong under [`docs/releases`](../releases/), and historical debugging
 writeups belong under [`docs/investigations`](../investigations/), not beside the active maintainer

@@ -102,13 +102,11 @@ extension ServerHost {
         text: String,
         profileName: String,
         textProfileID: String? = nil,
-        sourceFormat: TextForSpeech.SourceFormat? = nil,
     ) async throws -> String {
         try await queueSpeechLive(
             text: text,
             profileName: profileName,
             textProfileID: textProfileID,
-            sourceFormat: sourceFormat,
         )
     }
 

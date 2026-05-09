@@ -5,7 +5,7 @@ enum MCPToolCatalog {
     static let definitions: [Tool] = [
         Tool(
             name: "generate_speech",
-            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now. The server fills MCP client and tool provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, repo_root, and source_format when the input needs richer caller metadata or should not rely on automatic source-format detection.",
+            description: "Queue live speech playback with a stored SpeakSwiftly voice profile. Use this when the user wants audible output now. The server fills MCP client and tool provenance in request_context by default; optionally provide profile_name to override the server's configured default voice profile plus text_profile_id, request_context, cwd, and repo_root when the input needs richer caller metadata.",
             inputSchema: [
                 "type": "object",
                 "required": ["text"],
@@ -16,7 +16,6 @@ enum MCPToolCatalog {
                     "request_context": ["type": "object"],
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
-                    "source_format": ["type": "string"],
                     "qwen_pre_model_text_chunking": ["type": "boolean"],
                 ],
             ],
@@ -34,7 +33,6 @@ enum MCPToolCatalog {
                     "request_context": ["type": "object"],
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
-                    "source_format": ["type": "string"],
                 ],
             ],
         ),
@@ -117,14 +115,12 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "set_runtime_configuration",
-            description: "Persist runtime startup choices for the next runtime start without hot-swapping the current worker. speech_backend stays required; qwen_resident_model and marvis_resident_policy are optional startup-only refinements.",
+            description: "Persist the speech backend for the next runtime start without hot-swapping the current worker.",
             inputSchema: [
                 "type": "object",
                 "required": ["speech_backend"],
                 "properties": [
                     "speech_backend": ["type": "string", "enum": stringEnum(exposedSpeechBackendIdentifiers())],
-                    "qwen_resident_model": ["type": "string", "enum": stringEnum(exposedQwenResidentModelIdentifiers())],
-                    "marvis_resident_policy": ["type": "string", "enum": stringEnum(exposedMarvisResidentPolicyIdentifiers())],
                 ],
             ],
         ),

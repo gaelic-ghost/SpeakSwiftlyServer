@@ -18,7 +18,6 @@ func registerHTTPSpeechRoutes(
             text: payload.text,
             profileName: profileName,
             textProfileID: payload.textProfileID,
-            sourceFormat: payload.sourceFormatModel(),
             requestContext: payload.resolvedRequestContext(
                 defaults: httpSpeechRequestContextDefaults(
                     route: "/speech/live",
@@ -43,7 +42,6 @@ func registerHTTPSpeechRoutes(
             text: payload.text,
             profileName: profileName,
             textProfileID: payload.textProfileID,
-            sourceFormat: payload.sourceFormatModel(),
             requestContext: payload.resolvedRequestContext(
                 defaults: httpSpeechRequestContextDefaults(
                     route: "/speech/files",
@@ -65,7 +63,7 @@ func registerHTTPSpeechRoutes(
 
         let requestID = try await host.queueSpeechBatch(
             items: payload.items.map {
-                try $0.model(
+                $0.model(
                     requestContextDefaults: httpSpeechRequestContextDefaults(
                         route: "/speech/batches",
                         topic: "retained-audio-batch",

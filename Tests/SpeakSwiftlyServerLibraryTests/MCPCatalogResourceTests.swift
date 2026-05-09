@@ -55,6 +55,40 @@ extension ServerTests {
             let firstPromptMessage = try #require(promptMessages.first)
             let promptContent = try #require(firstPromptMessage["content"] as? [String: Any])
             #expect((promptContent["text"] as? String)?.contains("gentle narration") == true)
+            #expect((promptContent["text"] as? String)?.contains("Make the description self-contained") == true)
+
+            let voiceDesignPromptEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpGetPromptRequestJSON(
+                            name: "draft_voice_design_instruction",
+                            arguments: [
+                                "spoken_text": "I can keep going.",
+                                "emotion": "encouraging",
+                                "delivery_style": "warm and focused",
+                            ],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let voiceDesignPromptResult = try #require(mcpResultPayload(from: voiceDesignPromptEnvelope))
+            let voiceDesignPromptMessages = try #require(voiceDesignPromptResult["messages"] as? [[String: Any]])
+            let voiceDesignPromptContent = try #require(voiceDesignPromptMessages.first?["content"] as? [String: Any])
+            #expect((voiceDesignPromptContent["text"] as? String)?.contains("not a remembered prior voice design") == true)
+
+            let voiceGuideEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/guide"),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let voiceGuideResult = try #require(mcpResultPayload(from: voiceGuideEnvelope))
+            let voiceGuideContents = try #require(voiceGuideResult["contents"] as? [[String: Any]])
+            let voiceGuideText = try #require(voiceGuideContents.first?["text"] as? String)
+            #expect(voiceGuideText.contains("Qwen voice-design guidance"))
 
             let textProfilePromptEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

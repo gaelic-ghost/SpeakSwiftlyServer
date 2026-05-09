@@ -73,7 +73,6 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(
                             in: arguments,
                             defaults: requestContextDefaults,
@@ -100,7 +99,6 @@ extension MCPSurface {
                         text: requiredString("text", in: arguments),
                         profileName: profileName,
                         textProfileID: optionalString("text_profile_id", in: arguments),
-                        sourceFormat: sourceFormat(in: arguments),
                         requestContext: requestContext(
                             in: arguments,
                             defaults: requestContextDefaults,
@@ -121,7 +119,7 @@ extension MCPSurface {
 
                     let requestID = try await host.queueSpeechBatch(
                         items: items.map {
-                            try $0.model(requestContextDefaults: requestContextDefaults)
+                            $0.model(requestContextDefaults: requestContextDefaults)
                         },
                         profileName: profileName,
                     )
@@ -186,16 +184,9 @@ extension MCPSurface {
                     )
 
                 case "set_runtime_configuration":
-                    let rawSpeechBackend = try requiredString("speech_backend", in: arguments)
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
-                            speechBackend: requiredSpeechBackend(rawSpeechBackend, key: "speech_backend"),
-                            qwenSpeechBackend: optionalQwenSpeechBackend(
-                                "qwen_resident_model",
-                                in: arguments,
-                                rawSpeechBackend: rawSpeechBackend,
-                            ),
-                            marvisResidentPolicy: optionalMarvisResidentPolicy("marvis_resident_policy", in: arguments),
+                            speechBackend: requiredSpeechBackend("speech_backend", in: arguments),
                         ),
                     )
 
