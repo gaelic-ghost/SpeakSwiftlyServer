@@ -311,7 +311,7 @@ func resolveNormalizationFormat(_ rawValue: String) throws -> NormalizationForma
 
     let supportedFormats = (
         TextForSpeech.TextFormat.allCases.map(\.rawValue)
-            + TextForSpeech.SourceFormat.allCases.map(\.rawValue)
+            + TextForSpeech.SourceFormat.allCases.map(\.rawValue),
     ).joined(separator: ", ")
     throw HTTPError(
         .badRequest,
