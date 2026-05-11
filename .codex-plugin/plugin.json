@@ -32,6 +32,7 @@
       "Write"
     ],
     "websiteURL": "https://github.com/gaelic-ghost/SpeakSwiftlyServer",
+    "logo": "./assets/speak-swiftly-logo.jpg",
     "screenshots": [
       "./assets/codex-plugin-directory-socket-speak-swiftly.png"
     ],
