@@ -2,6 +2,8 @@
 
 *A local speech platform for Apple systems and developer workflows.*
 
+![Speak Swiftly neon banner](./assets/speak-swiftly-banner.jpg)
+
 Listen to the short Speak Swiftly Codex plugin promo:
 
 <audio controls src="./docs/media/speakswiftlyserver-codex-plugin-promo.mp3">
