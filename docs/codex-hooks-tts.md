@@ -13,18 +13,12 @@ this checkout.
   Declares `hooks: "./hooks/hooks.json"` so installed plugin users get the
   lifecycle config from the plugin.
 - `hooks/hooks.json`
-  Registers the speech `Stop` hook handler and a logging-only
-  `PermissionRequest` probe.
+  Registers the speech `Stop` hook handler.
 - `hooks/stop-tts.mjs`
   Reads the Codex `Stop` payload from `stdin`, skips empty or duplicate turns,
   ignores continuation passes by default, optionally projects sectioned final
   replies into a shorter spoken form, and queues speech through the local
   `SpeakSwiftlyServer` HTTP route at `POST /speech/live`.
-- `hooks/permission-request-log.mjs`
-  Reads the Codex `PermissionRequest` payload from `stdin` and records a local
-  JSONL entry without approving, rejecting, printing, or queueing speech. This
-  is an observability probe for learning what approval prompts expose before
-  deciding whether they should become speakable events.
 
 The plugin-managed hook commands use Codex cache payload paths instead of
 assuming `./hooks/...` is relative to the session working directory. Codex
@@ -35,7 +29,6 @@ Socket marketplace command set:
 
 ```json
 {
-  "PermissionRequest": "node ~/.codex/plugins/cache/socket/speak-swiftly/8.0.3/hooks/permission-request-log.mjs",
   "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/8.0.3/hooks/stop-tts.mjs"
 }
 ```
@@ -50,8 +43,7 @@ than a fallback.
 The plugin-managed hook stores state and logs under
 `~/.codex/speak-swiftly-server/hooks/` by default, or under `CODEX_HOME` when
 that environment variable points Codex at a different home directory.
-The `Stop` hook writes `logs/stop-tts.jsonl`; the permission-request probe
-writes `logs/permission-request.jsonl`.
+The `Stop` hook writes `logs/stop-tts.jsonl`.
 
 Current Codex builds gate runnable plugin-bundled hooks behind both lifecycle
 hooks and plugin hooks feature flags. For plugin-managed TTS, confirm the user
@@ -69,17 +61,14 @@ index, and command index, and each reviewed command gets a `trusted_hash`.
 For the Socket-managed Speak Swiftly plugin, the expected review keys are:
 
 ```toml
-[hooks.state."speak-swiftly@socket:hooks/hooks.json:permission_request:0:0"]
-trusted_hash = "sha256:..."
-
 [hooks.state."speak-swiftly@socket:hooks/hooks.json:stop:0:0"]
 trusted_hash = "sha256:..."
 ```
 
 If Codex says hooks need review, use the Codex hooks settings panel to review
-the plugin-managed Speak Swiftly `Stop` and `PermissionRequest` hooks. Do not
-add a user-level `~/.codex/hooks.json` fallback to bypass review; review is
-per hook command and lives beside the active Codex configuration.
+the plugin-managed Speak Swiftly `Stop` hook. Do not add a user-level
+`~/.codex/hooks.json` fallback to bypass review; review is per hook command and
+lives beside the active Codex configuration.
 
 OpenAI's [Codex hooks documentation](https://developers.openai.com/codex/hooks#where-codex-looks-for-hooks)
 lists `~/.codex/hooks.json` as one of the main hook locations and says
@@ -97,11 +86,10 @@ dedupe state in the shared hook data directory.
   Enables `features.hooks = true` for this trusted project and wires a
   `notify` probe command.
 - `.codex/hooks.json`
-  Registers the same `Stop` hook script and `PermissionRequest` logging probe
-  for local testing, with `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's
-  `.codex/` directory. The development `Stop` hook is logging-only so this
-  trusted checkout can inspect payloads without queueing duplicate speech
-  through the live service.
+  Registers the same `Stop` hook script for local testing, with
+  `CODEX_HOOK_TTS_DATA_DIR` pointed at this checkout's `.codex/` directory.
+  The development `Stop` hook is logging-only so this trusted checkout can
+  inspect payloads without queueing duplicate speech through the live service.
 - `.codex/hooks/stop-tts.mjs`
   Dev-only forwarding entrypoint for local harness configs that need checkout
   scoped state and logs while testing hook payload behavior.
@@ -118,8 +106,6 @@ dedupe state in the shared hook data directory.
   checked-in development `Stop` hook no longer queues speech.
 - `.codex/logs/stop-log.jsonl`
   Runtime log for repo-local development-harness `Stop` payload inspection.
-- `.codex/logs/permission-request.jsonl`
-  Runtime log for development-harness permission-request payload inspection.
 - `.codex/logs/notify-events.jsonl`
   Runtime log for `notify` payload inspection.
 - `.codex/state/stop-tts-seen-turns.json`
@@ -201,7 +187,6 @@ The doctor reports:
 - runtime default voice profile and any hook voice-profile override
 - cached voice profiles
 - recent centralized user/plugin and repo-local hook log outcomes
-- recent centralized and repo-local permission-request probe outcomes
 
 Warnings are expected if a user-level hook points at the repo-local development
 harness, sets `CODEX_HOOK_TTS_DATA_DIR` to `.codex/`, or duplicates the
@@ -216,9 +201,6 @@ hooks settings panel and approve the expected Speak Swiftly hook commands.
 
 - `Stop` is the right TTS trigger because it carries the final assistant text
   in `last_assistant_message`.
-- `PermissionRequest` is currently logging-only. It is useful for discovering
-  whether approval prompts expose enough text to speak later, but it should not
-  approve, reject, or emit text on `stdout`.
 - `notify` is a useful payload probe, but observed Desktop notify commands can
   run with process `cwd` as `/`; use the event's own `cwd` field when
   interpreting where the turn happened.

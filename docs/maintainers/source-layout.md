@@ -125,17 +125,17 @@ visible to maintainers. Completed implementation plans belong in
 - `.codex-plugin/plugin.json`
   Holds the repo-root Codex plugin manifest for this checkout, including the tracked skill, MCP config, and plugin-managed hook paths. This repository remains the canonical payload owner for the `speak-swiftly` plugin identity, displayed as `Speak Swiftly`.
 - `hooks/`
-  Holds the Codex lifecycle hook config, final-reply TTS script, and logging-only permission-request probe used by installed plugin users.
+  Holds the Codex lifecycle hook config and final-reply TTS script used by installed plugin users.
 - `.codex/`
   Holds repo-local development and testing config for hook payload inspection. Do not document `.codex/` as the end-user install path.
 - `scripts/codex-hooks-doctor.mjs`
-  Reports hook ownership, required hook feature flags, duplicate user-level Stop hooks, permission-request probe wiring, legacy or dev-only global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present.
+  Reports hook ownership, required hook feature flags, duplicate user-level Stop hooks, legacy or dev-only global hook entries, installed plugin hook metadata, live runtime readiness, and voice-profile alignment. Its dry-run repair planning detects legacy `speak-swiftly-server` installs and duplicate enablement from both the standalone and Socket marketplaces, preferring `speak-swiftly@socket` when both are present.
 - `skills/speak-swiftly-mcp/`
   Holds the general MCP orientation skill for broad SpeakSwiftly surface requests.
 - `skills/speak-swiftly-launchagent-setup/`
   Holds the LaunchAgent setup, refresh, status, and healthcheck skill.
 - `skills/speak-swiftly-codex-hooks/`
-  Holds the Codex lifecycle hook setup, plugin-managed hook feature-gate check, permission-request probe, doctor interpretation, duplicate global hook repair, and hook-log troubleshooting skill.
+  Holds the Codex lifecycle hook setup, plugin-managed hook feature-gate check, doctor interpretation, duplicate global hook repair, and hook-log troubleshooting skill.
 - `skills/speak-swiftly-runtime-operator/`
   Holds the runtime, queue, playback, and request-control skill.
 - `skills/speak-swiftly-voice-workflows/`

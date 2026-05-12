@@ -40,7 +40,6 @@ function expectedSocketHookCommands(pluginManifest) {
   const socketCachedHookPath = `~/.codex/plugins/cache/socket/speak-swiftly/${versionSegment}/hooks`;
   return {
     stop: `node ${socketCachedHookPath}/stop-tts.mjs`,
-    permissionRequest: `node ${socketCachedHookPath}/permission-request-log.mjs`,
   };
 }
 
@@ -239,16 +238,8 @@ export function hookReviewStateEntries(configText) {
 export function expectedHookReviewStateKeys(root = repoRoot) {
   return [
     {
-      label: "Repo dev-only PermissionRequest hook",
-      key: `${path.join(root, ".codex", "hooks.json")}:permission_request:0:0`,
-    },
-    {
       label: "Repo dev-only Stop hook",
       key: `${path.join(root, ".codex", "hooks.json")}:stop:0:0`,
-    },
-    {
-      label: "Socket plugin PermissionRequest hook",
-      key: "speak-swiftly@socket:hooks/hooks.json:permission_request:0:0",
     },
     {
       label: "Socket plugin Stop hook",
@@ -460,20 +451,12 @@ async function main() {
 
   const pluginStopHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "Stop");
   validatePluginCommand("Stop", pluginStopHookCommands, expectedHookCommands.stop);
-  const pluginPermissionHookCommands = await inspectHookFile("Repo plugin", path.join(repoRoot, "hooks", "hooks.json"), "PermissionRequest");
-  validatePluginCommand("PermissionRequest", pluginPermissionHookCommands, expectedHookCommands.permissionRequest);
 
   const devStopHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "Stop");
   if (devStopHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/stop-log.mjs"))) {
     addCheck("ok", "Repo dev-only Stop hook logs payloads under .codex without queueing speech");
   } else {
     addCheck("warn", "Repo dev-only Stop hook is not wired as the expected logging-only local harness");
-  }
-  const devPermissionHookCommands = await inspectHookFile("Repo dev-only", path.join(repoRoot, ".codex", "hooks.json"), "PermissionRequest");
-  if (devPermissionHookCommands.some((command) => command.includes("CODEX_HOOK_TTS_DATA_DIR") && command.includes("/hooks/permission-request-log.mjs"))) {
-    addCheck("ok", "Repo dev-only PermissionRequest hook keeps probe logs under .codex");
-  } else {
-    addCheck("warn", "Repo dev-only PermissionRequest hook is not wired as the expected local probe harness");
   }
 
   const globalStopHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "Stop", {
@@ -487,17 +470,6 @@ async function main() {
     addCheck("warn", "Global user hooks include legacy or dev-only SpeakSwiftly TTS", globalHookClassification.message);
   } else {
     addCheck("ok", "Global user Speak Swiftly Stop hook is not configured", globalHookClassification.message);
-  }
-  const globalPermissionHookCommands = await inspectHookFile("Global user", path.join(codexHome, "hooks.json"), "PermissionRequest", {
-    missingSeverity: "info",
-    missingEventSeverity: "info",
-  });
-  if (globalPermissionHookCommands.some((command) => command.includes("hooks/permission-request-log.mjs") && !command.includes("CODEX_HOOK_TTS_DATA_DIR"))) {
-    addCheck("ok", "Global user PermissionRequest logging probe is centralized", "Logs default to ~/.codex/speak-swiftly-server/hooks/logs/permission-request.jsonl.");
-  } else if (globalPermissionHookCommands.length > 0) {
-    addCheck("warn", "Global user PermissionRequest hook is not the centralized logging probe", globalPermissionHookCommands.join(" | "));
-  } else {
-    addCheck("info", "Global user PermissionRequest logging probe is not configured");
   }
 
   const configText = await readText(path.join(codexHome, "config.toml"));
@@ -577,8 +549,6 @@ async function main() {
   await summarizeHookLog("Centralized user/plugin", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "stop-tts.jsonl")));
   await summarizeHookLog("Repo dev-only speech", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-tts.jsonl")));
   await summarizeHookLog("Repo dev-only Stop probe", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "stop-log.jsonl")));
-  await summarizeHookLog("Centralized permission-request", await readRecentHookLog(path.join(codexHome, "speak-swiftly-server", "hooks", "logs", "permission-request.jsonl")));
-  await summarizeHookLog("Repo dev-only permission-request", await readRecentHookLog(path.join(repoRoot, ".codex", "logs", "permission-request.jsonl")));
 
   console.log("Checks:");
   for (const check of checks) {

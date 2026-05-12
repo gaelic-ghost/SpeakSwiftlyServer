@@ -42,7 +42,7 @@ Expected result:
   `features.plugin_hooks = true`. `plugin_hooks` is required before Codex runs
   lifecycle hooks loaded from installed plugins.
 - The hook doctor reports one installed-cache dispatcher command for `Stop` and
-  one for `PermissionRequest`.
+  one for `Stop`.
 - The hook doctor keeps `speak-swiftly@socket` as the preferred enabled entry
   when duplicate or legacy plugin entries are present.
 
