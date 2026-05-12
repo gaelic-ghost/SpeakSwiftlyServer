@@ -1,6 +1,6 @@
 # Skills Surface Audit
 
-Last audited: 2026-05-04
+Last audited: 2026-05-12
 
 This note records the repo-local Codex skill surface audit against the current `SpeakSwiftlyServer` package, HTTP API, MCP catalog, plugin metadata, and operator documentation.
 
