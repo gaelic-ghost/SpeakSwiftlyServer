@@ -1,6 +1,6 @@
 # Skills Surface Audit
 
-Last audited: 2026-05-04
+Last audited: 2026-05-12
 
 This note records the repo-local Codex skill surface audit against the current `SpeakSwiftlyServer` package, HTTP API, MCP catalog, plugin metadata, and operator documentation.
 
@@ -13,7 +13,7 @@ The checked-in plugin exposes six focused skills under `skills/`:
 - `speak-swiftly-voice-workflows`: voice-profile creation and editing, live speech, retained artifact generation, and artifact inspection.
 - `speak-swiftly-text-profiles`: text-normalization style, stored profile, replacement, and persistence workflows.
 - `speak-swiftly-launchagent-setup`: supported LaunchAgent setup, promotion, inspection, uninstall, and healthcheck flow.
-- `speak-swiftly-codex-hooks`: Codex lifecycle hook setup, duplicate user-level Stop hook repair, permission-request probing, doctor interpretation, and final-reply TTS troubleshooting.
+- `speak-swiftly-codex-hooks`: Codex lifecycle hook setup, duplicate user-level Stop hook repair, doctor interpretation, and final-reply TTS troubleshooting.
 
 The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `./.mcp.json`, and `./hooks/hooks.json`. The local marketplace entry at `.agents/plugins/marketplace.json` points at the repository root because the root is the plugin root.
 
@@ -47,7 +47,7 @@ The public HTTP and MCP guidance now treats request-context metadata as transpor
 - The MCP, runtime, voice, and text-profile skills still treated read-only MCP tools as normal first reads. The current clean-break MCP surface removes those read tools where resources exist and points agents at `speak-swiftly://...` resources instead.
 - The voice workflow skill still described `swift-signal` and `swift-anchor` as planned/reserved names. It now treats them as package-owned built-in defaults.
 - Added `speak-swiftly-codex-hooks` so plugin-managed hooks, duplicate user-level Stop hook repair, centralized hook logs, and doctor interpretation have a dedicated skill instead of living only in maintainer prose.
-- Added permission-request hook probing and default HTTP/MCP request-context provenance to the docs and skill surfaces so future TTS and TextForSpeech behavior can rely on the same origin metadata.
+- Added default HTTP/MCP request-context provenance to the docs and skill surfaces so future TTS and TextForSpeech behavior can rely on the same origin metadata.
 
 ## Healthy Constraints To Preserve
 

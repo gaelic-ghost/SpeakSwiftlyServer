@@ -1,22 +1,11 @@
 {
   "hooks": {
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/8.0.3/hooks/permission-request-log.mjs",
-            "timeout": 15
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/8.0.3/hooks/stop-tts.mjs",
+            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/8.0.4/hooks/stop-tts.mjs",
             "timeout": 15
           }
         ]
