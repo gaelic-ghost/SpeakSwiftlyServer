@@ -19,6 +19,7 @@ Use this roadmap to track the remaining package, docs, plugin, and live-service 
 - [Milestone 18: Codex Plugin Catalog Split](#milestone-18-codex-plugin-catalog-split)
 - [Milestone 19: Default Voice Setup Simplification](#milestone-19-default-voice-setup-simplification)
 - [Milestone 20: Public API Simplification](#milestone-20-public-api-simplification)
+- [Milestone 21: Repo-Wide Security Audit Follow-Through](#milestone-21-repo-wide-security-audit-follow-through)
 - [Backlog Candidates](#backlog-candidates)
 - [History](#history)
 
@@ -47,6 +48,7 @@ Make `SpeakSwiftlyServer` the small, dependable Apple-platform speech-service pa
 - Milestone 18: Codex Plugin Catalog Split - In Progress
 - Milestone 19: Default Voice Setup Simplification - Planned
 - Milestone 20: Public API Simplification - In Progress
+- Milestone 21: Repo-Wide Security Audit Follow-Through - Planned
 
 ## Milestone 8: Config Reload Policy
 
@@ -300,6 +302,30 @@ In Progress
 ### Exit Criteria
 
 - [ ] The first public read path is clear for agents and operators, duplicate shared-state models are removed or explicitly justified, and deferred compatibility-sensitive cleanup is documented without leaving hidden transitional behavior behind.
+
+## Milestone 21: Repo-Wide Security Audit Follow-Through
+
+### Status
+
+Planned
+
+### Scope
+
+- [ ] Close the addressable findings from the 2026-05-12 repo-wide security audit while preserving the package's intentional trusted-local HTTP, MCP, embedded, LaunchAgent, and Codex hook model.
+
+### Tickets
+
+- [ ] Constrain transport-facing voice-profile file inputs so `reference_audio_path` and `output_path` cannot read from or write to arbitrary service-account filesystem paths unless the caller is using an explicit operator-only surface.
+- [ ] Replace manual YAML rendering for persisted runtime configuration with structured scalar-safe output, or centralize escaping and validation for every interpolated persisted value.
+- [ ] Add MCP session and subscription budgets, including active-session caps, idle cleanup, per-session subscription caps, URI length limits, and dynamic-resource existence checks where appropriate.
+- [ ] Redact or gate Codex stop-hook diagnostic previews so message text, transcript paths, and full payloads are not persisted by default without an explicit diagnostic opt-in.
+- [ ] Decide and document whether retained request history is intentionally shared across trusted local clients; if not, attach client/session ownership to retained jobs and filter list/detail/SSE reads.
+- [ ] Review transport-facing runtime snapshots for path and error disclosure, then redact, compact, or move full path diagnostics behind an explicit operator diagnostics surface.
+- [ ] Add a startup guard or explicit unsafe-mode warning for unauthenticated HTTP or MCP bindings on non-loopback interfaces.
+
+### Exit Criteria
+
+- [ ] The audit report's validated findings are either fixed, explicitly accepted as trusted-local behavior, or moved to a documented diagnostics-only surface with tests and API/MCP guidance updated.
 
 ## Backlog Candidates
 
