@@ -246,7 +246,7 @@ The live-reloadable subset currently includes app name, app environment, SSE hea
 
 Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen, Chatterbox Turbo, and Marvis variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, and `marvis_6bit`.
 
-Supported `duck_media_volume` values come from `SpeakSwiftly.DuckMediaVolume`: `off`, `a_little`, `default`, and `a_lot`. Any value except `off` may require macOS Automation permission because SpeakSwiftly lowers supported media app volumes while speech playback is active, then restores them afterward.
+Supported `duck_media_volume` values come from `SpeakSwiftly.DuckMediaVolume`: `off`, `a_little`, `default`, and `a_lot`. Runtime configuration snapshots report `active_duck_media_volume`, `next_duck_media_volume`, and `persisted_duck_media_volume`; a duck-only change keeps `active_runtime_matches_next_runtime` false until the next runtime start. Any value except `off` may require macOS Automation permission because SpeakSwiftly lowers supported media app volumes while speech playback is active, then restores them afterward.
 
 ### Verification
 

@@ -40,7 +40,7 @@ enum MCPResourceCatalog {
     static let resources: [Resource] = [
         .init(name: "Runtime Overview", uri: "speak-swiftly://overview", description: "Shared-host runtime overview with readiness, queues, transports, and recent errors.", mimeType: "application/json"),
         .init(name: "Runtime Status", uri: "speak-swiftly://status", description: "Underlying SpeakSwiftly runtime snapshot, including state, resident-model state, speech backend, storage paths, and default voice profile.", mimeType: "application/json"),
-        .init(name: "Runtime Configuration", uri: "speak-swiftly://configuration", description: "Persisted runtime configuration snapshot for the next runtime start, including backend, Qwen resident model, and Marvis resident policy.", mimeType: "application/json"),
+        .init(name: "Runtime Configuration", uri: "speak-swiftly://configuration", description: "Active, next-start, and persisted runtime configuration snapshot for speech backend, media ducking, and default voice profile.", mimeType: "application/json"),
         .init(name: "Voice Profiles", uri: "speak-swiftly://voices", description: "Current cached SpeakSwiftly voice profiles.", mimeType: "application/json"),
         .init(name: "Voice Profile Guide", uri: "speak-swiftly://voices/guide", description: "Operator guidance for creating, cloning, renaming, rerolling, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
         .init(name: "Text Profiles", uri: "speak-swiftly://text-profiles", description: "Current SpeakSwiftly text-profile snapshot, including built-in style plus base, active, stored, and effective profiles.", mimeType: "application/json"),

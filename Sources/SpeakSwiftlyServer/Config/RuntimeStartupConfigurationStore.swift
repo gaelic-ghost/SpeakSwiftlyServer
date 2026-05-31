@@ -97,6 +97,10 @@ struct RuntimeStartupConfigurationStore {
         defaultActiveRuntimeSpeechBackend ?? resolvedPersistedConfiguration().speechBackend
     }
 
+    func initialActiveDuckMediaVolume() -> SpeakSwiftly.DuckMediaVolume {
+        resolvedPersistedConfiguration().duckMediaVolume
+    }
+
     func initialActiveDefaultVoiceProfileName(
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name?,
     ) -> SpeakSwiftly.Name? {
@@ -105,11 +109,13 @@ struct RuntimeStartupConfigurationStore {
 
     func snapshot(
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
+        activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) -> RuntimeConfigurationSnapshot {
         let resolution = resolvedPersistedConfiguration()
         let resolvedActiveRuntimeSpeechBackend = activeRuntimeSpeechBackend ?? initialActiveRuntimeSpeechBackend()
+        let resolvedActiveDuckMediaVolume = activeDuckMediaVolume ?? initialActiveDuckMediaVolume()
         let resolvedActiveDefaultVoiceProfileName = activeDefaultVoiceProfileName
             ?? initialActiveDefaultVoiceProfileName(configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName)
         let environmentOverride = SpeakSwiftly.SpeechBackend.configured(in: environment)
@@ -117,6 +123,7 @@ struct RuntimeStartupConfigurationStore {
         return .init(
             activeRuntimeSpeechBackend: resolvedActiveRuntimeSpeechBackend.rawValue,
             nextRuntimeSpeechBackend: resolution.speechBackend.rawValue,
+            activeDuckMediaVolume: resolvedActiveDuckMediaVolume.rawValue,
             nextDuckMediaVolume: resolution.duckMediaVolume.rawValue,
             activeDefaultVoiceProfileName: resolvedActiveDefaultVoiceProfileName,
             nextDefaultVoiceProfileName: resolution.defaultVoiceProfileName,
@@ -130,7 +137,8 @@ struct RuntimeStartupConfigurationStore {
             persistedConfigurationState: resolution.configurationState.rawValue,
             persistedConfigurationError: resolution.configurationError,
             persistedConfigurationAppliesOnRestart: true,
-            activeRuntimeMatchesNextRuntime: resolvedActiveRuntimeSpeechBackend == resolution.speechBackend,
+            activeRuntimeMatchesNextRuntime: resolvedActiveRuntimeSpeechBackend == resolution.speechBackend
+                && resolvedActiveDuckMediaVolume == resolution.duckMediaVolume,
             persistedConfigurationWillAffectNextRuntimeStart: environmentOverride == nil,
         )
     }
@@ -139,6 +147,7 @@ struct RuntimeStartupConfigurationStore {
         speechBackend: SpeakSwiftly.SpeechBackend,
         duckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
+        activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
@@ -160,6 +169,7 @@ struct RuntimeStartupConfigurationStore {
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,
         )
@@ -168,6 +178,7 @@ struct RuntimeStartupConfigurationStore {
     func saveDefaultVoiceProfileName(
         _ defaultVoiceProfileName: SpeakSwiftly.Name?,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
+        activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) throws -> RuntimeConfigurationSnapshot {
         let current = loadPersistedRuntimeConfiguration()
@@ -186,6 +197,7 @@ struct RuntimeStartupConfigurationStore {
         }
         return snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             activeDefaultVoiceProfileName: RuntimeStartupConfiguration.normalized(defaultVoiceProfileName)
                 ?? configuredDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName,

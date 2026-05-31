@@ -121,6 +121,7 @@ extension ServerTests {
                     runtimeConfiguration: .init(
                         activeRuntimeSpeechBackend: "qwen3_smol",
                         nextRuntimeSpeechBackend: "qwen3_smol",
+                        activeDuckMediaVolume: "off",
                         nextDuckMediaVolume: "off",
                         activeDefaultVoiceProfileName: "default",
                         nextDefaultVoiceProfileName: "default",

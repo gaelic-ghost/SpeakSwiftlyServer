@@ -278,6 +278,7 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
     enum CodingKeys: String, CodingKey {
         case activeRuntimeSpeechBackend = "active_runtime_speech_backend"
         case nextRuntimeSpeechBackend = "next_runtime_speech_backend"
+        case activeDuckMediaVolume = "active_duck_media_volume"
         case nextDuckMediaVolume = "next_duck_media_volume"
         case activeDefaultVoiceProfileName = "active_default_voice_profile_name"
         case nextDefaultVoiceProfileName = "next_default_voice_profile_name"
@@ -297,6 +298,7 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
 
     public let activeRuntimeSpeechBackend: String
     public let nextRuntimeSpeechBackend: String
+    public let activeDuckMediaVolume: String
     public let nextDuckMediaVolume: String
     public let activeDefaultVoiceProfileName: String?
     public let nextDefaultVoiceProfileName: String?

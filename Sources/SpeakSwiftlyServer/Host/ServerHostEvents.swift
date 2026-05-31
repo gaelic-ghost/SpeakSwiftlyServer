@@ -27,9 +27,12 @@ struct TextProfilesStatusSnapshot: Codable, Equatable {
 struct RuntimeConfigurationStatusSnapshot: Codable, Equatable {
     let activeRuntimeSpeechBackend: String
     let nextRuntimeSpeechBackend: String
+    let activeDuckMediaVolume: String
+    let nextDuckMediaVolume: String
     let activeDefaultVoiceProfileName: String?
     let nextDefaultVoiceProfileName: String?
     let persistedSpeechBackend: String?
+    let persistedDuckMediaVolume: String?
     let persistedDefaultVoiceProfileName: String?
     let environmentSpeechBackendOverride: String?
     let persistedConfigurationPath: String
@@ -38,9 +41,12 @@ struct RuntimeConfigurationStatusSnapshot: Codable, Equatable {
     enum CodingKeys: String, CodingKey {
         case activeRuntimeSpeechBackend = "active_runtime_speech_backend"
         case nextRuntimeSpeechBackend = "next_runtime_speech_backend"
+        case activeDuckMediaVolume = "active_duck_media_volume"
+        case nextDuckMediaVolume = "next_duck_media_volume"
         case activeDefaultVoiceProfileName = "active_default_voice_profile_name"
         case nextDefaultVoiceProfileName = "next_default_voice_profile_name"
         case persistedSpeechBackend = "persisted_speech_backend"
+        case persistedDuckMediaVolume = "persisted_duck_media_volume"
         case persistedDefaultVoiceProfileName = "persisted_default_voice_profile_name"
         case environmentSpeechBackendOverride = "environment_speech_backend_override"
         case persistedConfigurationPath = "persisted_configuration_path"
