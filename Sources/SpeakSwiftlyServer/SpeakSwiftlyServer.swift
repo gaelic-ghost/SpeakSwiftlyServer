@@ -1,4 +1,5 @@
 import Foundation
+@_exported import SSSCore
 
 public struct ServerRuntimeEntrypointOptions: Sendable {
     public let configurationPath: String?

@@ -20,10 +20,10 @@ The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `
 ## Source-Of-Truth Surfaces Checked
 
 - `Package.swift` confirms this is the SwiftPM source of truth for the `SpeakSwiftlyServer` library, `SpeakSwiftlyServerTool` executable, and test targets.
-- `Sources/SpeakSwiftlyServer/MCP/MCPToolCatalog.swift` is the MCP tool catalog source of truth.
-- `Sources/SpeakSwiftlyServer/MCP/MCPResources.swift` is the MCP resource and resource-template source of truth.
-- `Sources/SpeakSwiftlyServer/MCP/MCPPrompts.swift` is the MCP prompt source of truth.
-- `Sources/SpeakSwiftlyServer/HTTP/` is the HTTP route source of truth.
+- `Sources/SSSMCP/MCP/MCPToolCatalog.swift` is the MCP tool catalog source of truth.
+- `Sources/SSSMCP/MCP/MCPResources.swift` is the MCP resource and resource-template source of truth.
+- `Sources/SSSMCP/MCP/MCPPrompts.swift` is the MCP prompt source of truth.
+- `Sources/SSSHTTP/HTTP/` is the HTTP route source of truth.
 - `API.md` is the dense public transport inventory.
 - `README.md` is the concise public operator and plugin install entrypoint.
 
@@ -63,6 +63,6 @@ When the HTTP or MCP surface changes again, compare:
 1. `MCPToolCatalog.swift` tool names against every backticked MCP tool name in `skills/*/SKILL.md`.
 2. `MCPResources.swift` resources and templates against every `speak-swiftly://...` URI in `skills/*/SKILL.md`.
 3. `MCPPrompts.swift` prompt names against every prompt name in `skills/*/SKILL.md`.
-4. `Sources/SpeakSwiftlyServer/HTTP/*.swift` route registrations against the HTTP inventory in `API.md`.
+4. `Sources/SSSHTTP/HTTP/*.swift` route registrations against the HTTP inventory in `API.md`.
 5. `.mcp.json`, `skills/*/agents/openai.yaml`, and README plugin-install wording for service URL and install-flow agreement.
 6. `.codex-plugin/plugin.json`, `hooks/hooks.json`, `scripts/codex-hooks-doctor.mjs`, and `skills/speak-swiftly-codex-hooks/SKILL.md` for plugin-managed hook and duplicate user-level hook repair agreement.

@@ -27,9 +27,23 @@ The HTTP and MCP surfaces are active local-service APIs. They are intentionally 
 
 The embedded Swift surface is the supported package-level integration point for apps that want to own a local server session in-process. Maintainer comparison against the resolved SpeakSwiftly package surface lives in `docs/maintainers/speakswiftly-api-coverage-matrix.md`.
 
+The supported Swift package entrypoints are the `SpeakSwiftlyServer` library product and the `SpeakSwiftlyServerTool` executable product. Consumers should import only `SpeakSwiftlyServer`; implementation targets such as `SSSCore`, `SSSHTTP`, and `SSSMCP` are package-internal structure and are not a supported import surface.
+
 ## API Surface
 
 ### Entry Points
+
+Swift embedding:
+
+```swift
+import SpeakSwiftlyServer
+```
+
+Command-line operator surface:
+
+```bash
+xcrun swift run SpeakSwiftlyServerTool help
+```
 
 HTTP runtime and health routes:
 

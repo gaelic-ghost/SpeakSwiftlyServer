@@ -59,12 +59,12 @@ It is not meant to be a second runtime owner, a transport client, or a public es
 
 The library keeps the observable state in small transport-neutral snapshot types:
 
-- ``HostOverviewSnapshot`` for host identity and readiness
-- ``QueueStatusSnapshot`` and ``PlaybackStatusSnapshot`` for active and queued work
-- ``RuntimeConfigurationSnapshot`` for persisted and active runtime configuration
-- ``TransportStatusSnapshot`` and ``RecentErrorSnapshot`` for operator-facing health signals
+- `HostOverviewSnapshot` for host identity and readiness
+- `QueueStatusSnapshot` and `PlaybackStatusSnapshot` for active and queued work
+- `RuntimeConfigurationSnapshot` for persisted and active runtime configuration
+- `TransportStatusSnapshot` and `RecentErrorSnapshot` for operator-facing health signals
 
-When you need the whole current picture at once, use ``HostStateSnapshot`` as the aggregate read model.
+When you need the whole current picture at once, use `HostStateSnapshot` as the aggregate read model.
 
 ## When To Use The Executable Instead
 

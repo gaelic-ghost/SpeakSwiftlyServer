@@ -24,7 +24,8 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - `docs/maintainers/release-workflow.md` for the current release contract.
 - `docs/maintainers/source-layout.md` before source-layout or module-boundary changes.
 - `scripts/repo-maintenance/` for local validation, shared sync, release, and CI wrapper behavior.
-- `Sources/SpeakSwiftlyServer/` for the reusable library target and `Sources/SpeakSwiftlyServerTool/` for the executable wrapper.
+- `Sources/SpeakSwiftlyServer/` for the supported app-facing facade and `Sources/SpeakSwiftlyServerTool/` for the executable wrapper.
+- `Sources/SSSCore/`, `Sources/SSSHTTP/`, and `Sources/SSSMCP/` for package-internal implementation modules. These targets are not supported public import surfaces.
 
 ## Working Rules
 
@@ -34,6 +35,8 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Keep package graph changes together with `Package.swift`, `Package.resolved`, target layout, matching docs, and matching tests.
 - Keep HTTP, MCP, LaunchAgent, and release workflow changes paired with operator-facing docs in the same change.
 - Keep source files small and role-focused; split shared support into explicit helper or extension files instead of growing mixed-responsibility entry points.
+- Keep only `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` as supported public package entrypoints. `SSSCore`, `SSSHTTP`, and `SSSMCP` are implementation targets and should not be documented as consumer imports.
+- Keep `SSSCore` free of Hummingbird and MCP dependencies. Put Hummingbird response/error mapping in `SSSHTTP` and MCP-specific shaping in `SSSMCP`.
 - Use feature branches for normal repo work. Treat `main` as the protected release branch unless Gale explicitly says to work there for a specific task.
 - Treat a feature branch as a local isolation and checkpoint surface, not automatic permission to publish, open a pull request, or start watching remote CI.
 - Do not push a branch, open a pull request, enable auto-merge, or begin GitHub CI watch just because a local change exists. Do those remote handoff steps only when Gale asks for a PR/push/release, when the repo-owned release script is intentionally running a release, or when Gale explicitly asks for review handoff.
@@ -49,7 +52,7 @@ This root file governs the standalone Swift Package Manager repository for `Spea
 - Create bundled system voice profiles with the upstream `SpeakSwiftly` command plugin, not by
   manually copying live runtime profiles or hand-editing generated manifests. From this package
   checkout, the intended authoring path is `xcrun swift package plugin
-  --allow-writing-to-package-directory upsert-system-voice-profile --target SpeakSwiftlyServer ...`.
+  --allow-writing-to-package-directory upsert-system-voice-profile --target SSSCore ...`.
   If the command plugin is not discoverable with `xcrun swift package plugin --list`, stop and
   surface that as a package/plugin exposure issue before generating resources. Use
   `SpeakSwiftlyTool --system-profile-resource-root` only for upstream debugging or plugin

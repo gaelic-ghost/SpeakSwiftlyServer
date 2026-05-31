@@ -26,6 +26,7 @@ This guide is for contributors and maintainers making source, docs, test, releas
 - Start with [AGENTS.md](./AGENTS.md) for the repo's package, architecture, and workflow rules.
 - Keep package graph changes together in one pass, including `Package.swift`, `Package.resolved`, tests, and matching docs.
 - Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference instead of adding another translation layer.
+- Keep `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` as the supported public entrypoints. The `SSSCore`, `SSSHTTP`, and `SSSMCP` targets are package-internal implementation modules.
 - Preserve the current standalone package baseline on macOS 15 while keeping the host and state model friendly to the near-future iOS reuse path.
 - Use Xcode's selected Swift toolchain through `xcrun`; this package declares Swift tools version 6.3 and macOS 15.0 in `Package.swift`.
 - Expect the ordinary package lane to work without secrets, without changing the installed LaunchAgent, and without a live service. Live end-to-end coverage is opt-in and documented separately below.
@@ -69,7 +70,7 @@ Before asking for review, make sure the affected docs are in sync, the local val
 The concrete runtime config surfaces in this repo are:
 
 - [`server.yaml`](./server.yaml) for local config examples
-- the bundled `default-server.yaml` resource in the `SpeakSwiftlyServer` target
+- the bundled `default-server.yaml` resource in the `SSSCore` target
 - the persisted `~/Library/Application Support/SpeakSwiftlyServer/server.yaml` config seeded from that resource
 - `APP_NAME`
 - `APP_ENVIRONMENT`
@@ -133,7 +134,7 @@ this package checkout:
 
 ```bash
 xcrun swift package plugin --allow-writing-to-package-directory upsert-system-voice-profile \
-  --target SpeakSwiftlyServer \
+  --target SSSCore \
   --name swift-signal \
   --text "A short source text for the generated system voice." \
   --vibe femme \
@@ -141,7 +142,7 @@ xcrun swift package plugin --allow-writing-to-package-directory upsert-system-vo
 ```
 
 The `upsert-system-voice-profile` command plugin is the normal authoring surface for
-`Sources/SpeakSwiftlyServer/Resources/SystemProfiles/profiles/<profile-name>/`. Do not manually copy
+`Sources/SSSCore/Resources/SystemProfiles/profiles/<profile-name>/`. Do not manually copy
 profiles out of a live runtime profile store or hand-edit generated manifests to make them appear
 system-authored. If `xcrun swift package plugin --list` does not show the `upsert-system-voice-profile`
 verb, treat that as a package/plugin exposure issue to fix before generating resources.
@@ -224,7 +225,7 @@ This suite is a transport-owned smoke pass, not a second copy of SpeakSwiftly's 
 
 ### Embedding
 
-The supported public embedding surface is `EmbeddedServer`, defined in `Sources/SpeakSwiftlyServer/Host/EmbeddedServer.swift`. App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`.
+The supported public embedding surface is `EmbeddedServer`, defined in `Sources/SpeakSwiftlyServer/EmbeddedServer.swift`. App code owns that one observable object directly, calls `liftoff()`, binds UI to its observable properties, and uses the same object for runtime controls, playback controls, voice-profile actions, and direct live speech submission through `queueLiveSpeech(...)`.
 
 Embedded app callers should pass `SpeakSwiftly.RequestContext` directly when the app has richer caller, project, or origin metadata than the server can infer. HTTP and MCP speech surfaces add transport defaults for that context automatically.
 

@@ -4,7 +4,7 @@ This directory holds public documentation media for `SpeakSwiftlyServer`.
 
 Use it for short preview audio, transcripts, captions, and provenance notes that help users inspect
 package behavior without running a local server. Runtime-loaded SwiftPM resources belong under
-`Sources/SpeakSwiftlyServer/Resources` instead, because SwiftPM target resources must live under the
+`Sources/SSSCore/Resources` instead, because SwiftPM target resources must live under the
 target that owns them.
 
 ## Layout
