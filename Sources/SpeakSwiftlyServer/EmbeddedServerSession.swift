@@ -139,6 +139,7 @@ func embeddedServerLiveBootstrap(
     let app = assembleHBApp(
         configuration: config.http,
         host: host,
+        additionalListeningTransports: config.mcp.enabled ? ["mcp"] : [],
         mountAdditionalRoutes: { router in
             mcpSurface?.mount(on: router)
         },

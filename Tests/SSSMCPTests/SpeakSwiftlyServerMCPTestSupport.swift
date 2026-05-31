@@ -102,10 +102,3 @@ func nextMCPStreamEnvelope(
 
     throw JSONError.emptyBody("The embedded MCP standalone stream ended before it delivered a JSON payload.")
 }
-
-// MARK: - JSONError
-
-enum JSONError: Error {
-    case notDictionary
-    case emptyBody(String)
-}

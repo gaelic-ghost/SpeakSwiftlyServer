@@ -21,8 +21,17 @@ package func buildAcceptedRequestResponse(
 
 package func absoluteURL(for request: Request, configuration: HTTPConfig, path: String) -> String {
     let scheme = request.head.scheme ?? "http"
-    let authority = request.head.authority ?? "\(configuration.host):\(configuration.port)"
+    let authority = request.head.authority ?? configuredAuthority(configuration)
     return "\(scheme)://\(authority)\(path)"
+}
+
+package func configuredAuthority(_ configuration: HTTPConfig) -> String {
+    let host = configuration.host
+    if host.contains(":"), !host.hasPrefix("[") {
+        return "[\(host)]:\(configuration.port)"
+    }
+
+    return "\(host):\(configuration.port)"
 }
 
 package func encodeJSONResponse(_ value: some Encodable, status: HTTPResponse.Status) throws -> Response {

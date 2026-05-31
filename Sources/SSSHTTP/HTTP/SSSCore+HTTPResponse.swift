@@ -3,16 +3,7 @@ import SSSCore
 
 extension ServerRequestError: HTTPResponseError {
     public var status: HTTPResponse.Status {
-        switch httpStatusCode {
-            case 400:
-                .badRequest
-            case 404:
-                .notFound
-            case 503:
-                .serviceUnavailable
-            default:
-                .internalServerError
-        }
+        .init(code: httpStatusCode)
     }
 
     public func response(from request: Request, context: some RequestContext) throws -> Response {

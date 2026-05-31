@@ -6,6 +6,7 @@ import SSSCore
 package func assembleHBApp(
     configuration: HTTPConfig,
     host: ServerHost,
+    additionalListeningTransports: [String] = [],
     mountAdditionalRoutes: ((Router<BasicRequestContext>) -> Void)? = nil,
     services: [any Service] = [],
     beforeServerStarts startupProcesses: [@Sendable () async throws -> Void] = [],
@@ -21,9 +22,11 @@ package func assembleHBApp(
         configuration: .init(address: .hostname(configuration.host, port: configuration.port)),
         services: services,
         onServerRunning: { _ in
-            if configuration.enabled {
-                await host.markTransportListening(name: "http")
-            }
+            await markConfiguredTransportsListening(
+                configuration: configuration,
+                host: host,
+                additionalListeningTransports: additionalListeningTransports,
+            )
         },
     )
 
@@ -32,6 +35,19 @@ package func assembleHBApp(
     }
 
     return app
+}
+
+package func markConfiguredTransportsListening(
+    configuration: HTTPConfig,
+    host: ServerHost,
+    additionalListeningTransports: [String],
+) async {
+    if configuration.enabled {
+        await host.markTransportListening(name: "http")
+    }
+    for transportName in additionalListeningTransports where !transportName.isEmpty {
+        await host.markTransportListening(name: transportName)
+    }
 }
 
 private func registerHTTPRoutes(

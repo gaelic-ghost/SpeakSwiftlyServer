@@ -13,6 +13,48 @@ import Testing
 // MARK: - HTTP Control Tests
 
 extension ServerTests {
+    @Test func `configured HTTP authorities bracket IPv6 literal fallbacks`() {
+        let ipv4Config = HTTPConfig(enabled: true, host: "127.0.0.1", port: 7337, sseHeartbeatSeconds: 0.05)
+        #expect(configuredAuthority(ipv4Config) == "127.0.0.1:7337")
+
+        let ipv6Config = HTTPConfig(enabled: true, host: "::1", port: 7337, sseHeartbeatSeconds: 0.05)
+        #expect(configuredAuthority(ipv6Config) == "[::1]:7337")
+
+        let bracketedIPv6Config = HTTPConfig(enabled: true, host: "[::1]", port: 7337, sseHeartbeatSeconds: 0.05)
+        #expect(configuredAuthority(bracketedIPv6Config) == "[::1]:7337")
+    }
+
+    @available(macOS 14, *)
+    @Test func `assembled app support marks mounted transport routes as listening`() async {
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            httpConfig: testHTTPConfig(configuration),
+            mcpConfig: .init(
+                enabled: true,
+                path: "/mcp",
+                serverName: "speak-swiftly-mcp",
+                title: "Speak Swiftly",
+            ),
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+        await host.markTransportStarting(name: "http")
+        await host.markTransportStarting(name: "mcp")
+
+        await markConfiguredTransportsListening(
+            configuration: testHTTPConfig(configuration),
+            host: host,
+            additionalListeningTransports: ["mcp"],
+        )
+
+        let snapshot = await host.hostStateSnapshot()
+        #expect(snapshot.transports.contains { $0.name == "http" && $0.state == "listening" })
+        #expect(snapshot.transports.contains { $0.name == "mcp" && $0.state == "listening" })
+    }
+
     @available(macOS 14, *)
     @Test func `routes expose queue inspection and control operations`() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)

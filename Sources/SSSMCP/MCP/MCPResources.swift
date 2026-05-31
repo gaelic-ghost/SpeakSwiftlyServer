@@ -47,25 +47,7 @@ package enum MCPResourceCatalog {
         .init(uriTemplate: "speak-swiftly://generation/artifacts/{artifact_id}", name: "Generation Artifact Detail", description: "One retained generated audio artifact.", mimeType: "application/json"),
     ]
 
-    static let resourceURIs = Set([
-        "speak-swiftly://overview",
-        "speak-swiftly://status",
-        "speak-swiftly://configuration",
-        "speak-swiftly://voices",
-        "speak-swiftly://voices/guide",
-        "speak-swiftly://text-profiles",
-        "speak-swiftly://text-profiles/style",
-        "speak-swiftly://text-profiles/guide",
-        "speak-swiftly://text-profiles/base",
-        "speak-swiftly://text-profiles/active",
-        "speak-swiftly://text-profiles/effective",
-        "speak-swiftly://playback",
-        "speak-swiftly://playback/queue",
-        "speak-swiftly://playback/guide",
-        "speak-swiftly://requests",
-        "speak-swiftly://generation/jobs",
-        "speak-swiftly://generation/artifacts",
-    ])
+    static let resourceURIs = Set(resources.map(\.uri))
 }
 
 // MARK: - Resource Handlers

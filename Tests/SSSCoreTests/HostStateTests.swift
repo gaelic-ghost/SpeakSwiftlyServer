@@ -22,7 +22,7 @@ extension ServerTests {
         let callerContextPayload = try JSONDecoder().decode(
             SpeechRequestContextPayload.self,
             from: Data(
-                #"{"source":"caller","prefacePolicy":"never"}"#.utf8,
+                #"{"source":"caller","reqPurpose":"text","prefacePolicy":"never"}"#.utf8,
             ),
         )
         let callerCannotOverridePurpose = makeSpeechRequestContext(
