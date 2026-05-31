@@ -1,20 +1,22 @@
 import AsyncAlgorithms
 import Foundation
 import ServiceLifecycle
+import SSSCore
+import SSSMCP
 
 private struct EmbeddedLifecycleReadinessError: Error {
     let message: String
 }
 
-struct EmbeddedLifecycleStartupTimeoutError: Error, LocalizedError {
+package struct EmbeddedLifecycleStartupTimeoutError: Error, LocalizedError {
     let message: String
 
-    var errorDescription: String? {
+    package var errorDescription: String? {
         message
     }
 }
 
-actor EmbeddedLifecycleReadinessGate {
+package actor EmbeddedLifecycleReadinessGate {
     private enum State {
         case pending([CheckedContinuation<Void, Error>])
         case ready
@@ -23,7 +25,7 @@ actor EmbeddedLifecycleReadinessGate {
 
     private var state: State = .pending([])
 
-    func waitUntilReady() async throws {
+    package func waitUntilReady() async throws {
         switch state {
             case .ready:
                 return
@@ -44,7 +46,7 @@ actor EmbeddedLifecycleReadinessGate {
         }
     }
 
-    func markReady() {
+    package func markReady() {
         guard case let .pending(continuations) = state else {
             return
         }
@@ -55,7 +57,7 @@ actor EmbeddedLifecycleReadinessGate {
         }
     }
 
-    func markFailed(message: String) {
+    package func markFailed(message: String) {
         guard case let .pending(continuations) = state else {
             return
         }
@@ -68,16 +70,16 @@ actor EmbeddedLifecycleReadinessGate {
     }
 }
 
-actor EmbeddedLifecycleShutdownBarrier {
+package actor EmbeddedLifecycleShutdownBarrier {
     private let targetCount: Int
     private var completedCount = 0
     private var continuations = [CheckedContinuation<Void, Never>]()
 
-    init(targetCount: Int) {
+    package init(targetCount: Int) {
         self.targetCount = targetCount
     }
 
-    func markCompleted() {
+    package func markCompleted() {
         guard completedCount < targetCount else {
             return
         }
@@ -94,7 +96,7 @@ actor EmbeddedLifecycleShutdownBarrier {
         }
     }
 
-    func waitUntilCompleted() async {
+    package func waitUntilCompleted() async {
         guard completedCount < targetCount else {
             return
         }
@@ -139,15 +141,27 @@ private func embeddedLifecycleDurationDescription(_ duration: Duration) -> Strin
     return String(format: "%.2f second(s)", fractionalSeconds)
 }
 
-struct HostLifecycleService: Service {
-    static let defaultStartupTimeout: Duration = .seconds(15)
+package struct HostLifecycleService: Service {
+    package static let defaultStartupTimeout: Duration = .seconds(15)
 
-    let host: ServerHost
-    let readinessGate: EmbeddedLifecycleReadinessGate
-    let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
-    let startupTimeout: Duration
+    package let host: ServerHost
+    package let readinessGate: EmbeddedLifecycleReadinessGate
+    package let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
+    package let startupTimeout: Duration
 
-    func run() async throws {
+    package init(
+        host: ServerHost,
+        readinessGate: EmbeddedLifecycleReadinessGate,
+        shutdownBarrier: EmbeddedLifecycleShutdownBarrier,
+        startupTimeout: Duration,
+    ) {
+        self.host = host
+        self.readinessGate = readinessGate
+        self.shutdownBarrier = shutdownBarrier
+        self.startupTimeout = startupTimeout
+    }
+
+    package func run() async throws {
         let startupTask = Task {
             await host.start()
         }
@@ -225,11 +239,16 @@ struct HostLifecycleService: Service {
     }
 }
 
-struct HostPruneService: Service {
-    let host: ServerHost
-    let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
+package struct HostPruneService: Service {
+    package let host: ServerHost
+    package let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
 
-    func run() async throws {
+    package init(host: ServerHost, shutdownBarrier: EmbeddedLifecycleShutdownBarrier) {
+        self.host = host
+        self.shutdownBarrier = shutdownBarrier
+    }
+
+    package func run() async throws {
         _ = try await withEmbeddedShutdownBarrier(shutdownBarrier) {
             while !Task.isCancelled {
                 let interval = await host.jobPruneInterval()
@@ -307,11 +326,16 @@ struct MCPLifecycleService: Service {
     }
 }
 
-struct EmbeddedApplicationService: Service {
-    let application: any Service
-    let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
+package struct EmbeddedApplicationService: Service {
+    package let application: any Service
+    package let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
 
-    func run() async throws {
+    package init(application: any Service, shutdownBarrier: EmbeddedLifecycleShutdownBarrier) {
+        self.application = application
+        self.shutdownBarrier = shutdownBarrier
+    }
+
+    package func run() async throws {
         try await withEmbeddedShutdownBarrier(shutdownBarrier) {
             try await application.run()
         }

@@ -6,6 +6,8 @@ Embed the shared SpeakSwiftly speech runtime in an app, or package the same host
 
 `SpeakSwiftlyServer` is the library layer for the standalone SpeakSwiftly server package. It owns the embedded host session, the app-facing observable state model, and the HTTP and MCP server surfaces that can run inside an app process or behind the companion tool.
 
+Use `import SpeakSwiftlyServer` for app integration. The package is internally split into core, HTTP, and MCP implementation targets, but those target module names are not supported public documentation or consumer import surfaces.
+
 The package also ships the `SpeakSwiftlyServerTool` executable, but the executable is an operator surface built on top of this library rather than the main story of the hosted package docs. Start here when you need to:
 
 - start the shared server inside an app process
@@ -22,7 +24,6 @@ When you need transport-level route inventories, request and response payload ex
 ### Embedding The Shared Host
 
 - ``EmbeddedServer``
-- ``HostStateSnapshot``
 
 ### Articles
 

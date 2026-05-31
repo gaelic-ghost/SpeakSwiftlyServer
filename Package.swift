@@ -29,9 +29,10 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
-        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "10.0.1"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.83.0"),
+        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "11.0.0-alpha.1"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.3"),
-        .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.22.1"),
+        .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.23.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
         .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.12.0"),
         .package(
@@ -47,20 +48,46 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SpeakSwiftlyServer",
+            name: "SSSCore",
             dependencies: [
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "Configuration", package: "swift-configuration"),
-                .product(name: "Hummingbird", package: "hummingbird"),
-                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "SpeakSwiftly", package: "SpeakSwiftly"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
             ],
-            path: "Sources/SpeakSwiftlyServer",
+            path: "Sources/SSSCore",
             resources: [
                 .copy("Resources/SystemProfiles"),
                 .process("Resources/default-server.yaml"),
             ],
+        ),
+        .target(
+            name: "SSSHTTP",
+            dependencies: [
+                "SSSCore",
+                .product(name: "Hummingbird", package: "hummingbird"),
+            ],
+            path: "Sources/SSSHTTP",
+        ),
+        .target(
+            name: "SSSMCP",
+            dependencies: [
+                "SSSCore",
+                .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "MCP", package: "swift-sdk"),
+            ],
+            path: "Sources/SSSMCP",
+        ),
+        .target(
+            name: "SpeakSwiftlyServer",
+            dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
+                .product(name: "Hummingbird", package: "hummingbird"),
+            ],
+            path: "Sources/SpeakSwiftlyServer",
         ),
         .executableTarget(
             name: "SpeakSwiftlyServerTool",
@@ -69,15 +96,78 @@ let package = Package(
             ],
             path: "Sources/SpeakSwiftlyServerTool",
         ),
-        .testTarget(
-            name: "SpeakSwiftlyServerLibraryTests",
+        .target(
+            name: "SpeakSwiftlyServerTestSupport",
             dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
                 "SpeakSwiftlyServer",
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "SpeakSwiftly", package: "SpeakSwiftly"),
+                .product(name: "TextForSpeech", package: "TextForSpeech"),
+            ],
+            path: "Tests/SpeakSwiftlyServerTestSupport",
+        ),
+        .testTarget(
+            name: "SSSCoreTests",
+            dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
+                "SpeakSwiftlyServer",
+                "SpeakSwiftlyServerTestSupport",
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "HummingbirdTesting", package: "hummingbird"),
                 .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "TextForSpeech", package: "TextForSpeech"),
             ],
+            path: "Tests/SSSCoreTests",
+        ),
+        .testTarget(
+            name: "SSSHTTPTests",
+            dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
+                "SpeakSwiftlyServer",
+                "SpeakSwiftlyServerTestSupport",
+                .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "TextForSpeech", package: "TextForSpeech"),
+            ],
+            path: "Tests/SSSHTTPTests",
+        ),
+        .testTarget(
+            name: "SSSMCPTests",
+            dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
+                "SpeakSwiftlyServer",
+                "SpeakSwiftlyServerTestSupport",
+                .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "TextForSpeech", package: "TextForSpeech"),
+            ],
+            path: "Tests/SSSMCPTests",
+        ),
+        .testTarget(
+            name: "SpeakSwiftlyServerEmbeddingTests",
+            dependencies: [
+                "SSSCore",
+                "SSSHTTP",
+                "SSSMCP",
+                "SpeakSwiftlyServer",
+                "SpeakSwiftlyServerTestSupport",
+                .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "TextForSpeech", package: "TextForSpeech"),
+            ],
+            path: "Tests/SpeakSwiftlyServerEmbeddingTests",
         ),
         .testTarget(
             name: "SpeakSwiftlyServerTransportE2ETests",

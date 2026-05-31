@@ -5,52 +5,6 @@ import Testing
 // MARK: - Shared End-to-End Assertions
 
 extension ServerE2E {
-    static func recordQueuedMarvisHTTPDiagnostics(
-        using client: E2EHTTPClient,
-        requestIDs: [String],
-        expectedProfiles: [String],
-    ) async {
-        do {
-            let requestList = try await decode(
-                E2ERequestListResponse.self,
-                from: client.request(path: "/requests", method: "GET").data,
-            )
-            let hostState = try await jsonObject(
-                from: client.request(path: "/overview", method: "GET").data,
-            )
-
-            let retainedRequests = requestList.requests
-                .filter { requestIDs.contains($0.requestID) }
-                .sorted { lhs, rhs in
-                    requestIDs.firstIndex(of: lhs.requestID) ?? .max
-                        < requestIDs.firstIndex(of: rhs.requestID) ?? .max
-                }
-                .map(requestDiagnosticSummary)
-                .joined(separator: "\n")
-
-            let playbackQueue = try diagnosticJSONString(from: hostState["playback_queue"])
-            let generationQueue = try diagnosticJSONString(from: hostState["generation_queue"])
-            let currentGenerationJobs = try diagnosticJSONString(from: hostState["current_generation_jobs"])
-
-            Issue.record(
-                """
-                Queued Marvis HTTP diagnostics
-                expected_profiles: \(expectedProfiles.joined(separator: ", "))
-                request_ids: \(requestIDs.joined(separator: ", "))
-                playback_queue: \(playbackQueue)
-                generation_queue: \(generationQueue)
-                current_generation_jobs: \(currentGenerationJobs)
-                retained_requests:
-                \(retainedRequests.isEmpty ? "none" : retainedRequests)
-                """,
-            )
-        } catch {
-            Issue.record(
-                "Queued Marvis HTTP diagnostics could not be captured after a live-playback failure. Likely cause: \(error.localizedDescription)",
-            )
-        }
-    }
-
     static func requestDiagnosticSummary(_ snapshot: E2EJobSnapshot) -> String {
         let latestEvent = snapshot.history.last?.event ?? "nil"
         let latestStage = snapshot.history.last?.stage ?? "nil"

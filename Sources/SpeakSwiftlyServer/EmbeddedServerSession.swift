@@ -1,10 +1,22 @@
 import Foundation
 import Hummingbird
 import ServiceLifecycle
+import SpeakSwiftly
+import SSSCore
+import SSSHTTP
+import SSSMCP
 
-struct EmbeddedServerLifecycleHooks {
-    let requestStop: @Sendable () async -> Void
-    let waitUntilStopped: @Sendable () async throws -> Void
+package struct EmbeddedServerLifecycleHooks {
+    package let requestStop: @Sendable () async -> Void
+    package let waitUntilStopped: @Sendable () async throws -> Void
+
+    package init(
+        requestStop: @escaping @Sendable () async -> Void,
+        waitUntilStopped: @escaping @Sendable () async throws -> Void,
+    ) {
+        self.requestStop = requestStop
+        self.waitUntilStopped = waitUntilStopped
+    }
 }
 
 actor EmbeddedServerStopCoordinator {
@@ -102,11 +114,14 @@ func embeddedServerLiveBootstrap(
                     return response.playback
                 },
                 clearPlaybackQueue: {
-                    let response = try await host.clearQueue(.playback)
+                    let response = try await host.clearQueue(SpeakSwiftly.QueueType.playback)
                     return response.clearedCount
                 },
                 cancelPlaybackRequest: { requestID in
-                    let response = try await host.cancelQueuedOrActiveRequest(.playback, requestID: requestID)
+                    let response = try await host.cancelQueuedOrActiveRequest(
+                        SpeakSwiftly.QueueType.playback,
+                        requestID: requestID,
+                    )
                     return response.cancelledRequestID
                 },
             ),
@@ -124,7 +139,10 @@ func embeddedServerLiveBootstrap(
     let app = assembleHBApp(
         configuration: config.http,
         host: host,
-        mcpSurface: mcpSurface,
+        additionalListeningTransports: config.mcp.enabled ? ["mcp"] : [],
+        mountAdditionalRoutes: { router in
+            mcpSurface?.mount(on: router)
+        },
         beforeServerStarts: [
             {
                 try await hostReadinessGate.waitUntilReady()

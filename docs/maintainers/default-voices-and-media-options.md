@@ -17,7 +17,7 @@ without requiring a local runtime first.
 - `SpeakSwiftlyServer` owns the local HTTP, MCP, embedded, LaunchAgent, and operator-facing default
   profile selection surfaces.
 - `SpeakSwiftlyServer` can ship server-owned generated system-profile resources under
-  `Sources/SpeakSwiftlyServer/Resources/SystemProfiles/`.
+  `Sources/SSSCore/Resources/SystemProfiles/`.
 - The live user profile root stays outside the package and is selected through the runtime profile-root path.
 - `docs/media/` is documentation content, not a SwiftPM module resource.
 
@@ -187,7 +187,7 @@ pronunciation, pacing, and noise floor.
 2. Add upstream `SpeakSwiftly` command-plugin support for creating system-profile resources into
    bundled consumer package resources. Done in `SpeakSwiftly` `v7.2.5`; this server should invoke
    it with `xcrun swift package plugin --allow-writing-to-package-directory
-   upsert-system-voice-profile --target SpeakSwiftlyServer ...`.
+   upsert-system-voice-profile --target SSSCore ...`.
 3. Let `SpeakSwiftly` seed bundled system profiles during runtime startup, then let
    `SpeakSwiftlyServer` refresh and expose the installed profile cache. Done in the server after
    adopting `SpeakSwiftly` `v7.2.5`.

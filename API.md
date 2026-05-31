@@ -27,9 +27,23 @@ The HTTP and MCP surfaces are active local-service APIs. They are intentionally 
 
 The embedded Swift surface is the supported package-level integration point for apps that want to own a local server session in-process. Maintainer comparison against the resolved SpeakSwiftly package surface lives in `docs/maintainers/speakswiftly-api-coverage-matrix.md`.
 
+The supported Swift package entrypoints are the `SpeakSwiftlyServer` library product and the `SpeakSwiftlyServerTool` executable product. Consumers should import only `SpeakSwiftlyServer`; implementation targets such as `SSSCore`, `SSSHTTP`, and `SSSMCP` are package-internal structure and are not a supported import surface.
+
 ## API Surface
 
 ### Entry Points
+
+Swift embedding:
+
+```swift
+import SpeakSwiftlyServer
+```
+
+Command-line operator surface:
+
+```bash
+xcrun swift run SpeakSwiftlyServerTool help
+```
 
 HTTP runtime and health routes:
 
@@ -226,7 +240,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `10.0.1`, `TextForSpeech` from `0.22.1`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `11.0.0-alpha.1`, `TextForSpeech` from `0.23.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 
@@ -244,7 +258,7 @@ The live-reloadable subset currently includes app name, app environment, SSE hea
 
 `SPEAKSWIFTLY_PROFILE_ROOT` is startup-only and points at the server-owned profile-store root. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start backend while building the explicit `SpeakSwiftly.Configuration` for runtime startup.
 
-Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen, Chatterbox Turbo, and Marvis variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, and `marvis_6bit`.
+Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, and `qwen3_big_bf16`.
 
 Supported `duck_media_volume` values come from `SpeakSwiftly.DuckMediaVolume`: `off`, `a_little`, `default`, and `a_lot`. Runtime configuration snapshots report `active_duck_media_volume`, `next_duck_media_volume`, and `persisted_duck_media_volume`; a duck-only change keeps `active_runtime_matches_next_runtime` false until the next runtime start. Any value except `off` may require macOS Automation permission because SpeakSwiftly lowers supported media app volumes while speech playback is active, then restores them afterward.
 
