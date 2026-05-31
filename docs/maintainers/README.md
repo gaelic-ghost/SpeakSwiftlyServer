@@ -10,6 +10,8 @@ Keep active docs here only when they still guide present-day editing, validation
   Current source ownership map for host, HTTP, MCP, config, executable, resources, and tests.
 - [`speakswiftly-api-coverage-matrix.md`](speakswiftly-api-coverage-matrix.md)
   Current comparison between the resolved `SpeakSwiftly` package API and this server's HTTP, MCP, and embedded surfaces.
+- [`speakswiftly-vnext-adoption-plan.md`](speakswiftly-vnext-adoption-plan.md)
+  Planned adoption path for the next upstream `SpeakSwiftly` release, with public-product integration rules.
 - [`release-workflow.md`](release-workflow.md)
   Current release contract and validation handoff.
 
