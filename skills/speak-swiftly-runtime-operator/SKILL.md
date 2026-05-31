@@ -29,7 +29,7 @@ Use this skill for operator-style runtime work on the local `speak_swiftly` MCP 
 - Use `clear_playback_queue` when the user wants to drop queued audible work without stopping active playback.
 - Use `cancel_request` when the user wants one specific request stopped. Omit `scope` for the broad cancel path, or pass `generation` / `playback` when the user wants to target one queue.
 - Use `switch_speech_backend` for an immediate backend flip on the running runtime.
-- Use `set_runtime_configuration` when the user wants a different backend or resident-model setting on the next restart without changing the current one.
+- Use `set_runtime_configuration` when the user wants a different backend or `duck_media_volume` media-ducking setting on the next restart without changing the current runtime.
 - Use `reload_models` or `unload_models` only when the user is explicitly asking about model residency or memory pressure.
 
 ## Verification
