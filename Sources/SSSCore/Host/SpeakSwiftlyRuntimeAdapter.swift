@@ -96,6 +96,7 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
             textProfile: textProfileID,
             requestContext: requestContext,
             qwenPreModelTextChunking: qwenPreModelTextChunking,
+            output: nil,
         )
         return .init(id: handle.id, operation: "generate_speech", profileName: profileName, events: handle.events)
     }

@@ -277,8 +277,6 @@ extension ServerTests {
             #expect(getRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(getRuntimeConfigPayload["active_qwen_resident_model"] == nil)
             #expect(getRuntimeConfigPayload["next_qwen_resident_model"] == nil)
-            #expect(getRuntimeConfigPayload["active_marvis_resident_policy"] == nil)
-            #expect(getRuntimeConfigPayload["next_marvis_resident_policy"] == nil)
 
             let setRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -286,7 +284,7 @@ extension ServerTests {
                         body: mcpCallToolRequestJSON(
                             name: "set_runtime_configuration",
                             arguments: [
-                                "speech_backend": "marvis",
+                                "speech_backend": "qwen3_big",
                             ],
                         ),
                         sessionID: sessionID,
@@ -295,17 +293,16 @@ extension ServerTests {
             )
             let setRuntimeConfigPayload = try mcpToolPayload(from: setRuntimeConfigEnvelope)
             #expect(setRuntimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
-            #expect(setRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "marvis")
-            #expect(setRuntimeConfigPayload["persisted_speech_backend"] as? String == "marvis")
+            #expect(setRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_big")
+            #expect(setRuntimeConfigPayload["persisted_speech_backend"] as? String == "qwen3_big")
             #expect(setRuntimeConfigPayload["persisted_qwen_resident_model"] == nil)
-            #expect(setRuntimeConfigPayload["persisted_marvis_resident_policy"] == nil)
 
             let switchBackendEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "switch_speech_backend",
-                            arguments: ["speech_backend": "marvis"],
+                            arguments: ["speech_backend": "qwen3_big"],
                         ),
                         sessionID: sessionID,
                     ),
@@ -316,20 +313,20 @@ extension ServerTests {
             #expect(switchBackendPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(switchBackendRequestID)")
             #expect(switchBackendPayload["status_resource_uri"] as? String == "speak-swiftly://overview")
 
-            let setChatterboxRuntimeConfigEnvelope = try await mcpEnvelope(
+            let setSmallQuantizedRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
                         body: mcpCallToolRequestJSON(
                             name: "set_runtime_configuration",
-                            arguments: ["speech_backend": "chatterbox_turbo"],
+                            arguments: ["speech_backend": "qwen3_smol_4bit"],
                         ),
                         sessionID: sessionID,
                     ),
                 ),
             )
-            let setChatterboxRuntimeConfigPayload = try mcpToolPayload(from: setChatterboxRuntimeConfigEnvelope)
-            #expect(setChatterboxRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
-            #expect(setChatterboxRuntimeConfigPayload["persisted_speech_backend"] as? String == "chatterbox_turbo")
+            let setSmallQuantizedRuntimeConfigPayload = try mcpToolPayload(from: setSmallQuantizedRuntimeConfigEnvelope)
+            #expect(setSmallQuantizedRuntimeConfigPayload["next_runtime_speech_backend"] as? String == "qwen3_smol_4bit")
+            #expect(setSmallQuantizedRuntimeConfigPayload["persisted_speech_backend"] as? String == "qwen3_smol_4bit")
 
             let setQuantizedRuntimeConfigEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

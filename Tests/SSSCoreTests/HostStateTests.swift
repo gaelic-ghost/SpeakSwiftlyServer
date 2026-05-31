@@ -22,7 +22,7 @@ extension ServerTests {
         let callerContextPayload = try JSONDecoder().decode(
             SpeechRequestContextPayload.self,
             from: Data(
-                #"{"reqPurpose":"audioStream","source":"caller","prefacePolicy":"never"}"#.utf8,
+                #"{"source":"caller","prefacePolicy":"never"}"#.utf8,
             ),
         )
         let callerCannotOverridePurpose = makeSpeechRequestContext(
@@ -803,10 +803,10 @@ extension ServerTests {
         await runtime.finishHeldSpeak(id: runtimeDefaultQueuedRequestID)
         _ = try await waitForJobSnapshot(runtimeDefaultQueuedRequestID, on: host)
 
-        let switchedSnapshot = try await state.switchSpeechBackend(to: .chatterboxTurbo)
-        #expect(switchedSnapshot.runtimeConfiguration.activeRuntimeSpeechBackend == "chatterbox_turbo")
+        let switchedSnapshot = try await state.switchSpeechBackend(to: .qwen3_smol_4bit)
+        #expect(switchedSnapshot.runtimeConfiguration.activeRuntimeSpeechBackend == "qwen3_smol_4bit")
         let runtimeConfigurationAfterSwitch = await MainActor.run { state.runtimeConfiguration }
-        #expect(runtimeConfigurationAfterSwitch.activeRuntimeSpeechBackend == "chatterbox_turbo")
+        #expect(runtimeConfigurationAfterSwitch.activeRuntimeSpeechBackend == "qwen3_smol_4bit")
 
         let reloadedSnapshot = try await state.reloadModels()
         #expect(reloadedSnapshot.overview.workerStage == "resident_model_ready")

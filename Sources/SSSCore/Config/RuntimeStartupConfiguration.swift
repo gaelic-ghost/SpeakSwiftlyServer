@@ -99,10 +99,12 @@ package struct RuntimeStartupConfiguration {
 
         return .init(
             speechBackend: speechBackend,
+            qwenConditioningStrategy: .preparedConditioning,
             defaultVoiceProfile: defaultVoiceProfileName
                 ?? Self.normalized(configuredDefaultVoiceProfileName)
                 ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
             duckMediaVolume: duckMediaVolume,
+            audioOutputDestination: .localPlayback,
             systemProfileResourceRoots: systemProfileResourceRoots,
         )
     }

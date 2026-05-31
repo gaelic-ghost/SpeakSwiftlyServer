@@ -218,57 +218,6 @@ extension ServerE2E {
         return jobID
     }
 
-    static func expectMarvisVoiceSelection(
-        on server: ServerProcess,
-        requestID: String,
-        expectedVoice: String,
-    ) async throws {
-        let log = try await server.waitForStderrJSONObject(timeout: e2eTimeout) {
-            guard
-                $0["event"] as? String == "marvis_voice_selected",
-                $0["request_id"] as? String == requestID,
-                let details = $0["details"] as? [String: Any]
-            else {
-                return false
-            }
-
-            return details["speech_backend"] as? String == "marvis"
-                && details["marvis_voice"] as? String == expectedVoice
-        }
-        #expect(log["event"] as? String == "marvis_voice_selected")
-    }
-
-    static func assertMarvisPlaybackStartedInOrder(
-        on server: ServerProcess,
-        requestIDs: [String],
-    ) async throws {
-        let startedRequestIDs: [String] = try await e2eWaitUntil(
-            timeout: e2eTimeout,
-            pollInterval: .milliseconds(200),
-        ) {
-            let matches = server.stderrObjects().compactMap { object -> String? in
-                guard object["event"] as? String == "playback_started" else { return nil }
-
-                return object["request_id"] as? String
-            }
-            let filtered = matches.filter { requestIDs.contains($0) }
-            guard Set(filtered).isSuperset(of: Set(requestIDs)) else { return nil }
-
-            return filtered
-        }
-
-        var previousIndex = -1
-        for requestID in requestIDs {
-            guard let index = startedRequestIDs.firstIndex(of: requestID) else {
-                Issue.record("The live Marvis playback trace never reported a playback_started event for request '\(requestID)'.")
-                return
-            }
-
-            #expect(index > previousIndex)
-            previousIndex = index
-        }
-    }
-
     static func waitForMCPPlaybackState(
         using client: E2EMCPClient,
         timeout: Duration,

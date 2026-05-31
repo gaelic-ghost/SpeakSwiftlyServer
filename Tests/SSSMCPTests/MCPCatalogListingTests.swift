@@ -74,10 +74,6 @@ extension ServerTests {
                 "qwen3_big_6bit",
                 "qwen3_big_8bit",
                 "qwen3_big_bf16",
-                "chatterbox_turbo",
-                "marvis",
-                "marvis_4bit",
-                "marvis_6bit",
             ])
             let setRuntimeConfigurationDuckMediaVolume = try #require(setRuntimeConfigurationProperties["duck_media_volume"] as? [String: Any])
             #expect(setRuntimeConfigurationDuckMediaVolume["enum"] as? [String] == [
@@ -87,7 +83,6 @@ extension ServerTests {
                 "a_lot",
             ])
             #expect(setRuntimeConfigurationProperties["qwen_resident_model"] == nil)
-            #expect(setRuntimeConfigurationProperties["marvis_resident_policy"] == nil)
 
             let generateSpeechTool = try #require(tools.first { $0["name"] as? String == "generate_speech" })
             let generateSpeechSchema = try #require(generateSpeechTool["inputSchema"] as? [String: Any])

@@ -63,50 +63,45 @@ extension ServerTests {
             #expect(runtimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3_smol")
             #expect(runtimeConfigJSON["active_qwen_resident_model"] == nil)
             #expect(runtimeConfigJSON["next_qwen_resident_model"] == nil)
-            #expect(runtimeConfigJSON["active_marvis_resident_policy"] == nil)
-            #expect(runtimeConfigJSON["next_marvis_resident_policy"] == nil)
             #expect(runtimeConfigJSON["persisted_configuration_state"] as? String == "missing")
 
             let updateRuntimeConfigResponse = try await client.execute(
                 uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"marvis"}"#),
+                body: byteBuffer(#"{"speech_backend":"qwen3_big"}"#),
             )
             let updateRuntimeConfigJSON = try jsonObject(from: updateRuntimeConfigResponse.body)
             #expect(updateRuntimeConfigResponse.status == .ok)
             #expect(updateRuntimeConfigJSON["active_runtime_speech_backend"] as? String == "qwen3_smol")
-            #expect(updateRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "marvis")
+            #expect(updateRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3_big")
             #expect(updateRuntimeConfigJSON["active_qwen_resident_model"] == nil)
             #expect(updateRuntimeConfigJSON["next_qwen_resident_model"] == nil)
-            #expect(updateRuntimeConfigJSON["active_marvis_resident_policy"] == nil)
-            #expect(updateRuntimeConfigJSON["next_marvis_resident_policy"] == nil)
-            #expect(updateRuntimeConfigJSON["persisted_speech_backend"] as? String == "marvis")
+            #expect(updateRuntimeConfigJSON["persisted_speech_backend"] as? String == "qwen3_big")
             #expect(updateRuntimeConfigJSON["persisted_qwen_resident_model"] == nil)
-            #expect(updateRuntimeConfigJSON["persisted_marvis_resident_policy"] == nil)
             #expect(updateRuntimeConfigJSON["persisted_configuration_state"] as? String == "loaded")
 
-            let updateChatterboxRuntimeConfigResponse = try await client.execute(
+            let updateSmallQuantizedRuntimeConfigResponse = try await client.execute(
                 uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"chatterbox_turbo"}"#),
+                body: byteBuffer(#"{"speech_backend":"qwen3_smol_4bit"}"#),
             )
-            let updateChatterboxRuntimeConfigJSON = try jsonObject(from: updateChatterboxRuntimeConfigResponse.body)
-            #expect(updateChatterboxRuntimeConfigResponse.status == .ok)
-            #expect(updateChatterboxRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "chatterbox_turbo")
-            #expect(updateChatterboxRuntimeConfigJSON["persisted_speech_backend"] as? String == "chatterbox_turbo")
+            let updateSmallQuantizedRuntimeConfigJSON = try jsonObject(from: updateSmallQuantizedRuntimeConfigResponse.body)
+            #expect(updateSmallQuantizedRuntimeConfigResponse.status == .ok)
+            #expect(updateSmallQuantizedRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3_smol_4bit")
+            #expect(updateSmallQuantizedRuntimeConfigJSON["persisted_speech_backend"] as? String == "qwen3_smol_4bit")
 
             let updateQuantizedRuntimeConfigResponse = try await client.execute(
                 uri: "/configuration",
                 method: .put,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"marvis_4bit"}"#),
+                body: byteBuffer(#"{"speech_backend":"qwen3_big_4bit"}"#),
             )
             let updateQuantizedRuntimeConfigJSON = try jsonObject(from: updateQuantizedRuntimeConfigResponse.body)
             #expect(updateQuantizedRuntimeConfigResponse.status == .ok)
-            #expect(updateQuantizedRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "marvis_4bit")
-            #expect(updateQuantizedRuntimeConfigJSON["persisted_speech_backend"] as? String == "marvis_4bit")
+            #expect(updateQuantizedRuntimeConfigJSON["next_runtime_speech_backend"] as? String == "qwen3_big_4bit")
+            #expect(updateQuantizedRuntimeConfigJSON["persisted_speech_backend"] as? String == "qwen3_big_4bit")
 
             let profilesResponse = try await client.execute(uri: "/voices", method: .get)
             let profilesJSON = try jsonObject(from: profilesResponse.body)
@@ -408,7 +403,7 @@ extension ServerTests {
                 uri: "/backend",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"speech_backend":"marvis"}"#),
+                body: byteBuffer(#"{"speech_backend":"qwen3_big"}"#),
             )
             let switchJSON = try jsonObject(from: switchResponse.body)
             let switchJobID = try #require(switchJSON["request_id"] as? String)
@@ -424,7 +419,7 @@ extension ServerTests {
                 return transition
             }
             #expect(queuedTransition.activeSpeechBackend == "qwen3_smol")
-            #expect(queuedTransition.requestedSpeechBackend == "marvis")
+            #expect(queuedTransition.requestedSpeechBackend == "qwen3_big")
             #expect(queuedTransition.operation == "switch_speech_backend")
             #expect(queuedTransition.waitingReason == "waiting_for_active_request")
 
@@ -432,8 +427,8 @@ extension ServerTests {
             let switchSnapshot = try await waitForJobSnapshot(switchJobID, on: host)
             switch switchSnapshot.terminalEvent {
                 case let .completed(event):
-                    #expect(event.speechBackend == "marvis")
-                    #expect(event.runtime?.speechBackend == .marvis)
+                    #expect(event.speechBackend == "qwen3_big")
+                    #expect(event.runtime?.speechBackend == .qwen3_BIG)
                 default:
                     Issue.record("Expected speech-backend switch request to complete with runtime snapshot details.")
             }
@@ -442,9 +437,9 @@ extension ServerTests {
             let finalHostJSON = try jsonObject(from: finalHostResponse.body)
             let finalTransition = try #require(finalHostJSON["runtime_backend_transition"] as? [String: Any])
             #expect(finalTransition["state"] as? String == "idle")
-            #expect(finalTransition["active_speech_backend"] as? String == "marvis")
+            #expect(finalTransition["active_speech_backend"] as? String == "qwen3_big")
             let finalConfig = try #require(finalHostJSON["runtime_configuration"] as? [String: Any])
-            #expect(finalConfig["active_runtime_speech_backend"] as? String == "marvis")
+            #expect(finalConfig["active_runtime_speech_backend"] as? String == "qwen3_big")
             #expect(finalConfig["next_runtime_speech_backend"] as? String == "qwen3_smol")
         }
 
@@ -517,8 +512,9 @@ extension ServerTests {
             #expect(persistMessage.contains("speech_backend"))
             #expect(persistMessage.contains("totally_invalid"))
             #expect(persistMessage.contains("qwen3_smol"))
-            #expect(persistMessage.contains("chatterbox_turbo"))
-            #expect(persistMessage.contains("marvis"))
+            #expect(persistMessage.contains("qwen3_big"))
+            #expect(persistMessage.contains("chatterbox_turbo") == false)
+            #expect(persistMessage.contains("marvis") == false)
             #expect(persistMessage.contains("qwen3_custom_voice") == false)
 
             let switchResponse = try await client.execute(
@@ -534,8 +530,9 @@ extension ServerTests {
             #expect(switchMessage.contains("speech_backend"))
             #expect(switchMessage.contains("totally_invalid"))
             #expect(switchMessage.contains("qwen3_smol"))
-            #expect(switchMessage.contains("chatterbox_turbo"))
-            #expect(switchMessage.contains("marvis"))
+            #expect(switchMessage.contains("qwen3_big"))
+            #expect(switchMessage.contains("chatterbox_turbo") == false)
+            #expect(switchMessage.contains("marvis") == false)
             #expect(switchMessage.contains("qwen3_custom_voice") == false)
         }
 

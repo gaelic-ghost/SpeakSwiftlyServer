@@ -5,6 +5,11 @@
 This note captures the intended `SpeakSwiftlyServer` adoption path for the next major upstream
 `SpeakSwiftly` release once that release is available from GitHub.
 
+Status on `2026-05-31`: `SpeakSwiftlyServer` has adopted the GitHub prerelease
+`SpeakSwiftly` `v11.0.0-alpha.1` and `TextForSpeech` `v0.23.0` through the public
+`SpeakSwiftly` product. HTTP and MCP continue to expose local live playback for speech requests;
+HTTP response streaming and LAN output remain future contract decisions.
+
 The goal is to prepare the server for the new runtime capabilities without reaching into upstream
 implementation targets. `SpeakSwiftlyServer` should integrate through the public `SpeakSwiftly`
 library surface. If that public surface is not sufficient, open focused issues or follow-up changes
@@ -37,7 +42,8 @@ The local upstream worktree currently points toward these adoption-impacting cha
   audio output, exposed through the public `SpeakSwiftly` product for consumers.
 
 This package should wait for a GitHub-visible upstream version, tag, or branch that represents the
-intended integration point before changing committed dependency declarations.
+intended integration point before changing committed dependency declarations. The current adopted
+integration point is the GitHub prerelease tag `v11.0.0-alpha.1`.
 
 ## Adoption Slices
 
@@ -137,4 +143,3 @@ Open an upstream `SpeakSwiftly` issue or patch when:
 - Do not widen HTTP, MCP, or embedded contracts just because upstream added public capability.
 - Do not commit machine-local dependency paths for testing against sibling worktrees.
 - Do not duplicate upstream playback, generated-audio, or network-output ownership inside `SSSCore`.
-

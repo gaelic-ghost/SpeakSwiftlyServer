@@ -10,7 +10,7 @@ It answers three concrete questions:
 2. Which public capabilities are intentionally adapted instead of mirrored exactly?
 3. Which transport is the right client contract for each capability: HTTP, MCP, both, or neither?
 
-Current baseline checked against the `SpeakSwiftly` package state resolved by this repository on `2026-05-06`: tagged release `v6.0.0`.
+Current baseline checked against the `SpeakSwiftly` package state resolved by this repository on `2026-05-31`: prerelease `v11.0.0-alpha.1`.
 
 ## Summary
 
@@ -24,7 +24,7 @@ Current baseline checked against the `SpeakSwiftly` package state resolved by th
 
 The server's normalized backend contract is now:
 
-- published backend identifiers: `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, `marvis_6bit`
+- published backend identifiers: `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`
 - opt-in Qwen live request chunking field: `qwen_pre_model_text_chunking`
 
 What remains intentionally non-parity:
@@ -46,7 +46,7 @@ That means the server is best understood as a transport adapter over the public 
 | `runtime.snapshot()` / `runtime.generate.snapshot()` / `runtime.playback.snapshot()` | Full | `GET /overview` | `speak-swiftly://overview` | The host refreshes the three runtime-owned snapshots together instead of reconstructing queue or playback state through older request-style reads. |
 | `runtime.playback.updates()` | Adapted | `GET /playback/state`, `GET /requests/{request_id}/events` | `speak-swiftly://playback`, `speak-swiftly://playback/queue`, playback resource subscriptions | The host subscribes to sequenced playback updates, stores the latest stable playback milestone in shared playback state, and mirrors request-specific playback milestones into retained request progress events. |
 | `runtime.snapshot()` | Full | `GET /status` | `speak-swiftly://status` | Returned as direct runtime snapshot fields plus server-owned live backend-transition state so clients can observe queued backend switches without treating persisted configuration as live state. |
-| `SpeakSwiftly.Configuration.speechBackend` values | Full | `GET /configuration`, `PUT /configuration` with `speech_backend` | `set_runtime_configuration` with `speech_backend`, `speak-swiftly://configuration` | Startup-only configuration. Exact Qwen and Marvis variants are selected through published `SpeechBackend` raw values; separate Qwen resident-model and Marvis resident-policy knobs are no longer exposed. |
+| `SpeakSwiftly.Configuration.speechBackend` values | Full | `GET /configuration`, `PUT /configuration` with `speech_backend` | `set_runtime_configuration` with `speech_backend`, `speak-swiftly://configuration` | Startup-only configuration. Exact Qwen variants are selected through published `SpeechBackend` raw values; separate resident-model policy knobs are no longer exposed. |
 | `runtime.switchSpeechBackend(to:)` | Full | `POST /backend` | `switch_speech_backend` | Queues an ordered live backend switch and returns an accepted request. Transport-facing input accepts all published `SpeakSwiftly.SpeechBackend` raw values. Pending live transition state is observable from runtime overview/status and the retained request resource. |
 | `runtime.reloadModels()` / `runtime.unloadModels()` | Full | `POST /models/reload`, `POST /models/unload` | `reload_models`, `unload_models` | Immediate runtime-control operations. |
 | `runtime.generate.speech(...)` | Full | `POST /speech/live` | `generate_speech` | Carries `text_profile_id`, `request_context`, `cwd`, `repo_root`, and `qwen_pre_model_text_chunking`. HTTP and MCP speech surfaces apply request purpose from the route or tool, then fill transport-owned request-context defaults; MCP also folds session `clientInfo` into provenance when available. Caller-provided request context can override source/topic/path/attributes and optional preface policy, but not request purpose. The Qwen chunking flag is opt-in and defaults to `false`, matching upstream's single-pass Qwen live-playback default when omitted. Source-format hints are no longer a speech-submission field; TextForSpeech infers structure from request text and path context. |
