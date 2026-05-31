@@ -45,9 +45,11 @@ extension ServerHost {
 
     func saveRuntimeConfiguration(
         speechBackend: SpeakSwiftly.SpeechBackend,
+        duckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
     ) async throws -> RuntimeConfigurationSnapshot {
         let snapshot = try runtimeStartupConfigurationStore.save(
             speechBackend: speechBackend,
+            duckMediaVolume: duckMediaVolume,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,

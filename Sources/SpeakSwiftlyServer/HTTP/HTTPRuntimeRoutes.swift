@@ -29,8 +29,15 @@ func registerHTTPRuntimeRoutes(
 
     router.put("configuration") { request, context -> RuntimeConfigurationSnapshot in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
+        let currentConfiguration = await host.runtimeConfigurationSnapshot()
         return try await host.saveRuntimeConfiguration(
             speechBackend: payload.speechBackendModel(),
+            duckMediaVolume: payload.duckMediaVolumeModel(
+                default: RuntimeStartupConfiguration.duckMediaVolume(
+                    currentConfiguration.nextDuckMediaVolume,
+                    label: "current next_duck_media_volume",
+                ),
+            ),
         )
     }
 

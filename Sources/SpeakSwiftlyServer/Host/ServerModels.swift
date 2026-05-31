@@ -251,13 +251,21 @@ struct BatchItemRequestPayload: Decodable {
 
 struct RuntimeConfigurationUpdatePayload: Decodable {
     let speechBackend: String
+    let duckMediaVolume: String?
 
     enum CodingKeys: String, CodingKey {
         case speechBackend = "speech_backend"
+        case duckMediaVolume = "duck_media_volume"
     }
 
     func speechBackendModel() throws -> SpeakSwiftly.SpeechBackend {
         try resolveSpeechBackend(speechBackend, fieldName: "speech_backend")
+    }
+
+    func duckMediaVolumeModel(default defaultValue: SpeakSwiftly.DuckMediaVolume) throws -> SpeakSwiftly.DuckMediaVolume {
+        try duckMediaVolume.map {
+            try RuntimeStartupConfiguration.duckMediaVolume($0, label: "duck_media_volume")
+        } ?? defaultValue
     }
 }
 

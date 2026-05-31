@@ -184,9 +184,16 @@ extension MCPSurface {
                     )
 
                 case "set_runtime_configuration":
+                    let currentConfiguration = await host.runtimeConfigurationSnapshot()
                     return try await toolResult(
                         host.saveRuntimeConfiguration(
                             speechBackend: requiredSpeechBackend("speech_backend", in: arguments),
+                            duckMediaVolume: optionalString("duck_media_volume", in: arguments).map {
+                                try RuntimeStartupConfiguration.duckMediaVolume($0, label: "duck_media_volume")
+                            } ?? RuntimeStartupConfiguration.duckMediaVolume(
+                                currentConfiguration.nextDuckMediaVolume,
+                                label: "current next_duck_media_volume",
+                            ),
                         ),
                     )
 

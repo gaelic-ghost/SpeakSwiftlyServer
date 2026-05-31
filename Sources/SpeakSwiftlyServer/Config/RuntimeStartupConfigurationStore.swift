@@ -71,6 +71,7 @@ struct RuntimeStartupConfigurationStore {
         let configuration = resolvedPersistedConfiguration()
         return RuntimeStartupConfiguration(
             speechBackend: configuration.speechBackend,
+            duckMediaVolume: configuration.duckMediaVolume,
             defaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         .speakSwiftlyConfiguration(configuredDefaultVoiceProfileName: configuredDefaultVoiceProfileName)
@@ -116,10 +117,12 @@ struct RuntimeStartupConfigurationStore {
         return .init(
             activeRuntimeSpeechBackend: resolvedActiveRuntimeSpeechBackend.rawValue,
             nextRuntimeSpeechBackend: resolution.speechBackend.rawValue,
+            nextDuckMediaVolume: resolution.duckMediaVolume.rawValue,
             activeDefaultVoiceProfileName: resolvedActiveDefaultVoiceProfileName,
             nextDefaultVoiceProfileName: resolution.defaultVoiceProfileName,
             environmentSpeechBackendOverride: environmentOverride?.rawValue,
             persistedSpeechBackend: resolution.persistedSpeechBackend?.rawValue,
+            persistedDuckMediaVolume: resolution.persistedDuckMediaVolume?.rawValue,
             persistedDefaultVoiceProfileName: resolution.persistedDefaultVoiceProfileName,
             profileRootPath: profileRootURL.path,
             persistedConfigurationPath: configurationURL.path,
@@ -134,6 +137,7 @@ struct RuntimeStartupConfigurationStore {
 
     func save(
         speechBackend: SpeakSwiftly.SpeechBackend,
+        duckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
         configuredDefaultVoiceProfileName: SpeakSwiftly.Name? = nil,
@@ -143,6 +147,9 @@ struct RuntimeStartupConfigurationStore {
             try savePersistedConfiguration(
                 RuntimeStartupConfiguration(
                     speechBackend: speechBackend,
+                    duckMediaVolume: duckMediaVolume
+                        ?? current?.duckMediaVolume
+                        ?? resolvedPersistedConfiguration().duckMediaVolume,
                     defaultVoiceProfileName: current?.defaultVoiceProfileName,
                 ),
             )
@@ -168,6 +175,7 @@ struct RuntimeStartupConfigurationStore {
             try savePersistedConfiguration(
                 RuntimeStartupConfiguration(
                     speechBackend: current?.speechBackend ?? resolvedPersistedConfiguration().speechBackend,
+                    duckMediaVolume: current?.duckMediaVolume ?? resolvedPersistedConfiguration().duckMediaVolume,
                     defaultVoiceProfileName: defaultVoiceProfileName,
                 ),
             )
@@ -221,8 +229,10 @@ private extension RuntimeStartupConfigurationStore {
 
     struct Resolution {
         let speechBackend: SpeakSwiftly.SpeechBackend
+        let duckMediaVolume: SpeakSwiftly.DuckMediaVolume
         let defaultVoiceProfileName: SpeakSwiftly.Name?
         let persistedSpeechBackend: SpeakSwiftly.SpeechBackend?
+        let persistedDuckMediaVolume: SpeakSwiftly.DuckMediaVolume?
         let persistedDefaultVoiceProfileName: SpeakSwiftly.Name?
         let configurationExists: Bool
         let configurationState: ConfigurationState
@@ -248,8 +258,10 @@ private extension RuntimeStartupConfigurationStore {
             speechBackend: environmentOverride
                 ?? persistedState.persistedSpeechBackend
                 ?? .qwen3_smol,
+            duckMediaVolume: persistedState.persistedDuckMediaVolume ?? .off,
             defaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
             persistedSpeechBackend: persistedState.persistedSpeechBackend,
+            persistedDuckMediaVolume: persistedState.persistedDuckMediaVolume,
             persistedDefaultVoiceProfileName: persistedState.persistedDefaultVoiceProfileName,
             configurationExists: configurationExists,
             configurationState: persistedState.configurationState,
@@ -264,12 +276,13 @@ private extension RuntimeStartupConfigurationStore {
     ) -> (
         persistedConfiguration: RuntimeStartupConfiguration?,
         persistedSpeechBackend: SpeakSwiftly.SpeechBackend?,
+        persistedDuckMediaVolume: SpeakSwiftly.DuckMediaVolume?,
         persistedDefaultVoiceProfileName: SpeakSwiftly.Name?,
         configurationState: ConfigurationState,
         configurationError: String?,
     ) {
         guard configurationExists else {
-            return (nil, nil, nil, .missing, nil)
+            return (nil, nil, nil, nil, .missing, nil)
         }
 
         do {
@@ -277,12 +290,14 @@ private extension RuntimeStartupConfigurationStore {
             return (
                 configuration,
                 configuration.speechBackend,
+                configuration.duckMediaVolume,
                 configuration.defaultVoiceProfileName,
                 .loaded,
                 nil,
             )
         } catch {
             return (
+                nil,
                 nil,
                 nil,
                 nil,

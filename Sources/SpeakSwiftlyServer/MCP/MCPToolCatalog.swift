@@ -1,5 +1,6 @@
 import Foundation
 import MCP
+import SpeakSwiftly
 
 enum MCPToolCatalog {
     static let definitions: [Tool] = [
@@ -118,12 +119,13 @@ enum MCPToolCatalog {
         ),
         Tool(
             name: "set_runtime_configuration",
-            description: "Persist the speech backend for the next runtime start without hot-swapping the current worker.",
+            description: "Persist next-start runtime settings without hot-swapping the current worker. speech_backend is required. duck_media_volume is optional and may be off, a_little, default, or a_lot.",
             inputSchema: [
                 "type": "object",
                 "required": ["speech_backend"],
                 "properties": [
                     "speech_backend": ["type": "string", "enum": stringEnum(exposedSpeechBackendIdentifiers())],
+                    "duck_media_volume": ["type": "string", "enum": stringEnum(SpeakSwiftly.DuckMediaVolume.allCases.map(\.rawValue))],
                 ],
             ],
         ),
