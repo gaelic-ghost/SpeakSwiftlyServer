@@ -226,7 +226,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `10.0.0`, `TextForSpeech` from `0.22.1`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `10.0.1`, `TextForSpeech` from `0.22.1`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 
