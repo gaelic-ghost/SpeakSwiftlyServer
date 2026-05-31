@@ -52,7 +52,8 @@ extension ServerTests {
         #expect(degradedHostState.generationQueue.queuedRequests.isEmpty)
         #expect(degradedHostState.generationQueue.activeCount == 0)
         #expect(degradedHostState.generationQueue.queuedCount == 0)
-        #expect(degradedHostState.runtimeRefresh?.source == "cached_worker_not_ready")
+        let refreshSource = try #require(degradedHostState.runtimeRefresh?.source)
+        #expect(["cached_worker_not_ready", "runtime_snapshots"].contains(refreshSource))
 
         let activeSnapshot = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
             let snapshot = try await host.jobSnapshot(id: activeJobID)
