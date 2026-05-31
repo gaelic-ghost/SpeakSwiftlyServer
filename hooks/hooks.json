@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/10.0.1/hooks/stop-tts.mjs",
+            "command": "node ~/.codex/plugins/cache/socket/speak-swiftly/10.0.2/hooks/stop-tts.mjs",
             "timeout": 15
           }
         ]
