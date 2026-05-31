@@ -38,6 +38,7 @@ extension ServerHost {
     func runtimeConfigurationSnapshot() -> RuntimeConfigurationSnapshot {
         runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -45,10 +46,13 @@ extension ServerHost {
 
     func saveRuntimeConfiguration(
         speechBackend: SpeakSwiftly.SpeechBackend,
+        duckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
     ) async throws -> RuntimeConfigurationSnapshot {
         let snapshot = try runtimeStartupConfigurationStore.save(
             speechBackend: speechBackend,
+            duckMediaVolume: duckMediaVolume,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -177,6 +181,9 @@ extension ServerHost {
         activeRuntimeSpeechBackend = resolvedSpeechBackend
         let runtimeConfigurationSnapshot = runtimeStartupConfigurationStore.snapshot(
             activeRuntimeSpeechBackend: resolvedSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
+            activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
+            configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)

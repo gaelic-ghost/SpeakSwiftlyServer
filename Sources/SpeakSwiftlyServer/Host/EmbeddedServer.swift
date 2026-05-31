@@ -197,10 +197,13 @@ public final class EmbeddedServer {
     public internal(set) var runtimeConfiguration = RuntimeConfigurationSnapshot(
         activeRuntimeSpeechBackend: "qwen3_smol",
         nextRuntimeSpeechBackend: "qwen3_smol",
+        activeDuckMediaVolume: "off",
+        nextDuckMediaVolume: "off",
         activeDefaultVoiceProfileName: nil,
         nextDefaultVoiceProfileName: nil,
         environmentSpeechBackendOverride: nil,
         persistedSpeechBackend: nil,
+        persistedDuckMediaVolume: nil,
         persistedDefaultVoiceProfileName: nil,
         profileRootPath: "",
         persistedConfigurationPath: "",

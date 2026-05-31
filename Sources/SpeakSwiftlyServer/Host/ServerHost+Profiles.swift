@@ -51,6 +51,7 @@ extension ServerHost {
         let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             normalizedProfileName,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)
@@ -64,6 +65,7 @@ extension ServerHost {
         let runtimeConfigurationSnapshot = try runtimeStartupConfigurationStore.saveDefaultVoiceProfileName(
             nil,
             activeRuntimeSpeechBackend: activeRuntimeSpeechBackend,
+            activeDuckMediaVolume: activeDuckMediaVolume,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         emitRuntimeConfigurationChanged(runtimeConfigurationSnapshot)

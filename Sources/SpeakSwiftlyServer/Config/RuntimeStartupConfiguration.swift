@@ -4,19 +4,24 @@ import SpeakSwiftly
 
 struct RuntimeStartupConfiguration {
     let speechBackend: SpeakSwiftly.SpeechBackend
+    let duckMediaVolume: SpeakSwiftly.DuckMediaVolume
     let defaultVoiceProfileName: SpeakSwiftly.Name?
 
     init(
         speechBackend: SpeakSwiftly.SpeechBackend = .qwen3_smol,
+        duckMediaVolume: SpeakSwiftly.DuckMediaVolume = .off,
         defaultVoiceProfileName: SpeakSwiftly.Name? = nil,
     ) {
         self.speechBackend = speechBackend
+        self.duckMediaVolume = duckMediaVolume
         self.defaultVoiceProfileName = Self.normalized(defaultVoiceProfileName)
     }
 
     init(config: ConfigReader, fallbackDefaultVoiceProfileName: SpeakSwiftly.Name?) throws {
         let rawSpeechBackend = try Self.optionalString(config, key: "speechBackend")
         speechBackend = try Self.resolvedSpeechBackend(rawSpeechBackend: rawSpeechBackend)
+        let rawDuckMediaVolume = try Self.optionalString(config, key: "duckMediaVolume")
+        duckMediaVolume = try Self.resolvedDuckMediaVolume(rawDuckMediaVolume: rawDuckMediaVolume)
         defaultVoiceProfileName = try Self.optionalString(config, key: "defaultVoiceProfileName")
             ?? Self.normalized(fallbackDefaultVoiceProfileName)
     }
@@ -37,6 +42,14 @@ struct RuntimeStartupConfiguration {
         } ?? SpeakSwiftly.SpeechBackend.qwen3_smol
     }
 
+    static func resolvedDuckMediaVolume(
+        rawDuckMediaVolume: String?,
+    ) throws -> SpeakSwiftly.DuckMediaVolume {
+        try rawDuckMediaVolume.map {
+            try Self.duckMediaVolume($0, label: "media volume ducking")
+        } ?? .off
+    }
+
     static func speechBackend(
         _ rawValue: String,
         label: String,
@@ -44,6 +57,20 @@ struct RuntimeStartupConfiguration {
         guard let value = SpeakSwiftly.SpeechBackend.normalized(rawValue: rawValue) else {
             throw ServerConfigurationError(
                 "Configuration value for \(label) has unsupported value '\(rawValue)'.",
+            )
+        }
+
+        return value
+    }
+
+    static func duckMediaVolume(
+        _ rawValue: String,
+        label: String,
+    ) throws -> SpeakSwiftly.DuckMediaVolume {
+        guard let value = SpeakSwiftly.DuckMediaVolume(rawValue: rawValue) else {
+            let supportedValues = SpeakSwiftly.DuckMediaVolume.allCases.map(\.rawValue).joined(separator: ", ")
+            throw ServerConfigurationError(
+                "Configuration value for \(label) has unsupported value '\(rawValue)'. Supported values: \(supportedValues).",
             )
         }
 
@@ -75,6 +102,7 @@ struct RuntimeStartupConfiguration {
             defaultVoiceProfile: defaultVoiceProfileName
                 ?? Self.normalized(configuredDefaultVoiceProfileName)
                 ?? SpeakSwiftly.DefaultVoiceProfiles.signal,
+            duckMediaVolume: duckMediaVolume,
             systemProfileResourceRoots: systemProfileResourceRoots,
         )
     }

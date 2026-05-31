@@ -64,6 +64,9 @@ import Testing
       completedJobTTLSeconds: 30
       completedJobMaxCount: 25
       jobPruneIntervalSeconds: 5
+      runtime:
+        speechBackend: marvis
+        duckMediaVolume: a_little
       http:
         enabled: false
         host: 0.0.0.0
@@ -87,6 +90,8 @@ import Testing
     #expect(yamlConfig.http.enabled == false)
     #expect(yamlConfig.http.host == "0.0.0.0")
     #expect(yamlConfig.http.port == 7777)
+    #expect(yamlConfig.runtime.speechBackend == .marvis)
+    #expect(yamlConfig.runtime.duckMediaVolume == .aLittle)
     #expect(yamlConfig.mcp.enabled == true)
     #expect(yamlConfig.mcp.path == "/assistant/mcp")
     #expect(yamlConfig.mcp.serverName == "yaml-mcp")
@@ -214,20 +219,27 @@ import Testing
     let initialSnapshot = await host.runtimeConfigurationSnapshot()
     #expect(initialSnapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(initialSnapshot.nextRuntimeSpeechBackend == "qwen3_smol")
+    #expect(initialSnapshot.activeDuckMediaVolume == "off")
+    #expect(initialSnapshot.nextDuckMediaVolume == "off")
     #expect(initialSnapshot.activeDefaultVoiceProfileName == nil)
     #expect(initialSnapshot.nextDefaultVoiceProfileName == nil)
+    #expect(initialSnapshot.persistedDuckMediaVolume == nil)
     #expect(initialSnapshot.persistedConfigurationExists == false)
     #expect(initialSnapshot.persistedConfigurationState == "missing")
     #expect(initialSnapshot.persistedConfigurationWillAffectNextRuntimeStart == true)
 
     let updatedSnapshot = try await host.saveRuntimeConfiguration(
         speechBackend: .marvis,
+        duckMediaVolume: .aLot,
     )
     #expect(updatedSnapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(updatedSnapshot.nextRuntimeSpeechBackend == "marvis")
+    #expect(updatedSnapshot.activeDuckMediaVolume == "off")
+    #expect(updatedSnapshot.nextDuckMediaVolume == "a_lot")
     #expect(updatedSnapshot.activeDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.nextDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedSpeechBackend == "marvis")
+    #expect(updatedSnapshot.persistedDuckMediaVolume == "a_lot")
     #expect(updatedSnapshot.persistedDefaultVoiceProfileName == nil)
     #expect(updatedSnapshot.persistedConfigurationExists == true)
     #expect(updatedSnapshot.persistedConfigurationState == "loaded")
@@ -263,9 +275,12 @@ import Testing
     let runtimeConfiguration = await host.runtimeConfigurationSnapshot()
     #expect(runtimeConfiguration.activeRuntimeSpeechBackend == "marvis")
     #expect(runtimeConfiguration.nextRuntimeSpeechBackend == "qwen3_smol")
+    #expect(runtimeConfiguration.activeDuckMediaVolume == "off")
+    #expect(runtimeConfiguration.nextDuckMediaVolume == "off")
     #expect(runtimeConfiguration.activeDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.nextDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.persistedSpeechBackend == nil)
+    #expect(runtimeConfiguration.persistedDuckMediaVolume == nil)
     #expect(runtimeConfiguration.persistedDefaultVoiceProfileName == nil)
     #expect(runtimeConfiguration.activeRuntimeMatchesNextRuntime == false)
 
@@ -342,9 +357,12 @@ import Testing
     let snapshot = store.snapshot()
     #expect(snapshot.activeRuntimeSpeechBackend == "qwen3_smol")
     #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol")
+    #expect(snapshot.activeDuckMediaVolume == "off")
+    #expect(snapshot.nextDuckMediaVolume == "off")
     #expect(snapshot.persistedConfigurationExists == true)
     #expect(snapshot.persistedConfigurationState == "invalid")
     #expect(snapshot.persistedSpeechBackend == nil)
+    #expect(snapshot.persistedDuckMediaVolume == nil)
     #expect(snapshot.persistedDefaultVoiceProfileName == nil)
     #expect(snapshot.persistedConfigurationError?.contains("server.yaml") == true)
     #expect(snapshot.persistedConfigurationError?.contains("Likely cause") == true)
@@ -363,13 +381,16 @@ import Testing
     )
 
     _ = try store.saveDefaultVoiceProfileName("persisted-femme")
-    _ = try store.save(speechBackend: .qwen3_smol)
+    _ = try store.save(speechBackend: .qwen3_smol, duckMediaVolume: .aLittle)
 
     let snapshot = store.snapshot()
     #expect(snapshot.activeRuntimeSpeechBackend == "marvis")
     #expect(snapshot.nextRuntimeSpeechBackend == "marvis")
     #expect(snapshot.environmentSpeechBackendOverride == "marvis")
     #expect(snapshot.persistedSpeechBackend == "qwen3_smol")
+    #expect(snapshot.activeDuckMediaVolume == "a_little")
+    #expect(snapshot.nextDuckMediaVolume == "a_little")
+    #expect(snapshot.persistedDuckMediaVolume == "a_little")
     #expect(snapshot.persistedDefaultVoiceProfileName == "persisted-femme")
     #expect(snapshot.nextDefaultVoiceProfileName == "persisted-femme")
     #expect(snapshot.persistedConfigurationState == "loaded")
@@ -388,10 +409,38 @@ import Testing
 
     let snapshot = try store.save(
         speechBackend: .qwen3_smol_6bit,
+        duckMediaVolume: .default,
     )
 
     #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol_6bit")
+    #expect(snapshot.activeDuckMediaVolume == "default")
+    #expect(snapshot.nextDuckMediaVolume == "default")
     #expect(snapshot.persistedSpeechBackend == "qwen3_smol_6bit")
+    #expect(snapshot.persistedDuckMediaVolume == "default")
+}
+
+@Test func `runtime startup configuration store reports duck only changes as pending restart`() throws {
+    let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        .appendingPathComponent("profiles", isDirectory: true)
+    let store = RuntimeStartupConfigurationStore(
+        environment: ["SPEAKSWIFTLY_PROFILE_ROOT": runtimeProfileRootURL.path],
+        activeRuntimeSpeechBackend: .qwen3_smol,
+    )
+
+    let snapshot = try store.save(
+        speechBackend: .qwen3_smol,
+        duckMediaVolume: .default,
+        activeRuntimeSpeechBackend: .qwen3_smol,
+        activeDuckMediaVolume: .off,
+    )
+
+    #expect(snapshot.activeRuntimeSpeechBackend == "qwen3_smol")
+    #expect(snapshot.nextRuntimeSpeechBackend == "qwen3_smol")
+    #expect(snapshot.activeDuckMediaVolume == "off")
+    #expect(snapshot.nextDuckMediaVolume == "default")
+    #expect(snapshot.persistedDuckMediaVolume == "default")
+    #expect(snapshot.activeRuntimeMatchesNextRuntime == false)
 }
 
 @Test func `runtime startup configuration store normalizes blank default voice profile name`() throws {
@@ -413,10 +462,12 @@ import Testing
 @Test func `runtime startup configuration includes bundled system profile resources`() {
     let configuration = RuntimeStartupConfiguration(
         speechBackend: .qwen3_smol,
+        duckMediaVolume: .aLittle,
         defaultVoiceProfileName: nil,
     )
     .speakSwiftlyConfiguration()
 
+    #expect(configuration.duckMediaVolume == .aLittle)
     #expect(configuration.systemProfileResourceRoots.count == 1)
     #expect(configuration.systemProfileResourceRoots.first?.lastPathComponent == "profiles")
     #expect(configuration.systemProfileResourceRoots.first?.deletingLastPathComponent().lastPathComponent == "SystemProfiles")
@@ -425,6 +476,7 @@ import Testing
 @Test func `bundled system profile resources include default voices`() throws {
     let configuration = RuntimeStartupConfiguration(
         speechBackend: .qwen3_smol,
+        duckMediaVolume: .off,
         defaultVoiceProfileName: nil,
     )
     .speakSwiftlyConfiguration()

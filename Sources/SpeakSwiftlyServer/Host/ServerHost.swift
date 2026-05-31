@@ -95,6 +95,7 @@ actor ServerHost {
     let encoder = JSONEncoder()
     let byteBufferAllocator = ByteBufferAllocator()
     var activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend
+    var activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume
 
     var statusTask: Task<Void, Never>?
     var playbackTask: Task<Void, Never>?
@@ -159,6 +160,7 @@ actor ServerHost {
         runtime: any SpeakSwiftlyRuntimeServing,
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
+        activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
         state: EmbeddedServer,
     ) {
         let (immediatePublishRequests, immediatePublishContinuation) = AsyncStream.makeStream(
@@ -197,6 +199,8 @@ actor ServerHost {
         self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeStartupConfigurationStore.initialActiveRuntimeSpeechBackend()
+        self.activeDuckMediaVolume = activeDuckMediaVolume
+            ?? runtimeStartupConfigurationStore.initialActiveDuckMediaVolume()
         activeDefaultVoiceProfileName = runtimeStartupConfigurationStore.initialActiveDefaultVoiceProfileName(
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
@@ -270,6 +274,7 @@ actor ServerHost {
             runtime: runtime,
             runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
+            activeDuckMediaVolume: startupConfiguration.duckMediaVolume,
             state: state,
         )
     }

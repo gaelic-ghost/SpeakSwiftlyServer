@@ -52,7 +52,7 @@ extension ServerTests {
             let cancelRequestScopeEnum = try #require(cancelRequestScope["enum"] as? [String])
             #expect(cancelRequestScopeEnum == ["generation", "playback"])
             let setRuntimeConfigurationTool = try #require(tools.first { $0["name"] as? String == "set_runtime_configuration" })
-            #expect((setRuntimeConfigurationTool["description"] as? String)?.contains("Persist the speech backend") == true)
+            #expect((setRuntimeConfigurationTool["description"] as? String)?.contains("Persist next-start runtime settings") == true)
             let setRuntimeConfigurationSchema = try #require(setRuntimeConfigurationTool["inputSchema"] as? [String: Any])
             let setRuntimeConfigurationProperties = try #require(setRuntimeConfigurationSchema["properties"] as? [String: Any])
             let setRuntimeConfigurationBackend = try #require(setRuntimeConfigurationProperties["speech_backend"] as? [String: Any])
@@ -74,6 +74,13 @@ extension ServerTests {
                 "marvis",
                 "marvis_4bit",
                 "marvis_6bit",
+            ])
+            let setRuntimeConfigurationDuckMediaVolume = try #require(setRuntimeConfigurationProperties["duck_media_volume"] as? [String: Any])
+            #expect(setRuntimeConfigurationDuckMediaVolume["enum"] as? [String] == [
+                "off",
+                "a_little",
+                "default",
+                "a_lot",
             ])
             #expect(setRuntimeConfigurationProperties["qwen_resident_model"] == nil)
             #expect(setRuntimeConfigurationProperties["marvis_resident_policy"] == nil)

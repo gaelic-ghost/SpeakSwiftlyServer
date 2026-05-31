@@ -278,10 +278,13 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
     enum CodingKeys: String, CodingKey {
         case activeRuntimeSpeechBackend = "active_runtime_speech_backend"
         case nextRuntimeSpeechBackend = "next_runtime_speech_backend"
+        case activeDuckMediaVolume = "active_duck_media_volume"
+        case nextDuckMediaVolume = "next_duck_media_volume"
         case activeDefaultVoiceProfileName = "active_default_voice_profile_name"
         case nextDefaultVoiceProfileName = "next_default_voice_profile_name"
         case environmentSpeechBackendOverride = "environment_speech_backend_override"
         case persistedSpeechBackend = "persisted_speech_backend"
+        case persistedDuckMediaVolume = "persisted_duck_media_volume"
         case persistedDefaultVoiceProfileName = "persisted_default_voice_profile_name"
         case profileRootPath = "profile_root_path"
         case persistedConfigurationPath = "persisted_configuration_path"
@@ -295,10 +298,13 @@ public struct RuntimeConfigurationSnapshot: Codable, ResponseEncodable, Sendable
 
     public let activeRuntimeSpeechBackend: String
     public let nextRuntimeSpeechBackend: String
+    public let activeDuckMediaVolume: String
+    public let nextDuckMediaVolume: String
     public let activeDefaultVoiceProfileName: String?
     public let nextDefaultVoiceProfileName: String?
     public let environmentSpeechBackendOverride: String?
     public let persistedSpeechBackend: String?
+    public let persistedDuckMediaVolume: String?
     public let persistedDefaultVoiceProfileName: String?
     public let profileRootPath: String
     public let persistedConfigurationPath: String

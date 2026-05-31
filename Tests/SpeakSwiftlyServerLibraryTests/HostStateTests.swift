@@ -121,10 +121,13 @@ extension ServerTests {
                     runtimeConfiguration: .init(
                         activeRuntimeSpeechBackend: "qwen3_smol",
                         nextRuntimeSpeechBackend: "qwen3_smol",
+                        activeDuckMediaVolume: "off",
+                        nextDuckMediaVolume: "off",
                         activeDefaultVoiceProfileName: "default",
                         nextDefaultVoiceProfileName: "default",
                         environmentSpeechBackendOverride: nil,
                         persistedSpeechBackend: nil,
+                        persistedDuckMediaVolume: nil,
                         persistedDefaultVoiceProfileName: nil,
                         profileRootPath: "/tmp/profiles",
                         persistedConfigurationPath: "/tmp/SpeakSwiftlyServer/server.yaml",

@@ -171,7 +171,7 @@ Accepted request routes and tools return immediately with request-tracking metad
 
 The server applies request purpose from the route or MCP tool. Callers do not send `reqPurpose`. Caller-provided `request_context` may include `source`, `topic`, `cwd`, `repo_root`, `attributes`, and optional `prefacePolicy`; omit `prefacePolicy` for the default behavior, set it to `always` to force the source/topic preface, or set it to `never` to suppress that preface.
 
-Voice profile creation accepts either a description-backed payload or an audio-backed payload. Text-profile routes accept profile IDs, names, active-style values, and `TextForSpeech.Replacement` payloads. Runtime configuration routes use `speech_backend` for saved next-start backend selection, and `POST /backend` requests a live backend switch.
+Voice profile creation accepts either a description-backed payload or an audio-backed payload. Text-profile routes accept profile IDs, names, active-style values, and `TextForSpeech.Replacement` payloads. Runtime configuration routes use `speech_backend` for saved next-start backend selection and optional `duck_media_volume` for saved next-start media ducking. `POST /backend` requests a live backend switch.
 
 ### Response Shape
 
@@ -201,7 +201,7 @@ Important API models include:
 - playback records: playback state, active request, queued requests, buffer stability, and latest playback event
 - voice profile records: profile names, summaries, detail payloads, system-authored metadata, and reroll/delete/rename request results
 - text profile records: built-in style, base profile, active profile, stored profiles, effective profiles, and replacements
-- runtime configuration records: saved next-start backend configuration and live backend-switch transition summaries
+- runtime configuration records: saved next-start backend configuration, saved next-start media ducking, and live backend-switch transition summaries
 
 ## Errors
 
@@ -226,7 +226,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `9.0.2`, `TextForSpeech` from `0.22.1`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `10.0.0`, `TextForSpeech` from `0.22.1`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 
@@ -240,11 +240,13 @@ MCP read behavior should stay resources-first. If a read surface moves between t
 
 `APP_CONFIG_FILE` points the server at a YAML config file watched through the reloading configuration provider. `APP_CONFIG_RELOAD_INTERVAL_SECONDS` controls the polling interval and defaults to 2 seconds.
 
-The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, profile root, and runtime backend startup settings require a process restart.
+The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, profile root, runtime backend startup settings, and runtime media ducking settings require a process restart.
 
 `SPEAKSWIFTLY_PROFILE_ROOT` is startup-only and points at the server-owned profile-store root. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start backend while building the explicit `SpeakSwiftly.Configuration` for runtime startup.
 
 Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen, Chatterbox Turbo, and Marvis variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, `qwen3_big_bf16`, `chatterbox_turbo`, `marvis`, `marvis_4bit`, and `marvis_6bit`.
+
+Supported `duck_media_volume` values come from `SpeakSwiftly.DuckMediaVolume`: `off`, `a_little`, `default`, and `a_lot`. Runtime configuration snapshots report `active_duck_media_volume`, `next_duck_media_volume`, and `persisted_duck_media_volume`; a duck-only change keeps `active_runtime_matches_next_runtime` false until the next runtime start. Any value except `off` may require macOS Automation permission because SpeakSwiftly lowers supported media app volumes while speech playback is active, then restores them afterward.
 
 ### Verification
 

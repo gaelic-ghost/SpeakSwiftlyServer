@@ -38,6 +38,7 @@ public struct ServerConfigPersistence: @unchecked Sendable {
           jobPruneIntervalSeconds: \(appConfig.server.jobPruneIntervalSeconds.cleanYAMLNumber)
           runtime:
             speechBackend: \(runtime.speechBackend.rawValue)
+            duckMediaVolume: \(runtime.duckMediaVolume.rawValue)
             defaultVoiceProfileName: \(defaultVoiceProfileName)
           http:
             enabled: \(appConfig.http.enabled ? "true" : "false")

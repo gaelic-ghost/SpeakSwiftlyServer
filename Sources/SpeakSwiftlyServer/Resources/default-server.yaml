@@ -9,6 +9,7 @@ app:
   jobPruneIntervalSeconds: 60
   runtime:
     speechBackend: qwen3_smol
+    duckMediaVolume: off
     defaultVoiceProfileName:
   http:
     enabled: true

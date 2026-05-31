@@ -107,9 +107,12 @@ extension ServerHost {
                 .init(
                     activeRuntimeSpeechBackend: snapshot.activeRuntimeSpeechBackend,
                     nextRuntimeSpeechBackend: snapshot.nextRuntimeSpeechBackend,
+                    activeDuckMediaVolume: snapshot.activeDuckMediaVolume,
+                    nextDuckMediaVolume: snapshot.nextDuckMediaVolume,
                     activeDefaultVoiceProfileName: snapshot.activeDefaultVoiceProfileName,
                     nextDefaultVoiceProfileName: snapshot.nextDefaultVoiceProfileName,
                     persistedSpeechBackend: snapshot.persistedSpeechBackend,
+                    persistedDuckMediaVolume: snapshot.persistedDuckMediaVolume,
                     persistedDefaultVoiceProfileName: snapshot.persistedDefaultVoiceProfileName,
                     environmentSpeechBackendOverride: snapshot.environmentSpeechBackendOverride,
                     persistedConfigurationPath: snapshot.persistedConfigurationPath,
