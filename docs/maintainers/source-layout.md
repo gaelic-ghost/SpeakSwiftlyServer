@@ -119,8 +119,10 @@ Only `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` are supported public pack
   Keep configuration and shared-state coverage independent instead of mixing them into one broad host suite.
 - `Tests/SpeakSwiftlyServerEmbeddingTests/HostLifecycleTests.swift`
   Keeps embedded facade lifecycle coverage with the target that owns `EmbeddedServer` and startup composition.
-- `Tests/SSSCoreTests/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
-  Keep the typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks.
+- `Tests/SpeakSwiftlyServerTestSupport/MockRuntime.swift` plus the `MockRuntime+*.swift` extensions
+  Keep the shared typed-runtime test double split by text profiles, speech generation, runtime controls, retained artifacts, and test-only control hooks. Module-specific tests should import this target instead of copying fixture files into `SSSCoreTests`, `SSSHTTPTests`, `SSSMCPTests`, or `SpeakSwiftlyServerEmbeddingTests`.
+- `Tests/SpeakSwiftlyServerTestSupport/SpeakSwiftlyServerHostTestSupport.swift` and `SpeakSwiftlyServerTestFixtures.swift`
+  Keep cross-module host waiters, JSON helpers, sample profiles, generated-artifact fixtures, and configuration builders in the shared test-support target. MCP-only request helpers stay in `Tests/SSSMCPTests/` because they exercise the MCP transport surface directly.
 - `Tests/SpeakSwiftlyServerTransportE2ETests/E2ESuite.swift`, `E2ETransportSmokeTests.swift`, and the `SpeakSwiftlyServerE2E*Helpers.swift` files
   Keep the live target as one small transport-owned smoke suite that proves server boot, one real HTTP request, one real MCP resource update, and retained request inspection without duplicating SpeakSwiftly's worker-owned E2E matrix here.
 - `Tests/SpeakSwiftlyServerTransportE2ETests/E2EHTTPClient.swift`, `E2EMCPClient.swift`, and `E2EMCPEventStream.swift`

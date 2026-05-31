@@ -2,6 +2,7 @@ import Foundation
 import Logging
 import ServiceLifecycle
 @testable import SpeakSwiftlyServer
+import SpeakSwiftlyServerTestSupport
 @testable import SSSCore
 @testable import SSSHTTP
 @testable import SSSMCP

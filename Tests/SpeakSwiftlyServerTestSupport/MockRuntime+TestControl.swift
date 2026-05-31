@@ -4,7 +4,7 @@ import SpeakSwiftly
 // MARK: - Mock Runtime Test Control
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     func publishStatus(_ state: SpeakSwiftly.RuntimeState) {
         runtimeState = state
         runtimeUpdateContinuation?.yield(runtimeUpdate(state))
@@ -84,7 +84,7 @@ extension MockRuntime {
 // MARK: - Mock Runtime Internals
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     func startActiveRequest(
         _ request: MockRequest,
         continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation,

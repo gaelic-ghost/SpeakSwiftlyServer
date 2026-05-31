@@ -1,7 +1,7 @@
 import Foundation
 import SpeakSwiftly
 import SpeakSwiftlyServer
-@testable import SSSCore
+import SSSCore
 import SSSHTTP
 import SSSMCP
 import TextForSpeech
@@ -9,7 +9,7 @@ import TextForSpeech
 // MARK: - Mock Speech Generation
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     func queueSpeechLive(
         text: String,
         with profileName: String,

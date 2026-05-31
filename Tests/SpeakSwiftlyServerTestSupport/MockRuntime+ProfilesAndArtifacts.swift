@@ -1,14 +1,14 @@
 import Foundation
 import SpeakSwiftly
 import SpeakSwiftlyServer
-@testable import SSSCore
+import SSSCore
 import SSSHTTP
 import SSSMCP
 
 // MARK: - Mock Profiles And Artifacts
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     func createVoiceProfileFromDescription(
         profileName: String,
         vibe: SpeakSwiftly.Vibe,

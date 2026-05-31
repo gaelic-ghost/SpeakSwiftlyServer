@@ -1,33 +1,33 @@
 import Foundation
 import SpeakSwiftly
 import SpeakSwiftlyServer
-@testable import SSSCore
+import SSSCore
 import SSSHTTP
 import SSSMCP
-import Testing
 import TextForSpeech
 
 // MARK: - EmbeddedSessionLifecycleProbe
 
 @available(macOS 14, *)
-actor EmbeddedSessionLifecycleProbe {
+package actor EmbeddedSessionLifecycleProbe {
+    package init() {}
     private var requestStopCallCount = 0
     private var waitUntilStoppedCallCount = 0
 
-    func recordRequestStop() {
+    package func recordRequestStop() {
         requestStopCallCount += 1
     }
 
-    func recordWaitUntilStopped() {
+    package func recordWaitUntilStopped() {
         waitUntilStoppedCallCount += 1
     }
 
-    func counts() -> (requestStop: Int, waitUntilStopped: Int) {
+    package func counts() -> (requestStop: Int, waitUntilStopped: Int) {
         (requestStopCallCount, waitUntilStoppedCallCount)
     }
 }
 
-func testConfiguration(
+package func testConfiguration(
     defaultVoiceProfileName: String? = nil,
     sseHeartbeatSeconds: Double = 0.05,
     completedJobTTLSeconds: Double = 30,
@@ -47,7 +47,7 @@ func testConfiguration(
     )
 }
 
-func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
+package func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
     .init(
         enabled: true,
         host: configuration.host,
@@ -56,7 +56,7 @@ func testHTTPConfig(_ configuration: ServerConfiguration) -> HTTPConfig {
     )
 }
 
-func testRuntimeStartupConfigurationStore() -> RuntimeStartupConfigurationStore {
+package func testRuntimeStartupConfigurationStore() -> RuntimeStartupConfigurationStore {
     let runtimeProfileRootURL = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
         .appendingPathComponent("profiles", isDirectory: true)
@@ -67,7 +67,7 @@ func testRuntimeStartupConfigurationStore() -> RuntimeStartupConfigurationStore 
     )
 }
 
-func sampleProfile() -> SpeakSwiftly.ProfileSummary {
+package func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     .init(
         profileName: "default",
         vibe: .femme,
@@ -80,7 +80,7 @@ func sampleProfile() -> SpeakSwiftly.ProfileSummary {
     )
 }
 
-func sampleSystemProfiles() -> [SpeakSwiftly.ProfileSummary] {
+package func sampleSystemProfiles() -> [SpeakSwiftly.ProfileSummary] {
     [
         .init(
             profileName: "swift-signal",
@@ -113,7 +113,7 @@ func sampleSystemProfiles() -> [SpeakSwiftly.ProfileSummary] {
 
 // MARK: - GenerationArtifactFixture
 
-struct GenerationArtifactFixture: Codable {
+package struct GenerationArtifactFixture: Codable {
     let artifactID: String
     let kind: String
     let createdAt: Date
@@ -139,7 +139,7 @@ struct GenerationArtifactFixture: Codable {
 
 // MARK: - GenerationJobItemFixture
 
-struct GenerationJobItemFixture: Codable {
+package struct GenerationJobItemFixture: Codable {
     let artifactID: String
     let text: String
     let textProfile: String?
@@ -157,14 +157,14 @@ struct GenerationJobItemFixture: Codable {
 
 // MARK: - GenerationJobFailureFixture
 
-struct GenerationJobFailureFixture: Codable {
+package struct GenerationJobFailureFixture: Codable {
     let code: String
     let message: String
 }
 
 // MARK: - GenerationJobFixture
 
-struct GenerationJobFixture: Codable {
+package struct GenerationJobFixture: Codable {
     let jobID: String
     let jobKind: String
     let createdAt: Date
@@ -202,13 +202,13 @@ struct GenerationJobFixture: Codable {
     }
 }
 
-func fixtureDecode<T: Decodable>(_ payload: some Encodable, as type: T.Type) throws -> T {
+package func fixtureDecode<T: Decodable>(_ payload: some Encodable, as type: T.Type) throws -> T {
     let encoder = JSONEncoder()
     let decoder = JSONDecoder()
     return try decoder.decode(type, from: encoder.encode(payload))
 }
 
-func requireFixture<T>(
+package func requireFixture<T>(
     _ description: String,
     _ build: () throws -> T,
 ) -> T {
@@ -219,7 +219,7 @@ func requireFixture<T>(
     }
 }
 
-func makeGenerationArtifact(
+package func makeGenerationArtifact(
     artifactID: String,
     createdAt: Date,
     voiceProfile: String,
@@ -245,7 +245,7 @@ func makeGenerationArtifact(
     )
 }
 
-func makeGenerationJob(
+package func makeGenerationJob(
     jobID: String,
     jobKind: String,
     createdAt: Date,

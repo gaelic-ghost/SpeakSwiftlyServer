@@ -2,7 +2,7 @@ import Foundation
 import NIOCore
 import SpeakSwiftly
 import SpeakSwiftlyServer
-@testable import SSSCore
+import SSSCore
 import SSSHTTP
 import SSSMCP
 import TextForSpeech
@@ -10,7 +10,7 @@ import TextForSpeech
 // MARK: - Host Wait Helpers
 
 @available(macOS 14, *)
-func waitUntilReady(_ host: ServerHost) async throws {
+package func waitUntilReady(_ host: ServerHost) async throws {
     _ = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         let (ready, _) = await host.readinessSnapshot()
         return ready ? true : nil
@@ -18,7 +18,7 @@ func waitUntilReady(_ host: ServerHost) async throws {
 }
 
 @available(macOS 14, *)
-func waitForJobSnapshot(_ jobID: String, on host: ServerHost) async throws -> JobSnapshot {
+package func waitForJobSnapshot(_ jobID: String, on host: ServerHost) async throws -> JobSnapshot {
     try await waitUntil(timeout: .seconds(15), pollInterval: .milliseconds(10)) {
         do {
             let snapshot = try await host.jobSnapshot(id: jobID)
@@ -30,7 +30,7 @@ func waitForJobSnapshot(_ jobID: String, on host: ServerHost) async throws -> Jo
 }
 
 @available(macOS 14, *)
-func waitUntilJobDisappears(_ jobID: String, on host: ServerHost) async throws {
+package func waitUntilJobDisappears(_ jobID: String, on host: ServerHost) async throws {
     let _: Bool = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         do {
             _ = try await host.jobSnapshot(id: jobID)
@@ -41,7 +41,7 @@ func waitUntilJobDisappears(_ jobID: String, on host: ServerHost) async throws {
     }
 }
 
-func waitUntil<T: Sendable>(
+package func waitUntil<T: Sendable>(
     timeout: Duration,
     pollInterval: Duration,
     condition: @escaping @Sendable () async throws -> T?,
@@ -57,17 +57,17 @@ func waitUntil<T: Sendable>(
 }
 
 @available(macOS 14, *)
-func waitForActiveRequestID(on host: ServerHost) async throws -> String {
+package func waitForActiveRequestID(on host: ServerHost) async throws -> String {
     try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
         let snapshot = await host.generationQueueSnapshot()
         return snapshot.activeRequest?.id
     }
 }
 
-struct TimeoutError: Error {}
+package struct TimeoutError: Error {}
 
 @available(macOS 14, *)
-func workerStatus(_ state: SpeakSwiftly.RuntimeState) -> SpeakSwiftly.RuntimeUpdate {
+package func workerStatus(_ state: SpeakSwiftly.RuntimeState) -> SpeakSwiftly.RuntimeUpdate {
     decodedSpeakSwiftlyRuntimeUpdate(
         sequence: 0,
         date: Date(),
@@ -100,7 +100,7 @@ private func decodedSpeakSwiftlyRuntimeUpdate(
 
 // MARK: - Host Submission Helpers
 
-extension ServerHost {
+package extension ServerHost {
     func submitSpeak(
         text: String,
         profileName: String,
@@ -160,28 +160,28 @@ extension ServerHost {
     }
 }
 
-extension JobSnapshot {
+package extension JobSnapshot {
     var jobID: String { requestID }
 }
 
 // MARK: - Binary Payload Helpers
 
-func byteBuffer(_ string: String) -> ByteBuffer {
+package func byteBuffer(_ string: String) -> ByteBuffer {
     var buffer = ByteBufferAllocator().buffer(capacity: string.utf8.count)
     buffer.writeString(string)
     return buffer
 }
 
-func string(from buffer: ByteBuffer) -> String {
+package func string(from buffer: ByteBuffer) -> String {
     String(decoding: buffer.readableBytesView, as: UTF8.self)
 }
 
-func jsonObject(from buffer: ByteBuffer) throws -> [String: Any] {
+package func jsonObject(from buffer: ByteBuffer) throws -> [String: Any] {
     let data = Data(buffer.readableBytesView)
     return try jsonObject(from: data)
 }
 
-func jsonObject(from data: Data) throws -> [String: Any] {
+package func jsonObject(from data: Data) throws -> [String: Any] {
     let json = try JSONSerialization.jsonObject(with: data)
     guard let dictionary = json as? [String: Any] else {
         throw JSONError.notDictionary

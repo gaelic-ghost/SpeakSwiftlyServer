@@ -28,7 +28,7 @@ package struct RuntimeStartupConfigurationStore {
     private let profileRootURL: URL
     private let defaultActiveRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend?
 
-    init(
+    package init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         fileManager: FileManager = .default,
         configurationURL: URL? = nil,

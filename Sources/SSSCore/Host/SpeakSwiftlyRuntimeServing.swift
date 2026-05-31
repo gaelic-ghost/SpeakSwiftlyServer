@@ -3,14 +3,14 @@ import SpeakSwiftly
 import TextForSpeech
 
 package struct RuntimeRequestHandle {
-    let id: String
-    let operation: String
-    let profileName: String?
-    let events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>
+    package let id: String
+    package let operation: String
+    package let profileName: String?
+    package let events: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>
 
     // MARK: - Initialization
 
-    init(
+    package init(
         id: String,
         operation: String,
         profileName: String?,
@@ -22,7 +22,7 @@ package struct RuntimeRequestHandle {
         self.events = events
     }
 
-    init(_ handle: SpeakSwiftly.RequestHandle) {
+    package init(_ handle: SpeakSwiftly.RequestHandle) {
         id = handle.id
         operation = canonicalOperationName(handle.kind.rawValue)
         profileName = handle.voiceProfile
@@ -47,7 +47,7 @@ package func canonicalOperationName(_ operation: String) -> String {
     }
 }
 
-protocol SpeakSwiftlyRuntimeServing: Actor {
+package protocol SpeakSwiftlyRuntimeServing: Actor {
     func start() async
     func shutdown() async
     func runtimeUpdates() async -> AsyncStream<SpeakSwiftly.RuntimeUpdate>

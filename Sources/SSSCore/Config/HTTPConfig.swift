@@ -9,7 +9,7 @@ package struct HTTPConfig {
 
     // MARK: - Initialization
 
-    init(
+    package init(
         enabled: Bool,
         host: String,
         port: Int,
@@ -21,7 +21,7 @@ package struct HTTPConfig {
         self.sseHeartbeatSeconds = sseHeartbeatSeconds
     }
 
-    init(
+    package init(
         config: ConfigReader,
         fallbackHost: String,
         fallbackPort: Int,

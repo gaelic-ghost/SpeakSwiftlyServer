@@ -2,19 +2,19 @@ import Configuration
 import Foundation
 
 package struct ServerConfiguration {
-    let name: String
-    let environment: String
-    let defaultVoiceProfileName: String?
-    let host: String
-    let port: Int
-    let sseHeartbeatSeconds: Double
-    let completedJobTTLSeconds: Double
-    let completedJobMaxCount: Int
-    let jobPruneIntervalSeconds: Double
+    package let name: String
+    package let environment: String
+    package let defaultVoiceProfileName: String?
+    package let host: String
+    package let port: Int
+    package let sseHeartbeatSeconds: Double
+    package let completedJobTTLSeconds: Double
+    package let completedJobMaxCount: Int
+    package let jobPruneIntervalSeconds: Double
 
     // MARK: - Initialization
 
-    init(
+    package init(
         name: String,
         environment: String,
         defaultVoiceProfileName: String?,
@@ -36,7 +36,7 @@ package struct ServerConfiguration {
         self.jobPruneIntervalSeconds = jobPruneIntervalSeconds
     }
 
-    init(config: ConfigReader) throws {
+    package init(config: ConfigReader) throws {
         do {
             name = try config.requiredString(forKey: "name")
             environment = try config.requiredString(forKey: "environment")

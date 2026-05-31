@@ -2,6 +2,7 @@ import Foundation
 import MCP
 import SpeakSwiftly
 import SpeakSwiftlyServer
+import SpeakSwiftlyServerTestSupport
 @testable import SSSCore
 import SSSHTTP
 import SSSMCP

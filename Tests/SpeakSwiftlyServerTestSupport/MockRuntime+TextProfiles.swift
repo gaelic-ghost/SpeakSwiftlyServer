@@ -5,7 +5,7 @@ import TextForSpeech
 // MARK: - Mock Runtime Text Profiles
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     private func throwConfiguredTextProfileTransportErrorIfNeeded() throws {
         if let textProfileTransportError {
             throw textProfileTransportError

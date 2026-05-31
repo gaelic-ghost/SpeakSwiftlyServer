@@ -1,14 +1,14 @@
 import Foundation
 import SpeakSwiftly
 import SpeakSwiftlyServer
-@testable import SSSCore
+import SSSCore
 import SSSHTTP
 import SSSMCP
 
 // MARK: - Mock Runtime Controls
 
 @available(macOS 14, *)
-extension MockRuntime {
+package extension MockRuntime {
     func switchSpeechBackend(to speechBackend: SpeakSwiftly.SpeechBackend) async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         let request = MockRequest(
