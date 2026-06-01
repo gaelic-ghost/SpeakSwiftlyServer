@@ -24,6 +24,10 @@ uv run speak-swiftly-agent guidance-sync --kind swift-package
 
 Run from `Tools/SpeakSwiftlyAgent`, or pass `--repo-root` to point at a checkout.
 
+By default, each command prints the report and also writes the latest Markdown copy under
+`docs/agents/reports`. Use `--no-write-report` for a transient terminal-only run, or `--report-dir`
+to choose another durable report directory.
+
 ## Validate
 
 ```bash
