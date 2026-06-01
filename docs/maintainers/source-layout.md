@@ -10,6 +10,8 @@ maps in this directory.
 Public documentation media belongs under [`docs/media`](../media/). Runtime-loaded package resources
 belong under `Sources/SSSCore/Resources` instead, because SwiftPM only exposes target
 resources through the target bundle.
+Maintainer-agent reports belong under [`docs/agents`](../agents/) so agent output has a durable
+documentation home instead of living only in terminal output.
 The current package-to-server API comparison belongs in
 [`speakswiftly-api-coverage-matrix.md`](speakswiftly-api-coverage-matrix.md) so the consumer-facing
 `API.md` can stay a stable contract while compatibility notes and dedupe follow-through remain
