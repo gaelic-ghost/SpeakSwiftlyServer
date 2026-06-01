@@ -1,6 +1,7 @@
 import Foundation
 import Logging
 import ServiceLifecycle
+import SpeakSwiftly
 @testable import SpeakSwiftlyServer
 import SpeakSwiftlyServerTestSupport
 @testable import SSSCore
@@ -133,6 +134,113 @@ import Testing
     let counts = await probe.counts()
     #expect(counts.requestStop == 1)
     #expect(counts.waitUntilStopped == 1)
+}
+
+@available(macOS 14, *)
+@Test func `network audio receiver accepts loopback stream and updates transport status`() async throws {
+    actor ReceivedChunkProbe: ReceivedNetworkAudioChunkSnapshotting {
+        private var chunks = [SpeakSwiftly.GeneratedAudioChunk]()
+
+        func append(_ chunk: SpeakSwiftly.GeneratedAudioChunk) {
+            chunks.append(chunk)
+        }
+
+        func snapshot() -> [SpeakSwiftly.GeneratedAudioChunk] {
+            chunks
+        }
+    }
+
+    let configuration = testConfiguration()
+    let receiverConfig = NetworkAudioReceiverConfig(
+        enabled: true,
+        serviceName: "SpeakSwiftly Server Test Receiver",
+        port: 0,
+        sharedToken: "test-token",
+    )
+    let state = await MainActor.run { EmbeddedServer() }
+    let host = ServerHost(
+        configuration: configuration,
+        httpConfig: testHTTPConfig(configuration),
+        mcpConfig: .init(enabled: false, path: "/mcp", serverName: "test-mcp", title: "Test MCP"),
+        networkAudioReceiverConfig: receiverConfig,
+        runtime: MockRuntime(),
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+        state: state,
+    )
+    let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
+    let probe = ReceivedChunkProbe()
+    let service = NetworkAudioReceiverLifecycleService(
+        host: host,
+        config: receiverConfig,
+        shutdownBarrier: shutdownBarrier,
+        playbackSink: { inboundStream in
+            for try await chunk in inboundStream.chunks {
+                await probe.append(chunk)
+            }
+        },
+    )
+    let serviceGroup = ServiceGroup(
+        configuration: .init(
+            services: [
+                .init(service: service),
+            ],
+            logger: Logger(label: "SpeakSwiftlyServerTests.NetworkAudioReceiver"),
+        ),
+    )
+    let runTask = Task<Void, Error> {
+        try await serviceGroup.run()
+    }
+
+    let port = try await waitForNetworkAudioReceiverPort(on: host)
+    #expect(port > 0)
+
+    let chunks = AsyncThrowingStream<SpeakSwiftly.GeneratedAudioChunk, any Error> { continuation in
+        continuation.yield(
+            .init(
+                requestID: "lan-loopback",
+                sequenceNumber: 0,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [0.1, 0.2, 0.3],
+            ),
+        )
+        continuation.yield(
+            .init(
+                requestID: "lan-loopback",
+                sequenceNumber: 1,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [],
+                isFinal: true,
+            ),
+        )
+        continuation.finish()
+    }
+    let sender = SpeakSwiftly.NetworkAudioStreamSender(
+        endpoint: .init(host: "127.0.0.1", port: UInt16(port)),
+        handshake: .init(
+            requestID: "lan-loopback",
+            senderName: "server-test",
+            sharedToken: "test-token",
+        ),
+    )
+
+    try await sender.send(chunks: chunks)
+    let receivedChunks = try await waitForReceivedNetworkAudioChunks(probe)
+    #expect(receivedChunks.map(\.sequenceNumber) == [0, 1])
+    #expect(receivedChunks.last?.isFinal == true)
+
+    let activeSnapshot = await host.hostStateSnapshot()
+    #expect(
+        activeSnapshot.transports.contains {
+            $0.name == NetworkAudioReceiverConfig.transportName &&
+                ($0.state == "listening" || $0.state == "active") &&
+                $0.activeStreamCount != nil
+        },
+    )
+
+    await serviceGroup.triggerGracefulShutdown()
+    _ = try await runTask.value
 }
 
 @available(macOS 14, *)
@@ -601,6 +709,12 @@ import Testing
                 serverName: "new-mcp-name",
                 title: "New MCP Title",
             ),
+            networkAudioReceiver: .init(
+                enabled: true,
+                serviceName: "Reloaded Receiver",
+                port: 7447,
+                sharedToken: "reloaded-token",
+            ),
         ),
     )
 
@@ -677,6 +791,12 @@ import Testing
             ),
             http: testHTTPConfig(configuration),
             mcp: .init(enabled: false, path: "/mcp", serverName: "speak-swiftly-mcp", title: "Speak Swiftly"),
+            networkAudioReceiver: .init(
+                enabled: false,
+                serviceName: "SpeakSwiftly Audio Receiver",
+                port: 0,
+                sharedToken: nil,
+            ),
         ),
     )
 
@@ -685,4 +805,31 @@ import Testing
     #expect(hostState.overview.defaultVoiceProfileName == "app-selected-default")
 
     await host.shutdown()
+}
+
+@available(macOS 14, *)
+private func waitForNetworkAudioReceiverPort(on host: ServerHost) async throws -> Int {
+    try await waitUntil(timeout: .seconds(5), pollInterval: .milliseconds(25)) {
+        let snapshot = await host.hostStateSnapshot()
+        return snapshot.transports
+            .first {
+                $0.name == NetworkAudioReceiverConfig.transportName &&
+                    $0.state == "listening" &&
+                    ($0.port ?? 0) > 0
+            }?.port
+    }
+}
+
+@available(macOS 14, *)
+private func waitForReceivedNetworkAudioChunks(
+    _ probe: any ReceivedNetworkAudioChunkSnapshotting,
+) async throws -> [SpeakSwiftly.GeneratedAudioChunk] {
+    try await waitUntil(timeout: .seconds(5), pollInterval: .milliseconds(25)) {
+        let chunks = await probe.snapshot()
+        return chunks.contains(where: \.isFinal) ? chunks : nil
+    }
+}
+
+private protocol ReceivedNetworkAudioChunkSnapshotting: Sendable {
+    func snapshot() async -> [SpeakSwiftly.GeneratedAudioChunk]
 }

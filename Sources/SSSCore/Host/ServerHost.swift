@@ -81,6 +81,7 @@ package actor ServerHost {
     var configuration: ServerConfiguration
     var httpConfig: HTTPConfig
     var mcpConfig: MCPConfig
+    var networkAudioReceiverConfig: NetworkAudioReceiverConfig
     let runtime: any SpeakSwiftlyRuntimeServing
     let runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore
     let state: any ServerHostStatePublishing
@@ -157,6 +158,7 @@ package actor ServerHost {
         configuration: ServerConfiguration,
         httpConfig: HTTPConfig? = nil,
         mcpConfig: MCPConfig? = nil,
+        networkAudioReceiverConfig: NetworkAudioReceiverConfig? = nil,
         runtime: any SpeakSwiftlyRuntimeServing,
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
@@ -195,6 +197,12 @@ package actor ServerHost {
             serverName: "speak-swiftly-mcp",
             title: "Speak Swiftly",
         )
+        self.networkAudioReceiverConfig = networkAudioReceiverConfig ?? .init(
+            enabled: false,
+            serviceName: "SpeakSwiftly Audio Receiver",
+            port: 0,
+            sharedToken: nil,
+        )
         self.runtime = runtime
         self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
@@ -205,7 +213,11 @@ package actor ServerHost {
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
         )
         self.state = state
-        transportStatuses = Self.initialTransportStatuses(httpConfig: self.httpConfig, mcpConfig: self.mcpConfig)
+        transportStatuses = Self.initialTransportStatuses(
+            httpConfig: self.httpConfig,
+            mcpConfig: self.mcpConfig,
+            networkAudioReceiverConfig: self.networkAudioReceiverConfig,
+        )
         self.immediatePublishRequests = immediatePublishRequests
         self.immediatePublishContinuation = immediatePublishContinuation
         self.coalescedPublishRequests = coalescedPublishRequests
@@ -271,6 +283,7 @@ package actor ServerHost {
             configuration: appConfig.server,
             httpConfig: appConfig.http,
             mcpConfig: appConfig.mcp,
+            networkAudioReceiverConfig: appConfig.networkAudioReceiver,
             runtime: runtime,
             runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,

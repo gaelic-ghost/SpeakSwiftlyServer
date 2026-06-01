@@ -134,6 +134,7 @@ func embeddedServerLiveBootstrap(
         1 + // EmbeddedApplicationService
         (mcpSurface == nil ? 0 : 1) + // MCPLifecycleService
         (serverConfigStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
+        (config.networkAudioReceiver.enabled ? 1 : 0) + // NetworkAudioReceiverLifecycleService
         1 // HostPruneService
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: hostDependentSiblingServiceCount)
     let app = assembleHBApp(
@@ -160,6 +161,9 @@ func embeddedServerLiveBootstrap(
     }
     if config.mcp.enabled {
         await host.markTransportStarting(name: "mcp")
+    }
+    if config.networkAudioReceiver.enabled {
+        await host.markTransportStarting(name: NetworkAudioReceiverConfig.transportName)
     }
 
     var services = serverConfigStore.services.map { service in
@@ -197,6 +201,18 @@ func embeddedServerLiveBootstrap(
             ),
         ),
     )
+    if config.networkAudioReceiver.enabled {
+        services.append(
+            .init(
+                service: NetworkAudioReceiverLifecycleService(
+                    host: host,
+                    config: config.networkAudioReceiver,
+                    shutdownBarrier: shutdownBarrier,
+                ),
+                serviceName: "NetworkAudioReceiverLifecycleService",
+            ),
+        )
+    }
     if let mcpSurface, let mcpReadinessGate {
         services.append(
             .init(
@@ -232,6 +248,9 @@ func embeddedServerLiveBootstrap(
             if config.mcp.enabled {
                 await host.markTransportStopped(name: "mcp")
             }
+            if config.networkAudioReceiver.enabled {
+                await host.markTransportStopped(name: NetworkAudioReceiverConfig.transportName)
+            }
         } catch {
             let message = "SpeakSwiftlyServer could not keep the embedded Hummingbird transport process running. Likely cause: \(error.localizedDescription)"
             if config.http.enabled {
@@ -239,6 +258,9 @@ func embeddedServerLiveBootstrap(
             }
             if config.mcp.enabled {
                 await host.markTransportFailed(name: "mcp", message: message)
+            }
+            if config.networkAudioReceiver.enabled {
+                await host.markTransportFailed(name: NetworkAudioReceiverConfig.transportName, message: message)
             }
             throw error
         }

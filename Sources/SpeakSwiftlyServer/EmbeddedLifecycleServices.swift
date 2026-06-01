@@ -111,7 +111,7 @@ package actor EmbeddedLifecycleShutdownBarrier {
     }
 }
 
-private func withEmbeddedShutdownBarrier<T>(
+package func withEmbeddedShutdownBarrier<T>(
     _ shutdownBarrier: EmbeddedLifecycleShutdownBarrier,
     operation: () async throws -> T,
 ) async throws -> T {

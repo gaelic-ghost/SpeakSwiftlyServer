@@ -19,7 +19,7 @@ Use this reference to understand the local HTTP API, MCP surface, embedded serve
 
 This API is for local macOS apps, Codex plugin integrations, MCP clients, developer tools, and maintainers that need to talk to a local SpeakSwiftly speech service.
 
-The server exposes one shared localhost host process with HTTP routes, an optional MCP surface, an embeddable Swift library surface, and shared runtime state for retained requests, generated artifacts, playback, voice profiles, text profiles, and runtime configuration.
+The server exposes one shared localhost host process with HTTP routes, an optional MCP surface, an opt-in LAN audio receiver, an embeddable Swift library surface, and shared runtime state for retained requests, generated artifacts, playback, voice profiles, text profiles, and runtime configuration.
 
 ### Stability Status
 
@@ -151,6 +151,8 @@ The HTTP surface runs on the shared Hummingbird process. Transport lifecycle sna
 
 The MCP surface is optional and mounts on the same shared process when MCP is enabled. MCP resources are the preferred read path; MCP tools are reserved for queueing speech, changing runtime state, editing profiles, cancelling work, and clearing queues.
 
+The LAN audio receiver is optional and disabled by default. When enabled, it starts a Network.framework TCP listener, advertises a Bonjour audio-receiver service, accepts `SpeakSwiftly` generated-audio chunk streams after a shared-token handshake, and plays those chunks through the package-owned local chunk player. The receiver appears in transport snapshots as `network_audio_receiver`; its state is `disabled`, `starting`, `listening`, `active`, `failed`, or `stopped`, and `active_stream_count` reports currently accepted inbound streams.
+
 Embedded app hosts use the Swift package library surface. The embedded model runs HTTP and optional MCP inside an outer service-owned lifecycle group that also owns host startup, config-watch lifetime, readiness, and drain.
 
 ## Authentication and Access
@@ -163,7 +165,7 @@ MCP clients identify themselves through the MCP initialize payload when availabl
 
 ### Permissions
 
-Callers need local network access to the configured bind address and port. Operators need filesystem access to the server state root, runtime profile state, generated artifacts, configuration file, and LaunchAgent-managed service files when installing or operating the standalone service.
+Callers need local network access to the configured bind address and port. LAN audio senders also need the receiver's shared token when `networkAudioReceiver.enabled` is true. Operators need filesystem access to the server state root, runtime profile state, generated artifacts, configuration file, and LaunchAgent-managed service files when installing or operating the standalone service.
 
 Voice creation from audio requires the server process to read the referenced audio file. Generated file and batch requests require write access to the server-managed artifact storage.
 
@@ -240,7 +242,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `11.0.0-alpha.1`, `TextForSpeech` from `0.23.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `11.0.0-alpha.2`, `TextForSpeech` from `0.23.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 
@@ -254,9 +256,16 @@ MCP read behavior should stay resources-first. If a read surface moves between t
 
 `APP_CONFIG_FILE` points the server at a YAML config file watched through the reloading configuration provider. `APP_CONFIG_RELOAD_INTERVAL_SECONDS` controls the polling interval and defaults to 2 seconds.
 
-The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, profile root, runtime backend startup settings, and runtime media ducking settings require a process restart.
+The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, LAN receiver enablement, LAN receiver service name, LAN receiver port, LAN receiver shared token, profile root, runtime backend startup settings, and runtime media ducking settings require a process restart.
 
 `SPEAKSWIFTLY_PROFILE_ROOT` is startup-only and points at the server-owned profile-store root. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start backend while building the explicit `SpeakSwiftly.Configuration` for runtime startup.
+
+The LAN receiver config lives under `app.networkAudioReceiver` in YAML and maps to environment keys prefixed with `APP_NETWORK_AUDIO_RECEIVER_`:
+
+- `enabled`: defaults to `false`
+- `serviceName`: Bonjour display name; defaults to `SpeakSwiftly Audio Receiver`
+- `port`: TCP port; use `0` to let Network.framework choose an available port
+- `sharedToken`: required and non-empty when the receiver is enabled
 
 Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, and `qwen3_big_bf16`.
 

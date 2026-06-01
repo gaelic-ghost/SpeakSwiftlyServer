@@ -6,7 +6,7 @@ The package exposes one shared host through three operator-oriented surfaces:
 
 - the embedded Swift library surface in this DocC catalog
 - the standalone `SpeakSwiftlyServerTool` executable
-- the HTTP and MCP transports that the standalone server can publish
+- the HTTP, MCP, and opt-in LAN audio receiver transports that the standalone server can publish
 
 These surfaces share the same underlying host model, but they answer different ownership questions.
 
@@ -29,9 +29,11 @@ as a transport owner.
 
 The companion executable walkthrough starts at <doc:Using-The-Command-Line-Tool>.
 
-### HTTP And MCP
+### HTTP, MCP, And LAN Audio
 
 The HTTP and MCP surfaces are transport adapters around the same host state and runtime operations. They are the right choice when another process, a local service manager, or an external client should own the session.
+
+The LAN audio receiver is also a transport adapter, but it is intentionally receiver-only in this release. Enable `app.networkAudioReceiver` when this machine should advertise itself over Bonjour, accept generated-audio chunk streams from another SpeakSwiftly host after the shared-token handshake, and play those chunks locally. The transport appears in shared host snapshots as `network_audio_receiver`, including listener state and active inbound stream count.
 
 This DocC catalog intentionally stays library-first. For the transport inventory, request and response payloads, and command reference, use the repository docs:
 

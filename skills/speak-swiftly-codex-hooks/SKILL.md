@@ -20,7 +20,7 @@ Use this skill when the task is about Codex lifecycle hooks that send final assi
 
 - Preferred install surface: the Speak Swiftly plugin manifest declares `hooks: "./hooks/hooks.json"`, and installed plugins can bundle lifecycle config through that manifest.
 - Do not copy the repo-local `.codex/hooks.json` into `~/.codex/`; that command sets `CODEX_HOOK_TTS_DATA_DIR` for checkout-scoped development logs and state. Do not add a user-level `~/.codex/hooks.json` Speak Swiftly hook for normal installs.
-- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/11.0.0-alpha.1/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
+- Plugin-managed hook commands must target the installed Socket Codex cache payload path at `~/.codex/plugins/cache/socket/speak-swiftly/11.0.0-alpha.2/hooks/...`. Do not keep stale standalone `SpeakSwiftlyServer` cache commands in the Socket-managed manifest.
 - Keep the shipped plugin hook set limited to the `Stop` hook. Do not add a `PermissionRequest` probe unless the release explicitly reintroduces approval-prompt diagnostics.
 
 ## Doctor Interpretation

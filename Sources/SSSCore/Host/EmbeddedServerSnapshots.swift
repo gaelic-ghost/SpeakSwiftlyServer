@@ -245,6 +245,7 @@ public struct TransportStatusSnapshot: Codable, Sendable, Equatable {
     public let port: Int?
     public let path: String?
     public let advertisedAddress: String?
+    public let activeStreamCount: Int?
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -254,6 +255,27 @@ public struct TransportStatusSnapshot: Codable, Sendable, Equatable {
         case port
         case path
         case advertisedAddress = "advertised_address"
+        case activeStreamCount = "active_stream_count"
+    }
+
+    package init(
+        name: String,
+        enabled: Bool,
+        state: String,
+        host: String?,
+        port: Int?,
+        path: String?,
+        advertisedAddress: String?,
+        activeStreamCount: Int? = nil,
+    ) {
+        self.name = name
+        self.enabled = enabled
+        self.state = state
+        self.host = host
+        self.port = port
+        self.path = path
+        self.advertisedAddress = advertisedAddress
+        self.activeStreamCount = activeStreamCount
     }
 }
 

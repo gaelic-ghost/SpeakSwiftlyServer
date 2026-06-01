@@ -108,6 +108,11 @@ package extension ServerHost {
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 
+    func markTransportListening(name: String, port: Int) async {
+        updateTransportStatus(named: name, state: "listening", port: port)
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
     func markTransportStopped(name: String) async {
         updateTransportStatus(named: name, state: "stopped")
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -120,6 +125,12 @@ package extension ServerHost {
             code: "transport_failed",
             message: message,
         )
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
+    func markTransportActiveStreamCount(name: String, activeStreamCount: Int) async {
+        let state = activeStreamCount > 0 ? "active" : "listening"
+        updateTransportStatus(named: name, state: state, activeStreamCount: activeStreamCount)
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 

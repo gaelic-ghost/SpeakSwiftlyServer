@@ -182,6 +182,10 @@ public enum ServerConfigDefaultProfile: String, CaseIterable, Sendable {
             .init(["app", "mcp", "path"]): "/mcp",
             .init(["app", "mcp", "serverName"]): "speak-swiftly-mcp",
             .init(["app", "mcp", "title"]): "Speak Swiftly",
+            .init(["app", "networkAudioReceiver", "enabled"]): false,
+            .init(["app", "networkAudioReceiver", "serviceName"]): "SpeakSwiftly Audio Receiver",
+            .init(["app", "networkAudioReceiver", "port"]): 0,
+            .init(["app", "networkAudioReceiver", "sharedToken"]): "",
         ]
     }
 
