@@ -14,7 +14,7 @@ esac
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 plugin_manifest="$repo_root/.codex-plugin/plugin.json"
-socket_cache_path_pattern='~/.codex/plugins/cache/socket/speak-swiftly/[0-9]+\.[0-9]+\.[0-9]+/hooks'
+socket_cache_path_pattern='~/.codex/plugins/cache/socket/speak-swiftly/[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?/hooks'
 
 [ -f "$plugin_manifest" ] || {
   printf '%s\n' "version-bump: missing Codex plugin manifest at $plugin_manifest." >&2
