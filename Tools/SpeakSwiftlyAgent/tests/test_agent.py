@@ -54,6 +54,17 @@ def test_overview_reports_clean_repo(tmp_path: Path) -> None:
     assert "Working tree: clean" in report.findings
 
 
+def test_overview_accepts_repo_subdirectory(tmp_path: Path) -> None:
+    init_repo(tmp_path)
+    nested = tmp_path / "Tools" / "SpeakSwiftlyAgent"
+    nested.mkdir(parents=True)
+
+    report = invoke_agent({"task": "overview", "repo_root": str(nested)})
+
+    assert report.title == "SpeakSwiftlyAgent Repo Overview"
+    assert any(f"Repository: {tmp_path.resolve()}" == finding for finding in report.findings)
+
+
 def test_dependency_plan_stays_read_only(tmp_path: Path) -> None:
     init_repo(tmp_path)
 

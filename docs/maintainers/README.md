@@ -31,6 +31,8 @@ Keep active docs here only when they still guide present-day editing, validation
 - [`../../Tools/SpeakSwiftlyAgent`](../../Tools/SpeakSwiftlyAgent)
   LangGraph-based maintainer assistant for repo explanation, dependency-update planning, branch
   cleanup audits, and guidance-sync handoff prompts.
+- [`../../Tools/SpeakSwiftlyAgent/docs/next-slices.md`](../../Tools/SpeakSwiftlyAgent/docs/next-slices.md)
+  Planned next slices for the maintainer assistant.
 
 ## Historical Notes
 

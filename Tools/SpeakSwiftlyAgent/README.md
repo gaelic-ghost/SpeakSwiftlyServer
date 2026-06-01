@@ -11,6 +11,8 @@ The first slice is a safe, read-mostly LangGraph workflow that can:
 - audit merged branches without deleting anything;
 - produce Codex handoff prompts for guidance-sync skills.
 
+See [`docs/next-slices.md`](docs/next-slices.md) for the next planned maintainer-agent slices.
+
 ## Run
 
 ```bash

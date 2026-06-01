@@ -12,9 +12,19 @@ class RepoError(RuntimeError):
 
 def resolve_repo_root(repo_root: Path) -> Path:
     path = repo_root.expanduser().resolve()
-    if not (path / ".git").exists():
-        raise RepoError(f"{path} is not a Git checkout root.")
-    return path
+    if not path.exists():
+        raise RepoError(f"{path} does not exist.")
+
+    process = subprocess.run(
+        ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if process.returncode != 0:
+        detail = process.stderr.strip() or process.stdout.strip()
+        raise RepoError(f"{path} is not inside a Git checkout: {detail}")
+    return Path(process.stdout.strip()).resolve()
 
 
 def run_git(repo_root: Path, args: list[str]) -> str:

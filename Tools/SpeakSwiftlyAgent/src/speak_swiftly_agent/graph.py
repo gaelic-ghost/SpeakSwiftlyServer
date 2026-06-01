@@ -61,6 +61,7 @@ def overview_node(state: AgentState) -> AgentState:
     snapshot = collect_repo_snapshot(Path(state["repo_root"]))
     cleanliness = "clean" if snapshot.is_clean else "dirty"
     findings = [
+        f"Repository: {snapshot.repo_root}",
         f"Current branch: {snapshot.branch}",
         f"Working tree: {cleanliness}",
         f"Latest tag: {snapshot.latest_tag or 'none found'}",
