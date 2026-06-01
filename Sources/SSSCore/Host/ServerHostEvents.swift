@@ -69,5 +69,6 @@ package enum HostEvent {
     case profileCacheChanged(ProfileCacheStatusSnapshot)
     case textProfilesChanged(TextProfilesStatusSnapshot)
     case runtimeConfigurationChanged(RuntimeConfigurationStatusSnapshot)
+    case networkAudioDestinationsChanged(NetworkAudioReceiverSelectionSnapshot)
     case recentErrorRecorded(RecentErrorSnapshot)
 }

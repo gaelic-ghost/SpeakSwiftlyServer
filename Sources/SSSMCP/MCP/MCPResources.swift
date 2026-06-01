@@ -33,6 +33,8 @@ package enum MCPResourceCatalog {
         .init(name: "Playback State", uri: "speak-swiftly://playback", description: "Current playback state, active request, buffer stability, and latest playback milestone.", mimeType: "application/json"),
         .init(name: "Playback Queue", uri: "speak-swiftly://playback/queue", description: "Current active and queued playback work.", mimeType: "application/json"),
         .init(name: "Playback Guide", uri: "speak-swiftly://playback/guide", description: "Operator guidance for reading queues, controlling playback, and choosing the least destructive action.", mimeType: "text/markdown"),
+        .init(name: "LAN Audio Destinations", uri: "speak-swiftly://network-audio/destinations", description: "Bonjour-discovered SpeakSwiftly LAN audio receivers available for remote playback selection.", mimeType: "application/json"),
+        .init(name: "LAN Audio Receiver Selection", uri: "speak-swiftly://network-audio/selection", description: "Current selected SpeakSwiftly LAN audio receiver destination, if one has been selected.", mimeType: "application/json"),
         .init(name: "Tracked Requests", uri: "speak-swiftly://requests", description: "Retained shared-host request snapshots for live server operations.", mimeType: "application/json"),
         .init(name: "Generation Jobs", uri: "speak-swiftly://generation/jobs", description: "Retained v2 generation jobs known to the SpeakSwiftly runtime.", mimeType: "application/json"),
         .init(name: "Generation Artifacts", uri: "speak-swiftly://generation/artifacts", description: "Retained generated audio artifacts known to the SpeakSwiftly runtime.", mimeType: "application/json"),
@@ -141,6 +143,12 @@ package extension MCPSurface {
                             ),
                         ],
                     )
+
+                case "speak-swiftly://network-audio/destinations":
+                    return try await resourceResult(uri: params.uri, payload: host.networkAudioDestinationSnapshots())
+
+                case "speak-swiftly://network-audio/selection":
+                    return try await resourceResult(uri: params.uri, payload: host.networkAudioReceiverSelectionSnapshot())
 
                 case "speak-swiftly://text-profiles/base":
                     do {

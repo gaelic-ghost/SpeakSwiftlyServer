@@ -36,6 +36,8 @@ package extension ServerHost {
             state.runtimeConfiguration = hostState.runtimeConfiguration
             state.voiceProfiles = cachedVoiceProfiles
             state.transports = hostState.transports
+            state.networkAudioDestinations = hostState.networkAudioDestinations
+            state.networkAudioReceiverSelection = hostState.networkAudioReceiverSelection
             state.recentErrors = hostState.recentErrors
         }
     }
@@ -288,7 +290,7 @@ package extension ServerHost {
     }
 
     func transportSnapshots() -> [TransportStatusSnapshot] {
-        ["http", "mcp", NetworkAudioReceiverConfig.transportName].compactMap { transportStatuses[$0] }
+        ["http", "mcp", NetworkAudioReceiverConfig.transportName, NetworkAudioDiscoveryTransport.name].compactMap { transportStatuses[$0] }
     }
 
     func applyLiveConfigurationChanges(from appConfig: AppConfig) -> Bool {

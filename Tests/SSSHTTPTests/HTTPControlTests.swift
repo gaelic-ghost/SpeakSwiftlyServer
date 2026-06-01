@@ -220,6 +220,60 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
+    @Test func `routes expose LAN audio receiver discovery and selection`() async throws {
+        let configuration = testConfiguration()
+        let host = await ServerHost(
+            configuration: configuration,
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: MainActor.run { EmbeddedServer() },
+        )
+        let destination = SpeakSwiftly.NetworkAudioDestination(
+            id: "Gale MacBook Receiver._spswift-audio._tcp.local.",
+            name: "Gale MacBook Receiver",
+            endpoint: .bonjourService(
+                name: "Gale MacBook Receiver",
+                type: SpeakSwiftly.NetworkAudioBonjour.serviceType,
+                domain: SpeakSwiftly.NetworkAudioBonjour.domain,
+            ),
+            capabilities: .init(),
+            lastSeen: Date(timeIntervalSince1970: 1_796_180_400),
+        )
+        await host.replaceNetworkAudioDestinations([destination])
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let destinationsResponse = try await client.execute(uri: "/network-audio/destinations", method: .get)
+            let destinationsJSON = try jsonArray(from: destinationsResponse.body)
+            #expect(destinationsResponse.status == .ok)
+            #expect(destinationsJSON.first?["id"] as? String == destination.id)
+            #expect(destinationsJSON.first?["name"] as? String == "Gale MacBook Receiver")
+
+            let selectResponse = try await client.execute(
+                uri: "/network-audio/selection",
+                method: .put,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"destination_id":"Gale MacBook Receiver._spswift-audio._tcp.local."}"#),
+            )
+            let selectJSON = try jsonObject(from: selectResponse.body)
+            #expect(selectResponse.status == .ok)
+            let selection = try #require(selectJSON["selection"] as? [String: Any])
+            #expect(selection["selected_destination_id"] as? String == destination.id)
+
+            let selectionResponse = try await client.execute(uri: "/network-audio/selection", method: .get)
+            let selectionJSON = try jsonObject(from: selectionResponse.body)
+            #expect(selectionResponse.status == .ok)
+            #expect(selectionJSON["selected_destination_id"] as? String == destination.id)
+
+            let clearResponse = try await client.execute(uri: "/network-audio/selection", method: .delete)
+            let clearJSON = try jsonObject(from: clearResponse.body)
+            #expect(clearResponse.status == .ok)
+            let clearedSelection = try #require(clearJSON["selection"] as? [String: Any])
+            #expect(clearedSelection["selected_destination_id"] as? String == nil)
+        }
+    }
+
+    @available(macOS 14, *)
     @Test func `routes report not ready and missing jobs clearly`() async throws {
         let runtime = MockRuntime()
         let configuration = testConfiguration()

@@ -113,6 +113,11 @@ package extension ServerHost {
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
     }
 
+    func markTransportBrowsing(name: String) async {
+        updateTransportStatus(named: name, state: "browsing")
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
     func markTransportStopped(name: String) async {
         updateTransportStatus(named: name, state: "stopped")
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
@@ -199,6 +204,8 @@ package extension ServerHost {
             currentGenerationJobs: currentGenerationJobSnapshots(),
             runtimeConfiguration: runtimeConfigurationSnapshot(),
             transports: transportSnapshots(),
+            networkAudioDestinations: networkAudioDestinations,
+            networkAudioReceiverSelection: networkAudioReceiverSelectionSnapshot(),
             recentErrors: recentErrors,
         )
     }

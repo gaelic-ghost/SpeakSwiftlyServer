@@ -139,6 +139,8 @@ package actor ServerHost {
     )
     var runtimeRefreshSnapshot: RuntimeRefreshSnapshot?
     var transportStatuses = [String: TransportStatusSnapshot]()
+    var networkAudioDestinations = [NetworkAudioDestinationSnapshot]()
+    var selectedNetworkAudioDestinationID: String?
     var recentErrors = [RecentErrorSnapshot]()
     var nextRuntimeRefreshSequenceID = 1
     var pendingRuntimeRefresh = true
