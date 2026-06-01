@@ -163,6 +163,8 @@ In Progress
 - [ ] Decide whether LaunchAgent-owned startup config should keep using a reloading provider or move to a simpler startup-open path with reload support layered on intentionally later.
 - [ ] Promote the existing MCP E2E client utilities into a reusable repo-owned smoke helper for local checks, CI, and release verification.
 - [ ] Add a maintainer-facing release verification path that confirms the staged release artifact, LaunchAgent install, runtime host overview, and MCP initialize flow all agree.
+- [ ] Add a Mac mini to MacBook LAN audio smoke path that installs or refreshes the mini LaunchAgent, confirms the MacBook receiver is advertised and listening, sends a small generated-audio stream with the shared token, and verifies local receiver playback without running the full real-model E2E matrix.
+- [ ] Update server release automation so SemVer prerelease tags create GitHub prerelease objects and existing prerelease release objects are verified before the flow proceeds; keep the broader reusable repo-tooling followup tied to Socket issue [#61](https://github.com/gaelic-ghost/socket/issues/61).
 
 ### Exit Criteria
 
@@ -224,6 +226,8 @@ In Progress
 - [ ] Investigate a ChatGPT Apps SDK connector path for Speak Swiftly that exposes the server's MCP surface over HTTPS for explicit "speak this text/reply" actions, with a self-hosted Cloudflare Tunnel or equivalent setup path documented for users who want ChatGPT access to their local Mac speech service.
 - [ ] Document the current boundary between Codex hook-driven automatic spoken replies, ChatGPT MCP-tool-driven spoken replies, and native app-managed install/update flows so users and their agents know which surface can actually install, update, or speak automatically.
 - [ ] Add package-building skills that help people's agents embed `SpeakSwiftlyServer`, choose HTTP versus MCP versus `EmbeddedServer`, configure profile roots safely, and validate the resulting app or tool against the repo's public contract.
+- [ ] Add operator-facing LAN receiver guidance and commands for generating a local shared token, enabling or disabling receiver mode, validating Bonjour advertisement, and explaining that receiver changes require a service reload.
+- [ ] Add sender-side LAN output workflow guidance so operators can list discovered receivers, choose a receiver for remote playback, and understand when generated speech is played locally versus streamed to another Mac.
 
 ### Exit Criteria
 
@@ -298,6 +302,8 @@ In Progress
 - [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request and text-profile model directly: remove server-local speech normalization context shaping, keep `source_format` as the one explicit request format field, merge `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and delete the text-profile JSON bridge adapter.
 - [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 - [ ] Add client compatibility-gated MCP progress updates so newer clients can subscribe to direct request/playback progress notifications without breaking existing MCP clients that only expect resource-updated notifications and retained request resources.
+- [ ] Add a selected LAN receiver routing surface across HTTP, MCP, and embedded server APIs so a caller can route a generated speech request to a discovered receiver without making `SpeakSwiftly.Runtime` own sessions or LAN connection lifetime.
+- [ ] Expand transport snapshots for `network_audio_receiver` and future LAN sender state with receiver service names, selected endpoint metadata, active stream counts, and recent failure messages that are useful to operators without exposing shared tokens.
 
 ### Exit Criteria
 

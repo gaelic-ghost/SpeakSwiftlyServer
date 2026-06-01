@@ -136,6 +136,50 @@ wait_for_github_release() {
   done
 }
 
+is_semver_prerelease_tag() {
+  tag_name="$1"
+
+  case "$tag_name" in
+    v[0-9]*.[0-9]*.[0-9]*-*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+github_release_prerelease_args() {
+  tag_name="$1"
+
+  if is_semver_prerelease_tag "$tag_name"; then
+    printf '%s\n' "--prerelease"
+  fi
+}
+
+describe_github_release_create_command() {
+  tag_name="$1"
+  prerelease_args="$(github_release_prerelease_args "$tag_name")"
+
+  if [ -n "$prerelease_args" ]; then
+    printf 'gh release create --verify-tag --prerelease\n'
+  else
+    printf 'gh release create --verify-tag\n'
+  fi
+}
+
+verify_github_release_prerelease_metadata() {
+  tag_name="$1"
+
+  if ! is_semver_prerelease_tag "$tag_name"; then
+    return 0
+  fi
+
+  is_prerelease="$(gh release view "$tag_name" --json isPrerelease --jq '.isPrerelease')"
+  [ "$is_prerelease" = "true" ] || die "GitHub release $tag_name exists but is not marked as a prerelease. SemVer prerelease tags must create or preserve GitHub prerelease metadata; run gh release edit $tag_name --prerelease or rerun the release flow after correcting the release object."
+  log "Verified GitHub release $tag_name is marked as a prerelease."
+}
+
 ensure_git_repo() {
   git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "maintain-project-repo must run inside a git worktree rooted at $REPO_ROOT."
 }
