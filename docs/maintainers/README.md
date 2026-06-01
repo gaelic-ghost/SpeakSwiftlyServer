@@ -26,6 +26,12 @@ Keep active docs here only when they still guide present-day editing, validation
 - [`skills-surface-audit.md`](skills-surface-audit.md)
   Current skills and plugin surface audit notes.
 
+## Maintainer Tools
+
+- [`../../Tools/SpeakSwiftlyAgent`](../../Tools/SpeakSwiftlyAgent)
+  LangGraph-based maintainer assistant for repo explanation, dependency-update planning, branch
+  cleanup audits, and guidance-sync handoff prompts.
+
 ## Historical Notes
 
 - [`implementation-history.md`](implementation-history.md)

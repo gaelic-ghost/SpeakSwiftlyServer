@@ -1,0 +1,41 @@
+[project]
+name = "speak-swiftly-agent"
+version = "0.1.0"
+description = "Repo-maintenance agent for SpeakSwiftlyServer maintainers."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langgraph>=1.0.3",
+    "pydantic>=2.12.0",
+    "rich>=14.0.0",
+    "typer>=0.20.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.0",
+    "pytest>=9.0.0",
+    "ruff>=0.14.0",
+]
+
+[project.scripts]
+speak-swiftly-agent = "speak_swiftly_agent.cli:app"
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+packages = ["speak_swiftly_agent"]
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12.0"]
+build-backend = "uv_build"
