@@ -143,6 +143,15 @@ Only `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` are supported public pack
 
 ## Plugin And Skill Sources
 
+- `Tools/SpeakSwiftlyAgent/`
+  Holds the maintainer-side LangGraph repo assistant. It is not a SwiftPM product and must stay
+  outside the consumer-facing `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` surfaces. Keep it
+  focused on repo explanation, dependency-update planning, branch cleanup audits, and Codex guidance
+  handoff prompts unless Gale explicitly widens it into an active automation service.
+- `scripts/repo-maintenance/validations/65-speak-swiftly-agent.sh`
+  Runs the agent's local `uv` validation lane as part of the full local maintainer gate. The remote
+  CI wrapper intentionally stays on its existing lighter Swift package lane unless the CI environment
+  is explicitly expanded to install and validate Python maintainer tooling.
 - `.codex-plugin/plugin.json`
   Holds the repo-root Codex plugin manifest for this checkout, including the tracked skill, MCP config, and plugin-managed hook paths. This repository remains the canonical payload owner for the `speak-swiftly` plugin identity, displayed as `Speak Swiftly`.
 - `hooks/`
