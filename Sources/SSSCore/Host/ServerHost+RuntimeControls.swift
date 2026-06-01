@@ -30,6 +30,8 @@ package extension ServerHost {
             currentGenerationJobs: hostState.currentGenerationJobs,
             runtimeConfiguration: hostState.runtimeConfiguration,
             transports: hostState.transports,
+            networkAudioDestinations: hostState.networkAudioDestinations,
+            networkAudioReceiverSelection: hostState.networkAudioReceiverSelection,
             recentErrors: hostState.recentErrors,
         )
     }

@@ -348,6 +348,8 @@ public struct HostStateSnapshot: Codable, Sendable, Equatable {
     public let currentGenerationJobs: [CurrentGenerationJobSnapshot]
     public let runtimeConfiguration: RuntimeConfigurationSnapshot
     public let transports: [TransportStatusSnapshot]
+    public let networkAudioDestinations: [NetworkAudioDestinationSnapshot]
+    public let networkAudioReceiverSelection: NetworkAudioReceiverSelectionSnapshot
     public let recentErrors: [RecentErrorSnapshot]
 
     enum CodingKeys: String, CodingKey {
@@ -360,6 +362,8 @@ public struct HostStateSnapshot: Codable, Sendable, Equatable {
         case currentGenerationJobs = "current_generation_jobs"
         case runtimeConfiguration = "runtime_configuration"
         case transports
+        case networkAudioDestinations = "network_audio_destinations"
+        case networkAudioReceiverSelection = "network_audio_receiver_selection"
         case recentErrors = "recent_errors"
     }
 }

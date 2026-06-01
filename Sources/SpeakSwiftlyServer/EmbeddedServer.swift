@@ -189,6 +189,10 @@ public final class EmbeddedServer {
     public package(set) var voiceProfiles = [ProfileSnapshot]()
     /// Current status for each published operator transport.
     public package(set) var transports = [TransportStatusSnapshot]()
+    /// Bonjour-discovered LAN audio receivers currently visible to this server.
+    public package(set) var networkAudioDestinations = [NetworkAudioDestinationSnapshot]()
+    /// The currently selected LAN audio receiver destination, if any.
+    public package(set) var networkAudioReceiverSelection = ServerHostDefaultSnapshots.networkAudioReceiverSelection
     /// Recent host and transport errors retained for operator inspection.
     public package(set) var recentErrors = [RecentErrorSnapshot]()
 
@@ -359,6 +363,8 @@ public final class EmbeddedServer {
         currentGenerationJobs = snapshot.currentGenerationJobs
         runtimeConfiguration = snapshot.runtimeConfiguration
         transports = snapshot.transports
+        networkAudioDestinations = snapshot.networkAudioDestinations
+        networkAudioReceiverSelection = snapshot.networkAudioReceiverSelection
         recentErrors = snapshot.recentErrors
     }
 

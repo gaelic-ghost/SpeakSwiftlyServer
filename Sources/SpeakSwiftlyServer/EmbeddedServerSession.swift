@@ -135,6 +135,7 @@ func embeddedServerLiveBootstrap(
         (mcpSurface == nil ? 0 : 1) + // MCPLifecycleService
         (serverConfigStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
         (config.networkAudioReceiver.enabled ? 1 : 0) + // NetworkAudioReceiverLifecycleService
+        1 + // NetworkAudioDestinationBrowserLifecycleService
         1 // HostPruneService
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: hostDependentSiblingServiceCount)
     let app = assembleHBApp(
@@ -165,6 +166,7 @@ func embeddedServerLiveBootstrap(
     if config.networkAudioReceiver.enabled {
         await host.markTransportStarting(name: NetworkAudioReceiverConfig.transportName)
     }
+    await host.markTransportStarting(name: NetworkAudioDiscoveryTransport.name)
 
     var services = serverConfigStore.services.map { service in
         ServiceGroupConfiguration.ServiceConfiguration(service: service)
@@ -213,6 +215,15 @@ func embeddedServerLiveBootstrap(
             ),
         )
     }
+    services.append(
+        .init(
+            service: NetworkAudioDestinationBrowserLifecycleService(
+                host: host,
+                shutdownBarrier: shutdownBarrier,
+            ),
+            serviceName: "NetworkAudioDestinationBrowserLifecycleService",
+        ),
+    )
     if let mcpSurface, let mcpReadinessGate {
         services.append(
             .init(

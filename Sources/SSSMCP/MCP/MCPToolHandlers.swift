@@ -339,6 +339,18 @@ package extension MCPSurface {
                 case "resume_playback":
                     return try await toolResult(host.resumePlayback())
 
+                case "select_network_audio_receiver":
+                    let response = try await host.selectNetworkAudioDestination(
+                        id: requiredString("destination_id", in: arguments),
+                    )
+                    await subscriptionBroker.notifyResourceChanges(for: .networkAudioDestinations, using: server)
+                    return try toolResult(response)
+
+                case "clear_network_audio_receiver":
+                    let response = await host.clearNetworkAudioDestinationSelection()
+                    await subscriptionBroker.notifyResourceChanges(for: .networkAudioDestinations, using: server)
+                    return try toolResult(response)
+
                 case "clear_generation_queue":
                     return try await toolResult(host.clearQueue(.generation))
 

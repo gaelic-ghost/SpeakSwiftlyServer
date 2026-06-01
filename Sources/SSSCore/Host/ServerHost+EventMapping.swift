@@ -66,10 +66,20 @@ package extension ServerHost {
             advertisedAddress: networkAudioReceiverConfig.advertisedAddress,
             activeStreamCount: networkAudioReceiverConfig.enabled ? 0 : nil,
         )
+        let networkAudioDiscovery = TransportStatusSnapshot(
+            name: NetworkAudioDiscoveryTransport.name,
+            enabled: true,
+            state: "stopped",
+            host: nil,
+            port: nil,
+            path: nil,
+            advertisedAddress: nil,
+        )
         return [
             http.name: http,
             mcp.name: mcp,
             networkAudioReceiver.name: networkAudioReceiver,
+            networkAudioDiscovery.name: networkAudioDiscovery,
         ]
     }
 

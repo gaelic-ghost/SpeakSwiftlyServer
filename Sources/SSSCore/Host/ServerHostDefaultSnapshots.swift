@@ -57,4 +57,10 @@ package enum ServerHostDefaultSnapshots {
         activeRuntimeMatchesNextRuntime: true,
         persistedConfigurationWillAffectNextRuntimeStart: true,
     )
+
+    package static let networkAudioReceiverSelection = NetworkAudioReceiverSelectionSnapshot(
+        selectedDestinationID: nil,
+        selectedDestination: nil,
+        availableDestinationCount: 0,
+    )
 }

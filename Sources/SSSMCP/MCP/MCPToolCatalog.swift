@@ -281,6 +281,22 @@ package enum MCPToolCatalog {
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
+            name: "select_network_audio_receiver",
+            description: "Select one Bonjour-discovered SpeakSwiftly LAN audio receiver by destination_id. This records the operator selection for remote playback routing work; current live speech still uses local playback until the package-backed network output routing slice lands.",
+            inputSchema: [
+                "type": "object",
+                "required": ["destination_id"],
+                "properties": [
+                    "destination_id": ["type": "string"],
+                ],
+            ],
+        ),
+        Tool(
+            name: "clear_network_audio_receiver",
+            description: "Clear the selected SpeakSwiftly LAN audio receiver destination.",
+            inputSchema: ["type": "object", "properties": [:]],
+        ),
+        Tool(
             name: "clear_generation_queue",
             description: "Cancel all currently queued SpeakSwiftly generation work without interrupting the active generation request.",
             inputSchema: ["type": "object", "properties": [:]],

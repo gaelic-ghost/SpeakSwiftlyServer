@@ -189,3 +189,13 @@ package func jsonObject(from data: Data) throws -> [String: Any] {
 
     return dictionary
 }
+
+package func jsonArray(from buffer: ByteBuffer) throws -> [[String: Any]] {
+    let data = Data(buffer.readableBytesView)
+    let json = try JSONSerialization.jsonObject(with: data)
+    guard let array = json as? [[String: Any]] else {
+        throw JSONError.notArray
+    }
+
+    return array
+}

@@ -143,6 +143,8 @@ extension ServerTests {
                         persistedConfigurationWillAffectNextRuntimeStart: true,
                     ),
                     transports: [],
+                    networkAudioDestinations: [],
+                    networkAudioReceiverSelection: ServerHostDefaultSnapshots.networkAudioReceiverSelection,
                     recentErrors: [],
                 ),
             ),
@@ -158,6 +160,43 @@ extension ServerTests {
         #expect((queueJSON["active_requests"] as? [[String: Any]])?.count == 1)
         #expect((queueJSON["queue"] as? [[String: Any]])?.first?["id"] as? String == "request-2")
         #expect(queueJSON["queued_requests"] == nil)
+    }
+
+    @available(macOS 14, *)
+    @Test func `host tracks discovered LAN audio receivers and selected destination`() async throws {
+        let host = await ServerHost(
+            configuration: testConfiguration(),
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: MainActor.run { EmbeddedServer() },
+        )
+        let destination = SpeakSwiftly.NetworkAudioDestination(
+            id: "Gale MacBook Receiver._spswift-audio._tcp.local.",
+            name: "Gale MacBook Receiver",
+            endpoint: .bonjourService(
+                name: "Gale MacBook Receiver",
+                type: SpeakSwiftly.NetworkAudioBonjour.serviceType,
+                domain: SpeakSwiftly.NetworkAudioBonjour.domain,
+            ),
+            capabilities: .init(protocolVersion: 1, sampleRates: [24000, 48000], channelCounts: [1]),
+            lastSeen: Date(timeIntervalSince1970: 1_796_180_400),
+        )
+
+        await host.replaceNetworkAudioDestinations([destination])
+        let discovered = await host.networkAudioDestinationSnapshots()
+        #expect(discovered.map(\.id) == [destination.id])
+        #expect(discovered.first?.endpoint.kind == "bonjour_service")
+        #expect(discovered.first?.capabilities.sampleRates == [24000, 48000])
+
+        let selectionResponse = try await host.selectNetworkAudioDestination(id: destination.id)
+        #expect(selectionResponse.selection.selectedDestinationID == destination.id)
+        #expect(selectionResponse.selection.selectedDestination?.name == "Gale MacBook Receiver")
+        #expect(selectionResponse.message.contains("selected LAN audio receiver destination"))
+
+        await host.replaceNetworkAudioDestinations([])
+        let clearedByDisappearance = await host.networkAudioReceiverSelectionSnapshot()
+        #expect(clearedByDisappearance.selectedDestinationID == nil)
+        #expect(clearedByDisappearance.availableDestinationCount == 0)
     }
 
     @available(macOS 14, *)

@@ -8,6 +8,7 @@ package actor MCPSubscriptionBroker {
         case textProfiles
         case voices
         case runtimeOverview
+        case networkAudioDestinations
     }
 
     private var subscribedResourceURIs = Set<String>()
@@ -124,6 +125,12 @@ package actor MCPSubscriptionBroker {
                     "speak-swiftly://overview",
                     "speak-swiftly://configuration",
                 ]
+            case .networkAudioDestinationsChanged:
+                [
+                    "speak-swiftly://overview",
+                    "speak-swiftly://network-audio/destinations",
+                    "speak-swiftly://network-audio/selection",
+                ]
         }
         return candidateURIs
             .intersection(subscribedResourceURIs)
@@ -152,6 +159,12 @@ package actor MCPSubscriptionBroker {
                 )
             case .runtimeOverview:
                 ["speak-swiftly://overview"]
+            case .networkAudioDestinations:
+                [
+                    "speak-swiftly://overview",
+                    "speak-swiftly://network-audio/destinations",
+                    "speak-swiftly://network-audio/selection",
+                ]
         }
         return candidateURIs.intersection(subscribedResourceURIs).sorted()
     }

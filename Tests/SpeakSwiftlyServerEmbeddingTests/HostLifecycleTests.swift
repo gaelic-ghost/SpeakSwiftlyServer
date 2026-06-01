@@ -606,7 +606,7 @@ import Testing
                 if snapshot.state == "playing" {
                     sawPlaybackChange = true
                 }
-            case .textProfilesChanged, .runtimeConfigurationChanged, .recentErrorRecorded:
+            case .textProfilesChanged, .runtimeConfigurationChanged, .networkAudioDestinationsChanged, .recentErrorRecorded:
                 break
         }
 

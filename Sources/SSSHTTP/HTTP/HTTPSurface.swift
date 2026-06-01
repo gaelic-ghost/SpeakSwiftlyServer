@@ -73,5 +73,6 @@ private func registerHTTPRoutes(
     )
     registerHTTPGenerationRoutes(on: router, host: host)
     registerHTTPPlaybackRoutes(on: router, host: host)
+    registerHTTPNetworkAudioRoutes(on: router, host: host)
     registerHTTPRequestRoutes(on: router, host: host)
 }

@@ -12,5 +12,7 @@ package protocol ServerHostStatePublishing: AnyObject, Sendable {
     var runtimeConfiguration: RuntimeConfigurationSnapshot { get set }
     var voiceProfiles: [ProfileSnapshot] { get set }
     var transports: [TransportStatusSnapshot] { get set }
+    var networkAudioDestinations: [NetworkAudioDestinationSnapshot] { get set }
+    var networkAudioReceiverSelection: NetworkAudioReceiverSelectionSnapshot { get set }
     var recentErrors: [RecentErrorSnapshot] { get set }
 }
