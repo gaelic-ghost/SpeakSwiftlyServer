@@ -50,6 +50,11 @@ public struct ServerConfigPersistence: @unchecked Sendable {
             path: \(appConfig.mcp.path)
             serverName: \(appConfig.mcp.serverName)
             title: \(appConfig.mcp.title)
+          networkAudioReceiver:
+            enabled: \(appConfig.networkAudioReceiver.enabled ? "true" : "false")
+            serviceName: '\(appConfig.networkAudioReceiver.serviceName)'
+            port: \(appConfig.networkAudioReceiver.port)
+            sharedToken: ''
 
         """
     }

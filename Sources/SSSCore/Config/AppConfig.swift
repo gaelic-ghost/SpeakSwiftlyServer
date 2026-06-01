@@ -6,6 +6,7 @@ package struct AppConfig {
     package let runtime: RuntimeStartupConfiguration
     package let http: HTTPConfig
     package let mcp: MCPConfig
+    package let networkAudioReceiver: NetworkAudioReceiverConfig
 
     // MARK: - Initialization
 
@@ -14,11 +15,13 @@ package struct AppConfig {
         runtime: RuntimeStartupConfiguration = .init(),
         http: HTTPConfig,
         mcp: MCPConfig,
+        networkAudioReceiver: NetworkAudioReceiverConfig,
     ) {
         self.server = server
         self.runtime = runtime
         self.http = http
         self.mcp = mcp
+        self.networkAudioReceiver = networkAudioReceiver
     }
 
     init(config: ConfigReader) throws {
@@ -35,6 +38,10 @@ package struct AppConfig {
             fallbackSSEHeartbeatSeconds: server.sseHeartbeatSeconds,
         )
         mcp = try MCPConfig(config: config.scoped(to: "mcp"))
+        networkAudioReceiver = try NetworkAudioReceiverConfig(
+            config: config.scoped(to: "networkAudioReceiver"),
+            fallbackServiceName: server.name,
+        )
     }
 
     static func load(

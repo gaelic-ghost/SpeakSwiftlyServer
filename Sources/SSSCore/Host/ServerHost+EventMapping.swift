@@ -5,7 +5,12 @@ import SpeakSwiftly
 package extension ServerHost {
     // MARK: - Transport and Error Tracking
 
-    func updateTransportStatus(named name: String, state: String) {
+    func updateTransportStatus(
+        named name: String,
+        state: String,
+        port: Int? = nil,
+        activeStreamCount: Int? = nil,
+    ) {
         guard let current = transportStatuses[name], current.enabled else {
             return
         }
@@ -15,9 +20,10 @@ package extension ServerHost {
             enabled: current.enabled,
             state: state,
             host: current.host,
-            port: current.port,
+            port: port ?? current.port,
             path: current.path,
             advertisedAddress: current.advertisedAddress,
+            activeStreamCount: activeStreamCount ?? current.activeStreamCount,
         )
         guard updated != current else {
             return
@@ -30,6 +36,7 @@ package extension ServerHost {
     static func initialTransportStatuses(
         httpConfig: HTTPConfig,
         mcpConfig: MCPConfig,
+        networkAudioReceiverConfig: NetworkAudioReceiverConfig,
     ) -> [String: TransportStatusSnapshot] {
         let http = TransportStatusSnapshot(
             name: "http",
@@ -49,9 +56,20 @@ package extension ServerHost {
             path: mcpConfig.enabled ? mcpConfig.path : nil,
             advertisedAddress: mcpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)\(mcpConfig.path)" : nil,
         )
+        let networkAudioReceiver = TransportStatusSnapshot(
+            name: NetworkAudioReceiverConfig.transportName,
+            enabled: networkAudioReceiverConfig.enabled,
+            state: networkAudioReceiverConfig.enabled ? "stopped" : "disabled",
+            host: networkAudioReceiverConfig.enabled ? "0.0.0.0" : nil,
+            port: networkAudioReceiverConfig.enabled ? Int(networkAudioReceiverConfig.port) : nil,
+            path: nil,
+            advertisedAddress: networkAudioReceiverConfig.advertisedAddress,
+            activeStreamCount: networkAudioReceiverConfig.enabled ? 0 : nil,
+        )
         return [
             http.name: http,
             mcp.name: mcp,
+            networkAudioReceiver.name: networkAudioReceiver,
         ]
     }
 

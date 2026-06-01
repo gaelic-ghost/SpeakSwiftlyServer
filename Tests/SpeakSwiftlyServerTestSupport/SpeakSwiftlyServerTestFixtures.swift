@@ -114,26 +114,56 @@ package func sampleSystemProfiles() -> [SpeakSwiftly.ProfileSummary] {
 // MARK: - GenerationArtifactFixture
 
 package struct GenerationArtifactFixture: Codable {
-    let artifactID: String
-    let kind: String
-    let createdAt: Date
-    let filePath: String
-    let sampleRate: Int
-    let voiceProfile: String
-    let textProfile: String?
-    let sourceFormat: TextForSpeech.SourceFormat?
-    let requestContext: TextForSpeech.RequestContext?
-
     enum CodingKeys: String, CodingKey {
         case artifactID = "artifact_id"
         case kind
         case createdAt = "created_at"
         case filePath = "file_path"
         case sampleRate = "sample_rate"
+        case audioFormat = "audio_format"
+        case contentType = "content_type"
         case voiceProfile = "voice_profile"
         case textProfile = "text_profile"
         case sourceFormat = "source_format"
         case requestContext = "request_context"
+    }
+
+    let artifactID: String
+    let kind: String
+    let createdAt: Date
+    let filePath: String
+    let sampleRate: Int
+    let audioFormat: String
+    let contentType: String
+    let voiceProfile: String
+    let textProfile: String?
+    let sourceFormat: TextForSpeech.SourceFormat?
+    let requestContext: TextForSpeech.RequestContext?
+
+    init(
+        artifactID: String,
+        kind: String,
+        createdAt: Date,
+        filePath: String,
+        sampleRate: Int,
+        audioFormat: String = "wav",
+        contentType: String = "audio/wav",
+        voiceProfile: String,
+        textProfile: String?,
+        sourceFormat: TextForSpeech.SourceFormat?,
+        requestContext: TextForSpeech.RequestContext?,
+    ) {
+        self.artifactID = artifactID
+        self.kind = kind
+        self.createdAt = createdAt
+        self.filePath = filePath
+        self.sampleRate = sampleRate
+        self.audioFormat = audioFormat
+        self.contentType = contentType
+        self.voiceProfile = voiceProfile
+        self.textProfile = textProfile
+        self.sourceFormat = sourceFormat
+        self.requestContext = requestContext
     }
 }
 
@@ -145,6 +175,7 @@ package struct GenerationJobItemFixture: Codable {
     let textProfile: String?
     let sourceFormat: TextForSpeech.SourceFormat?
     let requestContext: TextForSpeech.RequestContext?
+    let audioFormat: String
 
     enum CodingKeys: String, CodingKey {
         case artifactID = "artifact_id"
@@ -152,6 +183,23 @@ package struct GenerationJobItemFixture: Codable {
         case textProfile = "text_profile"
         case sourceFormat = "source_format"
         case requestContext = "request_context"
+        case audioFormat = "audio_format"
+    }
+
+    init(
+        artifactID: String,
+        text: String,
+        textProfile: String?,
+        sourceFormat: TextForSpeech.SourceFormat?,
+        requestContext: TextForSpeech.RequestContext?,
+        audioFormat: String = "wav",
+    ) {
+        self.artifactID = artifactID
+        self.text = text
+        self.textProfile = textProfile
+        self.sourceFormat = sourceFormat
+        self.requestContext = requestContext
+        self.audioFormat = audioFormat
     }
 }
 

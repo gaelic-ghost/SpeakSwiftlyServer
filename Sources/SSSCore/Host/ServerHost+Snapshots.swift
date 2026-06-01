@@ -288,7 +288,7 @@ package extension ServerHost {
     }
 
     func transportSnapshots() -> [TransportStatusSnapshot] {
-        ["http", "mcp"].compactMap { transportStatuses[$0] }
+        ["http", "mcp", NetworkAudioReceiverConfig.transportName].compactMap { transportStatuses[$0] }
     }
 
     func applyLiveConfigurationChanges(from appConfig: AppConfig) -> Bool {
@@ -364,6 +364,18 @@ package extension ServerHost {
         }
         if mcpConfig.title != appConfig.mcp.title {
             keys.append("app.mcp.title")
+        }
+        if networkAudioReceiverConfig.enabled != appConfig.networkAudioReceiver.enabled {
+            keys.append("app.networkAudioReceiver.enabled")
+        }
+        if networkAudioReceiverConfig.serviceName != appConfig.networkAudioReceiver.serviceName {
+            keys.append("app.networkAudioReceiver.serviceName")
+        }
+        if networkAudioReceiverConfig.port != appConfig.networkAudioReceiver.port {
+            keys.append("app.networkAudioReceiver.port")
+        }
+        if networkAudioReceiverConfig.sharedToken != appConfig.networkAudioReceiver.sharedToken {
+            keys.append("app.networkAudioReceiver.sharedToken")
         }
 
         return keys

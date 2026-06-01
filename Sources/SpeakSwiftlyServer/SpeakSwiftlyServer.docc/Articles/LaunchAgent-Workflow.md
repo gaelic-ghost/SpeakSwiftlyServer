@@ -30,7 +30,9 @@ That gives you the exact LaunchAgent payload the package currently wants to stag
 - the `--profile-root` path for runtime-owned profile storage
 - the stdout and stderr log files
 
-Those paths are passed as explicit server bootstrap inputs. The config file stores server, transport, and runtime startup choices; the profile root points generated profiles and artifacts at the LaunchAgent-owned runtime state tree.
+Those paths are passed as explicit server bootstrap inputs. The config file stores server, HTTP, MCP, LAN receiver, and runtime startup choices; the profile root points generated profiles and artifacts at the LaunchAgent-owned runtime state tree.
+
+The LAN audio receiver stays disabled in the default config. To make this Mac a receiver for another SpeakSwiftly host on the same LAN, set `app.networkAudioReceiver.enabled` to `true`, choose a Bonjour `serviceName`, choose a `port` or leave it at `0` for an automatic port, and provide a non-empty local `sharedToken`. Do not commit a real shared token to repository examples.
 
 ## Install Or Refresh The Background Service
 

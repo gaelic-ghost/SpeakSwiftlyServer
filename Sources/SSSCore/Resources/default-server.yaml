@@ -21,3 +21,8 @@ app:
     path: /mcp
     serverName: speak-swiftly-mcp
     title: SpeakSwiftly
+  networkAudioReceiver:
+    enabled: false
+    serviceName: SpeakSwiftly Audio Receiver
+    port: 0
+    sharedToken:

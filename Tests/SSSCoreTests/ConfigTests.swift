@@ -18,6 +18,10 @@ import Testing
     #expect(defaults.http.sseHeartbeatSeconds == 10)
     #expect(defaults.server.sseHeartbeatSeconds == 10)
     #expect(defaults.server.completedJobTTLSeconds == 900)
+    #expect(defaults.networkAudioReceiver.enabled == false)
+    #expect(defaults.networkAudioReceiver.serviceName == "SpeakSwiftly Audio Receiver")
+    #expect(defaults.networkAudioReceiver.port == 0)
+    #expect(defaults.networkAudioReceiver.sharedToken == nil)
 
     let launchAgentDefaults = try await AppConfig.load(
         environment: [:],
@@ -43,6 +47,10 @@ import Testing
         "APP_MCP_PATH": "/assistant/mcp",
         "APP_MCP_SERVER_NAME": "speak-swiftly-agent",
         "APP_MCP_TITLE": "SpeakSwiftly Server MCP",
+        "APP_NETWORK_AUDIO_RECEIVER_ENABLED": "true",
+        "APP_NETWORK_AUDIO_RECEIVER_SERVICE_NAME": "Gale MacBook Receiver",
+        "APP_NETWORK_AUDIO_RECEIVER_PORT": "7445",
+        "APP_NETWORK_AUDIO_RECEIVER_SHARED_TOKEN": "test-token",
     ])
     #expect(appConfig.server.port == 7550)
     #expect(appConfig.http.enabled == false)
@@ -53,6 +61,10 @@ import Testing
     #expect(appConfig.mcp.path == "/assistant/mcp")
     #expect(appConfig.mcp.serverName == "speak-swiftly-agent")
     #expect(appConfig.mcp.title == "SpeakSwiftly Server MCP")
+    #expect(appConfig.networkAudioReceiver.enabled == true)
+    #expect(appConfig.networkAudioReceiver.serviceName == "Gale MacBook Receiver")
+    #expect(appConfig.networkAudioReceiver.port == 7445)
+    #expect(appConfig.networkAudioReceiver.sharedToken == "test-token")
 
     let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -81,6 +93,11 @@ import Testing
         path: /assistant/mcp
         serverName: yaml-mcp
         title: YAML MCP
+      networkAudioReceiver:
+        enabled: true
+        serviceName: YAML Audio Receiver
+        port: 7446
+        sharedToken: yaml-token
     """.write(to: yamlURL, atomically: true, encoding: .utf8)
 
     let yamlConfig = try await AppConfig.load(environment: [
@@ -100,6 +117,10 @@ import Testing
     #expect(yamlConfig.mcp.path == "/assistant/mcp")
     #expect(yamlConfig.mcp.serverName == "yaml-mcp")
     #expect(yamlConfig.mcp.title == "YAML MCP")
+    #expect(yamlConfig.networkAudioReceiver.enabled == true)
+    #expect(yamlConfig.networkAudioReceiver.serviceName == "YAML Audio Receiver")
+    #expect(yamlConfig.networkAudioReceiver.port == 7446)
+    #expect(yamlConfig.networkAudioReceiver.sharedToken == "yaml-token")
 
     let inheritedTransportConfig = try await AppConfig.load(environment: [
         "APP_HOST": "0.0.0.0",
@@ -125,6 +146,24 @@ import Testing
         Issue.record("Expected invalid APP_HTTP_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_HTTP_PORT"))
+    }
+
+    do {
+        _ = try await AppConfig.load(environment: [
+            "APP_NETWORK_AUDIO_RECEIVER_ENABLED": "true",
+        ])
+        Issue.record("Expected enabled network audio receiver without a shared token to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("APP_NETWORK_AUDIO_RECEIVER_SHARED_TOKEN"))
+    }
+
+    do {
+        _ = try await AppConfig.load(environment: [
+            "APP_NETWORK_AUDIO_RECEIVER_PORT": "70000",
+        ])
+        Issue.record("Expected invalid APP_NETWORK_AUDIO_RECEIVER_PORT to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("APP_NETWORK_AUDIO_RECEIVER_PORT"))
     }
 }
 
