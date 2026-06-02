@@ -37,6 +37,14 @@ package actor MockRuntime: SpeakSwiftlyRuntimeServing {
         package let qwenPreModelTextChunking: Bool
     }
 
+    package struct AudioStreamInvocation: Equatable {
+        package let text: String
+        package let profileName: String
+        package let textProfileID: String?
+        package let requestContext: SpeakSwiftly.RequestContext?
+        package let qwenPreModelTextChunking: Bool
+    }
+
     package struct CreateCloneInvocation: Equatable {
         package let profileName: String
         package let vibe: SpeakSwiftly.Vibe
@@ -95,6 +103,8 @@ package actor MockRuntime: SpeakSwiftlyRuntimeServing {
     package var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     package var queuedRequests = [QueuedRequestState]()
     package var queuedSpeechInvocations = [QueuedSpeechInvocation]()
+    package var audioStreamInvocations = [AudioStreamInvocation]()
+    package var scriptedAudioStreamChunks = [SpeakSwiftly.GeneratedAudioChunk]()
     package var createCloneInvocations = [CreateCloneInvocation]()
     package var createProfileInvocations = [CreateProfileInvocation]()
     package var renameProfileInvocations = [RenameProfileInvocation]()

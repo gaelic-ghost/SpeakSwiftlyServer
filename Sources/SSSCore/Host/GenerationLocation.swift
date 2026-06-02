@@ -1,11 +1,11 @@
 import Foundation
 
-package enum GenerationLocation: Equatable, Sendable {
+package enum GenerationLocation: Equatable {
     case local
     case remote(RemoteGenerationService)
 }
 
-package struct RemoteGenerationService: Decodable, Equatable, Sendable {
+package struct RemoteGenerationService: Decodable, Equatable {
     package let baseURL: String
     package let serviceName: String?
 
@@ -57,7 +57,7 @@ extension GenerationLocation: Decodable {
             case "local":
                 self = .local
             case "remote":
-                self = .remote(try container.decode(RemoteGenerationService.self, forKey: .remote))
+                self = try .remote(container.decode(RemoteGenerationService.self, forKey: .remote))
             default:
                 throw DecodingError.dataCorruptedError(
                     forKey: .kind,

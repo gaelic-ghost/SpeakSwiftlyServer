@@ -44,3 +44,9 @@ package func encodeJSONResponse(_ value: some Encodable, status: HTTPResponse.St
     buffer.writeBytes(data)
     return Response(status: status, headers: headers, body: .init(byteBuffer: buffer))
 }
+
+package func byteBuffer(from data: Data) -> ByteBuffer {
+    var buffer = ByteBufferAllocator().buffer(capacity: data.count)
+    buffer.writeBytes(data)
+    return buffer
+}

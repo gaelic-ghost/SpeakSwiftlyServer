@@ -54,6 +54,60 @@ package extension MockRuntime {
         return RuntimeRequestHandle(id: requestID, operation: request.operation, profileName: profileName, events: events)
     }
 
+    func generateAudioStream(
+        text: String,
+        with profileName: String,
+        textProfileID: String?,
+        requestContext: SpeakSwiftly.RequestContext?,
+        qwenPreModelTextChunking: Bool,
+    ) async -> RuntimeGeneratedAudioStream {
+        let requestID = UUID().uuidString
+        audioStreamInvocations.append(
+            .init(
+                text: text,
+                profileName: profileName,
+                textProfileID: textProfileID,
+                requestContext: requestContext,
+                qwenPreModelTextChunking: qwenPreModelTextChunking,
+            ),
+        )
+        let chunks = scriptedAudioStreamChunks.isEmpty ? [
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: requestID,
+                sequenceNumber: 0,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [0.1, 0.2],
+            ),
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: requestID,
+                sequenceNumber: 1,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [],
+                isFinal: true,
+            ),
+        ] : scriptedAudioStreamChunks
+        let chunkStream = AsyncThrowingStream<SpeakSwiftly.GeneratedAudioChunk, any Error> { continuation in
+            for chunk in chunks {
+                continuation.yield(chunk)
+            }
+            continuation.finish()
+        }
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, any Error> { continuation in
+            continuation.yield(.started(.init(id: requestID, kind: SpeakSwiftly.RequestKind(rawValue: "generate_audio_stream"))))
+            continuation.yield(.completed(.empty))
+            continuation.finish()
+        }
+        let handle = RuntimeRequestHandle(
+            id: requestID,
+            operation: "generate_audio_stream",
+            profileName: profileName,
+            events: events,
+        )
+        return .init(handle: handle, chunks: chunkStream)
+    }
+
     func queueSpeechFile(
         text: String,
         with profileName: String,

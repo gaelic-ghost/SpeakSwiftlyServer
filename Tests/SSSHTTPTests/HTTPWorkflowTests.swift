@@ -482,8 +482,25 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `speak route rejects remote generation location until routing lands`() async throws {
+    @Test func `speak stream route returns generated audio chunks as ndjson frames`() async throws {
         let runtime = MockRuntime()
+        await runtime.replaceScriptedAudioStreamChunks([
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "remote-stream-1",
+                sequenceNumber: 0,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [0.25, -0.5],
+            ),
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "remote-stream-1",
+                sequenceNumber: 1,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [],
+                isFinal: true,
+            ),
+        ])
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
@@ -500,16 +517,98 @@ extension ServerTests {
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(
+                uri: "/speech/stream",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Stream route test","profile_name":"default","qwen_pre_model_text_chunking":true}"#),
+            )
+            #expect(response.status == .ok)
+            #expect(response.headers[.contentType] == GeneratedAudioHTTPStreamCodec.contentType)
+            let body = String(buffer: response.body)
+            let chunks = try body
+                .split(separator: "\n")
+                .map { try GeneratedAudioHTTPStreamCodec.decodeLine(String($0)) }
+            #expect(chunks.map(\.sequenceNumber) == [0, 1])
+            #expect(chunks.first?.samples == [0.25, -0.5])
+            #expect(chunks.last?.isFinal == true)
+
+            let invocation = try #require(await runtime.latestAudioStreamInvocation())
+            #expect(invocation.text == "Stream route test")
+            #expect(invocation.profileName == "default")
+            #expect(invocation.qwenPreModelTextChunking == true)
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
+    @Test func `speak route sends remote generation chunks to local playback sink`() async throws {
+        let runtime = MockRuntime()
+        let collector = GeneratedAudioChunkCollector()
+        let remoteChunks = [
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "remote-generation-1",
+                sequenceNumber: 0,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [0.1, 0.2],
+            ),
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "remote-generation-1",
+                sequenceNumber: 1,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [],
+                isFinal: true,
+            ),
+        ]
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            remoteGeneratedAudioStreamProvider: { request, service in
+                #expect(request.text == "Route test")
+                #expect(request.profileName == "default")
+                #expect(request.qwenPreModelTextChunking == true)
+                #expect(service.baseURL == "http://GMM4.local:7338")
+                return AsyncThrowingStream { continuation in
+                    for chunk in remoteChunks {
+                        continuation.yield(chunk)
+                    }
+                    continuation.finish()
+                }
+            },
+            remoteGeneratedAudioPlaybackSink: { chunks in
+                for try await chunk in chunks {
+                    await collector.append(chunk)
+                }
+            },
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let response = try await client.execute(
                 uri: "/speech/live",
                 method: .post,
                 headers: [.contentType: "application/json"],
-                body: byteBuffer(#"{"text":"Route test","generation_location":{"kind":"remote","remote":{"base_url":"http://GMM4.local:7338","service_name":"GMM4"}}}"#),
+                body: byteBuffer(#"{"text":"Route test","profile_name":"default","qwen_pre_model_text_chunking":true,"generation_location":{"kind":"remote","remote":{"base_url":"http://GMM4.local:7338","service_name":"GMM4"}}}"#),
             )
-            let responseBody = String(buffer: response.body)
-            #expect(response.status == .badRequest)
-            #expect(responseBody.contains("remote service 'GMM4'"))
-            #expect(responseBody.contains("remote generation routing will be enabled"))
+            let responseJSON = try jsonObject(from: response.body)
+            let requestID = try #require(responseJSON["request_id"] as? String)
+            #expect(response.status == .accepted)
             #expect(await runtime.latestQueuedSpeechInvocation() == nil)
+
+            let snapshot = try await waitForJobSnapshot(requestID, on: host)
+            #expect(snapshot.status == "completed")
+            let playedChunks = await collector.chunks()
+            #expect(playedChunks == remoteChunks)
         }
 
         await host.shutdown()
@@ -613,5 +712,17 @@ extension ServerTests {
         }
 
         await host.shutdown()
+    }
+}
+
+private actor GeneratedAudioChunkCollector {
+    private var values = [SpeakSwiftly.GeneratedAudioChunk]()
+
+    func append(_ chunk: SpeakSwiftly.GeneratedAudioChunk) {
+        values.append(chunk)
+    }
+
+    func chunks() -> [SpeakSwiftly.GeneratedAudioChunk] {
+        values
     }
 }

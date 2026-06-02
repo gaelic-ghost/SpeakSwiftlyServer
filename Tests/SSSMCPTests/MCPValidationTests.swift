@@ -1,5 +1,6 @@
 import Foundation
 import MCP
+import SpeakSwiftly
 import SpeakSwiftlyServer
 import SpeakSwiftlyServerTestSupport
 @testable import SSSCore
@@ -158,8 +159,26 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `embedded MCP rejects remote generation location until routing lands`() async throws {
+    @Test func `embedded MCP sends remote generation chunks to local playback sink`() async throws {
         let runtime = MockRuntime()
+        let collector = GeneratedAudioChunkCollector()
+        let remoteChunks = [
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "mcp-remote-generation-1",
+                sequenceNumber: 0,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [0.3, 0.4],
+            ),
+            SpeakSwiftly.GeneratedAudioChunk(
+                requestID: "mcp-remote-generation-1",
+                sequenceNumber: 1,
+                sampleRate: 24000,
+                channelCount: 1,
+                samples: [],
+                isFinal: true,
+            ),
+        ]
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
@@ -172,6 +191,22 @@ extension ServerTests {
                 title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
+            remoteGeneratedAudioStreamProvider: { request, service in
+                #expect(request.text == "Remote generation probe")
+                #expect(request.profileName == "default")
+                #expect(service.serviceName == "GMM4")
+                return AsyncThrowingStream { continuation in
+                    for chunk in remoteChunks {
+                        continuation.yield(chunk)
+                    }
+                    continuation.finish()
+                }
+            },
+            remoteGeneratedAudioPlaybackSink: { chunks in
+                for try await chunk in chunks {
+                    await collector.append(chunk)
+                }
+            },
             runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
@@ -206,7 +241,7 @@ extension ServerTests {
         )
         #expect(mcpStatusCode(from: initializedNotificationResponse) == 202)
 
-        let errorEnvelope = try await mcpEnvelope(
+        let successEnvelope = try await mcpEnvelope(
             from: mcpSurface.handle(
                 mcpPOSTRequest(
                     body: mcpCallToolRequestJSON(
@@ -217,13 +252,30 @@ extension ServerTests {
                 ),
             ),
         )
-        let error = try #require(errorEnvelope["error"] as? [String: Any])
-        let message = try #require(error["message"] as? String)
-        #expect(message.contains("remote service 'GMM4'"))
-        #expect(message.contains("remote generation routing will be enabled"))
+        let result = try #require(successEnvelope["result"] as? [String: Any])
+        let content = try #require(result["content"] as? [[String: Any]])
+        let firstContent = try #require(content.first)
+        #expect((firstContent["text"] as? String)?.contains("accepted the live speech request") == true)
         #expect(await runtime.latestQueuedSpeechInvocation() == nil)
+
+        let requestID = try #require(mcpToolPayload(from: successEnvelope)["request_id"] as? String)
+        let snapshot = try await waitForJobSnapshot(requestID, on: host)
+        #expect(snapshot.status == "completed")
+        #expect(await collector.chunks() == remoteChunks)
 
         await mcpSurface.stop()
         await host.shutdown()
+    }
+}
+
+private actor GeneratedAudioChunkCollector {
+    private var values = [SpeakSwiftly.GeneratedAudioChunk]()
+
+    func append(_ chunk: SpeakSwiftly.GeneratedAudioChunk) {
+        values.append(chunk)
+    }
+
+    func chunks() -> [SpeakSwiftly.GeneratedAudioChunk] {
+        values
     }
 }

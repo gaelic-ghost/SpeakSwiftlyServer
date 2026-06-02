@@ -42,7 +42,7 @@ package extension ServerHost {
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
         return .init(
             selection: selection,
-            message: "SpeakSwiftlyServer selected LAN audio receiver destination '\(id)'. Remote playback request routing is not active yet; the selected receiver is retained for the next package-backed routing slice.",
+            message: "SpeakSwiftlyServer selected LAN audio receiver destination '\(id)'. Remote generation requests will send returned audio chunks to this receiver when this server has a non-empty networkAudioReceiver.sharedToken configured for the sender handshake.",
         )
     }
 
