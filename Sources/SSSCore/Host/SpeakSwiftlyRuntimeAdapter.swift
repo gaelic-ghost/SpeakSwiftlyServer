@@ -101,6 +101,23 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         return .init(id: handle.id, operation: "generate_speech", profileName: profileName, events: handle.events)
     }
 
+    package func generateAudioStream(
+        text: String,
+        with profileName: String,
+        textProfileID: String?,
+        requestContext: SpeakSwiftly.RequestContext?,
+        qwenPreModelTextChunking: Bool,
+    ) async -> RuntimeGeneratedAudioStream {
+        let stream = await runtime.generate.audioStream(
+            text: text,
+            voiceProfile: profileName,
+            textProfile: textProfileID,
+            requestContext: requestContext,
+            qwenPreModelTextChunking: qwenPreModelTextChunking,
+        )
+        return .init(handle: .init(stream.handle), chunks: stream.chunks)
+    }
+
     package func queueSpeechFile(
         text: String,
         with profileName: String,

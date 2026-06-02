@@ -30,6 +30,19 @@ package struct RuntimeRequestHandle {
     }
 }
 
+package struct RuntimeGeneratedAudioStream {
+    package let handle: RuntimeRequestHandle
+    package let chunks: SpeakSwiftly.GeneratedAudioChunkStream
+
+    package init(
+        handle: RuntimeRequestHandle,
+        chunks: SpeakSwiftly.GeneratedAudioChunkStream,
+    ) {
+        self.handle = handle
+        self.chunks = chunks
+    }
+}
+
 package func canonicalOperationName(_ operation: String) -> String {
     switch operation {
         case "queue_speech_live":
@@ -62,6 +75,13 @@ package protocol SpeakSwiftlyRuntimeServing: Actor {
         requestContext: SpeakSwiftly.RequestContext?,
         qwenPreModelTextChunking: Bool,
     ) async -> RuntimeRequestHandle
+    func generateAudioStream(
+        text: String,
+        with profileName: String,
+        textProfileID: String?,
+        requestContext: SpeakSwiftly.RequestContext?,
+        qwenPreModelTextChunking: Bool,
+    ) async -> RuntimeGeneratedAudioStream
     func queueSpeechFile(
         text: String,
         with profileName: String,

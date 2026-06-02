@@ -44,6 +44,14 @@ package extension MockRuntime {
         queuedSpeechInvocations.last
     }
 
+    func replaceScriptedAudioStreamChunks(_ chunks: [SpeakSwiftly.GeneratedAudioChunk]) {
+        scriptedAudioStreamChunks = chunks
+    }
+
+    func latestAudioStreamInvocation() -> AudioStreamInvocation? {
+        audioStreamInvocations.last
+    }
+
     func latestCreateProfileInvocation() -> CreateProfileInvocation? {
         createProfileInvocations.last
     }

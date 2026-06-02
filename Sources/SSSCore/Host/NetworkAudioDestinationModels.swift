@@ -18,6 +18,25 @@ public struct NetworkAudioEndpointSnapshot: Codable, Sendable, Equatable {
     public let type: String?
     public let domain: String?
 
+    package var endpoint: SpeakSwiftly.NetworkAudioEndpoint? {
+        switch kind {
+            case "host_port":
+                guard let host, let port else { return nil }
+
+                return SpeakSwiftly.NetworkAudioEndpoint(host: host, port: port)
+            case "bonjour_service":
+                guard let name else { return nil }
+
+                return SpeakSwiftly.NetworkAudioEndpoint(
+                    serviceName: name,
+                    type: type ?? SpeakSwiftly.NetworkAudioBonjour.serviceType,
+                    domain: domain ?? SpeakSwiftly.NetworkAudioBonjour.domain,
+                )
+            default:
+                return nil
+        }
+    }
+
     package init(endpoint: SpeakSwiftly.NetworkAudioEndpoint) {
         switch endpoint {
             case let .hostPort(host, port):

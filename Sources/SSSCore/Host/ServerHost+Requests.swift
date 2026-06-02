@@ -11,27 +11,173 @@ package extension ServerHost {
         generationLocation: GenerationLocation = .local,
     ) async throws -> String {
         try ensureWorkerReady()
-        try ensureSupportedGenerationLocation(generationLocation)
-        let handle = await runtime.queueSpeechLive(
+        switch generationLocation {
+            case .local:
+                let handle = await runtime.queueSpeechLive(
+                    text: text,
+                    with: profileName,
+                    textProfileID: textProfileID,
+                    requestContext: requestContext,
+                    qwenPreModelTextChunking: qwenPreModelTextChunking,
+                )
+                return await enqueuePublicJob(handle)
+            case let .remote(service):
+                return await enqueueRemoteSpeechLive(
+                    text: text,
+                    profileName: profileName,
+                    textProfileID: textProfileID,
+                    requestContext: requestContext,
+                    qwenPreModelTextChunking: qwenPreModelTextChunking,
+                    service: service,
+                )
+        }
+    }
+
+    func generateSpeechAudioStream(
+        text: String,
+        profileName: String,
+        textProfileID: String? = nil,
+        requestContext: SpeakSwiftly.RequestContext? = nil,
+        qwenPreModelTextChunking: Bool = false,
+    ) async throws -> RuntimeGeneratedAudioStream {
+        try ensureWorkerReady()
+        let stream = await runtime.generateAudioStream(
             text: text,
             with: profileName,
             textProfileID: textProfileID,
             requestContext: requestContext,
             qwenPreModelTextChunking: qwenPreModelTextChunking,
         )
+        _ = await enqueuePublicJob(stream.handle)
+        return stream
+    }
+
+    func enqueueRemoteSpeechLive(
+        text: String,
+        profileName: String,
+        textProfileID: String?,
+        requestContext: SpeakSwiftly.RequestContext?,
+        qwenPreModelTextChunking: Bool,
+        service: RemoteGenerationService,
+    ) async -> String {
+        let requestID = UUID().uuidString
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            let task = Task {
+                await runRemoteSpeechLive(
+                    requestID: requestID,
+                    text: text,
+                    profileName: profileName,
+                    textProfileID: textProfileID,
+                    requestContext: requestContext,
+                    qwenPreModelTextChunking: qwenPreModelTextChunking,
+                    service: service,
+                    continuation: continuation,
+                )
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
+        let handle = RuntimeRequestHandle(
+            id: requestID,
+            operation: "generate_speech",
+            profileName: profileName,
+            events: events,
+        )
         return await enqueuePublicJob(handle)
     }
 
-    func ensureSupportedGenerationLocation(_ generationLocation: GenerationLocation) throws {
-        switch generationLocation {
-            case .local:
-                return
-            case let .remote(service):
-                throw ServerRequestError(
-                    .badRequest,
-                    message: "SpeakSwiftlyServer cannot route live speech generation to remote service '\(service.serviceName ?? service.baseURL)' yet. This server release accepts the generation_location field so callers can use the stable request shape, but remote generation routing will be enabled in the next server transport slice after the package stream primitive is adopted.",
-                )
+    func runRemoteSpeechLive(
+        requestID: String,
+        text: String,
+        profileName: String,
+        textProfileID: String?,
+        requestContext: SpeakSwiftly.RequestContext?,
+        qwenPreModelTextChunking: Bool,
+        service: RemoteGenerationService,
+        continuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation,
+    ) async {
+        continuation.yield(.started(.init(id: requestID, kind: .generateSpeech)))
+        continuation.yield(.progress(.init(id: requestID, stage: .bufferingAudio)))
+        do {
+            let chunks = remoteGeneratedAudioStreamProvider(
+                .init(
+                    text: text,
+                    profileName: profileName,
+                    textProfileID: textProfileID,
+                    requestContext: requestContext,
+                    qwenPreModelTextChunking: qwenPreModelTextChunking,
+                ),
+                service,
+            )
+            try await routeRemoteGeneratedAudio(
+                chunks: chunks,
+                requestID: requestID,
+            )
+            continuation.yield(.completed(.empty))
+            continuation.finish()
+        } catch is CancellationError {
+            continuation.finish(
+                throwing: SpeakSwiftly.Error(
+                    code: .requestCancelled,
+                    message: "SpeakSwiftlyServer cancelled remote generation request '\(requestID)' before playback finished.",
+                ),
+            )
+        } catch let error as SpeakSwiftly.Error {
+            continuation.finish(throwing: error)
+        } catch {
+            continuation.finish(
+                throwing: SpeakSwiftly.Error(
+                    code: .internalError,
+                    message: "SpeakSwiftlyServer could not complete remote generation request '\(requestID)' from '\(service.serviceName ?? service.baseURL)'. Likely cause: \(error.localizedDescription)",
+                ),
+            )
         }
+    }
+
+    func routeRemoteGeneratedAudio(
+        chunks: SpeakSwiftly.GeneratedAudioChunkStream,
+        requestID: String,
+    ) async throws {
+        if let selectedDestination = networkAudioReceiverSelectionSnapshot().selectedDestination {
+            try await sendRemoteGeneratedAudio(
+                chunks: chunks,
+                requestID: requestID,
+                destination: selectedDestination,
+            )
+        } else {
+            try await remoteGeneratedAudioPlaybackSink(chunks)
+        }
+    }
+
+    func sendRemoteGeneratedAudio(
+        chunks: SpeakSwiftly.GeneratedAudioChunkStream,
+        requestID: String,
+        destination: NetworkAudioDestinationSnapshot,
+    ) async throws {
+        guard let endpoint = destination.endpoint.endpoint else {
+            throw SpeakSwiftly.Error(
+                code: .invalidRequest,
+                message: "SpeakSwiftlyServer cannot send remote generation request '\(requestID)' to selected LAN audio receiver '\(destination.id)' because its discovered endpoint is incomplete.",
+            )
+        }
+        guard let sharedToken = networkAudioReceiverConfig.sharedToken?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !sharedToken.isEmpty else {
+            throw SpeakSwiftly.Error(
+                code: .invalidRequest,
+                message: "SpeakSwiftlyServer cannot send remote generation request '\(requestID)' to selected LAN audio receiver '\(destination.name)' because networkAudioReceiver.sharedToken is empty in this server's configuration.",
+            )
+        }
+
+        let sender = SpeakSwiftly.NetworkAudioStreamSender(
+            endpoint: endpoint,
+            handshake: .init(
+                requestID: requestID,
+                senderName: configuration.name,
+                sharedToken: sharedToken,
+            ),
+        )
+        try await sender.send(chunks: chunks)
     }
 
     func queueSpeechFile(

@@ -83,6 +83,8 @@ package actor ServerHost {
     var mcpConfig: MCPConfig
     var networkAudioReceiverConfig: NetworkAudioReceiverConfig
     let runtime: any SpeakSwiftlyRuntimeServing
+    let remoteGeneratedAudioStreamProvider: RemoteGeneratedAudioStreamProvider
+    let remoteGeneratedAudioPlaybackSink: @Sendable (SpeakSwiftly.GeneratedAudioChunkStream) async throws -> Void
     let runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore
     let state: any ServerHostStatePublishing
     let immediatePublishRequests: AsyncStream<Void>
@@ -162,6 +164,15 @@ package actor ServerHost {
         mcpConfig: MCPConfig? = nil,
         networkAudioReceiverConfig: NetworkAudioReceiverConfig? = nil,
         runtime: any SpeakSwiftlyRuntimeServing,
+        remoteGeneratedAudioStreamProvider: @escaping RemoteGeneratedAudioStreamProvider = { request, service in
+            RemoteSpeechStreamClient.stream(request: request, service: service)
+        },
+        remoteGeneratedAudioPlaybackSink: @escaping @Sendable (SpeakSwiftly.GeneratedAudioChunkStream) async throws -> Void = { chunks in
+            try await Task { @MainActor in
+                let player = SpeakSwiftly.LocalGeneratedAudioPlayer()
+                try await player.play(chunks: chunks)
+            }.value
+        },
         runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore = .init(),
         activeRuntimeSpeechBackend: SpeakSwiftly.SpeechBackend? = nil,
         activeDuckMediaVolume: SpeakSwiftly.DuckMediaVolume? = nil,
@@ -206,6 +217,8 @@ package actor ServerHost {
             sharedToken: nil,
         )
         self.runtime = runtime
+        self.remoteGeneratedAudioStreamProvider = remoteGeneratedAudioStreamProvider
+        self.remoteGeneratedAudioPlaybackSink = remoteGeneratedAudioPlaybackSink
         self.runtimeStartupConfigurationStore = runtimeStartupConfigurationStore
         self.activeRuntimeSpeechBackend = activeRuntimeSpeechBackend
             ?? runtimeStartupConfigurationStore.initialActiveRuntimeSpeechBackend()
