@@ -156,4 +156,74 @@ extension ServerTests {
         await mcpSurface.stop()
         await host.shutdown()
     }
+
+    @available(macOS 14, *)
+    @Test func `embedded MCP rejects remote generation location until routing lands`() async throws {
+        let runtime = MockRuntime()
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            httpConfig: testHTTPConfig(configuration),
+            mcpConfig: .init(
+                enabled: true,
+                path: "/mcp",
+                serverName: "speak-swiftly-test-mcp",
+                title: "SpeakSwiftly Test MCP",
+            ),
+            runtime: runtime,
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let mcpSurface = try #require(
+            await MCPSurface.build(
+                configuration: .init(
+                    enabled: true,
+                    path: "/mcp",
+                    serverName: "speak-swiftly-test-mcp",
+                    title: "SpeakSwiftly Test MCP",
+                ),
+                host: host,
+            ),
+        )
+
+        try await mcpSurface.start()
+        await host.markTransportListening(name: "mcp")
+        let initializeMCPResponse = await mcpSurface.handle(mcpPOSTRequest(body: mcpInitializeRequestJSON()))
+        let initializeSessionID = try #require(mcpSessionID(from: initializeMCPResponse))
+        try await drainMCPResponse(initializeMCPResponse)
+
+        let initializedNotificationResponse = await mcpSurface.handle(
+            mcpPOSTRequest(
+                body: mcpInitializedNotificationJSON(),
+                sessionID: initializeSessionID,
+            ),
+        )
+        #expect(mcpStatusCode(from: initializedNotificationResponse) == 202)
+
+        let errorEnvelope = try await mcpEnvelope(
+            from: mcpSurface.handle(
+                mcpPOSTRequest(
+                    body: mcpCallToolRequestJSON(
+                        name: "generate_speech",
+                        argumentsJSON: #"{"text":"Remote generation probe","generation_location":{"kind":"remote","remote":{"base_url":"http://GMM4.local:7338","service_name":"GMM4"}}}"#,
+                    ),
+                    sessionID: initializeSessionID,
+                ),
+            ),
+        )
+        let error = try #require(errorEnvelope["error"] as? [String: Any])
+        let message = try #require(error["message"] as? String)
+        #expect(message.contains("remote service 'GMM4'"))
+        #expect(message.contains("remote generation routing will be enabled"))
+        #expect(await runtime.latestQueuedSpeechInvocation() == nil)
+
+        await mcpSurface.stop()
+        await host.shutdown()
+    }
 }

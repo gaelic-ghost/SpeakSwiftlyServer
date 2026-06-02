@@ -182,8 +182,15 @@ Accepted request routes and tools return immediately with request-tracking metad
 - `request_context`
 - `text_profile_id`
 - `qwen_pre_model_text_chunking`
+- `generation_location`
 
 `POST /speech/live` queues live playback. `POST /speech/files` and `POST /speech/batches` queue retained artifact generation. When `profile_name` is omitted, the server uses the configured app default voice when one exists, then falls back to the runtime default voice.
+
+For live speech, omit `generation_location` or set it to `"local"` to generate
+on this server's local `SpeakSwiftly` runtime. Object-shaped remote generation
+locations are reserved for the Mac mini generates / MacBook plays workflow and
+currently fail with a descriptive unsupported-routing error until the remote
+server stream client lands.
 
 The server applies request purpose from the route or MCP tool. Callers do not send `reqPurpose`. Caller-provided `request_context` may include `source`, `topic`, `cwd`, `repo_root`, `attributes`, and optional `prefacePolicy`; omit `prefacePolicy` for the default behavior, set it to `always` to force the source/topic preface, or set it to `never` to suppress that preface.
 

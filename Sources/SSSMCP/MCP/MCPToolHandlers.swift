@@ -83,6 +83,11 @@ package extension MCPSurface {
                             in: arguments,
                             default: false,
                         ),
+                        generationLocation: decodeOptionalArgument(
+                            "generation_location",
+                            in: arguments,
+                            default: GenerationLocation.local,
+                        ),
                     )
                     return try acceptedRequestToolResult(
                         requestID: requestID,

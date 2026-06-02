@@ -315,7 +315,7 @@ private func voiceProfilesGuideMarkdown() -> String {
 
     1. Read `speak-swiftly://voices` to inspect the currently cached voice profiles.
     2. Read `speak-swiftly://status` when the user asks which voice an omitted `profile_name` will use. Speech requests use the configured app default voice when present, then the runtime's built-in default voice.
-    3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request.
+    3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request. Omit `generation_location` or use `local` unless the caller is deliberately probing the future remote-generation request shape; remote generation currently fails clearly until server-owned routing lands.
     4. Treat system-authored built-ins such as `swift-signal` and `swift-anchor` as list-and-select profiles for ordinary users. They are package-owned defaults, not user-editable profile designs.
     5. Use `create_voice_profile_from_description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
     6. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.

@@ -300,9 +300,10 @@ In Progress
 - [x] Implement generated artifact unification as a breaking major-version change by replacing generated file/batch read routes, tools, and resources with one artifact read family.
 - [x] Remove remaining next-major compatibility aliases: older active/stored text-profile replacement routes, scoped HTTP cancel routes, scoped MCP cancel tools, staged runtime-configuration MCP tools, and nested `/runtime/...` HTTP routes.
 - [x] Adopt the `SpeakSwiftly 5.0.0-rc.1` / `TextForSpeech 0.19.0` request and text-profile model directly: remove server-local speech normalization context shaping, keep `source_format` as the one explicit request format field, merge `cwd` and `repo_root` into shared `SpeakSwiftly.RequestContext`, and delete the text-profile JSON bridge adapter.
+- [x] Add the `generation_location` request shape across HTTP, MCP, and host APIs with local generation as the default and descriptive rejection for remote generation until routing lands.
 - [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 - [ ] Add client compatibility-gated MCP progress updates so newer clients can subscribe to direct request/playback progress notifications without breaking existing MCP clients that only expect resource-updated notifications and retained request resources.
-- [ ] Add a selected LAN receiver routing surface across HTTP, MCP, and embedded server APIs so a caller can route a generated speech request to a discovered receiver without making `SpeakSwiftly.Runtime` own sessions or LAN connection lifetime.
+- [ ] Add remote generation routing so a local server can call another `SpeakSwiftlyServer` for `generate.audioStream(...)`, receive HTTP-framed canonical chunks, and feed them to local playback or a selected LAN receiver without making `SpeakSwiftly.Runtime` own sessions or LAN connection lifetime.
 - [ ] Expand transport snapshots for `network_audio_receiver` and future LAN sender state with receiver service names, selected endpoint metadata, active stream counts, and recent failure messages that are useful to operators without exposing shared tokens.
 
 ### Exit Criteria
