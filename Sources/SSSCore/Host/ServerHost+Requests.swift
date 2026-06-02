@@ -8,8 +8,10 @@ package extension ServerHost {
         textProfileID: String? = nil,
         requestContext: SpeakSwiftly.RequestContext? = nil,
         qwenPreModelTextChunking: Bool = false,
+        generationLocation: GenerationLocation = .local,
     ) async throws -> String {
         try ensureWorkerReady()
+        try ensureSupportedGenerationLocation(generationLocation)
         let handle = await runtime.queueSpeechLive(
             text: text,
             with: profileName,
@@ -18,6 +20,18 @@ package extension ServerHost {
             qwenPreModelTextChunking: qwenPreModelTextChunking,
         )
         return await enqueuePublicJob(handle)
+    }
+
+    func ensureSupportedGenerationLocation(_ generationLocation: GenerationLocation) throws {
+        switch generationLocation {
+            case .local:
+                return
+            case let .remote(service):
+                throw ServerRequestError(
+                    .badRequest,
+                    message: "SpeakSwiftlyServer cannot route live speech generation to remote service '\(service.serviceName ?? service.baseURL)' yet. This server release accepts the generation_location field so callers can use the stable request shape, but remote generation routing will be enabled in the next server transport slice after the package stream primitive is adopted.",
+                )
+        }
     }
 
     func queueSpeechFile(

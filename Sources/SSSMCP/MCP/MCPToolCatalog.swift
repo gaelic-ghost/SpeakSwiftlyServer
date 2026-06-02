@@ -19,6 +19,7 @@ package enum MCPToolCatalog {
                     "cwd": ["type": "string"],
                     "repo_root": ["type": "string"],
                     "qwen_pre_model_text_chunking": ["type": "boolean"],
+                    "generation_location": generationLocationInputSchema,
                 ],
             ],
         ),
@@ -355,6 +356,33 @@ package enum MCPToolCatalog {
             ],
         ]),
         "additionalProperties": false,
+    ])
+
+    private static let generationLocationInputSchema: Value = .object([
+        "oneOf": .array([
+            .object([
+                "type": "string",
+                "enum": ["local"],
+            ]),
+            .object([
+                "type": "object",
+                "required": ["kind"],
+                "properties": .object([
+                    "kind": [
+                        "type": "string",
+                        "enum": ["local", "remote"],
+                    ],
+                    "remote": [
+                        "type": "object",
+                        "required": ["base_url"],
+                        "properties": [
+                            "base_url": ["type": "string"],
+                            "service_name": ["type": "string"],
+                        ],
+                    ],
+                ]),
+            ]),
+        ]),
     ])
 
     private static let batchItemInputSchema: Value = .object([

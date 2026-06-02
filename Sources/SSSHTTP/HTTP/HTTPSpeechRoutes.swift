@@ -28,6 +28,7 @@ package func registerHTTPSpeechRoutes(
                 ),
             ),
             qwenPreModelTextChunking: payload.qwenPreModelTextChunking ?? false,
+            generationLocation: payload.generationLocation ?? .local,
         )
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
     }

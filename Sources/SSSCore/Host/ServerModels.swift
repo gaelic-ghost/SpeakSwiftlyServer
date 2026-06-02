@@ -140,6 +140,7 @@ package struct SpeakRequestPayload: Decodable {
         case repoRoot = "repo_root"
         case requestContext = "request_context"
         case qwenPreModelTextChunking = "qwen_pre_model_text_chunking"
+        case generationLocation = "generation_location"
     }
 
     package let text: String
@@ -149,6 +150,7 @@ package struct SpeakRequestPayload: Decodable {
     package let repoRoot: String?
     package let requestContext: SpeechRequestContextPayload?
     package let qwenPreModelTextChunking: Bool?
+    package let generationLocation: GenerationLocation?
 
     package func resolvedRequestContext(defaults: SpeechRequestContextDefaults = .init()) -> SpeakSwiftly.RequestContext? {
         makeSpeechRequestContext(
