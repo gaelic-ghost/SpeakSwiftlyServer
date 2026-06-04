@@ -234,6 +234,22 @@ extension ServerTests {
         #expect(readySelection.selection.selectedDestinationEndpointReady == true)
         #expect(readySelection.selection.lanOutputReady == true)
         #expect(readySelection.selection.lanOutputBlockedReasons.isEmpty)
+
+        let manualSelection = try await tokenConfiguredHost.selectNetworkAudioDestination(
+            endpoint: SpeakSwiftly.NetworkAudioEndpoint(host: "192.168.12.149", port: 51007),
+            name: "Gale MacBook Receiver",
+        )
+        #expect(manualSelection.selection.selectedDestinationID == "manual-host-port:192.168.12.149:51007")
+        #expect(manualSelection.selection.selectedDestination?.endpoint.kind == "host_port")
+        #expect(manualSelection.selection.selectedDestination?.endpoint.host == "192.168.12.149")
+        #expect(manualSelection.selection.selectedDestination?.endpoint.port == 51007)
+        #expect(manualSelection.selection.lanOutputReady == true)
+
+        await tokenConfiguredHost.replaceNetworkAudioDestinations([destination])
+        let preservedManualSelection = await tokenConfiguredHost.networkAudioReceiverSelectionSnapshot()
+        #expect(preservedManualSelection.selectedDestinationID == "manual-host-port:192.168.12.149:51007")
+        #expect(preservedManualSelection.availableDestinationCount == 2)
+        #expect(preservedManualSelection.lanOutputReady == true)
     }
 
     @available(macOS 14, *)

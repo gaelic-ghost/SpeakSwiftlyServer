@@ -155,9 +155,13 @@ public struct NetworkAudioReceiverSmokeTestResponse: Codable, Sendable, Equatabl
 public struct NetworkAudioReceiverSelectionPayload: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
         case destinationID = "destination_id"
+        case endpoint
+        case name
     }
 
-    package let destinationID: String
+    package let destinationID: String?
+    package let endpoint: NetworkAudioEndpointSnapshot?
+    package let name: String?
 }
 
 package enum NetworkAudioDiscoveryTransport {

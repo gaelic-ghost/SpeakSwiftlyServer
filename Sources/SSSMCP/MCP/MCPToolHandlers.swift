@@ -345,9 +345,21 @@ package extension MCPSurface {
                     return try await toolResult(host.resumePlayback())
 
                 case "select_network_audio_receiver":
-                    let response = try await host.selectNetworkAudioDestination(
-                        id: requiredString("destination_id", in: arguments),
-                    )
+                    let response: NetworkAudioReceiverSelectionResponse
+                    if let destinationID = optionalString("destination_id", in: arguments) {
+                        response = try await host.selectNetworkAudioDestination(id: destinationID)
+                    } else {
+                        let endpoint: NetworkAudioEndpointSnapshot = try decodeArgument("endpoint", in: arguments)
+                        guard let resolvedEndpoint = endpoint.endpoint else {
+                            throw MCPError.invalidParams(
+                                "Tool arguments include an incomplete LAN audio receiver endpoint. For a manual endpoint, provide kind 'host_port', host, and port.",
+                            )
+                        }
+                        response = try await host.selectNetworkAudioDestination(
+                            endpoint: resolvedEndpoint,
+                            name: optionalString("name", in: arguments),
+                        )
+                    }
                     await subscriptionBroker.notifyResourceChanges(for: .networkAudioDestinations, using: server)
                     return try toolResult(response)
 

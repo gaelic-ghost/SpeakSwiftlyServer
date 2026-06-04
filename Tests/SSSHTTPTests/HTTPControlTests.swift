@@ -314,19 +314,30 @@ extension ServerTests {
                 runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
                 state: MainActor.run { EmbeddedServer() },
             )
-            let destination = SpeakSwiftly.NetworkAudioDestination(
-                id: "loopback-receiver",
-                name: "Loopback receiver",
-                endpoint: .hostPort(host: "127.0.0.1", port: port),
-                capabilities: .init(),
-                lastSeen: Date(timeIntervalSince1970: 1_796_180_400),
-            )
-            await host.replaceNetworkAudioDestinations([destination])
-            let selection = try await host.selectNetworkAudioDestination(id: destination.id)
-            #expect(selection.selection.lanOutputReady == true)
 
             let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
             try await app.test(.router) { client in
+                let selectResponse = try await client.execute(
+                    uri: "/network-audio/selection",
+                    method: .put,
+                    headers: [.contentType: "application/json"],
+                    body: byteBuffer("""
+                    {
+                      "name": "Loopback receiver",
+                      "endpoint": {
+                        "kind": "host_port",
+                        "host": "127.0.0.1",
+                        "port": \(port)
+                      }
+                    }
+                    """),
+                )
+                let selectJSON = try jsonObject(from: selectResponse.body)
+                #expect(selectResponse.status == .ok)
+                let selection = try #require(selectJSON["selection"] as? [String: Any])
+                #expect(selection["selected_destination_id"] as? String == "manual-host-port:127.0.0.1:\(port)")
+                #expect(selection["lan_output_ready"] as? Bool == true)
+
                 async let smokeResponse = client.execute(
                     uri: "/network-audio/selection/smoke-test",
                     method: .post,
@@ -347,7 +358,7 @@ extension ServerTests {
                 #expect(response.status == .ok)
                 let requestID = try #require(responseJSON["request_id"] as? String)
                 #expect(requestID.hasPrefix("network-audio-smoke-"))
-                #expect(responseJSON["destination_id"] as? String == destination.id)
+                #expect(responseJSON["destination_id"] as? String == "manual-host-port:127.0.0.1:\(port)")
                 #expect(responseJSON["destination_name"] as? String == "Loopback receiver")
                 #expect(responseJSON["sample_rate"] as? Int == 24000)
                 #expect(responseJSON["channel_count"] as? Int == 1)

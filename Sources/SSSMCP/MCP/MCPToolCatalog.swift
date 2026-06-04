@@ -283,12 +283,20 @@ package enum MCPToolCatalog {
         ),
         Tool(
             name: "select_network_audio_receiver",
-            description: "Select one Bonjour-discovered SpeakSwiftly LAN audio receiver by destination_id. Remote generation requests route returned audio chunks to the selected receiver when LAN output readiness is true.",
+            description: "Select a SpeakSwiftly LAN audio receiver by Bonjour destination_id or by a manual host_port endpoint. Remote generation requests route returned audio chunks to the selected receiver when LAN output readiness is true.",
             inputSchema: [
                 "type": "object",
-                "required": ["destination_id"],
                 "properties": [
                     "destination_id": ["type": "string"],
+                    "name": ["type": "string"],
+                    "endpoint": [
+                        "type": "object",
+                        "properties": [
+                            "kind": ["type": "string", "enum": ["host_port"]],
+                            "host": ["type": "string"],
+                            "port": ["type": "integer", "minimum": 1, "maximum": 65535],
+                        ],
+                    ],
                 ],
             ],
         ),
