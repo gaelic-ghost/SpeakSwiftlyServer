@@ -285,6 +285,54 @@ package extension ServerHost {
         return queueSnapshotResponse(from: playbackQueueStatus)
     }
 
+    func recentGeneratedAudioSnapshot() async -> RecentGeneratedAudioResponse {
+        await .init(recentGeneratedAudio: runtime.recentGeneratedAudio())
+    }
+
+    func recentGeneratedAudioChunks(for recentAudioID: String) async -> RecentGeneratedAudioChunksResponse {
+        await .init(
+            recentAudioID: recentAudioID,
+            chunks: runtime.recentGeneratedAudioChunks(for: recentAudioID),
+        )
+    }
+
+    func replayRecentAudio(
+        id recentAudioID: String,
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async throws -> ReplayRecentAudioResponse {
+        try ensureWorkerReady()
+        let handle = await runtime.replayRecentAudio(
+            id: recentAudioID,
+            mode: mode,
+            requestContext: requestContext,
+        )
+        let requestID = await enqueuePublicJob(handle)
+        return .init(requestID: requestID)
+    }
+
+    func replayRecentAudioAll(
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async throws -> ReplayRecentAudioAllResponse {
+        try ensureWorkerReady()
+        let handles = await runtime.replayRecentAudioAll(
+            mode: mode,
+            requestContext: requestContext,
+        )
+        var requestIDs = [String]()
+        requestIDs.reserveCapacity(handles.count)
+        for handle in handles {
+            await requestIDs.append(enqueuePublicJob(handle))
+        }
+        return .init(requestIDs: requestIDs)
+    }
+
+    func clearRecentGeneratedAudio() async -> RecentGeneratedAudioResponse {
+        await runtime.clearRecentGeneratedAudio()
+        return await recentGeneratedAudioSnapshot()
+    }
+
     func clearQueue() async throws -> QueueClearedResponse {
         let handle = await runtime.clearQueue()
         return try await queueClearedResponse(handle: handle)

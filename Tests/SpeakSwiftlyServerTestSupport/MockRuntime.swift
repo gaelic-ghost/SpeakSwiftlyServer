@@ -102,6 +102,15 @@ package actor MockRuntime: SpeakSwiftlyRuntimeServing {
     package var activeRequest: MockRequest?
     package var activeContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
     package var queuedRequests = [QueuedRequestState]()
+    package var recentGeneratedAudioSnapshot = SpeakSwiftly.RecentGeneratedAudioSnapshot(
+        items: [],
+        limit: 5,
+        memorySecondsPerItem: 30,
+    )
+    package var recentGeneratedAudioChunks = [String: [SpeakSwiftly.GeneratedAudioChunk]]()
+    package var replayRecentAudioInvocations = [(id: String, mode: SpeakSwiftly.RecentGeneratedAudioReplayMode, requestContext: SpeakSwiftly.RequestContext?)]()
+    package var replayRecentAudioAllInvocations = [(mode: SpeakSwiftly.RecentGeneratedAudioReplayMode, requestContext: SpeakSwiftly.RequestContext?)]()
+    package var clearRecentGeneratedAudioCallCount = 0
     package var queuedSpeechInvocations = [QueuedSpeechInvocation]()
     package var audioStreamInvocations = [AudioStreamInvocation]()
     package var scriptedAudioStreamChunks = [SpeakSwiftly.GeneratedAudioChunk]()

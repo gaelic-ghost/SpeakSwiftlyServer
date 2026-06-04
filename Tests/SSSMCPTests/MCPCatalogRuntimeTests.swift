@@ -12,6 +12,134 @@ import Testing
 
 extension ServerTests {
     @available(macOS 14, *)
+    @Test func `embedded MCP routes drive recent generated audio replay tools`() async throws {
+        try await Self.withEmbeddedMCPSurface { runtime, _, mcpSurface, sessionID in
+            let recentItem = SpeakSwiftly.RecentGeneratedAudioItem(
+                id: "recent-mcp-1",
+                requestID: "source-request-mcp-1",
+                textPreview: "Replay this through MCP.",
+                voiceProfileName: "default",
+                createdAt: Date(timeIntervalSince1970: 1),
+                completedAt: Date(timeIntervalSince1970: 2),
+                sampleRate: 24000,
+                channelCount: 1,
+                durationSeconds: 0.25,
+                artifactID: nil,
+                artifactURL: nil,
+                retentionPolicy: .recentCache,
+                bufferState: .complete,
+                bufferedChunkCount: 1,
+                failureMessage: nil,
+            )
+            await runtime.replaceRecentGeneratedAudioSnapshot(.init(items: [recentItem], limit: 5, memorySecondsPerItem: 30))
+            await runtime.replaceRecentGeneratedAudioChunks([
+                "recent-mcp-1": [
+                    .init(
+                        requestID: "source-request-mcp-1",
+                        sequenceNumber: 0,
+                        sampleRate: 24000,
+                        channelCount: 1,
+                        samples: [0.1, 0.2],
+                    ),
+                ],
+            ])
+
+            let listEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(name: "list_recent_generated_audio", arguments: [:]),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let listPayload = try mcpToolPayload(from: listEnvelope)
+            let recent = try #require(listPayload["recent_generated_audio"] as? [String: Any])
+            let items = try #require(recent["items"] as? [[String: Any]])
+            #expect(items.first?["id"] as? String == "recent-mcp-1")
+
+            let chunksEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "get_recent_generated_audio_chunks",
+                            arguments: ["recent_audio_id": "recent-mcp-1"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let chunksPayload = try mcpToolPayload(from: chunksEnvelope)
+            #expect(chunksPayload["recent_audio_id"] as? String == "recent-mcp-1")
+            let chunks = try #require(chunksPayload["chunks"] as? [[String: Any]])
+            #expect(chunks.first?["sequenceNumber"] as? Int == 0)
+
+            let replayEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "replay_recent_audio",
+                            argumentsJSON: #"{"recent_audio_id":"recent-mcp-1","replay_mode":"enqueue_after_current","request_context":{"source":"mcp","topic":"recent-mcp","prefacePolicy":"never"},"cwd":"./mcp-recent-cwd","repo_root":"."}"#,
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let replayPayload = try mcpToolPayload(from: replayEnvelope)
+            #expect((replayPayload["request_id"] as? String)?.isEmpty == false)
+            let replayInvocation = try #require(await runtime.replayRecentAudioInvocations.last)
+            #expect(replayInvocation.id == "recent-mcp-1")
+            #expect(replayInvocation.mode == .enqueueAfterCurrent)
+            #expect(
+                replayInvocation.requestContext
+                    == SpeakSwiftly.RequestContext(
+                        reqPurpose: .speech,
+                        source: "mcp",
+                        topic: "recent-mcp",
+                        cwd: "./mcp-recent-cwd",
+                        repoRoot: ".",
+                        attributes: [
+                            "mcp.client.display_name": "ServerTests via SpeakSwiftlyServer",
+                            "mcp.client.name": "ServerTests",
+                            "mcp.client.version": "1.0",
+                            "mcp.tool": "replay_recent_audio",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "mcp",
+                        ],
+                        prefacePolicy: .never,
+                    ),
+            )
+
+            let replayAllEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(
+                            name: "replay_recent_audio_all",
+                            arguments: ["replay_mode": "enqueue_next"],
+                        ),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let replayAllPayload = try mcpToolPayload(from: replayAllEnvelope)
+            #expect((replayAllPayload["request_ids"] as? [String])?.count == 1)
+            #expect(await (runtime.replayRecentAudioAllInvocations.last)?.mode == .enqueueNext)
+
+            let clearEnvelope = try await mcpEnvelope(
+                from: mcpSurface.handle(
+                    mcpPOSTRequest(
+                        body: mcpCallToolRequestJSON(name: "clear_recent_generated_audio", arguments: [:]),
+                        sessionID: sessionID,
+                    ),
+                ),
+            )
+            let clearPayload = try mcpToolPayload(from: clearEnvelope)
+            let clearedRecent = try #require(clearPayload["recent_generated_audio"] as? [String: Any])
+            #expect((clearedRecent["items"] as? [[String: Any]])?.isEmpty == true)
+            #expect(await runtime.clearRecentGeneratedAudioCallCount == 1)
+        }
+    }
+
+    @available(macOS 14, *)
     @Test func `embedded MCP routes drive speech runtime and text profile tools`() async throws {
         try await Self.withEmbeddedMCPSurface { runtime, _, mcpSurface, sessionID in
             let queueSpeechToolEnvelope = try await mcpEnvelope(

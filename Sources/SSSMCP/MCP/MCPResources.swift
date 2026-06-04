@@ -367,12 +367,16 @@ private func playbackGuideMarkdown() -> String {
     6. Use `cancel_request` when the user wants one known request stopped by id.
     7. Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation to `generation` or `playback`.
     8. Use `clear_generation_queue` or `clear_playback_queue` when the user wants to drop one waiting backlog without interrupting the active request.
+    9. Use `list_recent_generated_audio` before replaying audio the user missed, then use `replay_recent_audio` for one item or `replay_recent_audio_all` for all complete recent items.
+    10. Use `clear_recent_generated_audio` only when the user wants to discard the bounded in-memory replay cache; this does not remove retained generated-file artifacts.
 
     Safety guidance:
 
     - Prefer the least destructive control that satisfies the user’s intent.
     - Confirm the target request id before cancelling when multiple queued requests exist.
+    - Confirm the recent audio id before replaying one item when multiple recent items exist.
     - Distinguish generation backlog from playback backlog so the user understands whether work is waiting on model generation or audible output.
+    - Distinguish recent in-memory replay from generated-file artifact playback; file-backed playback is not part of this surface yet.
     - Playback freshness is currently host-event-driven; until SpeakSwiftly exposes a runtime-level playback event stream, read `speak-swiftly://overview` again when you need the latest state before a destructive playback action.
     """
 }

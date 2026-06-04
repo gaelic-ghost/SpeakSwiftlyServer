@@ -76,6 +76,21 @@ package func optionalRequestCancellationScope(
     )
 }
 
+package func optionalRecentGeneratedAudioReplayMode(
+    _ key: String,
+    in arguments: [String: Value],
+) throws -> SpeakSwiftly.RecentGeneratedAudioReplayMode {
+    guard let rawValue = optionalString(key, in: arguments) else {
+        return .enqueueNext
+    }
+
+    return try decodeStringEnum(
+        rawValue,
+        fieldName: key,
+        valueType: SpeakSwiftly.RecentGeneratedAudioReplayMode.self,
+    )
+}
+
 package func decodeArgument<T: Decodable>(
     _ key: String,
     in arguments: [String: Value],

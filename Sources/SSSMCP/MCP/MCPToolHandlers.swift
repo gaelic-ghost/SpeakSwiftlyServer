@@ -344,6 +344,42 @@ package extension MCPSurface {
                 case "resume_playback":
                     return try await toolResult(host.resumePlayback())
 
+                case "list_recent_generated_audio":
+                    return try await toolResult(host.recentGeneratedAudioSnapshot())
+
+                case "get_recent_generated_audio_chunks":
+                    return try await toolResult(
+                        host.recentGeneratedAudioChunks(
+                            for: requiredString("recent_audio_id", in: arguments),
+                        ),
+                    )
+
+                case "replay_recent_audio":
+                    return try await toolResult(
+                        host.replayRecentAudio(
+                            id: requiredString("recent_audio_id", in: arguments),
+                            mode: optionalRecentGeneratedAudioReplayMode("replay_mode", in: arguments),
+                            requestContext: requestContext(
+                                in: arguments,
+                                defaults: requestContextDefaults,
+                            ),
+                        ),
+                    )
+
+                case "replay_recent_audio_all":
+                    return try await toolResult(
+                        host.replayRecentAudioAll(
+                            mode: optionalRecentGeneratedAudioReplayMode("replay_mode", in: arguments),
+                            requestContext: requestContext(
+                                in: arguments,
+                                defaults: requestContextDefaults,
+                            ),
+                        ),
+                    )
+
+                case "clear_recent_generated_audio":
+                    return try await toolResult(host.clearRecentGeneratedAudio())
+
                 case "select_network_audio_receiver":
                     let response: NetworkAudioReceiverSelectionResponse
                     if let destinationID = optionalString("destination_id", in: arguments) {

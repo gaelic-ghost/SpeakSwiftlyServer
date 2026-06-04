@@ -18,6 +18,10 @@ extension RuntimeStatusResponse: ResponseEncodable {}
 extension RuntimeBackendResponse: ResponseEncodable {}
 extension QueueSnapshotResponse: ResponseEncodable {}
 extension PlaybackStateResponse: ResponseEncodable {}
+extension RecentGeneratedAudioResponse: ResponseEncodable {}
+extension RecentGeneratedAudioChunksResponse: ResponseEncodable {}
+extension ReplayRecentAudioResponse: ResponseEncodable {}
+extension ReplayRecentAudioAllResponse: ResponseEncodable {}
 extension QueueClearedResponse: ResponseEncodable {}
 extension QueueCancellationResponse: ResponseEncodable {}
 extension HealthSnapshot: ResponseEncodable {}

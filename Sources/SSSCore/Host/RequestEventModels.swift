@@ -66,6 +66,9 @@ package struct ServerSuccessEvent: Encodable, Equatable {
         case artifacts
         case generationJob = "generation_job"
         case generationJobs = "generation_jobs"
+        case recentGeneratedAudio = "recent_generated_audio"
+        case recentGeneratedAudioChunks = "recent_generated_audio_chunks"
+        case replayRequestIDs = "replay_request_ids"
         case profileName = "profile_name"
         case profilePath = "profile_path"
         case profiles
@@ -88,6 +91,9 @@ package struct ServerSuccessEvent: Encodable, Equatable {
     package let artifacts: [SpeakSwiftly.GenerationArtifact]?
     package let generationJob: SpeakSwiftly.GenerationJob?
     package let generationJobs: [SpeakSwiftly.GenerationJob]?
+    package let recentGeneratedAudio: SpeakSwiftly.RecentGeneratedAudioSnapshot?
+    package let recentGeneratedAudioChunks: [SpeakSwiftly.GeneratedAudioChunk]?
+    package let replayRequestIDs: [String]?
     package let profileName: String?
     package let profilePath: String?
     package let profiles: [ProfileSnapshot]?
@@ -109,6 +115,9 @@ package struct ServerSuccessEvent: Encodable, Equatable {
         artifacts: [SpeakSwiftly.GenerationArtifact]? = nil,
         generationJob: SpeakSwiftly.GenerationJob? = nil,
         generationJobs: [SpeakSwiftly.GenerationJob]? = nil,
+        recentGeneratedAudio: SpeakSwiftly.RecentGeneratedAudioSnapshot? = nil,
+        recentGeneratedAudioChunks: [SpeakSwiftly.GeneratedAudioChunk]? = nil,
+        replayRequestIDs: [String]? = nil,
         profileName: String? = nil,
         profilePath: String? = nil,
         profiles: [ProfileSnapshot]? = nil,
@@ -129,6 +138,9 @@ package struct ServerSuccessEvent: Encodable, Equatable {
         self.artifacts = artifacts
         self.generationJob = generationJob
         self.generationJobs = generationJobs
+        self.recentGeneratedAudio = recentGeneratedAudio
+        self.recentGeneratedAudioChunks = recentGeneratedAudioChunks
+        self.replayRequestIDs = replayRequestIDs
         self.profileName = profileName
         self.profilePath = profilePath
         self.profiles = profiles
