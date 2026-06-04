@@ -283,7 +283,7 @@ package enum MCPToolCatalog {
         ),
         Tool(
             name: "select_network_audio_receiver",
-            description: "Select one Bonjour-discovered SpeakSwiftly LAN audio receiver by destination_id. This records the operator selection for remote playback routing work; current live speech still uses local playback until the package-backed network output routing slice lands.",
+            description: "Select one Bonjour-discovered SpeakSwiftly LAN audio receiver by destination_id. Remote generation requests route returned audio chunks to the selected receiver when LAN output readiness is true.",
             inputSchema: [
                 "type": "object",
                 "required": ["destination_id"],

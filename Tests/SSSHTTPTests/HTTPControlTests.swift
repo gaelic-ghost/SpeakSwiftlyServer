@@ -259,17 +259,27 @@ extension ServerTests {
             #expect(selectResponse.status == .ok)
             let selection = try #require(selectJSON["selection"] as? [String: Any])
             #expect(selection["selected_destination_id"] as? String == destination.id)
+            #expect(selection["shared_token_configured"] as? Bool == false)
+            #expect(selection["selected_destination_endpoint_ready"] as? Bool == true)
+            #expect(selection["lan_output_ready"] as? Bool == false)
+            #expect(selection["lan_output_blocked_reasons"] as? [String] == ["network_audio_receiver_shared_token_missing"])
 
             let selectionResponse = try await client.execute(uri: "/network-audio/selection", method: .get)
             let selectionJSON = try jsonObject(from: selectionResponse.body)
             #expect(selectionResponse.status == .ok)
             #expect(selectionJSON["selected_destination_id"] as? String == destination.id)
+            #expect(selectionJSON["lan_output_ready"] as? Bool == false)
 
             let clearResponse = try await client.execute(uri: "/network-audio/selection", method: .delete)
             let clearJSON = try jsonObject(from: clearResponse.body)
             #expect(clearResponse.status == .ok)
             let clearedSelection = try #require(clearJSON["selection"] as? [String: Any])
             #expect(clearedSelection["selected_destination_id"] as? String == nil)
+            #expect(clearedSelection["lan_output_ready"] as? Bool == false)
+            #expect(clearedSelection["lan_output_blocked_reasons"] as? [String] == [
+                "no_lan_audio_receiver_selected",
+                "network_audio_receiver_shared_token_missing",
+            ])
         }
     }
 
