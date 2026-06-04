@@ -766,6 +766,20 @@ extension ServerTests {
             #expect(response.status == .accepted)
             try await cancellationRecorder.waitUntilProviderStarted()
 
+            let overviewResponse = try await client.execute(uri: "/overview", method: .get)
+            let overviewJSON = try jsonObject(from: overviewResponse.body)
+            let remoteGeneration = try #require(overviewJSON["remote_generation"] as? [String: Any])
+            #expect(remoteGeneration["active_outbound_request_count"] as? Int == 1)
+            let activeStreams = try #require(remoteGeneration["active_streams"] as? [[String: Any]])
+            let activeStream = try #require(activeStreams.first)
+            #expect(activeStream["request_id"] as? String == requestID)
+            #expect(activeStream["remote_service_name"] as? String == "GMM4")
+            #expect(activeStream["remote_base_url"] as? String == "http://GMM4.local:7338")
+            #expect(activeStream["profile_name"] as? String == "default")
+            #expect(activeStream["latest_stage"] as? String == "routing_generated_audio")
+            #expect(activeStream["output_destination"] as? String == "local_playback")
+            #expect(activeStream["shared_token"] == nil)
+
             let cancelResponse = try await client.execute(
                 uri: "/requests/\(requestID)",
                 method: .delete,

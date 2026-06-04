@@ -64,6 +64,7 @@ package enum ServerHostDefaultSnapshots {
         sharedTokenConfigured: false,
         streamTokenHeaderName: RemoteGenerationConfig.streamTokenHeaderName,
         activeOutboundRequestCount: 0,
+        activeStreams: [],
     )
 
     package static let networkAudioReceiverSelection = NetworkAudioReceiverSelectionSnapshot(

@@ -65,6 +65,11 @@ package extension ServerHost {
         service: RemoteGenerationService,
     ) async -> String {
         let requestID = UUID().uuidString
+        registerRemoteGenerationRequest(
+            requestID: requestID,
+            profileName: profileName,
+            service: service,
+        )
         let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
             let task = Task {
                 await runRemoteSpeechLive(
@@ -110,6 +115,7 @@ package extension ServerHost {
         var remoteSession: RemoteSpeechStreamSession?
         defer {
             clearRemoteGenerationRequestTask(id: requestID)
+            clearRemoteGenerationRequest(id: requestID)
         }
         do {
             guard let sharedToken = remoteGenerationConfig.sharedToken else {
@@ -119,6 +125,11 @@ package extension ServerHost {
                 )
             }
 
+            updateRemoteGenerationRequest(
+                id: requestID,
+                stage: "connecting_remote_generator",
+                startedAt: Date(),
+            )
             let session = remoteGeneratedAudioStreamProvider(
                 .init(
                     text: text,
@@ -131,6 +142,11 @@ package extension ServerHost {
                 sharedToken,
             )
             remoteSession = session
+            updateRemoteGenerationRequest(
+                id: requestID,
+                stage: "routing_generated_audio",
+                output: remoteGenerationOutputDestinationSnapshot(),
+            )
             try await routeRemoteGeneratedAudio(
                 chunks: session.chunks,
                 requestID: requestID,
@@ -162,6 +178,24 @@ package extension ServerHost {
         }
     }
 
+    func registerRemoteGenerationRequest(
+        requestID: String,
+        profileName: String,
+        service: RemoteGenerationService,
+    ) {
+        remoteGenerationRequestRecords[requestID] = .init(
+            requestID: requestID,
+            service: service,
+            profileName: profileName,
+            submittedAt: Date(),
+            startedAt: nil,
+            latestStage: "submitted",
+            outputDestination: "pending",
+            outputDestinationID: nil,
+            outputDestinationName: nil,
+        )
+    }
+
     func registerRemoteGenerationRequestTask(_ task: Task<Void, Never>, requestID: String) {
         remoteGenerationRequestTasks[requestID] = task
         if jobs[requestID]?.terminalEvent != nil {
@@ -172,6 +206,50 @@ package extension ServerHost {
 
     func clearRemoteGenerationRequestTask(id: String) {
         remoteGenerationRequestTasks[id] = nil
+    }
+
+    func clearRemoteGenerationRequest(id: String) {
+        remoteGenerationRequestRecords[id] = nil
+    }
+
+    func updateRemoteGenerationRequest(
+        id requestID: String,
+        stage: String? = nil,
+        startedAt: Date? = nil,
+        output: RemoteGenerationOutputDestination? = nil,
+    ) {
+        guard var record = remoteGenerationRequestRecords[requestID] else {
+            return
+        }
+
+        if let stage {
+            record.latestStage = stage
+        }
+        if let startedAt {
+            record.startedAt = startedAt
+        }
+        if let output {
+            record.outputDestination = output.kind
+            record.outputDestinationID = output.id
+            record.outputDestinationName = output.name
+        }
+        remoteGenerationRequestRecords[requestID] = record
+    }
+
+    func remoteGenerationOutputDestinationSnapshot() -> RemoteGenerationOutputDestination {
+        if let selectedDestination = networkAudioReceiverSelectionSnapshot().selectedDestination {
+            return .init(
+                kind: "lan_audio_receiver",
+                id: selectedDestination.id,
+                name: selectedDestination.name,
+            )
+        }
+
+        return .init(
+            kind: "local_playback",
+            id: nil,
+            name: nil,
+        )
     }
 
     func cancelRemoteGenerationUpstream(
