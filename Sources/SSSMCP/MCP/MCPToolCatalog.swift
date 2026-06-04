@@ -282,6 +282,40 @@ package enum MCPToolCatalog {
             inputSchema: ["type": "object", "properties": [:]],
         ),
         Tool(
+            name: "list_recent_generated_audio",
+            description: "List the bounded in-memory recent generated-audio cache. Use this before replaying audio the user just missed; this is not durable generated-file artifact storage.",
+            inputSchema: ["type": "object", "properties": [:]],
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
+        ),
+        Tool(
+            name: "get_recent_generated_audio_chunks",
+            description: "Return canonical generated-audio chunks for one recent generated-audio item by recent_audio_id.",
+            inputSchema: [
+                "type": "object",
+                "required": ["recent_audio_id"],
+                "properties": [
+                    "recent_audio_id": ["type": "string"],
+                ],
+            ],
+            annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false),
+        ),
+        Tool(
+            name: "replay_recent_audio",
+            description: "Queue one complete recent generated-audio item for local playback without regenerating speech. replay_mode defaults to enqueue_next.",
+            inputSchema: recentReplayInputSchema(requiredRecentAudioID: true),
+        ),
+        Tool(
+            name: "replay_recent_audio_all",
+            description: "Queue all complete recent generated-audio items for local playback in snapshot order. replay_mode defaults to enqueue_next.",
+            inputSchema: recentReplayInputSchema(requiredRecentAudioID: false),
+        ),
+        Tool(
+            name: "clear_recent_generated_audio",
+            description: "Clear the bounded in-memory recent generated-audio cache. This does not delete retained generated-file artifacts.",
+            inputSchema: ["type": "object", "properties": [:]],
+            annotations: .init(readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false),
+        ),
+        Tool(
             name: "select_network_audio_receiver",
             description: "Select a SpeakSwiftly LAN audio receiver by Bonjour destination_id or by a manual host_port endpoint. Remote generation requests route returned audio chunks to the selected receiver when LAN output readiness is true.",
             inputSchema: [
@@ -405,6 +439,27 @@ package enum MCPToolCatalog {
             "request_context": requestContextInputSchema,
         ]),
     ])
+
+    private static func recentReplayInputSchema(requiredRecentAudioID: Bool) -> Value {
+        var properties: [String: Value] = [
+            "replay_mode": [
+                "type": "string",
+                "enum": stringEnum(SpeakSwiftly.RecentGeneratedAudioReplayMode.allCases.map(\.rawValue)),
+            ],
+            "request_context": requestContextInputSchema,
+            "cwd": ["type": "string"],
+            "repo_root": ["type": "string"],
+        ]
+        if requiredRecentAudioID {
+            properties["recent_audio_id"] = ["type": "string"]
+        }
+
+        return .object([
+            "type": "object",
+            "required": requiredRecentAudioID ? ["recent_audio_id"] : [],
+            "properties": .object(properties),
+        ])
+    }
 
     private static func stringEnum(_ values: [String]) -> Value {
         .array(values.map { .string($0) })

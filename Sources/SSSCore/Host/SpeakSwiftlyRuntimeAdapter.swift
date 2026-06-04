@@ -81,6 +81,42 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         await runtime.playback.snapshot()
     }
 
+    package func recentGeneratedAudio() async -> SpeakSwiftly.RecentGeneratedAudioSnapshot {
+        await runtime.playback.recentGeneratedAudio()
+    }
+
+    package func recentGeneratedAudioChunks(for recentAudioID: String) async -> [SpeakSwiftly.GeneratedAudioChunk] {
+        await runtime.playback.recentGeneratedAudioChunks(for: recentAudioID)
+    }
+
+    package func replayRecentAudio(
+        id recentAudioID: String,
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> RuntimeRequestHandle {
+        let handle = await runtime.playback.replayRecent(
+            id: recentAudioID,
+            mode: mode,
+            requestContext: requestContext,
+        )
+        return RuntimeRequestHandle(handle)
+    }
+
+    package func replayRecentAudioAll(
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> [RuntimeRequestHandle] {
+        let handles = await runtime.playback.replayRecentAll(
+            mode: mode,
+            requestContext: requestContext,
+        )
+        return handles.map(RuntimeRequestHandle.init)
+    }
+
+    package func clearRecentGeneratedAudio() async {
+        await runtime.playback.clearRecentGeneratedAudio()
+    }
+
     // MARK: - Speech Requests
 
     package func queueSpeechLive(

@@ -48,6 +48,14 @@ package extension MockRuntime {
         scriptedAudioStreamChunks = chunks
     }
 
+    func replaceRecentGeneratedAudioSnapshot(_ snapshot: SpeakSwiftly.RecentGeneratedAudioSnapshot) {
+        recentGeneratedAudioSnapshot = snapshot
+    }
+
+    func replaceRecentGeneratedAudioChunks(_ chunks: [String: [SpeakSwiftly.GeneratedAudioChunk]]) {
+        recentGeneratedAudioChunks = chunks
+    }
+
     func latestAudioStreamInvocation() -> AudioStreamInvocation? {
         audioStreamInvocations.last
     }

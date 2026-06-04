@@ -99,6 +99,66 @@ package extension MockRuntime {
         return RuntimeRequestHandle(id: requestID, operation: "playback_queue_snapshot", profileName: nil, events: events)
     }
 
+    func recentGeneratedAudio() async -> SpeakSwiftly.RecentGeneratedAudioSnapshot {
+        recentGeneratedAudioSnapshot
+    }
+
+    func recentGeneratedAudioChunks(for recentAudioID: String) async -> [SpeakSwiftly.GeneratedAudioChunk] {
+        recentGeneratedAudioChunks[recentAudioID] ?? []
+    }
+
+    func replayRecentAudio(
+        id recentAudioID: String,
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> RuntimeRequestHandle {
+        replayRecentAudioInvocations.append((recentAudioID, mode, requestContext))
+        let requestID = UUID().uuidString
+        let request = MockRequest(
+            id: requestID,
+            operation: "replay_recent_audio",
+            profileName: recentGeneratedAudioSnapshot.items.first { $0.id == recentAudioID }?.voiceProfileName,
+        )
+        var requestContinuation: AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error>.Continuation?
+        let events = AsyncThrowingStream<SpeakSwiftly.RequestEvent, Error> { continuation in
+            requestContinuation = continuation
+        }
+        guard let continuation = requestContinuation else {
+            fatalError("The mock runtime could not create a recent-audio replay continuation for request '\(requestID)'.")
+        }
+
+        startActiveRequest(request, continuation: continuation)
+        return RuntimeRequestHandle(id: requestID, operation: "replay_recent_audio", profileName: request.profileName, events: events)
+    }
+
+    func replayRecentAudioAll(
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> [RuntimeRequestHandle] {
+        replayRecentAudioAllInvocations.append((mode, requestContext))
+        var handles = [RuntimeRequestHandle]()
+        for item in recentGeneratedAudioSnapshot.items where item.bufferState == .complete {
+            await handles.append(
+                replayRecentAudio(
+                    id: item.id,
+                    mode: mode,
+                    requestContext: requestContext,
+                ),
+            )
+        }
+        return handles
+    }
+
+    func clearRecentGeneratedAudio() async {
+        clearRecentGeneratedAudioCallCount += 1
+        recentGeneratedAudioSnapshot = .init(
+            items: [],
+            limit: recentGeneratedAudioSnapshot.limit,
+            memorySecondsPerItem: recentGeneratedAudioSnapshot.memorySecondsPerItem,
+        )
+        recentGeneratedAudioChunks.removeAll()
+    }
+
     func pausePlayback() async -> RuntimeRequestHandle {
         let requestID = UUID().uuidString
         if activeRequest != nil {

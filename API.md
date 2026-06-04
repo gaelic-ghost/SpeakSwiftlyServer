@@ -187,6 +187,8 @@ Accepted request routes and tools return immediately with request-tracking metad
 
 `POST /speech/live` queues live playback. `POST /speech/stream` returns newline-delimited generated-audio frames for authenticated server-to-server streaming when remote stream requests are enabled. `POST /speech/files` and `POST /speech/batches` queue retained artifact generation. When `profile_name` is omitted, the server uses the configured app default voice when one exists, then falls back to the runtime default voice.
 
+Recent in-memory generated audio is exposed under `/playback/recent-generated-audio`. `GET /playback/recent-generated-audio` lists the bounded recent cache, `GET /playback/recent-generated-audio/{recent_audio_id}/chunks` returns canonical generated-audio chunks for one item, `POST /playback/recent-generated-audio/{recent_audio_id}/replay` queues one complete item for local replay, `POST /playback/recent-generated-audio/replay-all` queues all complete items in snapshot order, and `DELETE /playback/recent-generated-audio` clears the cache. Replay payloads may include `replay_mode`, `request_context`, `cwd`, and `repo_root`; `replay_mode` defaults to `enqueue_next`. This is recent in-memory replay, not durable generated-file playback.
+
 For live speech, omit `generation_location` or set it to `"local"` to generate
 on this server's local `SpeakSwiftly` runtime. Object-shaped remote generation
 locations ask another `SpeakSwiftlyServer` to generate `/speech/stream`, then
@@ -224,7 +226,7 @@ Important API models include:
 - remote-generation active streams: request ID, remote service name, remote base URL, profile name, submitted and started timestamps, latest stage, output destination kind, and optional output destination ID/name
 - request records: request ID, kind, state, accepted time, last update, retained events, and terminal result
 - generation records: generation queue, jobs, job items, artifacts, artifact IDs, retained file paths, and job failures
-- playback records: playback state, active request, queued requests, buffer stability, and latest playback event
+- playback records: playback state, active request, queued requests, buffer stability, latest playback event, and recent generated-audio cache snapshots for in-memory replay
 - LAN audio receiver selection: selected destination ID/details, available destination count, shared-token presence, selected endpoint readiness, LAN output readiness, token-safe blocked reason codes, and smoke-test results
 - voice profile records: profile names, summaries, detail payloads, system-authored metadata, and reroll/delete/rename request results
 - text profile records: built-in style, base profile, active profile, stored profiles, effective profiles, and replacements
@@ -253,7 +255,7 @@ MCP errors are returned through MCP tool or resource error responses. MCP resour
 
 This checkout builds as Swift language mode 6 with Swift tools version 6.3 and a macOS 15 platform floor.
 
-The current package depends on `SpeakSwiftly` from `11.0.0-alpha.2`, `TextForSpeech` from `0.23.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
+The current package depends on `SpeakSwiftly` from `11.0.0-alpha.7`, `TextForSpeech` from `0.23.0`, Hummingbird from `2.21.1`, the Swift MCP SDK from `0.12.0`, Swift Configuration from `1.2.0`, Swift Async Algorithms from `1.1.3`, `mlx-audio-swift` from `0.100.0`, and `mlx-swift-lm` exact `3.31.3`.
 
 ### Breaking Changes
 

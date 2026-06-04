@@ -220,6 +220,138 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
+    @Test func `routes expose recent generated audio replay controls`() async throws {
+        let runtime = MockRuntime()
+        let recentItem = SpeakSwiftly.RecentGeneratedAudioItem(
+            id: "recent-1",
+            requestID: "source-request-1",
+            textPreview: "Replay this.",
+            voiceProfileName: "default",
+            createdAt: Date(timeIntervalSince1970: 1),
+            completedAt: Date(timeIntervalSince1970: 2),
+            sampleRate: 24000,
+            channelCount: 1,
+            durationSeconds: 0.25,
+            artifactID: nil,
+            artifactURL: nil,
+            retentionPolicy: .recentCache,
+            bufferState: .complete,
+            bufferedChunkCount: 1,
+            failureMessage: nil,
+        )
+        await runtime.replaceRecentGeneratedAudioSnapshot(.init(items: [recentItem], limit: 5, memorySecondsPerItem: 30))
+        await runtime.replaceRecentGeneratedAudioChunks([
+            "recent-1": [
+                .init(
+                    requestID: "source-request-1",
+                    sequenceNumber: 0,
+                    sampleRate: 24000,
+                    channelCount: 1,
+                    samples: [0.1, 0.2],
+                ),
+            ],
+        ])
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let listResponse = try await client.execute(uri: "/playback/recent-generated-audio", method: .get)
+            let listJSON = try jsonObject(from: listResponse.body)
+            #expect(listResponse.status == .ok)
+            let recent = try #require(listJSON["recent_generated_audio"] as? [String: Any])
+            let items = try #require(recent["items"] as? [[String: Any]])
+            #expect(items.first?["id"] as? String == "recent-1")
+
+            let chunksResponse = try await client.execute(uri: "/playback/recent-generated-audio/recent-1/chunks", method: .get)
+            let chunksJSON = try jsonObject(from: chunksResponse.body)
+            #expect(chunksResponse.status == .ok)
+            #expect(chunksJSON["recent_audio_id"] as? String == "recent-1")
+            let chunks = try #require(chunksJSON["chunks"] as? [[String: Any]])
+            #expect(chunks.first?["sequenceNumber"] as? Int == 0)
+
+            let replayResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/recent-1/replay",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"replay_mode":"enqueue_after_current","request_context":{"source":"http","topic":"recent-route","prefacePolicy":"never"},"cwd":"./recent-cwd","repo_root":"."}"#),
+            )
+            let replayJSON = try jsonObject(from: replayResponse.body)
+            #expect(replayResponse.status == .ok)
+            let replayRequestID = try #require(replayJSON["request_id"] as? String)
+            #expect(replayRequestID.isEmpty == false)
+            let replayInvocation = try #require(await runtime.replayRecentAudioInvocations.last)
+            #expect(replayInvocation.id == "recent-1")
+            #expect(replayInvocation.mode == .enqueueAfterCurrent)
+            #expect(
+                replayInvocation.requestContext
+                    == SpeakSwiftly.RequestContext(
+                        reqPurpose: .speech,
+                        source: "http",
+                        topic: "recent-route",
+                        cwd: "./recent-cwd",
+                        repoRoot: ".",
+                        attributes: [
+                            "http.method": "POST",
+                            "http.route": "/playback/recent-generated-audio/{recent_audio_id}/replay",
+                            "server.app": "SpeakSwiftlyServer",
+                            "surface": "http",
+                        ],
+                        prefacePolicy: .never,
+                    ),
+            )
+
+            let replayAllResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/replay-all",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"replay_mode":"enqueue_next"}"#),
+            )
+            let replayAllJSON = try jsonObject(from: replayAllResponse.body)
+            #expect(replayAllResponse.status == .ok)
+            #expect((replayAllJSON["request_ids"] as? [String])?.count == 1)
+            #expect(await (runtime.replayRecentAudioAllInvocations.last)?.mode == .enqueueNext)
+
+            let defaultReplayResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/recent-1/replay",
+                method: .post,
+            )
+            let defaultReplayJSON = try jsonObject(from: defaultReplayResponse.body)
+            #expect(defaultReplayResponse.status == .ok)
+            #expect((defaultReplayJSON["request_id"] as? String)?.isEmpty == false)
+            #expect(await (runtime.replayRecentAudioInvocations.last)?.mode == .enqueueNext)
+
+            let defaultReplayAllResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/replay-all",
+                method: .post,
+            )
+            let defaultReplayAllJSON = try jsonObject(from: defaultReplayAllResponse.body)
+            #expect(defaultReplayAllResponse.status == .ok)
+            #expect((defaultReplayAllJSON["request_ids"] as? [String])?.count == 1)
+            #expect(await (runtime.replayRecentAudioAllInvocations.last)?.mode == .enqueueNext)
+
+            let clearResponse = try await client.execute(uri: "/playback/recent-generated-audio", method: .delete)
+            let clearJSON = try jsonObject(from: clearResponse.body)
+            #expect(clearResponse.status == .ok)
+            let clearedRecent = try #require(clearJSON["recent_generated_audio"] as? [String: Any])
+            #expect((clearedRecent["items"] as? [[String: Any]])?.isEmpty == true)
+            #expect(await runtime.clearRecentGeneratedAudioCallCount == 1)
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
     @Test func `routes expose LAN audio receiver discovery and selection`() async throws {
         let configuration = testConfiguration()
         let host = await ServerHost(

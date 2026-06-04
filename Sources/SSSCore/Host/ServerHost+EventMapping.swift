@@ -298,6 +298,12 @@ package extension ServerHost {
                 .init(id: id, generationJob: value)
             case let .generationJobs(values):
                 .init(id: id, generationJobs: values)
+            case let .recentGeneratedAudio(value):
+                .init(id: id, recentGeneratedAudio: value)
+            case let .recentGeneratedAudioChunks(values):
+                .init(id: id, recentGeneratedAudioChunks: values)
+            case let .replayRequests(ids):
+                .init(id: id, replayRequestIDs: ids)
             case let .voiceProfile(name: name, path: path):
                 .init(id: id, profileName: name, profilePath: path)
             case let .voiceProfiles(values):

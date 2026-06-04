@@ -68,6 +68,18 @@ package protocol SpeakSwiftlyRuntimeServing: Actor {
     func generationSnapshot() async -> SpeakSwiftly.GenerateSnapshot
     func playbackUpdates() async -> AsyncStream<SpeakSwiftly.PlaybackUpdate>
     func playbackSnapshot() async -> SpeakSwiftly.PlaybackSnapshot
+    func recentGeneratedAudio() async -> SpeakSwiftly.RecentGeneratedAudioSnapshot
+    func recentGeneratedAudioChunks(for recentAudioID: String) async -> [SpeakSwiftly.GeneratedAudioChunk]
+    func replayRecentAudio(
+        id recentAudioID: String,
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> RuntimeRequestHandle
+    func replayRecentAudioAll(
+        mode: SpeakSwiftly.RecentGeneratedAudioReplayMode,
+        requestContext: SpeakSwiftly.RequestContext?,
+    ) async -> [RuntimeRequestHandle]
+    func clearRecentGeneratedAudio() async
     func queueSpeechLive(
         text: String,
         with profileName: String,
