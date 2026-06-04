@@ -32,11 +32,11 @@ The startup split should come first:
 - `app.listeners.lan.advertiseBonjour`
 - `app.listeners.lan.serviceName`
 
-The current `app.http` keys can remain as the localhost listener source until the config shape fully migrates. New LAN listener keys should not make existing localhost installs LAN-reachable by default.
+The current `app.http` keys remain a legacy input for localhost defaults, but the loaded `app.http` view is now an alias of `app.listeners.localhost`. When both are present, `app.listeners.localhost` owns the effective localhost listener values reported through `AppConfig.http`. New LAN listener keys should not make existing localhost installs LAN-reachable by default.
 
 Runtime toggles need a listener owner that can start and stop Hummingbird listener services after process startup. Do not fake this by writing config and telling operators to restart. The runtime control should either bind or close the listener in the current process, or return a clear unsupported-operation response until the listener owner exists.
 
-The first runtime-control slice supports the MacBook/Mac mini workflow by letting localhost enable, disable, and re-enable the LAN listener in-process. Disabling a listener moves the operator-visible transport snapshot to `disabled` immediately, then the listener task drains in the background. A localhost hard-stop while keeping LAN alive needs dedicated follow-up coverage because naive listener shutdown can cancel sibling Hummingbird services when both listeners share the same process.
+The first runtime-control slice supports the MacBook/Mac mini workflow by letting localhost enable, disable, and re-enable the LAN listener in-process. Disabling a listener moves the operator-visible transport snapshot to `disabled`, cancels the listener task, and waits for that task to drain before returning so immediate re-enable calls do not overlap with the old listener. A localhost hard-stop while keeping LAN alive needs dedicated follow-up coverage because naive listener shutdown can cancel sibling Hummingbird services when both listeners share the same process.
 
 ## Preflight
 

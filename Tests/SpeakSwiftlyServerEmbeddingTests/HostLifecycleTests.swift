@@ -473,6 +473,7 @@ import Testing
         let lanPort = try #require(lanTransport.port)
         #expect(lanPort > 0)
         #expect(lanPort != localhostPort)
+        #expect(lanTransport.advertisedAddress == "http://127.0.0.1:\(lanPort)")
 
         let lanOverview = try await httpJSON(path: "/overview", port: lanPort)
         #expect(lanOverview.statusCode == 200)
@@ -503,6 +504,7 @@ import Testing
             on: host,
         )
         let reenabledLANPort = try #require(reenabledLAN.port)
+        #expect(reenabledLAN.advertisedAddress == "http://127.0.0.1:\(reenabledLANPort)")
         let reenabledLANOverview = try await httpJSON(path: "/overview", port: reenabledLANPort)
         #expect(reenabledLANOverview.statusCode == 200)
         let unsupportedLocalhostDisable = try await httpPOSTJSON(

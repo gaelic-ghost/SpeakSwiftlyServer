@@ -101,8 +101,10 @@ package actor HTTPListenerRuntimeController {
             port: lanConfiguration.port,
             sseHeartbeatSeconds: lanConfiguration.sseHeartbeatSeconds,
         )
-        let lanAdvertisedAddress = if lanConfiguration.advertiseBonjour {
+        let lanAdvertisedAddress: String? = if lanConfiguration.advertiseBonjour {
             "\(lanConfiguration.serviceName).\(HTTPListenersConfig.lanBonjourType).\(HTTPListenersConfig.bonjourDomain)"
+        } else if lanConfiguration.port == 0 {
+            nil
         } else {
             "http://\(lanConfiguration.host):\(lanConfiguration.port)"
         }
@@ -181,10 +183,8 @@ package actor HTTPListenerRuntimeController {
         await markEnabled(descriptor, state: "stopping", port: try? host.transportStatus(named: descriptor.transportName).port)
         await descriptor.bonjourPublisher?.stop()
         await markDisabled(descriptor)
-        Task {
-            running.runTask.cancel()
-            _ = try? await running.runTask.value
-        }
+        running.runTask.cancel()
+        _ = try? await running.runTask.value
 
         return try await host.transportStatus(named: descriptor.transportName)
     }
@@ -229,6 +229,7 @@ package actor HTTPListenerRuntimeController {
                 guard let port = channel.localAddress?.port else { return }
 
                 await descriptor.bonjourPublisher?.publish(port: port)
+                await self.markEnabled(descriptor, state: "listening", port: port)
             },
         )
     }
@@ -246,24 +247,34 @@ package actor HTTPListenerRuntimeController {
                 host: descriptor.configuration.host,
                 port: port,
                 path: nil,
-                advertisedAddress: descriptor.advertisedAddress,
+                advertisedAddress: advertisedAddress(for: descriptor, port: port),
             ),
         )
         for alias in descriptor.additionalListeningTransports {
-            await markAliasEnabled(alias, descriptor: descriptor, state: state)
+            await markAliasEnabled(alias, descriptor: descriptor, state: state, port: port)
         }
+    }
+
+    private func advertisedAddress(for descriptor: ListenerDescriptor, port: Int?) -> String? {
+        guard descriptor.advertisedAddress == nil, let port, port > 0 else {
+            return descriptor.advertisedAddress
+        }
+
+        return "http://\(descriptor.configuration.host):\(port)"
     }
 
     private func markAliasEnabled(
         _ alias: String,
         descriptor: ListenerDescriptor,
         state: String,
+        port: Int?,
     ) async {
         let path = alias == "mcp" ? "/mcp" : nil
+        let advertisedPort = port ?? descriptor.configuration.port
         let advertisedAddress = if alias == "mcp" {
-            "http://\(descriptor.configuration.host):\(descriptor.configuration.port)/mcp"
+            "http://\(descriptor.configuration.host):\(advertisedPort)/mcp"
         } else {
-            "http://\(descriptor.configuration.host):\(descriptor.configuration.port)"
+            "http://\(descriptor.configuration.host):\(advertisedPort)"
         }
         await host.replaceTransportStatus(
             .init(
@@ -271,7 +282,7 @@ package actor HTTPListenerRuntimeController {
                 enabled: true,
                 state: state,
                 host: descriptor.configuration.host,
-                port: descriptor.configuration.port,
+                port: advertisedPort,
                 path: path,
                 advertisedAddress: advertisedAddress,
             ),

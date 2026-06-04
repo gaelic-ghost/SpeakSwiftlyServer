@@ -75,17 +75,17 @@ package struct LANHTTPListenerConfig: Equatable {
         fallbackServiceName: String,
     ) throws {
         do {
-            enabled = try Self.requiredBool(config, key: "enabled", fallback: false)
-            host = try Self.requiredString(config, key: "host", fallback: "0.0.0.0")
+            enabled = try config.requiredBool(forKey: "enabled", fallback: false)
+            host = try config.requiredString(forKey: "host", fallback: "0.0.0.0")
             port = try Self.requireValidPort(
-                Self.requiredInt(config, key: "port", fallback: 0),
+                config.requiredInt(forKey: "port", fallback: 0),
                 key: "APP_LISTENERS_LAN_PORT",
             )
             sseHeartbeatSeconds = try Self.requirePositive(
-                Self.requiredDouble(config, key: "sseHeartbeatSeconds", fallback: 10),
+                config.requiredDouble(forKey: "sseHeartbeatSeconds", fallback: 10),
                 key: "APP_LISTENERS_LAN_SSE_HEARTBEAT_SECONDS",
             )
-            advertiseBonjour = try Self.requiredBool(config, key: "advertiseBonjour", fallback: true)
+            advertiseBonjour = try config.requiredBool(forKey: "advertiseBonjour", fallback: true)
             serviceName = try Self.requiredNonEmptyString(
                 config,
                 key: "serviceName",
@@ -98,76 +98,20 @@ package struct LANHTTPListenerConfig: Equatable {
         }
     }
 
-    private static func requiredBool(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: Bool,
-    ) throws -> Bool {
-        do {
-            return try config.requiredBool(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
-    private static func requiredString(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: String,
-    ) throws -> String {
-        do {
-            return try config.requiredString(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
     private static func requiredNonEmptyString(
         _ config: ConfigReader,
         key: ConfigKey,
         fallback: String,
     ) throws -> String {
-        let value = try requiredString(config, key: key, fallback: fallback)
+        let value = try config.requiredString(forKey: key, fallback: fallback)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !value.isEmpty else {
             throw ServerConfigurationError(
-                "Configuration value 'APP_LISTENERS_LAN_SERVICE_NAME' must be non-empty when the LAN HTTP listener is configured.",
+                "Configuration value 'app.listeners.lan.\(key)' must be non-empty when the LAN HTTP listener is configured.",
             )
         }
 
         return value
-    }
-
-    private static func requiredInt(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: Int,
-    ) throws -> Int {
-        do {
-            return try config.requiredInt(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
-    private static func requiredDouble(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: Double,
-    ) throws -> Double {
-        do {
-            return try config.requiredDouble(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
     }
 
     private static func requireValidPort(_ value: Int, key: String) throws -> Int {
@@ -188,9 +132,5 @@ package struct LANHTTPListenerConfig: Equatable {
         }
 
         return value
-    }
-
-    private static func isMissingRequiredConfigValue(_ error: any Error) -> Bool {
-        String(describing: error).contains("Missing required config value for key:")
     }
 }

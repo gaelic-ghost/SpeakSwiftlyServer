@@ -149,6 +149,8 @@ import Testing
     #expect(yamlConfig.server.environment == "staging")
     #expect(yamlConfig.server.host == "192.168.1.10")
     #expect(yamlConfig.server.port == 7555)
+    // The legacy app.http view is kept as an alias for app.listeners.localhost,
+    // so listener-localhost keys own the effective localhost HTTP settings.
     #expect(yamlConfig.http.enabled == true)
     #expect(yamlConfig.http.host == "127.0.0.1")
     #expect(yamlConfig.http.port == 7667)
@@ -207,7 +209,7 @@ import Testing
         _ = try await AppConfig.load(environment: ["APP_LISTENERS_LAN_SERVICE_NAME": " "])
         Issue.record("Expected blank APP_LISTENERS_LAN_SERVICE_NAME to throw a configuration error.")
     } catch let error as ServerConfigurationError {
-        #expect(error.message.contains("APP_LISTENERS_LAN_SERVICE_NAME"))
+        #expect(error.message.contains("app.listeners.lan.serviceName"))
     }
 
     do {
