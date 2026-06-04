@@ -33,6 +33,28 @@ package extension ServerHost {
         hostEventContinuation.yield(.transportChanged(updated))
     }
 
+    func replaceTransportStatus(_ snapshot: TransportStatusSnapshot) async {
+        let current = transportStatuses[snapshot.name]
+        guard current != snapshot else {
+            return
+        }
+
+        transportStatuses[snapshot.name] = snapshot
+        hostEventContinuation.yield(.transportChanged(snapshot))
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
+    func transportStatus(named name: String) throws -> TransportStatusSnapshot {
+        guard let snapshot = transportStatuses[name] else {
+            throw ServerRequestError(
+                .notFound,
+                message: "SpeakSwiftlyServer could not find transport '\(name)' while applying HTTP listener runtime control.",
+            )
+        }
+
+        return snapshot
+    }
+
     static func initialTransportStatuses(
         httpConfig: HTTPConfig,
         listenersConfig: HTTPListenersConfig,

@@ -28,6 +28,18 @@ package func registerHTTPRuntimeRoutes(
         await host.runtimeConfigurationSnapshot()
     }
 
+    router.post("listeners/:listener/enable") { _, context -> Response in
+        let listener = try HTTPListenerRuntimeName(pathComponent: context.parameters.require("listener"))
+        let snapshot = try await host.enableHTTPListener(listener)
+        return try encodeJSONResponse(snapshot, status: .ok)
+    }
+
+    router.post("listeners/:listener/disable") { _, context -> Response in
+        let listener = try HTTPListenerRuntimeName(pathComponent: context.parameters.require("listener"))
+        let snapshot = try await host.disableHTTPListener(listener)
+        return try encodeJSONResponse(snapshot, status: .ok)
+    }
+
     router.put("configuration") { request, context -> RuntimeConfigurationSnapshot in
         let payload = try await request.decode(as: RuntimeConfigurationUpdatePayload.self, context: context)
         let currentConfiguration = await host.runtimeConfigurationSnapshot()

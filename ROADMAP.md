@@ -166,7 +166,7 @@ In Progress
 - [ ] Add a Mac mini to MacBook LAN audio smoke path that installs or refreshes the mini LaunchAgent, confirms the MacBook receiver is advertised and listening, sends a small generated-audio stream with the shared token, and verifies local receiver playback without running the full real-model E2E matrix.
 - [ ] Add a LAN sender authorization/install path for macOS Local Network privacy so LaunchAgent-hosted sender mode can connect to another Mac through an app or plugin bundle that declares LAN access, or report a preflight failure before remote playback is attempted.
 - [ ] Split HTTP startup into independent localhost and LAN listeners: keep localhost on a stable local port, keep LAN disabled by default, bind enabled LAN listeners to a random OS-selected port, advertise the LAN endpoint with Bonjour, and expose token-safe listener status in overview snapshots.
-- [ ] Add runtime listener controls after the split startup model lands: enable/disable localhost and LAN listeners independently, document active-request behavior, and keep config persistence separate from in-process listener state.
+- [ ] Finish runtime listener controls after the LAN toggle slice lands: keep LAN enable/disable covered by in-process tests, isolate localhost hard-stop behavior so it cannot cancel sibling LAN listeners, document active-request behavior, and keep config persistence separate from in-process listener state.
 - [ ] Update server release automation so SemVer prerelease tags create GitHub prerelease objects and existing prerelease release objects are verified before the flow proceeds; keep the broader reusable repo-tooling followup tied to Socket issue [#61](https://github.com/gaelic-ghost/socket/issues/61).
 
 ### Exit Criteria

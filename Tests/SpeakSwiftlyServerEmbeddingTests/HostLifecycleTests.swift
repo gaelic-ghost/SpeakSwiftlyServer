@@ -375,6 +375,165 @@ import Testing
 }
 
 @available(macOS 14, *)
+@Test func `HTTP listener runtime controls toggle localhost and LAN independently`() async throws {
+    let configuration = testConfiguration()
+    let localhostHTTPConfig = HTTPConfig(
+        enabled: true,
+        host: "127.0.0.1",
+        port: 0,
+        sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
+    )
+    let lanListenerConfig = LANHTTPListenerConfig(
+        enabled: false,
+        host: "127.0.0.1",
+        port: 0,
+        sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
+        advertiseBonjour: false,
+        serviceName: "SpeakSwiftly Server Runtime Toggle Test LAN",
+    )
+    let listenersConfig = HTTPListenersConfig(
+        localhost: localhostHTTPConfig,
+        lan: lanListenerConfig,
+    )
+    let runtime = MockRuntime(profiles: [sampleProfile()] + sampleSystemProfiles())
+    let state = await MainActor.run { EmbeddedServer() }
+    let host = ServerHost(
+        configuration: configuration,
+        httpConfig: localhostHTTPConfig,
+        listenersConfig: listenersConfig,
+        mcpConfig: .init(enabled: false, path: "/mcp", serverName: "test-mcp", title: "Test MCP"),
+        runtime: runtime,
+        runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+        state: state,
+    )
+    let hostReadinessGate = EmbeddedLifecycleReadinessGate()
+    let listenerController = HTTPListenerRuntimeController(
+        host: host,
+        localhostConfiguration: localhostHTTPConfig,
+        lanConfiguration: lanListenerConfig,
+        mcpConfig: .init(enabled: false, path: "/mcp", serverName: "test-mcp", title: "Test MCP"),
+        localhostBeforeServerStarts: [
+            {
+                try await hostReadinessGate.waitUntilReady()
+            },
+        ],
+        lanBeforeServerStarts: [
+            {
+                try await hostReadinessGate.waitUntilReady()
+            },
+        ],
+        logger: Logger(label: "ServerTests.HTTPListenerRuntimeControls"),
+    )
+    await host.configureHTTPListenerRuntimeControl(listenerController.runtimeControl)
+    let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: 1)
+    let serviceGroup = ServiceGroup(
+        services: [
+            HTTPListenerRuntimeControllerService(
+                controller: listenerController,
+                shutdownBarrier: shutdownBarrier,
+            ),
+        ],
+        gracefulShutdownSignals: [],
+        cancellationSignals: [],
+        logger: Logger(label: "ServerTests.HTTPListenerRuntimeControls"),
+    )
+
+    await host.markTransportStarting(name: "http")
+    await host.markTransportStarting(name: HTTPListenersConfig.localhostTransportName)
+    await host.start()
+    await runtime.publishStatus(.residentModelReady)
+    await hostReadinessGate.markReady()
+    try await waitUntilReady(host)
+
+    let runTask = Task<Void, Error> {
+        try await serviceGroup.run()
+    }
+    do {
+        let localhostTransport = try await waitForTransport(
+            named: HTTPListenersConfig.localhostTransportName,
+            state: "listening",
+            on: host,
+        )
+        let localhostPort = try #require(localhostTransport.port)
+        let initialLAN = try await host.transportStatus(named: HTTPListenersConfig.lanTransportName)
+        #expect(initialLAN.enabled == false)
+        #expect(initialLAN.state == "disabled")
+
+        let enabledLANResponse = try await httpPOSTJSON(path: "/listeners/lan/enable", port: localhostPort)
+        #expect(enabledLANResponse.statusCode == 200)
+        #expect(enabledLANResponse.json["name"] as? String == HTTPListenersConfig.lanTransportName)
+        #expect(enabledLANResponse.json["enabled"] as? Bool == true)
+        #expect(enabledLANResponse.json["state"] as? String == "listening")
+
+        let lanTransport = try await waitForTransport(
+            named: HTTPListenersConfig.lanTransportName,
+            state: "listening",
+            on: host,
+        )
+        let lanPort = try #require(lanTransport.port)
+        #expect(lanPort > 0)
+        #expect(lanPort != localhostPort)
+
+        let lanOverview = try await httpJSON(path: "/overview", port: lanPort)
+        #expect(lanOverview.statusCode == 200)
+        #expect(lanOverview.json["service"] as? String == configuration.name)
+
+        let disablingLANResponse = try await httpPOSTJSON(path: "/listeners/lan/disable", port: localhostPort)
+        #expect(disablingLANResponse.statusCode == 200)
+        #expect(disablingLANResponse.json["state"] as? String == "disabled")
+        let disabledLAN = try await waitForTransport(
+            named: HTTPListenersConfig.lanTransportName,
+            state: "disabled",
+            requireBoundPort: false,
+            on: host,
+        )
+        #expect(disabledLAN.enabled == false)
+        let localhostStillListening = try await waitForTransport(
+            named: HTTPListenersConfig.localhostTransportName,
+            state: "listening",
+            on: host,
+        )
+        #expect(localhostStillListening.enabled == true)
+
+        let reenabledLANResponse = try await httpPOSTJSON(path: "/listeners/lan/enable", port: localhostPort)
+        #expect(reenabledLANResponse.statusCode == 200)
+        let reenabledLAN = try await waitForTransport(
+            named: HTTPListenersConfig.lanTransportName,
+            state: "listening",
+            on: host,
+        )
+        let reenabledLANPort = try #require(reenabledLAN.port)
+        let reenabledLANOverview = try await httpJSON(path: "/overview", port: reenabledLANPort)
+        #expect(reenabledLANOverview.statusCode == 200)
+        let unsupportedLocalhostDisable = try await httpPOSTJSON(
+            path: "/listeners/localhost/disable",
+            port: reenabledLANPort,
+        )
+        #expect(unsupportedLocalhostDisable.statusCode == 503)
+        let finalLocalhost = try await waitForTransport(
+            named: HTTPListenersConfig.localhostTransportName,
+            state: "listening",
+            on: host,
+        )
+        #expect(finalLocalhost.enabled == true)
+        let finalLAN = try await waitForTransport(
+            named: HTTPListenersConfig.lanTransportName,
+            state: "listening",
+            on: host,
+        )
+        #expect(finalLAN.enabled == true)
+
+        await serviceGroup.triggerGracefulShutdown()
+        try await runTask.value
+        await shutdownBarrier.waitUntilCompleted()
+    } catch {
+        await serviceGroup.triggerGracefulShutdown()
+        _ = try? await runTask.value
+        throw error
+    }
+}
+
+@available(macOS 14, *)
 @Test func `embedded server can liftoff again after landing`() async throws {
     actor RestartProbe {
         private var bootstrapCallCount = 0
@@ -993,7 +1152,17 @@ private func waitForTransport(
 private func httpJSON(path: String, port: Int) async throws -> (statusCode: Int, json: [String: Any]) {
     let url = try #require(URL(string: "http://127.0.0.1:\(port)\(path)"))
     var request = URLRequest(url: url)
-    request.timeoutInterval = 2
+    request.timeoutInterval = 8
+    let (data, response) = try await URLSession.shared.data(for: request)
+    let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+    return (statusCode, try jsonObject(from: data))
+}
+
+private func httpPOSTJSON(path: String, port: Int) async throws -> (statusCode: Int, json: [String: Any]) {
+    let url = try #require(URL(string: "http://127.0.0.1:\(port)\(path)"))
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.timeoutInterval = 8
     let (data, response) = try await URLSession.shared.data(for: request)
     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
     return (statusCode, try jsonObject(from: data))

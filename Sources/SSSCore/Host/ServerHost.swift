@@ -107,6 +107,7 @@ package actor ServerHost {
     let remoteGeneratedAudioPlaybackSink: @Sendable (SpeakSwiftly.GeneratedAudioChunkStream) async throws -> Void
     let runtimeStartupConfigurationStore: RuntimeStartupConfigurationStore
     let state: any ServerHostStatePublishing
+    var httpListenerRuntimeControl: HTTPListenerRuntimeControl?
     let immediatePublishRequests: AsyncStream<Void>
     let immediatePublishContinuation: AsyncStream<Void>.Continuation
     let coalescedPublishRequests: AsyncStream<Void>
