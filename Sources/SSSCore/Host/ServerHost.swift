@@ -105,6 +105,7 @@ package actor ServerHost {
     var playbackTask: Task<Void, Never>?
     var publishTask: Task<Void, Never>?
     var requestMonitorTasks = [String: Task<Void, Never>]()
+    var remoteGenerationRequestTasks = [String: Task<Void, Never>]()
     var workerMode = "starting"
     var workerStage = "starting"
     var startupError: String?

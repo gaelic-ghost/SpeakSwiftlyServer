@@ -78,8 +78,12 @@ package extension ServerHost {
                     continuation: continuation,
                 )
             }
+            registerRemoteGenerationRequestTask(task, requestID: requestID)
             continuation.onTermination = { _ in
                 task.cancel()
+                Task {
+                    await self.clearRemoteGenerationRequestTask(id: requestID)
+                }
             }
         }
         let handle = RuntimeRequestHandle(
@@ -103,6 +107,10 @@ package extension ServerHost {
     ) async {
         continuation.yield(.started(.init(id: requestID, kind: .generateSpeech)))
         continuation.yield(.progress(.init(id: requestID, stage: .bufferingAudio)))
+        var remoteSession: RemoteSpeechStreamSession?
+        defer {
+            clearRemoteGenerationRequestTask(id: requestID)
+        }
         do {
             guard let sharedToken = remoteGenerationConfig.sharedToken else {
                 throw SpeakSwiftly.Error(
@@ -111,7 +119,7 @@ package extension ServerHost {
                 )
             }
 
-            let chunks = remoteGeneratedAudioStreamProvider(
+            let session = remoteGeneratedAudioStreamProvider(
                 .init(
                     text: text,
                     profileName: profileName,
@@ -122,13 +130,20 @@ package extension ServerHost {
                 service,
                 sharedToken,
             )
+            remoteSession = session
             try await routeRemoteGeneratedAudio(
-                chunks: chunks,
+                chunks: session.chunks,
                 requestID: requestID,
             )
+            try Task.checkCancellation()
             continuation.yield(.completed(.empty))
             continuation.finish()
         } catch is CancellationError {
+            await cancelRemoteGenerationUpstream(
+                remoteSession,
+                requestID: requestID,
+                service: service,
+            )
             continuation.finish(
                 throwing: SpeakSwiftly.Error(
                     code: .requestCancelled,
@@ -143,6 +158,44 @@ package extension ServerHost {
                     code: .internalError,
                     message: "SpeakSwiftlyServer could not complete remote generation request '\(requestID)' from '\(service.serviceName ?? service.baseURL)'. Likely cause: \(error.localizedDescription)",
                 ),
+            )
+        }
+    }
+
+    func registerRemoteGenerationRequestTask(_ task: Task<Void, Never>, requestID: String) {
+        remoteGenerationRequestTasks[requestID] = task
+        if jobs[requestID]?.terminalEvent != nil {
+            task.cancel()
+            remoteGenerationRequestTasks[requestID] = nil
+        }
+    }
+
+    func clearRemoteGenerationRequestTask(id: String) {
+        remoteGenerationRequestTasks[id] = nil
+    }
+
+    func cancelRemoteGenerationUpstream(
+        _ remoteSession: RemoteSpeechStreamSession?,
+        requestID: String,
+        service: RemoteGenerationService,
+    ) async {
+        guard let remoteSession else {
+            return
+        }
+
+        do {
+            try await remoteSession.cancelUpstream()
+        } catch let error as SpeakSwiftly.Error {
+            recordRecentError(
+                source: "remote_generation",
+                code: error.code.rawValue,
+                message: error.message,
+            )
+        } catch {
+            recordRecentError(
+                source: "remote_generation",
+                code: SpeakSwiftly.ErrorCode.internalError.rawValue,
+                message: "SpeakSwiftlyServer could not propagate cancellation for remote generation request '\(requestID)' to '\(service.serviceName ?? service.baseURL)'. Likely cause: \(error.localizedDescription)",
             )
         }
     }

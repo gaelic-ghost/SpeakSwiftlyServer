@@ -48,10 +48,18 @@ package extension ServerHost {
         playbackTask?.cancel()
         let requestMonitorTasks = requestMonitorTasks
         self.requestMonitorTasks.removeAll()
+        let remoteGenerationRequestTasks = remoteGenerationRequestTasks
+        self.remoteGenerationRequestTasks.removeAll()
+        for task in remoteGenerationRequestTasks.values {
+            task.cancel()
+        }
         for task in requestMonitorTasks.values {
             task.cancel()
         }
         await runtime.shutdown()
+        for task in remoteGenerationRequestTasks.values {
+            await task.value
+        }
         for task in requestMonitorTasks.values {
             await task.value
         }
