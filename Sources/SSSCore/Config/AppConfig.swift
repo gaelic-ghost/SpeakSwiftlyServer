@@ -7,6 +7,7 @@ package struct AppConfig {
     package let http: HTTPConfig
     package let mcp: MCPConfig
     package let networkAudioReceiver: NetworkAudioReceiverConfig
+    package let remoteGeneration: RemoteGenerationConfig
 
     // MARK: - Initialization
 
@@ -16,12 +17,17 @@ package struct AppConfig {
         http: HTTPConfig,
         mcp: MCPConfig,
         networkAudioReceiver: NetworkAudioReceiverConfig,
+        remoteGeneration: RemoteGenerationConfig = .init(
+            allowRemoteStreamRequests: false,
+            sharedToken: nil,
+        ),
     ) {
         self.server = server
         self.runtime = runtime
         self.http = http
         self.mcp = mcp
         self.networkAudioReceiver = networkAudioReceiver
+        self.remoteGeneration = remoteGeneration
     }
 
     init(config: ConfigReader) throws {
@@ -42,6 +48,7 @@ package struct AppConfig {
             config: config.scoped(to: "networkAudioReceiver"),
             fallbackServiceName: server.name,
         )
+        remoteGeneration = try RemoteGenerationConfig(config: config.scoped(to: "remoteGeneration"))
     }
 
     static func load(

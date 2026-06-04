@@ -35,6 +35,8 @@ package func registerHTTPSpeechRoutes(
     }
 
     router.post("speech/stream") { request, context -> Response in
+        try await authorizeRemoteGeneratedAudioStreamRequest(request, host: host)
+
         let payload = try await request.decode(as: SpeakRequestPayload.self, context: context)
         guard let profileName = await host.resolvedRequestedVoiceProfileName(payload.profileName) else {
             throw await HTTPError(
@@ -119,6 +121,33 @@ package func registerHTTPSpeechRoutes(
             profileName: profileName,
         )
         return try buildAcceptedRequestResponse(request: request, configuration: configuration, requestID: requestID)
+    }
+}
+
+private func authorizeRemoteGeneratedAudioStreamRequest(
+    _ request: Request,
+    host: ServerHost,
+) async throws {
+    let config = await host.remoteGenerationConfiguration()
+    guard config.allowRemoteStreamRequests else {
+        throw HTTPError(
+            .forbidden,
+            message: "SpeakSwiftlyServer rejected /speech/stream because app.remoteGeneration.allowRemoteStreamRequests is false. Enable that setting and restart the service before another SpeakSwiftlyServer can use this machine for remote generation.",
+        )
+    }
+    guard let expectedToken = config.sharedToken else {
+        throw HTTPError(
+            .internalServerError,
+            message: "SpeakSwiftlyServer rejected /speech/stream because app.remoteGeneration.sharedToken is empty even though remote stream requests are enabled. Check the server config and restart the service.",
+        )
+    }
+    guard let tokenHeaderName = HTTPField.Name(RemoteGenerationConfig.streamTokenHeaderName),
+          let providedToken = request.headers[tokenHeaderName]?.trimmingCharacters(in: .whitespacesAndNewlines),
+          providedToken == expectedToken else {
+        throw HTTPError(
+            .unauthorized,
+            message: "SpeakSwiftlyServer rejected /speech/stream because the \(RemoteGenerationConfig.streamTokenHeaderName) header is missing or does not match app.remoteGeneration.sharedToken.",
+        )
     }
 }
 

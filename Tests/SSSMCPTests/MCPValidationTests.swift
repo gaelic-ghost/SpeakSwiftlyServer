@@ -191,10 +191,15 @@ extension ServerTests {
                 title: "SpeakSwiftly Test MCP",
             ),
             runtime: runtime,
-            remoteGeneratedAudioStreamProvider: { request, service in
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: false,
+                sharedToken: "remote-token",
+            ),
+            remoteGeneratedAudioStreamProvider: { request, service, sharedToken in
                 #expect(request.text == "Remote generation probe")
                 #expect(request.profileName == "default")
                 #expect(service.serviceName == "GMM4")
+                #expect(sharedToken == "remote-token")
                 return AsyncThrowingStream { continuation in
                     for chunk in remoteChunks {
                         continuation.yield(chunk)

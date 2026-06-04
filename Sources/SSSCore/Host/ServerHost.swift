@@ -82,6 +82,7 @@ package actor ServerHost {
     var httpConfig: HTTPConfig
     var mcpConfig: MCPConfig
     var networkAudioReceiverConfig: NetworkAudioReceiverConfig
+    var remoteGenerationConfig: RemoteGenerationConfig
     let runtime: any SpeakSwiftlyRuntimeServing
     let remoteGeneratedAudioStreamProvider: RemoteGeneratedAudioStreamProvider
     let remoteGeneratedAudioPlaybackSink: @Sendable (SpeakSwiftly.GeneratedAudioChunkStream) async throws -> Void
@@ -164,8 +165,9 @@ package actor ServerHost {
         mcpConfig: MCPConfig? = nil,
         networkAudioReceiverConfig: NetworkAudioReceiverConfig? = nil,
         runtime: any SpeakSwiftlyRuntimeServing,
-        remoteGeneratedAudioStreamProvider: @escaping RemoteGeneratedAudioStreamProvider = { request, service in
-            RemoteSpeechStreamClient.stream(request: request, service: service)
+        remoteGenerationConfig: RemoteGenerationConfig? = nil,
+        remoteGeneratedAudioStreamProvider: @escaping RemoteGeneratedAudioStreamProvider = { request, service, sharedToken in
+            RemoteSpeechStreamClient.stream(request: request, service: service, sharedToken: sharedToken)
         },
         remoteGeneratedAudioPlaybackSink: @escaping @Sendable (SpeakSwiftly.GeneratedAudioChunkStream) async throws -> Void = { chunks in
             try await Task { @MainActor in
@@ -214,6 +216,10 @@ package actor ServerHost {
             enabled: false,
             serviceName: "SpeakSwiftly Audio Receiver",
             port: 0,
+            sharedToken: nil,
+        )
+        self.remoteGenerationConfig = remoteGenerationConfig ?? .init(
+            allowRemoteStreamRequests: false,
             sharedToken: nil,
         )
         self.runtime = runtime
@@ -300,6 +306,7 @@ package actor ServerHost {
             mcpConfig: appConfig.mcp,
             networkAudioReceiverConfig: appConfig.networkAudioReceiver,
             runtime: runtime,
+            remoteGenerationConfig: appConfig.remoteGeneration,
             runtimeStartupConfigurationStore: runtimeStartupConfigurationStore,
             activeRuntimeSpeechBackend: startupConfiguration.speechBackend,
             activeDuckMediaVolume: startupConfiguration.duckMediaVolume,

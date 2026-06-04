@@ -33,6 +33,8 @@ The companion executable walkthrough starts at <doc:Using-The-Command-Line-Tool>
 
 The HTTP and MCP surfaces are transport adapters around the same host state and runtime operations. They are the right choice when another process, a local service manager, or an external client should own the session.
 
+The server-to-server generated-audio stream route is disabled by default. Enable `app.remoteGeneration.allowRemoteStreamRequests` and provide `app.remoteGeneration.sharedToken` only when this machine should generate speech for another SpeakSwiftlyServer over `/speech/stream`; callers must send that token in `X-SpeakSwiftly-Remote-Generation-Token`.
+
 The LAN audio receiver is also a transport adapter, but it is intentionally receiver-only in this release. Enable `app.networkAudioReceiver` when this machine should advertise itself over Bonjour, accept generated-audio chunk streams from another SpeakSwiftly host after the shared-token handshake, and play those chunks locally. The transport appears in shared host snapshots as `network_audio_receiver`, including listener state and active inbound stream count.
 
 This DocC catalog intentionally stays library-first. For the transport inventory, request and response payloads, and command reference, use the repository docs:

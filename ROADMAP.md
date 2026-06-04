@@ -304,7 +304,8 @@ In Progress
 - [x] Add first-pass remote generation routing so a local server can call another `SpeakSwiftlyServer` for `/speech/stream`, decode HTTP-framed canonical chunks, and feed them to local playback or the selected LAN receiver.
 - [ ] Keep any `EmbeddedServer` surface widening separate and explicit; no `EmbeddedServer` widening until a concrete embedded consumer needs it.
 - [ ] Add client compatibility-gated MCP progress updates so newer clients can subscribe to direct request/playback progress notifications without breaking existing MCP clients that only expect resource-updated notifications and retained request resources.
-- [ ] Add remote generation hardening: auth for `/speech/stream`, cancellation propagation from the caller server to the generator server, richer in-flight stream status, and LAN receiver token/operator UX for non-local playback.
+- [x] Add first-pass remote generation hardening by gating `/speech/stream` behind `app.remoteGeneration.allowRemoteStreamRequests` and a shared token header that is separate from LAN receiver playback tokens.
+- [ ] Add remaining remote generation hardening: cancellation propagation from the caller server to the generator server, richer in-flight stream status, and LAN receiver token/operator UX for non-local playback.
 - [ ] Expand transport snapshots for `network_audio_receiver` and future LAN sender state with receiver service names, selected endpoint metadata, active stream counts, and recent failure messages that are useful to operators without exposing shared tokens.
 
 ### Exit Criteria

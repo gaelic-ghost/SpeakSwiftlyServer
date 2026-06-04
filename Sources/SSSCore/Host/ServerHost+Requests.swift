@@ -2,6 +2,10 @@ import Foundation
 import SpeakSwiftly
 
 package extension ServerHost {
+    func remoteGenerationConfiguration() -> RemoteGenerationConfig {
+        remoteGenerationConfig
+    }
+
     func queueSpeechLive(
         text: String,
         profileName: String,
@@ -100,6 +104,13 @@ package extension ServerHost {
         continuation.yield(.started(.init(id: requestID, kind: .generateSpeech)))
         continuation.yield(.progress(.init(id: requestID, stage: .bufferingAudio)))
         do {
+            guard let sharedToken = remoteGenerationConfig.sharedToken else {
+                throw SpeakSwiftly.Error(
+                    code: .invalidRequest,
+                    message: "SpeakSwiftlyServer cannot route remote generation request '\(requestID)' to '\(service.serviceName ?? service.baseURL)' because app.remoteGeneration.sharedToken is empty in this server's configuration.",
+                )
+            }
+
             let chunks = remoteGeneratedAudioStreamProvider(
                 .init(
                     text: text,
@@ -109,6 +120,7 @@ package extension ServerHost {
                     qwenPreModelTextChunking: qwenPreModelTextChunking,
                 ),
                 service,
+                sharedToken,
             )
             try await routeRemoteGeneratedAudio(
                 chunks: chunks,

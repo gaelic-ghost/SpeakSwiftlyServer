@@ -482,6 +482,75 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
+    @Test func `speak stream route requires remote generation token`() async throws {
+        let runtime = MockRuntime()
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let disabledHost = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await disabledHost.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(disabledHost)
+
+        let disabledApp = assembleHBApp(configuration: testHTTPConfig(configuration), host: disabledHost)
+        try await disabledApp.test(.router) { client in
+            let response = try await client.execute(
+                uri: "/speech/stream",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"disabled","profile_name":"default"}"#),
+            )
+            let responseJSON = try jsonObject(from: response.body)
+            let error = try #require(responseJSON["error"] as? [String: Any])
+            let message = try #require(error["message"] as? String)
+            #expect(response.status == .forbidden)
+            #expect(message.contains("allowRemoteStreamRequests"))
+        }
+
+        await disabledHost.shutdown()
+
+        let enabledHost = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: true,
+                sharedToken: "remote-token",
+            ),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await enabledHost.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(enabledHost)
+
+        let enabledApp = assembleHBApp(configuration: testHTTPConfig(configuration), host: enabledHost)
+        try await enabledApp.test(.router) { client in
+            var wrongTokenHeaders = HTTPFields()
+            wrongTokenHeaders[.contentType] = "application/json"
+            try wrongTokenHeaders[#require(HTTPField.Name(RemoteGenerationConfig.streamTokenHeaderName))] = "wrong-token"
+            let response = try await client.execute(
+                uri: "/speech/stream",
+                method: .post,
+                headers: wrongTokenHeaders,
+                body: byteBuffer(#"{"text":"wrong token","profile_name":"default"}"#),
+            )
+            let responseJSON = try jsonObject(from: response.body)
+            let error = try #require(responseJSON["error"] as? [String: Any])
+            let message = try #require(error["message"] as? String)
+            #expect(response.status == .unauthorized)
+            #expect(message.contains(RemoteGenerationConfig.streamTokenHeaderName))
+        }
+
+        await enabledHost.shutdown()
+    }
+
+    @available(macOS 14, *)
     @Test func `speak stream route returns generated audio chunks as ndjson frames`() async throws {
         let runtime = MockRuntime()
         await runtime.replaceScriptedAudioStreamChunks([
@@ -506,6 +575,10 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: true,
+                sharedToken: "remote-token",
+            ),
             runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
             state: state,
         )
@@ -516,10 +589,13 @@ extension ServerTests {
 
         let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
+            var headers = HTTPFields()
+            headers[.contentType] = "application/json"
+            try headers[#require(HTTPField.Name(RemoteGenerationConfig.streamTokenHeaderName))] = "remote-token"
             let response = try await client.execute(
                 uri: "/speech/stream",
                 method: .post,
-                headers: [.contentType: "application/json"],
+                headers: headers,
                 body: byteBuffer(#"{"text":"Stream route test","profile_name":"default","qwen_pre_model_text_chunking":true}"#),
             )
             #expect(response.status == .ok)
@@ -567,11 +643,16 @@ extension ServerTests {
         let host = ServerHost(
             configuration: configuration,
             runtime: runtime,
-            remoteGeneratedAudioStreamProvider: { request, service in
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: false,
+                sharedToken: "remote-token",
+            ),
+            remoteGeneratedAudioStreamProvider: { request, service, sharedToken in
                 #expect(request.text == "Route test")
                 #expect(request.profileName == "default")
                 #expect(request.qwenPreModelTextChunking == true)
                 #expect(service.baseURL == "http://GMM4.local:7338")
+                #expect(sharedToken == "remote-token")
                 return AsyncThrowingStream { continuation in
                     for chunk in remoteChunks {
                         continuation.yield(chunk)
