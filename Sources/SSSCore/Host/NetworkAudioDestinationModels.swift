@@ -132,6 +132,26 @@ public struct NetworkAudioReceiverSelectionResponse: Codable, Sendable, Equatabl
     public let message: String
 }
 
+public struct NetworkAudioReceiverSmokeTestResponse: Codable, Sendable, Equatable {
+    enum CodingKeys: String, CodingKey {
+        case requestID = "request_id"
+        case destinationID = "destination_id"
+        case destinationName = "destination_name"
+        case sampleRate = "sample_rate"
+        case channelCount = "channel_count"
+        case sentChunkCount = "sent_chunk_count"
+        case message
+    }
+
+    public let requestID: String
+    public let destinationID: String
+    public let destinationName: String
+    public let sampleRate: Int
+    public let channelCount: Int
+    public let sentChunkCount: Int
+    public let message: String
+}
+
 public struct NetworkAudioReceiverSelectionPayload: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
         case destinationID = "destination_id"

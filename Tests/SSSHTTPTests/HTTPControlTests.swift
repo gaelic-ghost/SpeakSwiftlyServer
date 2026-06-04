@@ -270,6 +270,13 @@ extension ServerTests {
             #expect(selectionJSON["selected_destination_id"] as? String == destination.id)
             #expect(selectionJSON["lan_output_ready"] as? Bool == false)
 
+            let blockedSmokeResponse = try await client.execute(
+                uri: "/network-audio/selection/smoke-test",
+                method: .post,
+            )
+            #expect(blockedSmokeResponse.status == .badRequest)
+            #expect(String(buffer: blockedSmokeResponse.body).contains("network_audio_receiver_shared_token_missing"))
+
             let clearResponse = try await client.execute(uri: "/network-audio/selection", method: .delete)
             let clearJSON = try jsonObject(from: clearResponse.body)
             #expect(clearResponse.status == .ok)
@@ -281,6 +288,80 @@ extension ServerTests {
                 "network_audio_receiver_shared_token_missing",
             ])
         }
+    }
+
+    @Test func `route smoke-tests selected LAN audio receiver over loopback`() async throws {
+        let listener = SpeakSwiftly.NetworkAudioStreamListener(
+            advertisement: SpeakSwiftly.NetworkAudioServiceAdvertisement(name: "Loopback receiver"),
+            port: 0,
+            sharedToken: "receiver-token",
+        )
+        let inboundStreams = await listener.inboundStreams()
+        try await listener.start()
+        do {
+            let port = try await waitForNetworkAudioListeningPort(listener)
+            let configuration = testConfiguration()
+            let host = await ServerHost(
+                configuration: configuration,
+                networkAudioReceiverConfig: .init(
+                    enabled: false,
+                    serviceName: "Loopback receiver",
+                    port: 0,
+                    sharedToken: "receiver-token",
+                ),
+                runtime: MockRuntime(),
+                runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+                state: MainActor.run { EmbeddedServer() },
+            )
+            let destination = SpeakSwiftly.NetworkAudioDestination(
+                id: "loopback-receiver",
+                name: "Loopback receiver",
+                endpoint: .hostPort(host: "127.0.0.1", port: port),
+                capabilities: .init(),
+                lastSeen: Date(timeIntervalSince1970: 1_796_180_400),
+            )
+            await host.replaceNetworkAudioDestinations([destination])
+            let selection = try await host.selectNetworkAudioDestination(id: destination.id)
+            #expect(selection.selection.lanOutputReady == true)
+
+            let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+            try await app.test(.router) { client in
+                async let smokeResponse = client.execute(
+                    uri: "/network-audio/selection/smoke-test",
+                    method: .post,
+                )
+
+                var iterator = inboundStreams.makeAsyncIterator()
+                let inbound = try #require(await iterator.next())
+                var receivedChunks = [SpeakSwiftly.GeneratedAudioChunk]()
+                for try await chunk in inbound.chunks {
+                    receivedChunks.append(chunk)
+                    if chunk.isFinal {
+                        break
+                    }
+                }
+
+                let response = try await smokeResponse
+                let responseJSON = try jsonObject(from: response.body)
+                #expect(response.status == .ok)
+                let requestID = try #require(responseJSON["request_id"] as? String)
+                #expect(requestID.hasPrefix("network-audio-smoke-"))
+                #expect(responseJSON["destination_id"] as? String == destination.id)
+                #expect(responseJSON["destination_name"] as? String == "Loopback receiver")
+                #expect(responseJSON["sample_rate"] as? Int == 24000)
+                #expect(responseJSON["channel_count"] as? Int == 1)
+                #expect(responseJSON["sent_chunk_count"] as? Int == 2)
+                #expect(inbound.requestID == requestID)
+                #expect(inbound.handshake.senderName == configuration.name)
+                #expect(receivedChunks.map(\.requestID).allSatisfy { $0 == requestID })
+                #expect(receivedChunks.map(\.sequenceNumber) == [0, 1])
+                #expect(receivedChunks.last?.isFinal == true)
+            }
+        } catch {
+            await listener.stop()
+            throw error
+        }
+        await listener.stop()
     }
 
     @available(macOS 14, *)
@@ -382,4 +463,16 @@ extension ServerTests {
 
         await host.shutdown()
     }
+}
+
+private func waitForNetworkAudioListeningPort(_ listener: SpeakSwiftly.NetworkAudioStreamListener) async throws -> UInt16 {
+    for _ in 0..<100 {
+        if case let .listening(port?) = await listener.state {
+            return port
+        }
+        try await Task.sleep(for: .milliseconds(10))
+    }
+
+    Issue.record("Network audio listener did not report a loopback port in time.")
+    throw CancellationError()
 }

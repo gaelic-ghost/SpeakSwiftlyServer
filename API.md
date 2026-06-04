@@ -152,7 +152,7 @@ The HTTP surface runs on the shared Hummingbird process. Transport lifecycle sna
 
 The MCP surface is optional and mounts on the same shared process when MCP is enabled. MCP resources are the preferred read path; MCP tools are reserved for queueing speech, changing runtime state, editing profiles, cancelling work, and clearing queues.
 
-The LAN audio receiver is optional and disabled by default. When enabled, it starts a Network.framework TCP listener, advertises a Bonjour audio-receiver service, accepts `SpeakSwiftly` generated-audio chunk streams after a shared-token handshake, and plays those chunks through the package-owned local chunk player. The receiver appears in transport snapshots as `network_audio_receiver`; its state is `disabled`, `starting`, `listening`, `active`, `failed`, or `stopped`, and `active_stream_count` reports currently accepted inbound streams. The sender-side receiver selection snapshot includes token-safe LAN output readiness fields so operators can tell whether a selected receiver can currently receive remote-generation audio.
+The LAN audio receiver is optional and disabled by default. When enabled, it starts a Network.framework TCP listener, advertises a Bonjour audio-receiver service, accepts `SpeakSwiftly` generated-audio chunk streams after a shared-token handshake, and plays those chunks through the package-owned local chunk player. The receiver appears in transport snapshots as `network_audio_receiver`; its state is `disabled`, `starting`, `listening`, `active`, `failed`, or `stopped`, and `active_stream_count` reports currently accepted inbound streams. The sender-side receiver selection snapshot includes token-safe LAN output readiness fields so operators can tell whether a selected receiver can currently receive remote-generation audio. `POST /network-audio/selection/smoke-test` sends a short silent generated-audio stream to the selected ready receiver and returns the token-safe smoke-test result.
 
 Embedded app hosts use the Swift package library surface. The embedded model runs HTTP and optional MCP inside an outer service-owned lifecycle group that also owns host startup, config-watch lifetime, readiness, and drain.
 
@@ -225,7 +225,7 @@ Important API models include:
 - request records: request ID, kind, state, accepted time, last update, retained events, and terminal result
 - generation records: generation queue, jobs, job items, artifacts, artifact IDs, retained file paths, and job failures
 - playback records: playback state, active request, queued requests, buffer stability, and latest playback event
-- LAN audio receiver selection: selected destination ID/details, available destination count, shared-token presence, selected endpoint readiness, LAN output readiness, and token-safe blocked reason codes
+- LAN audio receiver selection: selected destination ID/details, available destination count, shared-token presence, selected endpoint readiness, LAN output readiness, token-safe blocked reason codes, and smoke-test results
 - voice profile records: profile names, summaries, detail payloads, system-authored metadata, and reroll/delete/rename request results
 - text profile records: built-in style, base profile, active profile, stored profiles, effective profiles, and replacements
 - runtime configuration records: saved next-start backend configuration, saved next-start media ducking, and live backend-switch transition summaries

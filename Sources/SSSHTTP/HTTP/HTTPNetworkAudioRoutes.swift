@@ -23,4 +23,9 @@ package func registerHTTPNetworkAudioRoutes(
         let response = await host.clearNetworkAudioDestinationSelection()
         return try encodeJSONResponse(response, status: .ok)
     }
+
+    router.post("network-audio/selection/smoke-test") { _, _ -> Response in
+        let response = try await host.smokeTestSelectedNetworkAudioDestination()
+        return try encodeJSONResponse(response, status: .ok)
+    }
 }
