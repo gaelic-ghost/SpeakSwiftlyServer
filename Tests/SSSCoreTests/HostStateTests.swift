@@ -142,6 +142,7 @@ extension ServerTests {
                         activeRuntimeMatchesNextRuntime: true,
                         persistedConfigurationWillAffectNextRuntimeStart: true,
                     ),
+                    remoteGeneration: ServerHostDefaultSnapshots.remoteGeneration,
                     transports: [],
                     networkAudioDestinations: [],
                     networkAudioReceiverSelection: ServerHostDefaultSnapshots.networkAudioReceiverSelection,
@@ -153,6 +154,12 @@ extension ServerTests {
         #expect(hostPlayback["state"] as? String == playbackBody["state"] as? String)
         #expect((hostPlayback["active_request"] as? [String: Any])?["id"] as? String == "request-1")
         #expect(hostPlayback["stable_buffered_audio_ms"] as? Int == playbackBody["stable_buffered_audio_ms"] as? Int)
+        let remoteGenerationBody = try #require(hostStateJSON["remote_generation"] as? [String: Any])
+        #expect(remoteGenerationBody["state"] as? String == "disabled")
+        #expect(remoteGenerationBody["stream_requests_enabled"] as? Bool == false)
+        #expect(remoteGenerationBody["shared_token_configured"] as? Bool == false)
+        #expect(remoteGenerationBody["stream_token_header_name"] as? String == RemoteGenerationConfig.streamTokenHeaderName)
+        #expect(remoteGenerationBody["active_outbound_request_count"] as? Int == 0)
 
         let queueJSON = try jsonObject(from: JSONEncoder().encode(QueueSnapshotResponse(snapshot: queue)))
         #expect(queueJSON["queue_type"] as? String == "playback")

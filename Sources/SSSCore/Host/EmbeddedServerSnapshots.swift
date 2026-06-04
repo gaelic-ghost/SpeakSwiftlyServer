@@ -294,6 +294,37 @@ public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+/// Token-safe remote generation status for operator and app display.
+public struct RemoteGenerationStatusSnapshot: Codable, Sendable, Equatable {
+    public let state: String
+    public let streamRequestsEnabled: Bool
+    public let sharedTokenConfigured: Bool
+    public let streamTokenHeaderName: String
+    public let activeOutboundRequestCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case state
+        case streamRequestsEnabled = "stream_requests_enabled"
+        case sharedTokenConfigured = "shared_token_configured"
+        case streamTokenHeaderName = "stream_token_header_name"
+        case activeOutboundRequestCount = "active_outbound_request_count"
+    }
+
+    package init(
+        state: String,
+        streamRequestsEnabled: Bool,
+        sharedTokenConfigured: Bool,
+        streamTokenHeaderName: String,
+        activeOutboundRequestCount: Int,
+    ) {
+        self.state = state
+        self.streamRequestsEnabled = streamRequestsEnabled
+        self.sharedTokenConfigured = sharedTokenConfigured
+        self.streamTokenHeaderName = streamTokenHeaderName
+        self.activeOutboundRequestCount = activeOutboundRequestCount
+    }
+}
+
 /// The active and next-start runtime configuration state exposed by the host.
 public struct RuntimeConfigurationSnapshot: Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
@@ -347,6 +378,7 @@ public struct HostStateSnapshot: Codable, Sendable, Equatable {
     public let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
     public let currentGenerationJobs: [CurrentGenerationJobSnapshot]
     public let runtimeConfiguration: RuntimeConfigurationSnapshot
+    public let remoteGeneration: RemoteGenerationStatusSnapshot
     public let transports: [TransportStatusSnapshot]
     public let networkAudioDestinations: [NetworkAudioDestinationSnapshot]
     public let networkAudioReceiverSelection: NetworkAudioReceiverSelectionSnapshot
@@ -361,6 +393,7 @@ public struct HostStateSnapshot: Codable, Sendable, Equatable {
         case runtimeBackendTransition = "runtime_backend_transition"
         case currentGenerationJobs = "current_generation_jobs"
         case runtimeConfiguration = "runtime_configuration"
+        case remoteGeneration = "remote_generation"
         case transports
         case networkAudioDestinations = "network_audio_destinations"
         case networkAudioReceiverSelection = "network_audio_receiver_selection"

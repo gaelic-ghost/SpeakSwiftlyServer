@@ -55,6 +55,13 @@ extension ServerTests {
             #expect((runtimeRefresh["playback_queue_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["playback_state_refreshed_at"] as? String)?.isEmpty == false)
             #expect((runtimeRefresh["completed_at"] as? String)?.isEmpty == false)
+            let remoteGeneration = try #require(runtimeHostJSON["remote_generation"] as? [String: Any])
+            #expect(remoteGeneration["state"] as? String == "disabled")
+            #expect(remoteGeneration["stream_requests_enabled"] as? Bool == false)
+            #expect(remoteGeneration["shared_token_configured"] as? Bool == false)
+            #expect(remoteGeneration["stream_token_header_name"] as? String == RemoteGenerationConfig.streamTokenHeaderName)
+            #expect(remoteGeneration["active_outbound_request_count"] as? Int == 0)
+            #expect(remoteGeneration["shared_token"] == nil)
 
             let runtimeConfigResponse = try await client.execute(uri: "/configuration", method: .get)
             let runtimeConfigJSON = try jsonObject(from: runtimeConfigResponse.body)

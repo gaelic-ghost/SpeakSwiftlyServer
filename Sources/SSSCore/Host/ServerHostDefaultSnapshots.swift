@@ -58,6 +58,14 @@ package enum ServerHostDefaultSnapshots {
         persistedConfigurationWillAffectNextRuntimeStart: true,
     )
 
+    package static let remoteGeneration = RemoteGenerationStatusSnapshot(
+        state: "disabled",
+        streamRequestsEnabled: false,
+        sharedTokenConfigured: false,
+        streamTokenHeaderName: RemoteGenerationConfig.streamTokenHeaderName,
+        activeOutboundRequestCount: 0,
+    )
+
     package static let networkAudioReceiverSelection = NetworkAudioReceiverSelectionSnapshot(
         selectedDestinationID: nil,
         selectedDestination: nil,

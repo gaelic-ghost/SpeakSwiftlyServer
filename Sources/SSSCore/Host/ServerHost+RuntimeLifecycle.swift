@@ -211,6 +211,7 @@ package extension ServerHost {
             runtimeBackendTransition: runtimeBackendTransitionSnapshot(),
             currentGenerationJobs: currentGenerationJobSnapshots(),
             runtimeConfiguration: runtimeConfigurationSnapshot(),
+            remoteGeneration: remoteGenerationStatusSnapshot(),
             transports: transportSnapshots(),
             networkAudioDestinations: networkAudioDestinations,
             networkAudioReceiverSelection: networkAudioReceiverSelectionSnapshot(),
