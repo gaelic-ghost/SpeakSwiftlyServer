@@ -27,8 +27,24 @@ package struct HTTPConfig {
         fallbackPort: Int,
         fallbackSSEHeartbeatSeconds: Double,
     ) throws {
+        try self.init(
+            config: config,
+            fallbackEnabled: true,
+            fallbackHost: fallbackHost,
+            fallbackPort: fallbackPort,
+            fallbackSSEHeartbeatSeconds: fallbackSSEHeartbeatSeconds,
+        )
+    }
+
+    package init(
+        config: ConfigReader,
+        fallbackEnabled: Bool,
+        fallbackHost: String,
+        fallbackPort: Int,
+        fallbackSSEHeartbeatSeconds: Double,
+    ) throws {
         do {
-            enabled = try config.requiredBool(forKey: "enabled")
+            enabled = try Self.requiredBool(config, key: "enabled", fallback: fallbackEnabled)
             host = try Self.requiredString(
                 config,
                 key: "host",
@@ -64,6 +80,20 @@ package struct HTTPConfig {
     ) throws -> String {
         do {
             return try config.requiredString(forKey: key)
+        } catch {
+            guard isMissingRequiredConfigValue(error) else { throw error }
+
+            return fallback
+        }
+    }
+
+    private static func requiredBool(
+        _ config: ConfigReader,
+        key: ConfigKey,
+        fallback: Bool,
+    ) throws -> Bool {
+        do {
+            return try config.requiredBool(forKey: key)
         } catch {
             guard isMissingRequiredConfigValue(error) else { throw error }
 

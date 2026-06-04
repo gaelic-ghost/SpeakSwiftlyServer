@@ -45,6 +45,19 @@ public struct ServerConfigPersistence: @unchecked Sendable {
             host: \(appConfig.http.host)
             port: \(appConfig.http.port)
             sseHeartbeatSeconds: \(appConfig.http.sseHeartbeatSeconds.cleanYAMLNumber)
+          listeners:
+            localhost:
+              enabled: \(appConfig.listeners.localhost.enabled ? "true" : "false")
+              host: \(appConfig.listeners.localhost.host)
+              port: \(appConfig.listeners.localhost.port)
+              sseHeartbeatSeconds: \(appConfig.listeners.localhost.sseHeartbeatSeconds.cleanYAMLNumber)
+            lan:
+              enabled: \(appConfig.listeners.lan.enabled ? "true" : "false")
+              host: \(appConfig.listeners.lan.host)
+              port: \(appConfig.listeners.lan.port)
+              sseHeartbeatSeconds: \(appConfig.listeners.lan.sseHeartbeatSeconds.cleanYAMLNumber)
+              advertiseBonjour: \(appConfig.listeners.lan.advertiseBonjour ? "true" : "false")
+              serviceName: '\(appConfig.listeners.lan.serviceName)'
           mcp:
             enabled: \(appConfig.mcp.enabled ? "true" : "false")
             path: \(appConfig.mcp.path)

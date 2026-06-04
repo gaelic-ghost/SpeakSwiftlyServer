@@ -1,15 +1,18 @@
 import Foundation
 import Hummingbird
+import NIOCore
 import ServiceLifecycle
 import SSSCore
 
 package func assembleHBApp(
     configuration: HTTPConfig,
     host: ServerHost,
+    transportName: String = "http",
     additionalListeningTransports: [String] = [],
     mountAdditionalRoutes: ((Router<BasicRequestContext>) -> Void)? = nil,
     services: [any Service] = [],
     beforeServerStarts startupProcesses: [@Sendable () async throws -> Void] = [],
+    onServerRunning: (@Sendable (any Channel) async -> Void)? = nil,
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
     if configuration.enabled {
@@ -21,12 +24,15 @@ package func assembleHBApp(
         router: router,
         configuration: .init(address: .hostname(configuration.host, port: configuration.port)),
         services: services,
-        onServerRunning: { _ in
+        onServerRunning: { channel in
             await markConfiguredTransportsListening(
                 configuration: configuration,
                 host: host,
+                primaryTransportName: transportName,
+                primaryTransportPort: channel.localAddress?.port ?? configuration.port,
                 additionalListeningTransports: additionalListeningTransports,
             )
+            await onServerRunning?(channel)
         },
     )
 
@@ -40,10 +46,15 @@ package func assembleHBApp(
 package func markConfiguredTransportsListening(
     configuration: HTTPConfig,
     host: ServerHost,
+    primaryTransportName: String = "http",
+    primaryTransportPort: Int? = nil,
     additionalListeningTransports: [String],
 ) async {
     if configuration.enabled {
-        await host.markTransportListening(name: "http")
+        await host.markTransportListening(
+            name: primaryTransportName,
+            port: primaryTransportPort ?? configuration.port,
+        )
     }
     for transportName in additionalListeningTransports where !transportName.isEmpty {
         await host.markTransportListening(name: transportName)

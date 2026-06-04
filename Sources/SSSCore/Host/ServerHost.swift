@@ -98,6 +98,7 @@ package actor ServerHost {
 
     var configuration: ServerConfiguration
     var httpConfig: HTTPConfig
+    var listenersConfig: HTTPListenersConfig
     var mcpConfig: MCPConfig
     var networkAudioReceiverConfig: NetworkAudioReceiverConfig
     var remoteGenerationConfig: RemoteGenerationConfig
@@ -182,6 +183,7 @@ package actor ServerHost {
     init(
         configuration: ServerConfiguration,
         httpConfig: HTTPConfig? = nil,
+        listenersConfig: HTTPListenersConfig? = nil,
         mcpConfig: MCPConfig? = nil,
         networkAudioReceiverConfig: NetworkAudioReceiverConfig? = nil,
         runtime: any SpeakSwiftlyRuntimeServing,
@@ -220,11 +222,23 @@ package actor ServerHost {
         let sharedHostEvents = hostEventStream.share(bufferingPolicy: .bufferingLatest(32))
 
         self.configuration = configuration
-        self.httpConfig = httpConfig ?? .init(
+        let resolvedHTTPConfig = httpConfig ?? HTTPConfig(
             enabled: true,
             host: configuration.host,
             port: configuration.port,
             sseHeartbeatSeconds: configuration.sseHeartbeatSeconds,
+        )
+        self.httpConfig = resolvedHTTPConfig
+        self.listenersConfig = listenersConfig ?? .init(
+            localhost: resolvedHTTPConfig,
+            lan: .init(
+                enabled: false,
+                host: "0.0.0.0",
+                port: 0,
+                sseHeartbeatSeconds: resolvedHTTPConfig.sseHeartbeatSeconds,
+                advertiseBonjour: true,
+                serviceName: "\(configuration.name) LAN",
+            ),
         )
         self.mcpConfig = mcpConfig ?? .init(
             enabled: false,
@@ -256,6 +270,7 @@ package actor ServerHost {
         self.state = state
         transportStatuses = Self.initialTransportStatuses(
             httpConfig: self.httpConfig,
+            listenersConfig: self.listenersConfig,
             mcpConfig: self.mcpConfig,
             networkAudioReceiverConfig: self.networkAudioReceiverConfig,
         )
@@ -323,6 +338,7 @@ package actor ServerHost {
         return ServerHost(
             configuration: appConfig.server,
             httpConfig: appConfig.http,
+            listenersConfig: appConfig.listeners,
             mcpConfig: appConfig.mcp,
             networkAudioReceiverConfig: appConfig.networkAudioReceiver,
             runtime: runtime,

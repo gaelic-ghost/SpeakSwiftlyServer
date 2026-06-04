@@ -647,13 +647,17 @@ import Testing
 
     let initial = await host.hostStateSnapshot()
     #expect(initial.transports.contains { $0.name == "http" && $0.state == "stopped" })
+    #expect(initial.transports.contains { $0.name == "http_localhost" && $0.state == "stopped" })
+    #expect(initial.transports.contains { $0.name == "http_lan" && $0.state == "disabled" })
     #expect(initial.transports.contains { $0.name == "mcp" && $0.state == "stopped" })
 
     await host.markTransportStarting(name: "http")
+    await host.markTransportStarting(name: "http_localhost")
     await host.markTransportListening(name: "mcp")
 
     let updated = await host.hostStateSnapshot()
     #expect(updated.transports.contains { $0.name == "http" && $0.state == "starting" })
+    #expect(updated.transports.contains { $0.name == "http_localhost" && $0.state == "starting" })
     #expect(updated.transports.contains { $0.name == "mcp" && $0.state == "listening" })
 }
 
@@ -704,6 +708,22 @@ import Testing
                 port: 7999,
                 sseHeartbeatSeconds: 5,
             ),
+            listeners: .init(
+                localhost: .init(
+                    enabled: true,
+                    host: "127.0.0.1",
+                    port: 7998,
+                    sseHeartbeatSeconds: 5,
+                ),
+                lan: .init(
+                    enabled: true,
+                    host: "0.0.0.0",
+                    port: 0,
+                    sseHeartbeatSeconds: 5,
+                    advertiseBonjour: true,
+                    serviceName: "Reloaded LAN Generator",
+                ),
+            ),
             mcp: .init(
                 enabled: true,
                 path: "/assistant/mcp",
@@ -727,6 +747,7 @@ import Testing
         $0.source == "config" &&
             $0.code == "reload_requires_restart" &&
             $0.message.contains("app.http.port") &&
+            $0.message.contains("app.listeners.lan.enabled") &&
             $0.message.contains("app.mcp.path")
     })
 
