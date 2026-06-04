@@ -164,6 +164,7 @@ In Progress
 - [ ] Promote the existing MCP E2E client utilities into a reusable repo-owned smoke helper for local checks, CI, and release verification.
 - [ ] Add a maintainer-facing release verification path that confirms the staged release artifact, LaunchAgent install, runtime host overview, and MCP initialize flow all agree.
 - [ ] Add a Mac mini to MacBook LAN audio smoke path that installs or refreshes the mini LaunchAgent, confirms the MacBook receiver is advertised and listening, sends a small generated-audio stream with the shared token, and verifies local receiver playback without running the full real-model E2E matrix.
+- [ ] Add a LAN sender authorization/install path for macOS Local Network privacy so LaunchAgent-hosted sender mode can connect to another Mac through an app or plugin bundle that declares LAN access, or report a preflight failure before remote playback is attempted.
 - [ ] Update server release automation so SemVer prerelease tags create GitHub prerelease objects and existing prerelease release objects are verified before the flow proceeds; keep the broader reusable repo-tooling followup tied to Socket issue [#61](https://github.com/gaelic-ghost/socket/issues/61).
 
 ### Exit Criteria
