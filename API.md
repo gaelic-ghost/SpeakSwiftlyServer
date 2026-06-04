@@ -60,6 +60,7 @@ HTTP runtime and health routes:
 HTTP speech, request, generation, and artifact routes:
 
 - `POST /speech/live`
+- `POST /speech/stream`
 - `POST /speech/files`
 - `POST /speech/batches`
 - `GET /requests`
@@ -210,7 +211,7 @@ Accepted MCP tool results use:
 - `request_resource_uri`
 - `status_resource_uri`
 
-State-oriented routes and resources return JSON snapshots. Examples include host overview, runtime status, saved runtime configuration, voice profile lists, text-profile state, generation queues, retained requests, generation jobs, generation artifacts, playback state, and playback queue.
+State-oriented routes and resources return JSON snapshots. Examples include host overview, runtime status, saved runtime configuration, voice profile lists, text-profile state, generation queues, retained requests, generation jobs, generation artifacts, playback state, and playback queue. `GET /overview` includes a `remote_generation` object with token-safe operator fields: `state`, `stream_requests_enabled`, `shared_token_configured`, `stream_token_header_name`, and `active_outbound_request_count`.
 
 Playback milestones are normalized into snake_case event names such as `active_request_changed`, `queue_changed`, `first_chunk`, `preroll_ready`, `rebuffer_started`, `rebuffer_resumed`, `completed`, `output_device_changed`, and `interruption_changed`.
 
@@ -219,6 +220,7 @@ Playback milestones are normalized into snake_case event names such as `active_r
 Important API models include:
 
 - host snapshots: overview, status, transport status, recent errors, queue summaries, and cached profile state
+- remote-generation status: stream route enablement, token presence, the expected token header name, and active outbound remote-generation request count without exposing token values
 - request records: request ID, kind, state, accepted time, last update, retained events, and terminal result
 - generation records: generation queue, jobs, job items, artifacts, artifact IDs, retained file paths, and job failures
 - playback records: playback state, active request, queued requests, buffer stability, and latest playback event

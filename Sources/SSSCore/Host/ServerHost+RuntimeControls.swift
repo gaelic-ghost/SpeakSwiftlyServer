@@ -29,6 +29,7 @@ package extension ServerHost {
             runtimeBackendTransition: hostState.runtimeBackendTransition,
             currentGenerationJobs: hostState.currentGenerationJobs,
             runtimeConfiguration: hostState.runtimeConfiguration,
+            remoteGeneration: hostState.remoteGeneration,
             transports: hostState.transports,
             networkAudioDestinations: hostState.networkAudioDestinations,
             networkAudioReceiverSelection: hostState.networkAudioReceiverSelection,
@@ -42,6 +43,25 @@ package extension ServerHost {
             activeDuckMediaVolume: activeDuckMediaVolume,
             activeDefaultVoiceProfileName: activeDefaultVoiceProfileName,
             configuredDefaultVoiceProfileName: configuration.defaultVoiceProfileName,
+        )
+    }
+
+    func remoteGenerationStatusSnapshot() -> RemoteGenerationStatusSnapshot {
+        let sharedTokenConfigured = remoteGenerationConfig.sharedToken?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        let state = if remoteGenerationConfig.allowRemoteStreamRequests == false {
+            "disabled"
+        } else if sharedTokenConfigured {
+            "ready"
+        } else {
+            "misconfigured"
+        }
+
+        return .init(
+            state: state,
+            streamRequestsEnabled: remoteGenerationConfig.allowRemoteStreamRequests,
+            sharedTokenConfigured: sharedTokenConfigured,
+            streamTokenHeaderName: RemoteGenerationConfig.streamTokenHeaderName,
+            activeOutboundRequestCount: remoteGenerationRequestTasks.count,
         )
     }
 

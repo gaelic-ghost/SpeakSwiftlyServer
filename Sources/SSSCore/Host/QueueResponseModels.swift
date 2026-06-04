@@ -206,6 +206,7 @@ package struct StatusSnapshot: Encodable {
         case runtimeBackendTransition = "runtime_backend_transition"
         case currentGenerationJobs = "current_generation_jobs"
         case runtimeConfiguration = "runtime_configuration"
+        case remoteGeneration = "remote_generation"
         case transports
         case networkAudioDestinations = "network_audio_destinations"
         case networkAudioReceiverSelection = "network_audio_receiver_selection"
@@ -232,6 +233,7 @@ package struct StatusSnapshot: Encodable {
     package let runtimeBackendTransition: RuntimeBackendTransitionSnapshot
     package let currentGenerationJobs: [CurrentGenerationJobSnapshot]
     package let runtimeConfiguration: RuntimeConfigurationSnapshot
+    package let remoteGeneration: RemoteGenerationStatusSnapshot
     package let transports: [TransportStatusSnapshot]
     package let networkAudioDestinations: [NetworkAudioDestinationSnapshot]
     package let networkAudioReceiverSelection: NetworkAudioReceiverSelectionSnapshot
