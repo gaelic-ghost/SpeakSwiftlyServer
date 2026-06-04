@@ -2,6 +2,10 @@ import Foundation
 import SpeakSwiftly
 
 package extension ServerHost {
+    static var networkAudioSmokeTestSampleRate: Int { 24000 }
+    static var networkAudioSmokeTestChannelCount: Int { 1 }
+    static var networkAudioSmokeTestSentChunkCount: Int { 2 }
+
     func replaceNetworkAudioDestinations(_ destinations: [SpeakSwiftly.NetworkAudioDestination]) async {
         let snapshots = destinations.map(NetworkAudioDestinationSnapshot.init(destination:))
         let knownIDs = Set(snapshots.map(\.id))
@@ -97,5 +101,69 @@ package extension ServerHost {
             selection: selection,
             message: "SpeakSwiftlyServer cleared the selected LAN audio receiver destination.",
         )
+    }
+
+    func smokeTestSelectedNetworkAudioDestination() async throws -> NetworkAudioReceiverSmokeTestResponse {
+        let selection = networkAudioReceiverSelectionSnapshot()
+        guard selection.lanOutputReady else {
+            throw ServerRequestError(
+                .badRequest,
+                message: "SpeakSwiftlyServer cannot smoke-test LAN audio output because the selected receiver is not ready. Blocked reason(s): \(selection.lanOutputBlockedReasons.joined(separator: ", ")).",
+            )
+        }
+        guard let destination = selection.selectedDestination else {
+            throw ServerRequestError(
+                .badRequest,
+                message: "SpeakSwiftlyServer cannot smoke-test LAN audio output because no selected LAN audio receiver destination is available.",
+            )
+        }
+
+        let requestID = "network-audio-smoke-\(UUID().uuidString)"
+        do {
+            try await sendRemoteGeneratedAudio(
+                chunks: Self.networkAudioSmokeTestChunks(requestID: requestID),
+                requestID: requestID,
+                destination: destination,
+            )
+        } catch {
+            let message = "SpeakSwiftlyServer could not send LAN audio receiver smoke-test request '\(requestID)' to selected receiver '\(destination.name)'. Likely cause: \(error.localizedDescription)"
+            recordRecentError(
+                source: "network_audio_smoke_test",
+                code: "send_failed",
+                message: message,
+            )
+            throw ServerRequestError(.serviceUnavailable, message: message)
+        }
+
+        return .init(
+            requestID: requestID,
+            destinationID: destination.id,
+            destinationName: destination.name,
+            sampleRate: Self.networkAudioSmokeTestSampleRate,
+            channelCount: Self.networkAudioSmokeTestChannelCount,
+            sentChunkCount: Self.networkAudioSmokeTestSentChunkCount,
+            message: "SpeakSwiftlyServer sent a silent LAN audio smoke-test stream to selected receiver '\(destination.name)'.",
+        )
+    }
+
+    static func networkAudioSmokeTestChunks(requestID: String) -> SpeakSwiftly.GeneratedAudioChunkStream {
+        AsyncThrowingStream { continuation in
+            continuation.yield(SpeakSwiftly.GeneratedAudioChunk(
+                requestID: requestID,
+                sequenceNumber: 0,
+                sampleRate: networkAudioSmokeTestSampleRate,
+                channelCount: networkAudioSmokeTestChannelCount,
+                samples: Array(repeating: 0, count: 1200),
+            ))
+            continuation.yield(SpeakSwiftly.GeneratedAudioChunk(
+                requestID: requestID,
+                sequenceNumber: 1,
+                sampleRate: networkAudioSmokeTestSampleRate,
+                channelCount: networkAudioSmokeTestChannelCount,
+                samples: [],
+                isFinal: true,
+            ))
+            continuation.finish()
+        }
     }
 }

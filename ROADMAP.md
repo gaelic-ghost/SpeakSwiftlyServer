@@ -308,6 +308,7 @@ In Progress
 - [x] Propagate remote generation cancellation from the caller server to the generator server when a host-owned remote request is cancelled.
 - [x] Add token-safe `remote_generation` overview status with stream enablement, token-presence, token-header, active outbound request count, and active in-flight stream details.
 - [x] Add LAN receiver token/operator readiness fields for non-local playback selection.
+- [x] Add HTTP LAN receiver smoke-test action that sends a silent generated-audio stream to the selected ready receiver without exposing shared tokens.
 - [ ] Add remaining remote generation hardening: smoke-test-driven refinements to LAN output readiness and in-flight stream detail fields.
 - [ ] Expand transport snapshots for `network_audio_receiver` and future LAN sender state with receiver service names, selected endpoint metadata, active stream counts, and recent failure messages that are useful to operators without exposing shared tokens.
 
