@@ -319,6 +319,7 @@ package extension ServerHost {
                 senderName: configuration.name,
                 sharedToken: sharedToken,
             ),
+            connectionReadinessTimeout: .seconds(15),
         )
         try await sender.send(chunks: chunks)
     }
