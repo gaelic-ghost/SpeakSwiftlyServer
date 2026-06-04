@@ -57,6 +57,7 @@ package struct NetworkAudioReceiverLifecycleService: Service {
                 advertisement: .init(name: config.serviceName),
                 port: config.port,
                 sharedToken: config.sharedToken ?? "",
+                connectionReadinessTimeout: .seconds(15),
             )
 
             do {

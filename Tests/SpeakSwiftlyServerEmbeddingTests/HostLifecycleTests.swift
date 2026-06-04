@@ -223,6 +223,7 @@ import Testing
             senderName: "server-test",
             sharedToken: "test-token",
         ),
+        connectionReadinessTimeout: .seconds(2),
     )
 
     try await sender.send(chunks: chunks)

@@ -295,6 +295,7 @@ extension ServerTests {
             advertisement: SpeakSwiftly.NetworkAudioServiceAdvertisement(name: "Loopback receiver"),
             port: 0,
             sharedToken: "receiver-token",
+            connectionReadinessTimeout: .seconds(2),
         )
         let inboundStreams = await listener.inboundStreams()
         try await listener.start()
