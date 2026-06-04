@@ -295,12 +295,63 @@ public struct RecentErrorSnapshot: Codable, Sendable, Equatable {
 }
 
 /// Token-safe remote generation status for operator and app display.
+public struct RemoteGenerationActiveStreamSnapshot: Codable, Sendable, Equatable {
+    enum CodingKeys: String, CodingKey {
+        case requestID = "request_id"
+        case remoteServiceName = "remote_service_name"
+        case remoteBaseURL = "remote_base_url"
+        case profileName = "profile_name"
+        case submittedAt = "submitted_at"
+        case startedAt = "started_at"
+        case latestStage = "latest_stage"
+        case outputDestination = "output_destination"
+        case outputDestinationID = "output_destination_id"
+        case outputDestinationName = "output_destination_name"
+    }
+
+    public let requestID: String
+    public let remoteServiceName: String?
+    public let remoteBaseURL: String
+    public let profileName: String
+    public let submittedAt: String
+    public let startedAt: String?
+    public let latestStage: String
+    public let outputDestination: String
+    public let outputDestinationID: String?
+    public let outputDestinationName: String?
+
+    package init(
+        requestID: String,
+        remoteServiceName: String?,
+        remoteBaseURL: String,
+        profileName: String,
+        submittedAt: String,
+        startedAt: String?,
+        latestStage: String,
+        outputDestination: String,
+        outputDestinationID: String?,
+        outputDestinationName: String?,
+    ) {
+        self.requestID = requestID
+        self.remoteServiceName = remoteServiceName
+        self.remoteBaseURL = remoteBaseURL
+        self.profileName = profileName
+        self.submittedAt = submittedAt
+        self.startedAt = startedAt
+        self.latestStage = latestStage
+        self.outputDestination = outputDestination
+        self.outputDestinationID = outputDestinationID
+        self.outputDestinationName = outputDestinationName
+    }
+}
+
 public struct RemoteGenerationStatusSnapshot: Codable, Sendable, Equatable {
     public let state: String
     public let streamRequestsEnabled: Bool
     public let sharedTokenConfigured: Bool
     public let streamTokenHeaderName: String
     public let activeOutboundRequestCount: Int
+    public let activeStreams: [RemoteGenerationActiveStreamSnapshot]
 
     enum CodingKeys: String, CodingKey {
         case state
@@ -308,6 +359,7 @@ public struct RemoteGenerationStatusSnapshot: Codable, Sendable, Equatable {
         case sharedTokenConfigured = "shared_token_configured"
         case streamTokenHeaderName = "stream_token_header_name"
         case activeOutboundRequestCount = "active_outbound_request_count"
+        case activeStreams = "active_streams"
     }
 
     package init(
@@ -316,12 +368,14 @@ public struct RemoteGenerationStatusSnapshot: Codable, Sendable, Equatable {
         sharedTokenConfigured: Bool,
         streamTokenHeaderName: String,
         activeOutboundRequestCount: Int,
+        activeStreams: [RemoteGenerationActiveStreamSnapshot],
     ) {
         self.state = state
         self.streamRequestsEnabled = streamRequestsEnabled
         self.sharedTokenConfigured = sharedTokenConfigured
         self.streamTokenHeaderName = streamTokenHeaderName
         self.activeOutboundRequestCount = activeOutboundRequestCount
+        self.activeStreams = activeStreams
     }
 }
 

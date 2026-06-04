@@ -160,6 +160,7 @@ extension ServerTests {
         #expect(remoteGenerationBody["shared_token_configured"] as? Bool == false)
         #expect(remoteGenerationBody["stream_token_header_name"] as? String == RemoteGenerationConfig.streamTokenHeaderName)
         #expect(remoteGenerationBody["active_outbound_request_count"] as? Int == 0)
+        #expect((remoteGenerationBody["active_streams"] as? [[String: Any]])?.isEmpty == true)
 
         let queueJSON = try jsonObject(from: JSONEncoder().encode(QueueSnapshotResponse(snapshot: queue)))
         #expect(queueJSON["queue_type"] as? String == "playback")

@@ -60,6 +60,7 @@ package extension ServerHost {
         for task in remoteGenerationRequestTasks.values {
             await task.value
         }
+        remoteGenerationRequestRecords.removeAll()
         for task in requestMonitorTasks.values {
             await task.value
         }

@@ -55,14 +55,41 @@ package extension ServerHost {
         } else {
             "misconfigured"
         }
+        let activeStreams = remoteGenerationActiveStreamSnapshots()
 
         return .init(
             state: state,
             streamRequestsEnabled: remoteGenerationConfig.allowRemoteStreamRequests,
             sharedTokenConfigured: sharedTokenConfigured,
             streamTokenHeaderName: RemoteGenerationConfig.streamTokenHeaderName,
-            activeOutboundRequestCount: remoteGenerationRequestTasks.count,
+            activeOutboundRequestCount: activeStreams.count,
+            activeStreams: activeStreams,
         )
+    }
+
+    func remoteGenerationActiveStreamSnapshots() -> [RemoteGenerationActiveStreamSnapshot] {
+        remoteGenerationRequestRecords.values
+            .sorted { lhs, rhs in
+                if lhs.submittedAt == rhs.submittedAt {
+                    return lhs.requestID < rhs.requestID
+                }
+
+                return lhs.submittedAt < rhs.submittedAt
+            }
+            .map { record in
+                .init(
+                    requestID: record.requestID,
+                    remoteServiceName: record.service.serviceName,
+                    remoteBaseURL: record.service.baseURL,
+                    profileName: record.profileName,
+                    submittedAt: TimestampFormatter.string(from: record.submittedAt),
+                    startedAt: record.startedAt.map(TimestampFormatter.string(from:)),
+                    latestStage: record.latestStage,
+                    outputDestination: record.outputDestination,
+                    outputDestinationID: record.outputDestinationID,
+                    outputDestinationName: record.outputDestinationName,
+                )
+            }
     }
 
     func saveRuntimeConfiguration(

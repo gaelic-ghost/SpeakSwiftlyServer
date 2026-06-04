@@ -72,6 +72,24 @@ package actor ServerHost {
         }
     }
 
+    package struct RemoteGenerationRequestRecord {
+        let requestID: String
+        let service: RemoteGenerationService
+        let profileName: String
+        let submittedAt: Date
+        var startedAt: Date?
+        var latestStage: String
+        var outputDestination: String
+        var outputDestinationID: String?
+        var outputDestinationName: String?
+    }
+
+    package struct RemoteGenerationOutputDestination {
+        let kind: String
+        let id: String?
+        let name: String?
+    }
+
     static let mutationRefreshRetryDelays: [Duration] = [
         .milliseconds(50),
         .milliseconds(100),
@@ -106,6 +124,7 @@ package actor ServerHost {
     var publishTask: Task<Void, Never>?
     var requestMonitorTasks = [String: Task<Void, Never>]()
     var remoteGenerationRequestTasks = [String: Task<Void, Never>]()
+    var remoteGenerationRequestRecords = [String: RemoteGenerationRequestRecord]()
     var workerMode = "starting"
     var workerStage = "starting"
     var startupError: String?
