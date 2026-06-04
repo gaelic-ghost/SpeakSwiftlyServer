@@ -107,11 +107,19 @@ public struct NetworkAudioReceiverSelectionSnapshot: Codable, Sendable, Equatabl
         case selectedDestinationID = "selected_destination_id"
         case selectedDestination = "selected_destination"
         case availableDestinationCount = "available_destination_count"
+        case sharedTokenConfigured = "shared_token_configured"
+        case selectedDestinationEndpointReady = "selected_destination_endpoint_ready"
+        case lanOutputReady = "lan_output_ready"
+        case lanOutputBlockedReasons = "lan_output_blocked_reasons"
     }
 
     public let selectedDestinationID: String?
     public let selectedDestination: NetworkAudioDestinationSnapshot?
     public let availableDestinationCount: Int
+    public let sharedTokenConfigured: Bool
+    public let selectedDestinationEndpointReady: Bool
+    public let lanOutputReady: Bool
+    public let lanOutputBlockedReasons: [String]
 }
 
 public struct NetworkAudioReceiverSelectionResponse: Codable, Sendable, Equatable {

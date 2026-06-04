@@ -71,5 +71,12 @@ package enum ServerHostDefaultSnapshots {
         selectedDestinationID: nil,
         selectedDestination: nil,
         availableDestinationCount: 0,
+        sharedTokenConfigured: false,
+        selectedDestinationEndpointReady: false,
+        lanOutputReady: false,
+        lanOutputBlockedReasons: [
+            "no_lan_audio_receiver_selected",
+            "network_audio_receiver_shared_token_missing",
+        ],
     )
 }

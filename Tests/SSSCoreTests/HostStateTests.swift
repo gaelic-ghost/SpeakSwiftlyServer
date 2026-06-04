@@ -199,12 +199,41 @@ extension ServerTests {
         let selectionResponse = try await host.selectNetworkAudioDestination(id: destination.id)
         #expect(selectionResponse.selection.selectedDestinationID == destination.id)
         #expect(selectionResponse.selection.selectedDestination?.name == "Gale MacBook Receiver")
+        #expect(selectionResponse.selection.sharedTokenConfigured == false)
+        #expect(selectionResponse.selection.selectedDestinationEndpointReady == true)
+        #expect(selectionResponse.selection.lanOutputReady == false)
+        #expect(selectionResponse.selection.lanOutputBlockedReasons == ["network_audio_receiver_shared_token_missing"])
         #expect(selectionResponse.message.contains("selected LAN audio receiver destination"))
+        #expect(selectionResponse.message.contains("network_audio_receiver_shared_token_missing"))
 
         await host.replaceNetworkAudioDestinations([])
         let clearedByDisappearance = await host.networkAudioReceiverSelectionSnapshot()
         #expect(clearedByDisappearance.selectedDestinationID == nil)
         #expect(clearedByDisappearance.availableDestinationCount == 0)
+        #expect(clearedByDisappearance.lanOutputReady == false)
+        #expect(clearedByDisappearance.lanOutputBlockedReasons == [
+            "no_lan_audio_receiver_selected",
+            "network_audio_receiver_shared_token_missing",
+        ])
+
+        let tokenConfiguredHost = await ServerHost(
+            configuration: testConfiguration(),
+            networkAudioReceiverConfig: .init(
+                enabled: false,
+                serviceName: "Gale MacBook Receiver",
+                port: 0,
+                sharedToken: "receiver-token",
+            ),
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: MainActor.run { EmbeddedServer() },
+        )
+        await tokenConfiguredHost.replaceNetworkAudioDestinations([destination])
+        let readySelection = try await tokenConfiguredHost.selectNetworkAudioDestination(id: destination.id)
+        #expect(readySelection.selection.sharedTokenConfigured == true)
+        #expect(readySelection.selection.selectedDestinationEndpointReady == true)
+        #expect(readySelection.selection.lanOutputReady == true)
+        #expect(readySelection.selection.lanOutputBlockedReasons.isEmpty)
     }
 
     @available(macOS 14, *)

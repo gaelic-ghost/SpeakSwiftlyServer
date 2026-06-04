@@ -307,7 +307,8 @@ In Progress
 - [x] Add first-pass remote generation hardening by gating `/speech/stream` behind `app.remoteGeneration.allowRemoteStreamRequests` and a shared token header that is separate from LAN receiver playback tokens.
 - [x] Propagate remote generation cancellation from the caller server to the generator server when a host-owned remote request is cancelled.
 - [x] Add token-safe `remote_generation` overview status with stream enablement, token-presence, token-header, active outbound request count, and active in-flight stream details.
-- [ ] Add remaining remote generation hardening: LAN receiver token/operator UX for non-local playback and smoke-test-driven refinements to in-flight stream detail fields.
+- [x] Add LAN receiver token/operator readiness fields for non-local playback selection.
+- [ ] Add remaining remote generation hardening: smoke-test-driven refinements to LAN output readiness and in-flight stream detail fields.
 - [ ] Expand transport snapshots for `network_audio_receiver` and future LAN sender state with receiver service names, selected endpoint metadata, active stream counts, and recent failure messages that are useful to operators without exposing shared tokens.
 
 ### Exit Criteria

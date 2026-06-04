@@ -21,11 +21,48 @@ package extension ServerHost {
         let selectedDestination = selectedNetworkAudioDestinationID.flatMap { id in
             networkAudioDestinations.first { $0.id == id }
         }
+        let sharedTokenConfigured = networkAudioReceiverSharedTokenConfigured()
+        let selectedDestinationEndpointReady = selectedDestination?.endpoint.endpoint != nil
+        let lanOutputBlockedReasons = networkAudioReceiverLanOutputBlockedReasons(
+            selectedDestination: selectedDestination,
+            selectedDestinationEndpointReady: selectedDestinationEndpointReady,
+            sharedTokenConfigured: sharedTokenConfigured,
+        )
         return .init(
             selectedDestinationID: selectedNetworkAudioDestinationID,
             selectedDestination: selectedDestination,
             availableDestinationCount: networkAudioDestinations.count,
+            sharedTokenConfigured: sharedTokenConfigured,
+            selectedDestinationEndpointReady: selectedDestinationEndpointReady,
+            lanOutputReady: lanOutputBlockedReasons.isEmpty,
+            lanOutputBlockedReasons: lanOutputBlockedReasons,
         )
+    }
+
+    func networkAudioReceiverSharedTokenConfigured() -> Bool {
+        networkAudioReceiverConfig.sharedToken?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
+
+    func networkAudioReceiverLanOutputBlockedReasons(
+        selectedDestination: NetworkAudioDestinationSnapshot?,
+        selectedDestinationEndpointReady: Bool,
+        sharedTokenConfigured: Bool,
+    ) -> [String] {
+        var reasons = [String]()
+
+        if selectedNetworkAudioDestinationID == nil {
+            reasons.append("no_lan_audio_receiver_selected")
+        } else if selectedDestination == nil {
+            reasons.append("selected_lan_audio_receiver_unavailable")
+        } else if !selectedDestinationEndpointReady {
+            reasons.append("selected_lan_audio_receiver_endpoint_incomplete")
+        }
+
+        if !sharedTokenConfigured {
+            reasons.append("network_audio_receiver_shared_token_missing")
+        }
+
+        return reasons
     }
 
     func selectNetworkAudioDestination(id: String) async throws -> NetworkAudioReceiverSelectionResponse {
@@ -40,9 +77,14 @@ package extension ServerHost {
         let selection = networkAudioReceiverSelectionSnapshot()
         hostEventContinuation.yield(.networkAudioDestinationsChanged(selection))
         await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        let readiness = if selection.lanOutputReady {
+            "LAN output is ready for remote generation audio."
+        } else {
+            "LAN output is not ready yet. Blocked reason(s): \(selection.lanOutputBlockedReasons.joined(separator: ", "))."
+        }
         return .init(
             selection: selection,
-            message: "SpeakSwiftlyServer selected LAN audio receiver destination '\(id)'. Remote generation requests will send returned audio chunks to this receiver when this server has a non-empty networkAudioReceiver.sharedToken configured for the sender handshake.",
+            message: "SpeakSwiftlyServer selected LAN audio receiver destination '\(id)'. \(readiness)",
         )
     }
 
