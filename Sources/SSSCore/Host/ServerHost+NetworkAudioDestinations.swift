@@ -158,7 +158,11 @@ package extension ServerHost {
                 destination: destination,
             )
         } catch {
-            let message = "SpeakSwiftlyServer could not send LAN audio receiver smoke-test request '\(requestID)' to selected receiver '\(destination.name)'. Likely cause: \(error.localizedDescription)"
+            let message = Self.networkAudioSmokeTestFailureMessage(
+                requestID: requestID,
+                destinationName: destination.name,
+                error: error,
+            )
             recordRecentError(
                 source: "network_audio_smoke_test",
                 code: "send_failed",
@@ -197,6 +201,32 @@ package extension ServerHost {
             ))
             continuation.finish()
         }
+    }
+
+    static func networkAudioSmokeTestFailureMessage(
+        requestID: String,
+        destinationName: String,
+        error: any Error,
+    ) -> String {
+        let description = error.localizedDescription
+        let privacyHint = networkAudioLocalNetworkPrivacyHint(for: description).map { " \($0)" } ?? ""
+        return "SpeakSwiftlyServer could not send LAN audio receiver smoke-test request '\(requestID)' " +
+            "to selected receiver '\(destinationName)'. Likely cause: \(description)\(privacyHint)"
+    }
+
+    static func networkAudioLocalNetworkPrivacyHint(for errorDescription: String) -> String? {
+        let lowercasedDescription = errorDescription.lowercased()
+        guard lowercasedDescription.contains("network is down") ||
+            lowercasedDescription.contains("posixerrorcode(rawvalue: 50)") ||
+            lowercasedDescription.contains("local network prohibited")
+        else {
+            return nil
+        }
+
+        return "On macOS, this can mean Local Network privacy is blocking the LaunchAgent-hosted " +
+            "SpeakSwiftlyServer process from reaching another Mac on the LAN. Check System Settings > " +
+            "Privacy & Security > Local Network for the server's install surface, or run the " +
+            "receiver/sender through an app or plugin bundle that declares LAN access."
     }
 }
 

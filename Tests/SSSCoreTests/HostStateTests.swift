@@ -252,6 +252,33 @@ extension ServerTests {
         #expect(preservedManualSelection.lanOutputReady == true)
     }
 
+    @Test func `LAN audio smoke-test failure message explains local network privacy block`() {
+        let message = ServerHost.networkAudioSmokeTestFailureMessage(
+            requestID: "network-audio-smoke-test",
+            destinationName: "Gale MacBook Receiver",
+            error: TestLocalizedError(
+                description: "SpeakSwiftly could not open network audio stream for request 'network-audio-smoke-test' to 192.168.12.149:51021 before the 15 second readiness timeout. Last observed Network.framework state: waiting(POSIXErrorCode(rawValue: 50): Network is down).",
+            ),
+        )
+
+        #expect(message.contains("Gale MacBook Receiver"))
+        #expect(message.contains("Network is down"))
+        #expect(message.contains("Local Network privacy"))
+        #expect(message.contains("LaunchAgent-hosted SpeakSwiftlyServer"))
+        #expect(message.contains("Privacy & Security > Local Network"))
+    }
+
+    @Test func `LAN audio smoke-test failure message does not add privacy hint for ordinary errors`() {
+        let message = ServerHost.networkAudioSmokeTestFailureMessage(
+            requestID: "network-audio-smoke-test",
+            destinationName: "Gale MacBook Receiver",
+            error: TestLocalizedError(description: "The receiver closed the audio stream during the handshake."),
+        )
+
+        #expect(message.contains("The receiver closed the audio stream during the handshake."))
+        #expect(!message.contains("Local Network privacy"))
+    }
+
     @available(macOS 14, *)
     @Test func `playback updates publish latest event and request progress details`() async throws {
         let runtime = MockRuntime(speakBehavior: .holdOpen)
@@ -1293,5 +1320,13 @@ extension ServerTests {
         #expect(await host.resolvedRequestedVoiceProfileName(nil) == "configured-default")
 
         await host.shutdown()
+    }
+}
+
+private struct TestLocalizedError: LocalizedError {
+    let description: String
+
+    var errorDescription: String? {
+        description
     }
 }
