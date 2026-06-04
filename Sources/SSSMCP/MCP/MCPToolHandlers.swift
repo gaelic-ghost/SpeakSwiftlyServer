@@ -355,6 +355,7 @@ package extension MCPSurface {
                                 "Tool arguments include an incomplete LAN audio receiver endpoint. For a manual endpoint, provide kind 'host_port', host, and port.",
                             )
                         }
+
                         response = try await host.selectNetworkAudioDestination(
                             endpoint: resolvedEndpoint,
                             name: optionalString("name", in: arguments),

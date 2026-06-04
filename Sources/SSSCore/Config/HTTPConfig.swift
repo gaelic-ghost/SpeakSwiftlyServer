@@ -27,25 +27,38 @@ package struct HTTPConfig {
         fallbackPort: Int,
         fallbackSSEHeartbeatSeconds: Double,
     ) throws {
+        try self.init(
+            config: config,
+            fallbackEnabled: true,
+            fallbackHost: fallbackHost,
+            fallbackPort: fallbackPort,
+            fallbackSSEHeartbeatSeconds: fallbackSSEHeartbeatSeconds,
+        )
+    }
+
+    package init(
+        config: ConfigReader,
+        fallbackEnabled: Bool,
+        fallbackHost: String,
+        fallbackPort: Int,
+        fallbackSSEHeartbeatSeconds: Double,
+    ) throws {
         do {
-            enabled = try config.requiredBool(forKey: "enabled")
-            host = try Self.requiredString(
-                config,
-                key: "host",
+            enabled = try config.requiredBool(forKey: "enabled", fallback: fallbackEnabled)
+            host = try config.requiredString(
+                forKey: "host",
                 fallback: fallbackHost,
             )
             port = try Self.requirePositive(
-                Self.requiredInt(
-                    config,
-                    key: "port",
+                config.requiredInt(
+                    forKey: "port",
                     fallback: fallbackPort,
                 ),
                 key: "APP_HTTP_PORT",
             )
             sseHeartbeatSeconds = try Self.requirePositive(
-                Self.requiredDouble(
-                    config,
-                    key: "sseHeartbeatSeconds",
+                config.requiredDouble(
+                    forKey: "sseHeartbeatSeconds",
                     fallback: fallbackSSEHeartbeatSeconds,
                 ),
                 key: "APP_HTTP_SSE_HEARTBEAT_SECONDS",
@@ -56,52 +69,6 @@ package struct HTTPConfig {
     }
 
     // MARK: - Validation
-
-    private static func requiredString(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: String,
-    ) throws -> String {
-        do {
-            return try config.requiredString(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
-    private static func requiredInt(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: Int,
-    ) throws -> Int {
-        do {
-            return try config.requiredInt(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
-    private static func requiredDouble(
-        _ config: ConfigReader,
-        key: ConfigKey,
-        fallback: Double,
-    ) throws -> Double {
-        do {
-            return try config.requiredDouble(forKey: key)
-        } catch {
-            guard isMissingRequiredConfigValue(error) else { throw error }
-
-            return fallback
-        }
-    }
-
-    private static func isMissingRequiredConfigValue(_ error: any Error) -> Bool {
-        String(describing: error).contains("Missing required config value for key:")
-    }
 
     private static func requirePositive(_ value: Int, key: String) throws -> Int {
         guard value > 0 else {

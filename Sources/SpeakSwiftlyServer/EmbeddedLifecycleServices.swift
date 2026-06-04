@@ -329,15 +329,27 @@ struct MCPLifecycleService: Service {
 package struct EmbeddedApplicationService: Service {
     package let application: any Service
     package let shutdownBarrier: EmbeddedLifecycleShutdownBarrier
+    package let onStop: @Sendable () async -> Void
 
-    package init(application: any Service, shutdownBarrier: EmbeddedLifecycleShutdownBarrier) {
+    package init(
+        application: any Service,
+        shutdownBarrier: EmbeddedLifecycleShutdownBarrier,
+        onStop: @escaping @Sendable () async -> Void = {},
+    ) {
         self.application = application
         self.shutdownBarrier = shutdownBarrier
+        self.onStop = onStop
     }
 
     package func run() async throws {
-        try await withEmbeddedShutdownBarrier(shutdownBarrier) {
-            try await application.run()
+        do {
+            try await withEmbeddedShutdownBarrier(shutdownBarrier) {
+                try await application.run()
+            }
+            await onStop()
+        } catch {
+            await onStop()
+            throw error
         }
     }
 }

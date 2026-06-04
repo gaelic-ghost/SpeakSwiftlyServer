@@ -290,7 +290,14 @@ package extension ServerHost {
     }
 
     func transportSnapshots() -> [TransportStatusSnapshot] {
-        ["http", "mcp", NetworkAudioReceiverConfig.transportName, NetworkAudioDiscoveryTransport.name].compactMap { transportStatuses[$0] }
+        [
+            "http",
+            HTTPListenersConfig.localhostTransportName,
+            HTTPListenersConfig.lanTransportName,
+            "mcp",
+            NetworkAudioReceiverConfig.transportName,
+            NetworkAudioDiscoveryTransport.name,
+        ].compactMap { transportStatuses[$0] }
     }
 
     func applyLiveConfigurationChanges(from appConfig: AppConfig) -> Bool {
@@ -354,6 +361,36 @@ package extension ServerHost {
         }
         if httpConfig.sseHeartbeatSeconds != appConfig.http.sseHeartbeatSeconds {
             keys.append("app.http.sseHeartbeatSeconds")
+        }
+        if listenersConfig.localhost.enabled != appConfig.listeners.localhost.enabled {
+            keys.append("app.listeners.localhost.enabled")
+        }
+        if listenersConfig.localhost.host != appConfig.listeners.localhost.host {
+            keys.append("app.listeners.localhost.host")
+        }
+        if listenersConfig.localhost.port != appConfig.listeners.localhost.port {
+            keys.append("app.listeners.localhost.port")
+        }
+        if listenersConfig.localhost.sseHeartbeatSeconds != appConfig.listeners.localhost.sseHeartbeatSeconds {
+            keys.append("app.listeners.localhost.sseHeartbeatSeconds")
+        }
+        if listenersConfig.lan.enabled != appConfig.listeners.lan.enabled {
+            keys.append("app.listeners.lan.enabled")
+        }
+        if listenersConfig.lan.host != appConfig.listeners.lan.host {
+            keys.append("app.listeners.lan.host")
+        }
+        if listenersConfig.lan.port != appConfig.listeners.lan.port {
+            keys.append("app.listeners.lan.port")
+        }
+        if listenersConfig.lan.sseHeartbeatSeconds != appConfig.listeners.lan.sseHeartbeatSeconds {
+            keys.append("app.listeners.lan.sseHeartbeatSeconds")
+        }
+        if listenersConfig.lan.advertiseBonjour != appConfig.listeners.lan.advertiseBonjour {
+            keys.append("app.listeners.lan.advertiseBonjour")
+        }
+        if listenersConfig.lan.serviceName != appConfig.listeners.lan.serviceName {
+            keys.append("app.listeners.lan.serviceName")
         }
         if mcpConfig.enabled != appConfig.mcp.enabled {
             keys.append("app.mcp.enabled")

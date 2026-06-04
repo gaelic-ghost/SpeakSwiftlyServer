@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+import Logging
 import ServiceLifecycle
 import SpeakSwiftly
 import SSSCore
@@ -130,22 +131,25 @@ func embeddedServerLiveBootstrap(
     let mcpSurface = await MCPSurface.build(configuration: config.mcp, host: host)
     let hostReadinessGate = EmbeddedLifecycleReadinessGate()
     let mcpReadinessGate = mcpSurface.map { _ in EmbeddedLifecycleReadinessGate() }
+    let localhostHTTPConfig = config.listeners.localhost
+    let lanHTTPConfig = config.listeners.lan.http
     let hostDependentSiblingServiceCount =
-        1 + // EmbeddedApplicationService
+        ((localhostHTTPConfig.enabled || lanHTTPConfig.enabled) ? 1 : 0) + // HTTPListenerRuntimeControllerService
         (mcpSurface == nil ? 0 : 1) + // MCPLifecycleService
         (serverConfigStore.services.isEmpty ? 0 : 1) + // ConfigWatchService
         (config.networkAudioReceiver.enabled ? 1 : 0) + // NetworkAudioReceiverLifecycleService
         1 + // NetworkAudioDestinationBrowserLifecycleService
         1 // HostPruneService
     let shutdownBarrier = EmbeddedLifecycleShutdownBarrier(targetCount: hostDependentSiblingServiceCount)
-    let app = assembleHBApp(
-        configuration: config.http,
+    let listenerController = HTTPListenerRuntimeController(
         host: host,
-        additionalListeningTransports: config.mcp.enabled ? ["mcp"] : [],
-        mountAdditionalRoutes: { router in
+        localhostConfiguration: localhostHTTPConfig,
+        lanConfiguration: config.listeners.lan,
+        mcpConfig: config.mcp,
+        mountLocalhostAdditionalRoutes: { router in
             mcpSurface?.mount(on: router)
         },
-        beforeServerStarts: [
+        localhostBeforeServerStarts: [
             {
                 try await hostReadinessGate.waitUntilReady()
             },
@@ -155,13 +159,27 @@ func embeddedServerLiveBootstrap(
                 }
             },
         ],
+        lanBeforeServerStarts: [
+            {
+                try await hostReadinessGate.waitUntilReady()
+            },
+        ],
+        logger: Logger(label: "SpeakSwiftlyServer.HTTPListeners"),
     )
+    await host.configureHTTPListenerRuntimeControl(listenerController.runtimeControl)
 
-    if config.http.enabled {
-        await host.markTransportStarting(name: "http")
+    let legacyStartupTransports = localhostHTTPConfig.enabled ? ["http"] : []
+    for transportName in legacyStartupTransports {
+        await host.markTransportStarting(name: transportName)
+    }
+    if localhostHTTPConfig.enabled {
+        await host.markTransportStarting(name: HTTPListenersConfig.localhostTransportName)
     }
     if config.mcp.enabled {
         await host.markTransportStarting(name: "mcp")
+    }
+    if lanHTTPConfig.enabled {
+        await host.markTransportStarting(name: HTTPListenersConfig.lanTransportName)
     }
     if config.networkAudioReceiver.enabled {
         await host.markTransportStarting(name: NetworkAudioReceiverConfig.transportName)
@@ -235,26 +253,33 @@ func embeddedServerLiveBootstrap(
             ),
         )
     }
-    services.append(
-        .init(
-            service: EmbeddedApplicationService(
-                application: app,
-                shutdownBarrier: shutdownBarrier,
+    if localhostHTTPConfig.enabled || lanHTTPConfig.enabled {
+        services.append(
+            .init(
+                service: HTTPListenerRuntimeControllerService(
+                    controller: listenerController,
+                    shutdownBarrier: shutdownBarrier,
+                ),
+                serviceName: "HTTPListenerRuntimeControllerService",
             ),
-        ),
-    )
+        )
+    }
 
     let serviceGroup = ServiceGroup(
         configuration: .init(
             services: services,
-            logger: app.logger,
+            logger: Logger(label: "SpeakSwiftlyServer.EmbeddedSession"),
         ),
     )
     let runTask = Task<Void, Error> {
         do {
             try await serviceGroup.run()
-            if config.http.enabled {
+            if localhostHTTPConfig.enabled {
                 await host.markTransportStopped(name: "http")
+                await host.markTransportStopped(name: HTTPListenersConfig.localhostTransportName)
+            }
+            if lanHTTPConfig.enabled {
+                await host.markTransportStopped(name: HTTPListenersConfig.lanTransportName)
             }
             if config.mcp.enabled {
                 await host.markTransportStopped(name: "mcp")
@@ -264,8 +289,12 @@ func embeddedServerLiveBootstrap(
             }
         } catch {
             let message = "SpeakSwiftlyServer could not keep the embedded Hummingbird transport process running. Likely cause: \(error.localizedDescription)"
-            if config.http.enabled {
+            if localhostHTTPConfig.enabled {
                 await host.markTransportFailed(name: "http", message: message)
+                await host.markTransportFailed(name: HTTPListenersConfig.localhostTransportName, message: message)
+            }
+            if lanHTTPConfig.enabled {
+                await host.markTransportFailed(name: HTTPListenersConfig.lanTransportName, message: message)
             }
             if config.mcp.enabled {
                 await host.markTransportFailed(name: "mcp", message: message)

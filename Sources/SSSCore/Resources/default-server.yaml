@@ -16,6 +16,19 @@ app:
     host: 127.0.0.1
     port: 7337
     sseHeartbeatSeconds: 10
+  listeners:
+    localhost:
+      enabled: true
+      host: 127.0.0.1
+      port: 7337
+      sseHeartbeatSeconds: 10
+    lan:
+      enabled: false
+      host: 0.0.0.0
+      port: 0
+      sseHeartbeatSeconds: 10
+      advertiseBonjour: true
+      serviceName: SpeakSwiftly LAN Generator
   mcp:
     enabled: true
     path: /mcp

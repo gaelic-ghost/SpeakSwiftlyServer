@@ -32,7 +32,11 @@ That gives you the exact LaunchAgent payload the package currently wants to stag
 
 Those paths are passed as explicit server bootstrap inputs. The config file stores server, HTTP, MCP, remote generation, LAN receiver, and runtime startup choices; the profile root points generated profiles and artifacts at the LaunchAgent-owned runtime state tree.
 
+The default HTTP listener is local-only on a stable localhost port. Keep that listener for same-machine clients such as Codex hooks, local MCP clients, SayBar, and operator tools. LAN access should use the separate LAN listener mode once enabled, not a casual change from `127.0.0.1` to `0.0.0.0`.
+
 Remote generation stream requests stay disabled in the default config. To let another SpeakSwiftlyServer use this Mac as a generator over `/speech/stream`, set `app.remoteGeneration.allowRemoteStreamRequests` to `true` and provide a non-empty `sharedToken`. Restart the service after changing those startup-only settings, and do not commit a real shared token to repository examples.
+
+LAN generation-host setup should use the LAN listener mode: leave the localhost listener on its stable port, enable the LAN listener explicitly, let the OS choose a random LAN port, and use Bonjour discovery for callers. The LAN listener should be paired with remote-generation token setup and a smoke test before real speech requests are routed to it.
 
 The LAN audio receiver stays disabled in the default config. To make this Mac a receiver for another SpeakSwiftly host on the same LAN, set `app.networkAudioReceiver.enabled` to `true`, choose a Bonjour `serviceName`, choose a `port` or leave it at `0` for an automatic port, and provide a non-empty local `sharedToken`. Do not commit a real shared token to repository examples.
 

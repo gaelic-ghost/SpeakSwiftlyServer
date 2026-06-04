@@ -16,6 +16,14 @@ import Testing
     #expect(defaults.http.host == "127.0.0.1")
     #expect(defaults.http.port == 7338)
     #expect(defaults.http.sseHeartbeatSeconds == 10)
+    #expect(defaults.listeners.localhost.enabled == true)
+    #expect(defaults.listeners.localhost.host == "127.0.0.1")
+    #expect(defaults.listeners.localhost.port == 7338)
+    #expect(defaults.listeners.lan.enabled == false)
+    #expect(defaults.listeners.lan.host == "0.0.0.0")
+    #expect(defaults.listeners.lan.port == 0)
+    #expect(defaults.listeners.lan.advertiseBonjour == true)
+    #expect(defaults.listeners.lan.serviceName == "speak-swiftly-server LAN")
     #expect(defaults.server.sseHeartbeatSeconds == 10)
     #expect(defaults.server.completedJobTTLSeconds == 900)
     #expect(defaults.networkAudioReceiver.enabled == false)
@@ -45,6 +53,11 @@ import Testing
         "APP_HTTP_HOST": "0.0.0.0",
         "APP_HTTP_PORT": "7444",
         "APP_HTTP_SSE_HEARTBEAT_SECONDS": "2.5",
+        "APP_LISTENERS_LOCALHOST_HOST": "127.0.0.1",
+        "APP_LISTENERS_LOCALHOST_PORT": "7551",
+        "APP_LISTENERS_LAN_ENABLED": "true",
+        "APP_LISTENERS_LAN_PORT": "0",
+        "APP_LISTENERS_LAN_SERVICE_NAME": "Gale Mac mini Generator",
         "APP_MCP_ENABLED": "true",
         "APP_MCP_PATH": "/assistant/mcp",
         "APP_MCP_SERVER_NAME": "speak-swiftly-agent",
@@ -58,9 +71,15 @@ import Testing
     ])
     #expect(appConfig.server.port == 7550)
     #expect(appConfig.http.enabled == false)
-    #expect(appConfig.http.host == "0.0.0.0")
-    #expect(appConfig.http.port == 7444)
+    #expect(appConfig.http.host == "127.0.0.1")
+    #expect(appConfig.http.port == 7551)
     #expect(appConfig.http.sseHeartbeatSeconds == 2.5)
+    #expect(appConfig.listeners.localhost.host == "127.0.0.1")
+    #expect(appConfig.listeners.localhost.port == 7551)
+    #expect(appConfig.listeners.lan.enabled == true)
+    #expect(appConfig.listeners.lan.host == "0.0.0.0")
+    #expect(appConfig.listeners.lan.port == 0)
+    #expect(appConfig.listeners.lan.serviceName == "Gale Mac mini Generator")
     #expect(appConfig.mcp.enabled == true)
     #expect(appConfig.mcp.path == "/assistant/mcp")
     #expect(appConfig.mcp.serverName == "speak-swiftly-agent")
@@ -94,6 +113,19 @@ import Testing
         host: 0.0.0.0
         port: 7666
         sseHeartbeatSeconds: 1.5
+      listeners:
+        localhost:
+          enabled: true
+          host: 127.0.0.1
+          port: 7667
+          sseHeartbeatSeconds: 1.5
+        lan:
+          enabled: true
+          host: 0.0.0.0
+          port: 0
+          sseHeartbeatSeconds: 2
+          advertiseBonjour: true
+          serviceName: YAML LAN Generator
       mcp:
         enabled: true
         path: /assistant/mcp
@@ -117,9 +149,14 @@ import Testing
     #expect(yamlConfig.server.environment == "staging")
     #expect(yamlConfig.server.host == "192.168.1.10")
     #expect(yamlConfig.server.port == 7555)
-    #expect(yamlConfig.http.enabled == false)
-    #expect(yamlConfig.http.host == "0.0.0.0")
-    #expect(yamlConfig.http.port == 7777)
+    // The legacy app.http view is kept as an alias for app.listeners.localhost,
+    // so listener-localhost keys own the effective localhost HTTP settings.
+    #expect(yamlConfig.http.enabled == true)
+    #expect(yamlConfig.http.host == "127.0.0.1")
+    #expect(yamlConfig.http.port == 7667)
+    #expect(yamlConfig.listeners.lan.enabled == true)
+    #expect(yamlConfig.listeners.lan.port == 0)
+    #expect(yamlConfig.listeners.lan.serviceName == "YAML LAN Generator")
     #expect(yamlConfig.runtime.speechBackend == .qwen3_BIG)
     #expect(yamlConfig.runtime.duckMediaVolume == .aLittle)
     #expect(yamlConfig.mcp.enabled == true)
@@ -144,6 +181,8 @@ import Testing
     #expect(inheritedTransportConfig.http.host == "0.0.0.0")
     #expect(inheritedTransportConfig.http.port == 7999)
     #expect(inheritedTransportConfig.http.sseHeartbeatSeconds == 3.25)
+    #expect(inheritedTransportConfig.listeners.localhost.host == "0.0.0.0")
+    #expect(inheritedTransportConfig.listeners.localhost.port == 7999)
 
     do {
         _ = try await AppConfig.load(environment: ["APP_PORT": "zero"])
@@ -157,6 +196,20 @@ import Testing
         Issue.record("Expected invalid APP_HTTP_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_HTTP_PORT"))
+    }
+
+    do {
+        _ = try await AppConfig.load(environment: ["APP_LISTENERS_LAN_PORT": "70000"])
+        Issue.record("Expected invalid APP_LISTENERS_LAN_PORT to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("APP_LISTENERS_LAN_PORT"))
+    }
+
+    do {
+        _ = try await AppConfig.load(environment: ["APP_LISTENERS_LAN_SERVICE_NAME": " "])
+        Issue.record("Expected blank APP_LISTENERS_LAN_SERVICE_NAME to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("app.listeners.lan.serviceName"))
     }
 
     do {

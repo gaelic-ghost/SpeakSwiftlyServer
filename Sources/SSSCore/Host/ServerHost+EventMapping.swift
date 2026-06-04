@@ -33,8 +33,31 @@ package extension ServerHost {
         hostEventContinuation.yield(.transportChanged(updated))
     }
 
+    func replaceTransportStatus(_ snapshot: TransportStatusSnapshot) async {
+        let current = transportStatuses[snapshot.name]
+        guard current != snapshot else {
+            return
+        }
+
+        transportStatuses[snapshot.name] = snapshot
+        hostEventContinuation.yield(.transportChanged(snapshot))
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+    }
+
+    func transportStatus(named name: String) throws -> TransportStatusSnapshot {
+        guard let snapshot = transportStatuses[name] else {
+            throw ServerRequestError(
+                .notFound,
+                message: "SpeakSwiftlyServer could not find transport '\(name)' while applying HTTP listener runtime control.",
+            )
+        }
+
+        return snapshot
+    }
+
     static func initialTransportStatuses(
         httpConfig: HTTPConfig,
+        listenersConfig: HTTPListenersConfig,
         mcpConfig: MCPConfig,
         networkAudioReceiverConfig: NetworkAudioReceiverConfig,
     ) -> [String: TransportStatusSnapshot] {
@@ -47,14 +70,43 @@ package extension ServerHost {
             path: nil,
             advertisedAddress: httpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)" : nil,
         )
+        let localhostHTTP = TransportStatusSnapshot(
+            name: HTTPListenersConfig.localhostTransportName,
+            enabled: listenersConfig.localhost.enabled,
+            state: listenersConfig.localhost.enabled ? "stopped" : "disabled",
+            host: listenersConfig.localhost.enabled ? listenersConfig.localhost.host : nil,
+            port: listenersConfig.localhost.enabled ? listenersConfig.localhost.port : nil,
+            path: nil,
+            advertisedAddress: listenersConfig.localhost.enabled
+                ? "http://\(listenersConfig.localhost.host):\(listenersConfig.localhost.port)"
+                : nil,
+        )
+        let lanAdvertisedAddress: String? = if listenersConfig.lan.enabled, listenersConfig.lan.advertiseBonjour {
+            "\(listenersConfig.lan.serviceName).\(HTTPListenersConfig.lanBonjourType).\(HTTPListenersConfig.bonjourDomain)"
+        } else if listenersConfig.lan.enabled {
+            "http://\(listenersConfig.lan.host):\(listenersConfig.lan.port)"
+        } else {
+            nil
+        }
+        let lanHTTP = TransportStatusSnapshot(
+            name: HTTPListenersConfig.lanTransportName,
+            enabled: listenersConfig.lan.enabled,
+            state: listenersConfig.lan.enabled ? "stopped" : "disabled",
+            host: listenersConfig.lan.enabled ? listenersConfig.lan.host : nil,
+            port: listenersConfig.lan.enabled ? listenersConfig.lan.port : nil,
+            path: nil,
+            advertisedAddress: lanAdvertisedAddress,
+        )
         let mcp = TransportStatusSnapshot(
             name: "mcp",
             enabled: mcpConfig.enabled,
             state: mcpConfig.enabled ? "stopped" : "disabled",
-            host: mcpConfig.enabled ? httpConfig.host : nil,
-            port: mcpConfig.enabled ? httpConfig.port : nil,
+            host: mcpConfig.enabled ? listenersConfig.localhost.host : nil,
+            port: mcpConfig.enabled ? listenersConfig.localhost.port : nil,
             path: mcpConfig.enabled ? mcpConfig.path : nil,
-            advertisedAddress: mcpConfig.enabled ? "http://\(httpConfig.host):\(httpConfig.port)\(mcpConfig.path)" : nil,
+            advertisedAddress: mcpConfig.enabled
+                ? "http://\(listenersConfig.localhost.host):\(listenersConfig.localhost.port)\(mcpConfig.path)"
+                : nil,
         )
         let networkAudioReceiver = TransportStatusSnapshot(
             name: NetworkAudioReceiverConfig.transportName,
@@ -77,6 +129,8 @@ package extension ServerHost {
         )
         return [
             http.name: http,
+            localhostHTTP.name: localhostHTTP,
+            lanHTTP.name: lanHTTP,
             mcp.name: mcp,
             networkAudioReceiver.name: networkAudioReceiver,
             networkAudioDiscovery.name: networkAudioDiscovery,
