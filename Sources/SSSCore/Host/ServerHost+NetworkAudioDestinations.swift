@@ -8,8 +8,11 @@ package extension ServerHost {
 
     func replaceNetworkAudioDestinations(_ destinations: [SpeakSwiftly.NetworkAudioDestination]) async {
         let snapshots = destinations.map(NetworkAudioDestinationSnapshot.init(destination:))
-        let knownIDs = Set(snapshots.map(\.id))
-        networkAudioDestinations = snapshots
+        let manualSnapshots = networkAudioDestinations.filter(\.isManualNetworkAudioDestination)
+        let knownIDs = Set((snapshots + manualSnapshots).map(\.id))
+        networkAudioDestinations = snapshots + manualSnapshots.filter { manualSnapshot in
+            !snapshots.contains { $0.id == manualSnapshot.id }
+        }
         if let selectedNetworkAudioDestinationID, !knownIDs.contains(selectedNetworkAudioDestinationID) {
             self.selectedNetworkAudioDestinationID = nil
         }
@@ -92,6 +95,35 @@ package extension ServerHost {
         )
     }
 
+    func selectNetworkAudioDestination(
+        endpoint: SpeakSwiftly.NetworkAudioEndpoint,
+        name: String?,
+    ) async throws -> NetworkAudioReceiverSelectionResponse {
+        let destination = SpeakSwiftly.NetworkAudioDestination(
+            id: endpoint.manualNetworkAudioDestinationID,
+            name: name?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? "Manual LAN Audio Receiver",
+            endpoint: endpoint,
+            capabilities: .init(),
+            lastSeen: Date(),
+        )
+        let snapshot = NetworkAudioDestinationSnapshot(destination: destination)
+        networkAudioDestinations.removeAll { $0.id == snapshot.id }
+        networkAudioDestinations.append(snapshot)
+        selectedNetworkAudioDestinationID = snapshot.id
+        let selection = networkAudioReceiverSelectionSnapshot()
+        hostEventContinuation.yield(.networkAudioDestinationsChanged(selection))
+        await requestPublish(mode: .immediate, refreshRuntimeState: false)
+        let readiness = if selection.lanOutputReady {
+            "LAN output is ready for remote generation audio."
+        } else {
+            "LAN output is not ready yet. Blocked reason(s): \(selection.lanOutputBlockedReasons.joined(separator: ", "))."
+        }
+        return .init(
+            selection: selection,
+            message: "SpeakSwiftlyServer selected manual LAN audio receiver endpoint '\(snapshot.id)'. \(readiness)",
+        )
+    }
+
     func clearNetworkAudioDestinationSelection() async -> NetworkAudioReceiverSelectionResponse {
         selectedNetworkAudioDestinationID = nil
         let selection = networkAudioReceiverSelectionSnapshot()
@@ -165,5 +197,28 @@ package extension ServerHost {
             ))
             continuation.finish()
         }
+    }
+}
+
+private extension NetworkAudioDestinationSnapshot {
+    var isManualNetworkAudioDestination: Bool {
+        id.hasPrefix("manual-host-port:") || id.hasPrefix("manual-bonjour:")
+    }
+}
+
+private extension SpeakSwiftly.NetworkAudioEndpoint {
+    var manualNetworkAudioDestinationID: String {
+        switch self {
+            case let .hostPort(host, port):
+                "manual-host-port:\(host):\(port)"
+            case let .bonjourService(name, type, domain):
+                "manual-bonjour:\(name).\(type).\(domain)"
+        }
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }
