@@ -653,12 +653,14 @@ extension ServerTests {
                 #expect(request.qwenPreModelTextChunking == true)
                 #expect(service.baseURL == "http://GMM4.local:7338")
                 #expect(sharedToken == "remote-token")
-                return AsyncThrowingStream { continuation in
-                    for chunk in remoteChunks {
-                        continuation.yield(chunk)
-                    }
-                    continuation.finish()
-                }
+                return RemoteSpeechStreamSession(
+                    chunks: AsyncThrowingStream { continuation in
+                        for chunk in remoteChunks {
+                            continuation.yield(chunk)
+                        }
+                        continuation.finish()
+                    },
+                )
             },
             remoteGeneratedAudioPlaybackSink: { chunks in
                 for try await chunk in chunks {
@@ -690,6 +692,168 @@ extension ServerTests {
             #expect(snapshot.status == "completed")
             let playedChunks = await collector.chunks()
             #expect(playedChunks == remoteChunks)
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
+    @Test func `cancelling remote generation request propagates cancellation upstream`() async throws {
+        let runtime = MockRuntime()
+        let cancellationRecorder = RemoteGenerationCancellationRecorder()
+        let firstChunk = SpeakSwiftly.GeneratedAudioChunk(
+            requestID: "remote-generation-cancelled",
+            sequenceNumber: 0,
+            sampleRate: 24000,
+            channelCount: 1,
+            samples: [0.1],
+        )
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: false,
+                sharedToken: "remote-token",
+            ),
+            remoteGeneratedAudioStreamProvider: { _, _, _ in
+                RemoteSpeechStreamSession(
+                    chunks: AsyncThrowingStream { continuation in
+                        let task = Task {
+                            await cancellationRecorder.recordProviderStarted()
+                            continuation.yield(firstChunk)
+                            try? await Task.sleep(for: .seconds(30))
+                            continuation.finish()
+                        }
+                        continuation.onTermination = { _ in
+                            task.cancel()
+                        }
+                    },
+                    cancelUpstream: {
+                        await cancellationRecorder.recordCancellation()
+                    },
+                )
+            },
+            remoteGeneratedAudioPlaybackSink: { chunks in
+                for try await _ in chunks {}
+            },
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let response = try await client.execute(
+                uri: "/speech/live",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Cancel remote route","profile_name":"default","generation_location":{"kind":"remote","remote":{"base_url":"http://GMM4.local:7338","service_name":"GMM4"}}}"#),
+            )
+            let responseJSON = try jsonObject(from: response.body)
+            let requestID = try #require(responseJSON["request_id"] as? String)
+            #expect(response.status == .accepted)
+            try await cancellationRecorder.waitUntilProviderStarted()
+
+            let cancelResponse = try await client.execute(
+                uri: "/requests/\(requestID)",
+                method: .delete,
+            )
+            let cancelJSON = try jsonObject(from: cancelResponse.body)
+            #expect(cancelResponse.status == .ok)
+            #expect(cancelJSON["cancelled_request_id"] as? String == requestID)
+
+            try await cancellationRecorder.waitUntilCancelled()
+            let snapshot = try await waitForJobSnapshot(requestID, on: host)
+            switch snapshot.terminalEvent {
+                case let .failed(failure):
+                    #expect(failure.code == SpeakSwiftly.ErrorCode.requestCancelled.rawValue)
+                default:
+                    Issue.record("Expected the cancelled remote generation request to terminate with a request_cancelled failure.")
+            }
+        }
+
+        await host.shutdown()
+    }
+
+    @available(macOS 14, *)
+    @Test func `scoped generation cancellation propagates remote generation cancellation upstream`() async throws {
+        let runtime = MockRuntime()
+        let cancellationRecorder = RemoteGenerationCancellationRecorder()
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: runtime,
+            remoteGenerationConfig: .init(
+                allowRemoteStreamRequests: false,
+                sharedToken: "remote-token",
+            ),
+            remoteGeneratedAudioStreamProvider: { _, _, _ in
+                RemoteSpeechStreamSession(
+                    chunks: AsyncThrowingStream { continuation in
+                        let task = Task {
+                            await cancellationRecorder.recordProviderStarted()
+                            continuation.yield(
+                                SpeakSwiftly.GeneratedAudioChunk(
+                                    requestID: "remote-generation-scoped-cancelled",
+                                    sequenceNumber: 0,
+                                    sampleRate: 24000,
+                                    channelCount: 1,
+                                    samples: [0.1],
+                                ),
+                            )
+                            try? await Task.sleep(for: .seconds(30))
+                            continuation.finish()
+                        }
+                        continuation.onTermination = { _ in
+                            task.cancel()
+                        }
+                    },
+                    cancelUpstream: {
+                        await cancellationRecorder.recordCancellation()
+                    },
+                )
+            },
+            remoteGeneratedAudioPlaybackSink: { chunks in
+                for try await _ in chunks {
+                    await cancellationRecorder.recordPlayedChunk()
+                }
+            },
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+
+        await host.start()
+        await runtime.publishStatus(.residentModelReady)
+        try await waitUntilReady(host)
+
+        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        try await app.test(.router) { client in
+            let response = try await client.execute(
+                uri: "/speech/live",
+                method: .post,
+                headers: [.contentType: "application/json"],
+                body: byteBuffer(#"{"text":"Cancel remote route","profile_name":"default","generation_location":{"kind":"remote","remote":{"base_url":"http://GMM4.local:7338","service_name":"GMM4"}}}"#),
+            )
+            let responseJSON = try jsonObject(from: response.body)
+            let requestID = try #require(responseJSON["request_id"] as? String)
+            #expect(response.status == .accepted)
+            try await cancellationRecorder.waitUntilProviderStarted()
+
+            let cancelResponse = try await client.execute(
+                uri: "/requests/\(requestID)?scope=generation",
+                method: .delete,
+            )
+            let cancelJSON = try jsonObject(from: cancelResponse.body)
+            #expect(cancelResponse.status == .ok)
+            #expect(cancelJSON["cancelled_request_id"] as? String == requestID)
+
+            try await cancellationRecorder.waitUntilCancelled()
         }
 
         await host.shutdown()
@@ -805,5 +969,43 @@ private actor GeneratedAudioChunkCollector {
 
     func chunks() -> [SpeakSwiftly.GeneratedAudioChunk] {
         values
+    }
+}
+
+private actor RemoteGenerationCancellationRecorder {
+    private var providerStarted = false
+    private var cancellationCount = 0
+    private var playedChunkCount = 0
+
+    func recordProviderStarted() {
+        providerStarted = true
+    }
+
+    func recordCancellation() {
+        cancellationCount += 1
+    }
+
+    func recordPlayedChunk() {
+        playedChunkCount += 1
+    }
+
+    func waitUntilProviderStarted() async throws {
+        let _: Bool = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+            await self.hasProviderStarted()
+        }
+    }
+
+    func waitUntilCancelled() async throws {
+        let _: Bool = try await waitUntil(timeout: .seconds(1), pollInterval: .milliseconds(10)) {
+            await self.hasSingleCancellation()
+        }
+    }
+
+    private func hasProviderStarted() -> Bool {
+        providerStarted || playedChunkCount > 0
+    }
+
+    private func hasSingleCancellation() -> Bool {
+        cancellationCount == 1
     }
 }

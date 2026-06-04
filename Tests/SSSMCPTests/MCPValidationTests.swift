@@ -200,12 +200,14 @@ extension ServerTests {
                 #expect(request.profileName == "default")
                 #expect(service.serviceName == "GMM4")
                 #expect(sharedToken == "remote-token")
-                return AsyncThrowingStream { continuation in
-                    for chunk in remoteChunks {
-                        continuation.yield(chunk)
-                    }
-                    continuation.finish()
-                }
+                return RemoteSpeechStreamSession(
+                    chunks: AsyncThrowingStream { continuation in
+                        for chunk in remoteChunks {
+                            continuation.yield(chunk)
+                        }
+                        continuation.finish()
+                    },
+                )
             },
             remoteGeneratedAudioPlaybackSink: { chunks in
                 for try await chunk in chunks {

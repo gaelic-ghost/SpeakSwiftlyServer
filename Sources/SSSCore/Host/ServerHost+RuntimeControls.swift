@@ -262,6 +262,10 @@ package extension ServerHost {
     }
 
     func cancelQueuedOrActiveRequest(requestID: String) async throws -> QueueCancellationResponse {
+        if let response = cancelRemoteGenerationRequestIfTracked(requestID: requestID) {
+            return response
+        }
+
         let handle = await runtime.cancelRequest(requestID)
         return try await queueCancellationResponse(handle: handle)
     }
@@ -271,6 +275,11 @@ package extension ServerHost {
         scope: RequestCancellationScope?,
     ) async throws -> QueueCancellationResponse {
         if let scope {
+            if scope == .generation,
+               let response = cancelRemoteGenerationRequestIfTracked(requestID: requestID) {
+                return response
+            }
+
             return try await cancelQueuedOrActiveRequest(scope.queueType, requestID: requestID)
         }
 
@@ -299,5 +308,15 @@ package extension ServerHost {
         }
 
         return .init(cancelledRequestID: cancelledRequestID)
+    }
+
+    private func cancelRemoteGenerationRequestIfTracked(requestID: String) -> QueueCancellationResponse? {
+        guard let task = remoteGenerationRequestTasks[requestID] else {
+            return nil
+        }
+
+        task.cancel()
+        remoteGenerationRequestTasks[requestID] = nil
+        return .init(cancelledRequestID: requestID)
     }
 }
