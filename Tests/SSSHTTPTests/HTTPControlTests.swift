@@ -322,6 +322,24 @@ extension ServerTests {
             #expect((replayAllJSON["request_ids"] as? [String])?.count == 1)
             #expect(await (runtime.replayRecentAudioAllInvocations.last)?.mode == .enqueueNext)
 
+            let defaultReplayResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/recent-1/replay",
+                method: .post,
+            )
+            let defaultReplayJSON = try jsonObject(from: defaultReplayResponse.body)
+            #expect(defaultReplayResponse.status == .ok)
+            #expect((defaultReplayJSON["request_id"] as? String)?.isEmpty == false)
+            #expect(await (runtime.replayRecentAudioInvocations.last)?.mode == .enqueueNext)
+
+            let defaultReplayAllResponse = try await client.execute(
+                uri: "/playback/recent-generated-audio/replay-all",
+                method: .post,
+            )
+            let defaultReplayAllJSON = try jsonObject(from: defaultReplayAllResponse.body)
+            #expect(defaultReplayAllResponse.status == .ok)
+            #expect((defaultReplayAllJSON["request_ids"] as? [String])?.count == 1)
+            #expect(await (runtime.replayRecentAudioAllInvocations.last)?.mode == .enqueueNext)
+
             let clearResponse = try await client.execute(uri: "/playback/recent-generated-audio", method: .delete)
             let clearJSON = try jsonObject(from: clearResponse.body)
             #expect(clearResponse.status == .ok)

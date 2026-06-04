@@ -25,6 +25,13 @@ package struct ReplayRecentAudioRequestPayload: Decodable {
     package let cwd: String?
     package let repoRoot: String?
 
+    package static let empty = Self(
+        replayMode: nil,
+        requestContext: nil,
+        cwd: nil,
+        repoRoot: nil,
+    )
+
     enum CodingKeys: String, CodingKey {
         case replayMode = "replay_mode"
         case requestContext = "request_context"

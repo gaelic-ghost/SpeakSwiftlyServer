@@ -1,3 +1,4 @@
+import Foundation
 import Hummingbird
 import SpeakSwiftly
 import SSSCore
@@ -25,7 +26,7 @@ package func registerHTTPPlaybackRoutes(
 
     router.post("playback/recent-generated-audio/:recent_audio_id/replay") { request, context -> ReplayRecentAudioResponse in
         let recentAudioID = try context.parameters.require("recent_audio_id")
-        let payload = try await request.decode(as: ReplayRecentAudioRequestPayload.self, context: context)
+        let payload = try await decodeReplayRecentAudioPayload(request)
         return try await host.replayRecentAudio(
             id: recentAudioID,
             mode: payload.replayMode ?? .enqueueNext,
@@ -38,7 +39,7 @@ package func registerHTTPPlaybackRoutes(
     }
 
     router.post("playback/recent-generated-audio/replay-all") { request, context -> ReplayRecentAudioAllResponse in
-        let payload = try await request.decode(as: ReplayRecentAudioRequestPayload.self, context: context)
+        let payload = try await decodeReplayRecentAudioPayload(request)
         return try await host.replayRecentAudioAll(
             mode: payload.replayMode ?? .enqueueNext,
             requestContext: payload.resolvedRequestContext(
@@ -64,6 +65,16 @@ package func registerHTTPPlaybackRoutes(
     router.delete("playback/queue") { _, _ -> QueueClearedResponse in
         try await host.clearQueue(.playback)
     }
+}
+
+private func decodeReplayRecentAudioPayload(_ request: Request) async throws -> ReplayRecentAudioRequestPayload {
+    var request = request
+    let body = try await request.collectBody(upTo: 16 * 1024)
+    guard body.readableBytes > 0 else {
+        return .empty
+    }
+
+    return try JSONDecoder().decode(ReplayRecentAudioRequestPayload.self, from: body)
 }
 
 private func httpRecentGeneratedAudioRequestContextDefaults(route: String) -> SpeechRequestContextDefaults {
