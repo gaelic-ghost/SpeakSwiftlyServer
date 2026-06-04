@@ -186,6 +186,8 @@ public enum ServerConfigDefaultProfile: String, CaseIterable, Sendable {
             .init(["app", "networkAudioReceiver", "serviceName"]): "SpeakSwiftly Audio Receiver",
             .init(["app", "networkAudioReceiver", "port"]): 0,
             .init(["app", "networkAudioReceiver", "sharedToken"]): "",
+            .init(["app", "remoteGeneration", "allowRemoteStreamRequests"]): false,
+            .init(["app", "remoteGeneration", "sharedToken"]): "",
         ]
     }
 

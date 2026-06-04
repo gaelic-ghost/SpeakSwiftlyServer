@@ -22,6 +22,8 @@ import Testing
     #expect(defaults.networkAudioReceiver.serviceName == "SpeakSwiftly Audio Receiver")
     #expect(defaults.networkAudioReceiver.port == 0)
     #expect(defaults.networkAudioReceiver.sharedToken == nil)
+    #expect(defaults.remoteGeneration.allowRemoteStreamRequests == false)
+    #expect(defaults.remoteGeneration.sharedToken == nil)
 
     let launchAgentDefaults = try await AppConfig.load(
         environment: [:],
@@ -51,6 +53,8 @@ import Testing
         "APP_NETWORK_AUDIO_RECEIVER_SERVICE_NAME": "Gale MacBook Receiver",
         "APP_NETWORK_AUDIO_RECEIVER_PORT": "7445",
         "APP_NETWORK_AUDIO_RECEIVER_SHARED_TOKEN": "test-token",
+        "APP_REMOTE_GENERATION_ALLOW_REMOTE_STREAM_REQUESTS": "true",
+        "APP_REMOTE_GENERATION_SHARED_TOKEN": "remote-token",
     ])
     #expect(appConfig.server.port == 7550)
     #expect(appConfig.http.enabled == false)
@@ -65,6 +69,8 @@ import Testing
     #expect(appConfig.networkAudioReceiver.serviceName == "Gale MacBook Receiver")
     #expect(appConfig.networkAudioReceiver.port == 7445)
     #expect(appConfig.networkAudioReceiver.sharedToken == "test-token")
+    #expect(appConfig.remoteGeneration.allowRemoteStreamRequests == true)
+    #expect(appConfig.remoteGeneration.sharedToken == "remote-token")
 
     let configDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -98,6 +104,9 @@ import Testing
         serviceName: YAML Audio Receiver
         port: 7446
         sharedToken: yaml-token
+      remoteGeneration:
+        allowRemoteStreamRequests: true
+        sharedToken: yaml-remote-token
     """.write(to: yamlURL, atomically: true, encoding: .utf8)
 
     let yamlConfig = try await AppConfig.load(environment: [
@@ -121,6 +130,8 @@ import Testing
     #expect(yamlConfig.networkAudioReceiver.serviceName == "YAML Audio Receiver")
     #expect(yamlConfig.networkAudioReceiver.port == 7446)
     #expect(yamlConfig.networkAudioReceiver.sharedToken == "yaml-token")
+    #expect(yamlConfig.remoteGeneration.allowRemoteStreamRequests == true)
+    #expect(yamlConfig.remoteGeneration.sharedToken == "yaml-remote-token")
 
     let inheritedTransportConfig = try await AppConfig.load(environment: [
         "APP_HOST": "0.0.0.0",
@@ -164,6 +175,15 @@ import Testing
         Issue.record("Expected invalid APP_NETWORK_AUDIO_RECEIVER_PORT to throw a configuration error.")
     } catch let error as ServerConfigurationError {
         #expect(error.message.contains("APP_NETWORK_AUDIO_RECEIVER_PORT"))
+    }
+
+    do {
+        _ = try await AppConfig.load(environment: [
+            "APP_REMOTE_GENERATION_ALLOW_REMOTE_STREAM_REQUESTS": "true",
+        ])
+        Issue.record("Expected enabled remote stream requests without a shared token to throw a configuration error.")
+    } catch let error as ServerConfigurationError {
+        #expect(error.message.contains("APP_REMOTE_GENERATION_SHARED_TOKEN"))
     }
 }
 

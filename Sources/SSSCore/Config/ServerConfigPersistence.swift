@@ -55,6 +55,9 @@ public struct ServerConfigPersistence: @unchecked Sendable {
             serviceName: '\(appConfig.networkAudioReceiver.serviceName)'
             port: \(appConfig.networkAudioReceiver.port)
             sharedToken: ''
+          remoteGeneration:
+            allowRemoteStreamRequests: \(appConfig.remoteGeneration.allowRemoteStreamRequests ? "true" : "false")
+            sharedToken: ''
 
         """
     }

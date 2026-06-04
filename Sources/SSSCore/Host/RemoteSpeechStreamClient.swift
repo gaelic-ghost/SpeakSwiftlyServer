@@ -20,18 +20,24 @@ package struct RemoteSpeechStreamRequest: Encodable, Equatable {
 package typealias RemoteGeneratedAudioStreamProvider = @Sendable (
     RemoteSpeechStreamRequest,
     RemoteGenerationService,
+    String,
 ) -> SpeakSwiftly.GeneratedAudioChunkStream
 
 package enum RemoteSpeechStreamClient {
     package static func stream(
         request: RemoteSpeechStreamRequest,
         service: RemoteGenerationService,
+        sharedToken: String,
         session: URLSession = .shared,
     ) -> SpeakSwiftly.GeneratedAudioChunkStream {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let urlRequest = try makeURLRequest(request: request, service: service)
+                    let urlRequest = try makeURLRequest(
+                        request: request,
+                        service: service,
+                        sharedToken: sharedToken,
+                    )
                     let (bytes, response) = try await session.bytes(for: urlRequest)
                     guard let httpResponse = response as? HTTPURLResponse else {
                         throw SpeakSwiftly.Error(
@@ -68,6 +74,7 @@ package enum RemoteSpeechStreamClient {
     private static func makeURLRequest(
         request: RemoteSpeechStreamRequest,
         service: RemoteGenerationService,
+        sharedToken: String,
     ) throws -> URLRequest {
         guard let baseURL = URL(string: service.baseURL) else {
             throw SpeakSwiftly.Error(
@@ -81,6 +88,7 @@ package enum RemoteSpeechStreamClient {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue(GeneratedAudioHTTPStreamCodec.contentType, forHTTPHeaderField: "Accept")
+        urlRequest.setValue(sharedToken, forHTTPHeaderField: RemoteGenerationConfig.streamTokenHeaderName)
         urlRequest.httpBody = try JSONEncoder().encode(request)
         return urlRequest
     }

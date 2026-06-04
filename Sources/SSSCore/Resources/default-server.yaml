@@ -26,3 +26,6 @@ app:
     serviceName: SpeakSwiftly Audio Receiver
     port: 0
     sharedToken:
+  remoteGeneration:
+    allowRemoteStreamRequests: false
+    sharedToken:

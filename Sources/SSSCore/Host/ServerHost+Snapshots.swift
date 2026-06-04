@@ -379,6 +379,12 @@ package extension ServerHost {
         if networkAudioReceiverConfig.sharedToken != appConfig.networkAudioReceiver.sharedToken {
             keys.append("app.networkAudioReceiver.sharedToken")
         }
+        if remoteGenerationConfig.allowRemoteStreamRequests != appConfig.remoteGeneration.allowRemoteStreamRequests {
+            keys.append("app.remoteGeneration.allowRemoteStreamRequests")
+        }
+        if remoteGenerationConfig.sharedToken != appConfig.remoteGeneration.sharedToken {
+            keys.append("app.remoteGeneration.sharedToken")
+        }
 
         return keys
     }

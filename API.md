@@ -159,13 +159,13 @@ Embedded app hosts use the Swift package library surface. The embedded model run
 
 ### Credentials
 
-The default local service API does not require bearer tokens, sessions, certificates, or remote credentials. It is designed for localhost use by trusted local apps, tools, and agents.
+The default local service API does not require bearer tokens, sessions, certificates, or remote credentials. It is designed for localhost use by trusted local apps, tools, and agents. The server-to-server `/speech/stream` route is separate: remote stream requests are disabled unless `app.remoteGeneration.allowRemoteStreamRequests` is true, and enabled callers must send the configured `app.remoteGeneration.sharedToken` in the `X-SpeakSwiftly-Remote-Generation-Token` header.
 
 MCP clients identify themselves through the MCP initialize payload when available. That client information is used as request-context provenance, not as an authentication secret.
 
 ### Permissions
 
-Callers need local network access to the configured bind address and port. LAN audio senders also need the receiver's shared token when `networkAudioReceiver.enabled` is true. Operators need filesystem access to the server state root, runtime profile state, generated artifacts, configuration file, and LaunchAgent-managed service files when installing or operating the standalone service.
+Callers need local network access to the configured bind address and port. Remote generation callers also need the remote generation shared token when `remoteGeneration.allowRemoteStreamRequests` is true. LAN audio senders need the receiver's shared token when `networkAudioReceiver.enabled` is true. Operators need filesystem access to the server state root, runtime profile state, generated artifacts, configuration file, and LaunchAgent-managed service files when installing or operating the standalone service.
 
 Voice creation from audio requires the server process to read the referenced audio file. Generated file and batch requests require write access to the server-managed artifact storage.
 
@@ -184,7 +184,7 @@ Accepted request routes and tools return immediately with request-tracking metad
 - `qwen_pre_model_text_chunking`
 - `generation_location`
 
-`POST /speech/live` queues live playback. `POST /speech/stream` returns newline-delimited generated-audio frames for server-to-server streaming. `POST /speech/files` and `POST /speech/batches` queue retained artifact generation. When `profile_name` is omitted, the server uses the configured app default voice when one exists, then falls back to the runtime default voice.
+`POST /speech/live` queues live playback. `POST /speech/stream` returns newline-delimited generated-audio frames for authenticated server-to-server streaming when remote stream requests are enabled. `POST /speech/files` and `POST /speech/batches` queue retained artifact generation. When `profile_name` is omitted, the server uses the configured app default voice when one exists, then falls back to the runtime default voice.
 
 For live speech, omit `generation_location` or set it to `"local"` to generate
 on this server's local `SpeakSwiftly` runtime. Object-shaped remote generation
@@ -263,7 +263,7 @@ MCP read behavior should stay resources-first. If a read surface moves between t
 
 `APP_CONFIG_FILE` points the server at a YAML config file watched through the reloading configuration provider. `APP_CONFIG_RELOAD_INTERVAL_SECONDS` controls the polling interval and defaults to 2 seconds.
 
-The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, LAN receiver enablement, LAN receiver service name, LAN receiver port, LAN receiver shared token, profile root, runtime backend startup settings, and runtime media ducking settings require a process restart.
+The live-reloadable subset currently includes app name, app environment, SSE heartbeat seconds, completed-job TTL seconds, completed-job max count, and job-prune interval seconds. Bind addresses, ports, HTTP enablement, MCP enablement, MCP path, MCP metadata, LAN receiver enablement, LAN receiver service name, LAN receiver port, LAN receiver shared token, remote generation stream enablement, remote generation shared token, profile root, runtime backend startup settings, and runtime media ducking settings require a process restart.
 
 `SPEAKSWIFTLY_PROFILE_ROOT` is startup-only and points at the server-owned profile-store root. `SPEAKSWIFTLY_SPEECH_BACKEND` overrides the persisted next-start backend while building the explicit `SpeakSwiftly.Configuration` for runtime startup.
 
@@ -273,6 +273,11 @@ The LAN receiver config lives under `app.networkAudioReceiver` in YAML and maps 
 - `serviceName`: Bonjour display name; defaults to `SpeakSwiftly Audio Receiver`
 - `port`: TCP port; use `0` to let Network.framework choose an available port
 - `sharedToken`: required and non-empty when the receiver is enabled
+
+The remote generation config lives under `app.remoteGeneration` in YAML and maps to environment keys prefixed with `APP_REMOTE_GENERATION_`:
+
+- `allowRemoteStreamRequests`: defaults to `false`; when true, this server accepts `/speech/stream` requests from other SpeakSwiftlyServer instances
+- `sharedToken`: required and non-empty when remote stream requests are allowed; callers send it as `X-SpeakSwiftly-Remote-Generation-Token`
 
 Supported `speech_backend` values come from `SpeakSwiftly.SpeechBackend` and include Qwen variants such as `qwen3_smol`, `qwen3_smol_4bit`, `qwen3_smol_5bit`, `qwen3_smol_6bit`, `qwen3_smol_8bit`, `qwen3_smol_bf16`, `qwen3_big`, `qwen3_big_4bit`, `qwen3_big_5bit`, `qwen3_big_6bit`, `qwen3_big_8bit`, and `qwen3_big_bf16`.
 
