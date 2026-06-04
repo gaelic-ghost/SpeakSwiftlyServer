@@ -175,6 +175,7 @@ import Testing
     ])
     #expect(propertyList["RunAtLoad"] as? Bool == true)
     #expect(propertyList["KeepAlive"] as? Bool == true)
+    #expect(propertyList["ProcessType"] as? String == "Interactive")
     #expect(environment["APP_CONFIG_RELOAD_INTERVAL_SECONDS"] == "0.5")
     #expect(environment["APP_CONFIG_FILE"] == nil)
     #expect(environment["SPEAKSWIFTLY_PROFILE_ROOT"] == nil)

@@ -20,6 +20,7 @@ extension LaunchAgentOptions {
             ],
             "RunAtLoad": true,
             "KeepAlive": true,
+            "ProcessType": "Interactive",
             "WorkingDirectory": workingDirectory,
             "StandardOutPath": standardOutPath,
             "StandardErrorPath": standardErrorPath,
