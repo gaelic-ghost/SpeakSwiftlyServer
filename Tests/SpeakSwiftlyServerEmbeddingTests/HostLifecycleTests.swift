@@ -1155,7 +1155,7 @@ private func httpJSON(path: String, port: Int) async throws -> (statusCode: Int,
     request.timeoutInterval = 8
     let (data, response) = try await URLSession.shared.data(for: request)
     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-    return (statusCode, try jsonObject(from: data))
+    return try (statusCode, jsonObject(from: data))
 }
 
 private func httpPOSTJSON(path: String, port: Int) async throws -> (statusCode: Int, json: [String: Any]) {
@@ -1165,7 +1165,7 @@ private func httpPOSTJSON(path: String, port: Int) async throws -> (statusCode: 
     request.timeoutInterval = 8
     let (data, response) = try await URLSession.shared.data(for: request)
     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-    return (statusCode, try jsonObject(from: data))
+    return try (statusCode, jsonObject(from: data))
 }
 
 @available(macOS 14, *)

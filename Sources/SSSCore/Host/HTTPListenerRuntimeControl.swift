@@ -1,6 +1,6 @@
 import Foundation
 
-package enum HTTPListenerRuntimeName: String, Codable, Sendable, CaseIterable {
+package enum HTTPListenerRuntimeName: String, Codable, CaseIterable {
     case localhost
     case lan
 
@@ -25,7 +25,7 @@ package enum HTTPListenerRuntimeName: String, Codable, Sendable, CaseIterable {
     }
 }
 
-package struct HTTPListenerRuntimeControl: Sendable {
+package struct HTTPListenerRuntimeControl {
     package let enable: @Sendable (HTTPListenerRuntimeName) async throws -> TransportStatusSnapshot
     package let disable: @Sendable (HTTPListenerRuntimeName) async throws -> TransportStatusSnapshot
 

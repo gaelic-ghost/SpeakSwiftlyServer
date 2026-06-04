@@ -53,6 +53,17 @@ package actor HTTPListenerRuntimeController {
     private let descriptors: [HTTPListenerRuntimeName: ListenerDescriptor]
     private var runningListeners = [HTTPListenerRuntimeName: RunningListener]()
 
+    package var runtimeControl: HTTPListenerRuntimeControl {
+        .init(
+            enable: { listener in
+                try await self.enable(listener)
+            },
+            disable: { listener in
+                try await self.disable(listener)
+            },
+        )
+    }
+
     package init(
         host: ServerHost,
         localhostConfiguration: HTTPConfig,
@@ -114,17 +125,6 @@ package actor HTTPListenerRuntimeController {
         ]
     }
 
-    package var runtimeControl: HTTPListenerRuntimeControl {
-        .init(
-            enable: { listener in
-                try await self.enable(listener)
-            },
-            disable: { listener in
-                try await self.disable(listener)
-            },
-        )
-    }
-
     package func startConfiguredListeners() async throws {
         for listener in HTTPListenerRuntimeName.allCases {
             guard let descriptor = descriptors[listener], descriptor.startupEnabled else {
@@ -139,6 +139,7 @@ package actor HTTPListenerRuntimeController {
         guard runningListeners[listener] == nil else {
             return try await host.transportStatus(named: listener.transportName)
         }
+
         let descriptor = try descriptor(for: listener)
 
         await markEnabled(descriptor, state: "starting", port: descriptor.configuration.port)
@@ -177,7 +178,7 @@ package actor HTTPListenerRuntimeController {
             return try await host.transportStatus(named: descriptor.transportName)
         }
 
-        await markEnabled(descriptor, state: "stopping", port: try? await host.transportStatus(named: descriptor.transportName).port)
+        await markEnabled(descriptor, state: "stopping", port: try? host.transportStatus(named: descriptor.transportName).port)
         await descriptor.bonjourPublisher?.stop()
         await markDisabled(descriptor)
         Task {
@@ -193,6 +194,7 @@ package actor HTTPListenerRuntimeController {
         runningListeners.removeAll()
         for (listener, running) in activeListeners {
             guard let descriptor = descriptors[listener] else { continue }
+
             running.runTask.cancel()
             await descriptor.bonjourPublisher?.stop()
             await markStopped(descriptor)

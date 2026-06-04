@@ -2,7 +2,7 @@ import Foundation
 import SSSCore
 
 package actor HTTPListenerBonjourPublisher {
-    package struct Snapshot: Sendable, Equatable {
+    package struct Snapshot: Equatable {
         package let serviceName: String
         package let type: String
         package let domain: String

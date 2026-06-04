@@ -171,7 +171,7 @@ package struct LANHTTPListenerConfig: Equatable {
     }
 
     private static func requireValidPort(_ value: Int, key: String) throws -> Int {
-        guard value >= 0, value <= 65_535 else {
+        guard value >= 0, value <= 65535 else {
             throw ServerConfigurationError(
                 "Configuration value '\(key)' must be between 0 and 65535, but received '\(value)'. Use '0' to let macOS choose an available LAN listener port.",
             )
