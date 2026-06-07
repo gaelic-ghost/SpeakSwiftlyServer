@@ -16,22 +16,20 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 if [ "${REPO_MAINTENANCE_DRY_RUN:-false}" = "true" ]; then
-  log "Would create a GitHub release for $RELEASE_TAG with $(describe_github_release_create_command "$RELEASE_TAG")."
+  prerelease_flag="$(github_release_create_prerelease_flag "$RELEASE_TAG")"
+  log "Would create a GitHub release for $RELEASE_TAG with gh release create --verify-tag${prerelease_flag:+ $prerelease_flag}."
   exit 0
 fi
 
 if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-  log "GitHub release $RELEASE_TAG already exists."
   verify_github_release_prerelease_metadata "$RELEASE_TAG"
+  log "GitHub release $RELEASE_TAG already exists."
   exit 0
 fi
 
-prerelease_args="$(github_release_prerelease_args "$RELEASE_TAG")"
-if [ -n "$prerelease_args" ]; then
-  gh release create "$RELEASE_TAG" --verify-tag --generate-notes "$prerelease_args"
-else
-  gh release create "$RELEASE_TAG" --verify-tag --generate-notes
-fi
+prerelease_flag="$(github_release_create_prerelease_flag "$RELEASE_TAG")"
+# shellcheck disable=SC2086
+gh release create "$RELEASE_TAG" --verify-tag --generate-notes $prerelease_flag
 log "Created GitHub release $RELEASE_TAG."
 wait_for_github_release "$RELEASE_TAG"
 verify_github_release_prerelease_metadata "$RELEASE_TAG"
