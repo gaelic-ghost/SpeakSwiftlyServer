@@ -12,7 +12,7 @@ expect_prerelease() {
     die "Expected $tag_name to be detected as a SemVer prerelease tag."
   fi
 
-  prerelease_args="$(github_release_prerelease_args "$tag_name")"
+  prerelease_args="$(github_release_create_prerelease_flag "$tag_name")"
   [ "$prerelease_args" = "--prerelease" ] || die "Expected $tag_name to add --prerelease to GitHub release creation."
 }
 
@@ -23,7 +23,7 @@ expect_final_release() {
     die "Expected $tag_name to be detected as a final SemVer release tag."
   fi
 
-  prerelease_args="$(github_release_prerelease_args "$tag_name")"
+  prerelease_args="$(github_release_create_prerelease_flag "$tag_name")"
   [ -z "$prerelease_args" ] || die "Expected $tag_name to avoid GitHub prerelease metadata."
 }
 
