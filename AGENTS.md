@@ -209,6 +209,13 @@ No deeper `AGENTS.md` files are currently checked in below this repository root.
 - When generating `Resources/SystemProfiles` voice resources, prefer the upstream
   `upsert-system-voice-profile` SwiftPM command plugin. Run it from a normal user shell or an
   explicitly unsandboxed agent command if the Codex sandbox cannot access the default Metal GPU.
+- Keep `swift-configuration` as the default configuration dependency for Swift packages unless this
+  package has a concrete reason to remove it. The preferred manifest shape depends on
+  `https://github.com/apple/swift-configuration` from `1.2.0`, enables the `.defaults`,
+  `Reloading`, `YAML`, and `CommandLineArguments` package traits, and adds the `Configuration`
+  product to the primary target. Add the `PropertyList` trait when the package should parse
+  property-list configuration, and add the `Logging` trait when configuration access should
+  integrate with `SwiftLog.Logger`.
 - Prefer `xcode-build-run-workflow` or `xcode-testing-workflow` only when package work genuinely needs Xcode-managed SDK, toolchain, Metal, or test behavior that SwiftPM does not cover cleanly.
 - Read relevant SwiftPM, Swift, and Apple documentation before proposing package-structure, dependency, concurrency, or architecture changes, and prefer Dash or local docs first when available.
 

@@ -1,0 +1,26 @@
+# Repo-local Swift package environment for Codex app actions in this checkout.
+version = 1
+name = "swift-package"
+
+[setup]
+script = "xcrun swift package resolve"
+
+[[actions]]
+name = "resolve"
+icon = "tool"
+command = "xcrun swift package resolve"
+
+[[actions]]
+name = "build"
+icon = "tool"
+command = "xcrun swift build"
+
+[[actions]]
+name = "test"
+icon = "tool"
+command = "xcrun swift test"
+
+[[actions]]
+name = "validate"
+icon = "check"
+command = "sh scripts/repo-maintenance/validate-all.sh"

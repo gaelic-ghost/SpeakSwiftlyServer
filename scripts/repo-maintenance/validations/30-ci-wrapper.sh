@@ -12,4 +12,4 @@ if [ ! -f "$workflow_path" ]; then
   exit 0
 fi
 
-grep -Fq "scripts/repo-maintenance/validate-ci.sh" "$workflow_path" || die "Expected $workflow_path to call scripts/repo-maintenance/validate-ci.sh."
+grep -Fq "scripts/repo-maintenance/validate-all.sh" "$workflow_path" || die "Expected $workflow_path to call scripts/repo-maintenance/validate-all.sh."

@@ -55,6 +55,50 @@ positive_integer_or_default() {
   esac
 }
 
+is_semver_prerelease_tag() {
+  tag_name="$1"
+  case "$tag_name" in
+    v[0-9]*.[0-9]*.[0-9]*-*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+expected_github_prerelease_value() {
+  tag_name="$1"
+  if is_semver_prerelease_tag "$tag_name"; then
+    printf '%s\n' "true"
+  else
+    printf '%s\n' "false"
+  fi
+}
+
+github_release_create_prerelease_flag() {
+  tag_name="$1"
+  if is_semver_prerelease_tag "$tag_name"; then
+    printf '%s\n' "--prerelease"
+  fi
+}
+
+verify_github_release_prerelease_metadata() {
+  tag_name="$1"
+  expected_value="$(expected_github_prerelease_value "$tag_name")"
+
+  actual_value="$(gh release view "$tag_name" --json isPrerelease --jq .isPrerelease 2>/dev/null || true)"
+  case "$actual_value" in
+    true|false)
+      ;;
+    *)
+      die "GitHub release $tag_name exists, but its prerelease metadata was not readable. Confirm gh can read release JSON metadata before rerunning release.sh."
+      ;;
+  esac
+
+  [ "$actual_value" = "$expected_value" ] || die "GitHub release $tag_name prerelease metadata mismatch: tag implies isPrerelease=$expected_value but GitHub reports isPrerelease=$actual_value. Update the release metadata or delete and recreate the release before rerunning release.sh."
+}
+
 github_wait_timeout() {
   value="$1"
   default_timeout="$(positive_integer_or_default "${REPO_MAINTENANCE_GH_WAIT_TIMEOUT_SECONDS:-120}" 120)"
@@ -134,50 +178,6 @@ wait_for_github_release() {
     sleep "$poll_seconds"
     elapsed_seconds=$((elapsed_seconds + poll_seconds))
   done
-}
-
-is_semver_prerelease_tag() {
-  tag_name="$1"
-
-  case "$tag_name" in
-    v[0-9]*.[0-9]*.[0-9]*-*)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-github_release_prerelease_args() {
-  tag_name="$1"
-
-  if is_semver_prerelease_tag "$tag_name"; then
-    printf '%s\n' "--prerelease"
-  fi
-}
-
-describe_github_release_create_command() {
-  tag_name="$1"
-  prerelease_args="$(github_release_prerelease_args "$tag_name")"
-
-  if [ -n "$prerelease_args" ]; then
-    printf 'gh release create --verify-tag --prerelease\n'
-  else
-    printf 'gh release create --verify-tag\n'
-  fi
-}
-
-verify_github_release_prerelease_metadata() {
-  tag_name="$1"
-
-  if ! is_semver_prerelease_tag "$tag_name"; then
-    return 0
-  fi
-
-  is_prerelease="$(gh release view "$tag_name" --json isPrerelease --jq '.isPrerelease')"
-  [ "$is_prerelease" = "true" ] || die "GitHub release $tag_name exists but is not marked as a prerelease. SemVer prerelease tags must create or preserve GitHub prerelease metadata; run gh release edit $tag_name --prerelease or rerun the release flow after correcting the release object."
-  log "Verified GitHub release $tag_name is marked as a prerelease."
 }
 
 ensure_git_repo() {

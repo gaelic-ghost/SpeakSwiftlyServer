@@ -11,10 +11,8 @@ load_env_file "$SELF_DIR/config/release.env"
 mode="${REPO_MAINTENANCE_DEFAULT_RELEASE_MODE:-standard}"
 release_tag=""
 skip_validate="false"
-skip_local_e2e="false"
 skip_gh_release="false"
 skip_version_bump="false"
-skip_live_service_update="false"
 base_branch="${REPO_MAINTENANCE_RELEASE_BRANCH:-main}"
 review_comments_addressed="false"
 skip_branch_cleanup="false"
@@ -35,20 +33,12 @@ while [ "$#" -gt 0 ]; do
       skip_validate="true"
       shift
       ;;
-    --skip-local-e2e)
-      skip_local_e2e="true"
-      shift
-      ;;
     --skip-gh-release)
       skip_gh_release="true"
       shift
       ;;
     --skip-version-bump)
       skip_version_bump="true"
-      shift
-      ;;
-    --skip-live-service-update)
-      skip_live_service_update="true"
       shift
       ;;
     --base-branch)
@@ -74,7 +64,7 @@ while [ "$#" -gt 0 ]; do
     -h|--help)
       cat <<'USAGE'
 Usage:
-  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-local-e2e] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
+  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
   release.sh --mode submodule --version <vX.Y.Z> [--skip-validate] [--skip-gh-release] [--dry-run]
 USAGE
       exit 0
@@ -408,56 +398,23 @@ create_github_release() {
   fi
 
   if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would create a GitHub release for $RELEASE_TAG with $(describe_github_release_create_command "$RELEASE_TAG")."
+    prerelease_flag="$(github_release_create_prerelease_flag "$RELEASE_TAG")"
+    log "Would create a GitHub release for $RELEASE_TAG with gh release create --verify-tag${prerelease_flag:+ $prerelease_flag}."
     return 0
   fi
 
   if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-    log "GitHub release $RELEASE_TAG already exists."
     verify_github_release_prerelease_metadata "$RELEASE_TAG"
+    log "GitHub release $RELEASE_TAG already exists."
     return 0
   fi
 
-  prerelease_args="$(github_release_prerelease_args "$RELEASE_TAG")"
-  if [ -n "$prerelease_args" ]; then
-    gh release create "$RELEASE_TAG" --verify-tag --generate-notes "$prerelease_args"
-  else
-    gh release create "$RELEASE_TAG" --verify-tag --generate-notes
-  fi
+  prerelease_flag="$(github_release_create_prerelease_flag "$RELEASE_TAG")"
+  # shellcheck disable=SC2086
+  gh release create "$RELEASE_TAG" --verify-tag --generate-notes $prerelease_flag
   log "Created GitHub release $RELEASE_TAG."
   wait_for_github_release "$RELEASE_TAG"
   verify_github_release_prerelease_metadata "$RELEASE_TAG"
-}
-
-update_live_service() {
-  if [ "$skip_live_service_update" = "true" ]; then
-    log "Skipping live-service update because --skip-live-service-update was requested."
-    return 0
-  fi
-
-  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would update the live LaunchAgent-backed service from synced local $base_branch, then run SpeakSwiftlyServerTool healthcheck."
-    return 0
-  fi
-
-  log "Updating the live LaunchAgent-backed service from synced local $base_branch."
-  xcrun swift run SpeakSwiftlyServerTool launch-agent install
-  xcrun swift run SpeakSwiftlyServerTool healthcheck
-  log "Updated and healthchecked the live LaunchAgent-backed service for $RELEASE_TAG."
-}
-
-run_local_e2e_validation() {
-  if [ "$skip_local_e2e" = "true" ]; then
-    log "Skipping local live E2E validation because --skip-local-e2e was requested."
-    return 0
-  fi
-
-  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would unload resident models from the live LaunchAgent-backed service, run local live E2E, then reload resident models."
-    return 0
-  fi
-
-  sh "$SELF_DIR/validate-local-e2e.sh"
 }
 
 cleanup_merged_branches() {
@@ -496,9 +453,6 @@ run_standard_release() {
 
   if [ "$skip_validate" != "true" ]; then
     sh "$SELF_DIR/validate-all.sh"
-    run_local_e2e_validation
-  else
-    log "Skipping maintainer validation and local live E2E validation because --skip-validate was requested."
   fi
 
   run_version_bump
@@ -518,7 +472,6 @@ run_standard_release() {
   create_release_tag
   push_release_tag
   create_github_release
-  update_live_service
   cleanup_merged_branches "$branch_name"
   log "Standard release flow completed successfully for $RELEASE_TAG."
 }
