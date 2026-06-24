@@ -27,7 +27,7 @@ let package = Package(
     // MARK: Dependencies
 
     dependencies: [
-        .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.21.1"),
+        .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.25.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.83.0"),
         .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "11.0.0"),
@@ -38,7 +38,7 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-configuration",
             from: "1.2.0",
-            traits: [.defaults, "YAML", "Reloading"],
+            traits: [.defaults, "CommandLineArguments", "YAML", "Reloading"],
         ),
     ],
 
