@@ -1,5 +1,4 @@
 import MCP
-import SpeakSwiftly
 import SSSCore
 
 package struct MCPClientInfoSnapshot {
@@ -44,20 +43,11 @@ package func mcpSpeechRequestContextDefaults(
     }
 
     return .init(
-        reqPurpose: mcpRequestPurpose(for: toolName),
+        reqPurpose: .speech,
         source: "mcp",
         topic: toolName,
         attributes: attributes,
     )
-}
-
-private func mcpRequestPurpose(for toolName: String) -> SpeakSwiftly.RequestContext.RequestPurpose {
-    switch toolName {
-        case "generate_audio_file", "generate_batch":
-            .audioFile
-        default:
-            .speech
-    }
 }
 
 private func mcpClientDisplayName(from clientInfo: MCPClientInfoSnapshot) -> String {

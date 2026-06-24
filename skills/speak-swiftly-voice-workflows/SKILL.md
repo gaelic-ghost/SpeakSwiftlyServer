@@ -1,25 +1,25 @@
 ---
 name: speak-swiftly-voice-workflows
-description: Use when a user wants SpeakSwiftly voice-profile or speech-generation help through the MCP surface, including voice creation from text or audio, profile listing, renaming, rerolling, deletion, immediate spoken playback, retained audio artifacts, retained batch jobs, and generation artifact tracking.
+description: Use when a user wants SpeakSwiftly voice-profile or speech-generation help, including voice creation from text or audio over HTTP, profile listing over slim MCP or HTTP, immediate spoken playback over MCP, retained audio artifacts over HTTP, retained batch jobs over HTTP, and generation artifact tracking over HTTP.
 ---
 
 # SpeakSwiftly Voice Workflows
 
-Use this skill for voice selection, voice creation, and speech-generation work on the local `speak_swiftly` MCP surface.
+Use this skill for voice selection, voice creation, and speech-generation work. The local `speak_swiftly` MCP surface owns live speech playback and guidance; HTTP owns voice-profile mutation and retained generation.
 
 ## Start Here
 
-- Read `speak-swiftly://voices` before creating, renaming, rerolling, deleting, or choosing a profile. Use `list_voice_profiles` only for compatibility clients that cannot read MCP resources cleanly.
-- Use `speak-swiftly://voices/{profile_name}` when the user is choosing or inspecting one specific stored voice. System-authored built-ins redact seed source text and voice-design prompts from this ordinary read path.
+- Read `speak-swiftly://voices` or `GET /voices` before creating, renaming, rerolling, deleting, or choosing a profile.
+- Use `GET /voices` for detailed HTTP workflows; the slim MCP surface no longer exposes one-profile detail resources.
 - If the user wants help designing a voice rather than executing immediately, prefer the `draft_profile_voice_description`, `draft_profile_source_text`, and `draft_voice_design_instruction` prompts plus the guide flow documented in [MCPResources.swift](../../Sources/SpeakSwiftlyServer/MCP/MCPResources.swift).
 
 ## Creation And Editing
 
-- Use `create_voice_profile_from_description` when the user has target sound qualities and source text.
-- Use `create_voice_profile_from_audio` when the user has reference audio. Provide `transcript` whenever the spoken words are already known.
-- Use `update_voice_profile_name` for a pure rename.
-- Use `reroll_voice_profile` when the user wants the same stored name rebuilt from its original inputs.
-- Use `delete_voice_profile` only after confirming the exact stored `profile_name`.
+- Use `POST /voices/from-description` when the user has target sound qualities and source text.
+- Use `POST /voices/from-audio` when the user has reference audio. Provide `transcript` whenever the spoken words are already known.
+- Use `PUT /voices/{profile_name}/name` for a pure rename.
+- Use `POST /voices/{profile_name}/reroll` when the user wants the same stored name rebuilt from its original inputs.
+- Use `DELETE /voices/{profile_name}` only after confirming the exact stored `profile_name`.
 - The package-owned built-in defaults are `swift-signal` and `swift-anchor` when installed by upstream `SpeakSwiftly` bundled system-profile resources. Treat them as system voices, not user-authored example names. Normal users should list and select them.
 - When a user wants broad-appeal user-authored example profiles, suggest names and voice directions such as:
   - `swift-lumen`: luminous, clean, gentle, and polished
@@ -38,8 +38,8 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 ## Speech And Artifacts
 
 - Use `generate_speech` when the user wants audible playback now.
-- Use `generate_audio_file` when the user wants a saved retained artifact instead of immediate playback.
-- Use `generate_batch` when the user wants multiple retained artifacts generated under one voice profile.
+- Use `POST /speech/files` when the user wants a saved retained artifact instead of immediate playback.
+- Use `POST /speech/batches` when the user wants multiple retained artifacts generated under one voice profile.
 - Pass `text_profile_id` only when the user explicitly wants a stored normalization profile on that request.
 - HTTP and MCP speech requests get transport provenance in `request_context` by default; pass `cwd`, `repo_root`, or explicit `request_context` only when path or caller metadata needs to be more specific. Do not pass a separate `source_format`; SpeakSwiftly now lets TextForSpeech infer text and source structure from request text plus path context.
 - Pass `qwen_pre_model_text_chunking` only when the user explicitly wants Qwen live playback to chunk before model generation; omitted requests keep the runtime's normal single-pass live path.
@@ -47,6 +47,6 @@ Use this skill for voice selection, voice creation, and speech-generation work o
 ## Tracking
 
 - After `generate_speech`, read `speak-swiftly://requests/{request_id}` or `speak-swiftly://overview`.
-- After retained-file or batch requests, follow `speak-swiftly://requests/{request_id}` first, then inspect `speak-swiftly://generation/jobs`, `speak-swiftly://generation/jobs/{job_id}`, `speak-swiftly://generation/artifacts`, or `speak-swiftly://generation/artifacts/{artifact_id}`.
+- After retained-file or batch requests, follow `GET /requests/{request_id}` first, then inspect `GET /generation/jobs`, `GET /generation/jobs/{job_id}`, `GET /generation/artifacts`, or `GET /generation/artifacts/{artifact_id}`.
 - Use generation jobs and artifacts to inspect retained outputs; the older generated-file and generated-batch read tools are not carried forward.
-- Use `expire_generation_job` only when the user explicitly wants one retained generation job removed.
+- Use `DELETE /generation/jobs/{job_id}` only when the user explicitly wants one retained generation job removed.

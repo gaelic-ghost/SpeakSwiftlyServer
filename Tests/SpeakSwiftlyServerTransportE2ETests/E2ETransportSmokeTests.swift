@@ -80,7 +80,7 @@ extension ServerTransportE2ETests {
         #expect(retainedEvents.text.contains(#""ok":true"#))
     }
 
-    @Test func `mcp transport delivers a resource update and retains a completed request`() async throws {
+    @Test func `mcp transport queues live speech and retains a completed request`() async throws {
         let sandbox = try ServerE2ESandbox()
         defer { sandbox.cleanup() }
 
@@ -113,22 +113,19 @@ extension ServerTransportE2ETests {
         try await eventStream.start()
         defer { eventStream.stop() }
 
-        try await client.subscribe(to: "speak-swiftly://voices")
+        try await client.subscribe(to: "speak-swiftly://overview")
 
-        let profileName = "mcp-smoke-profile"
-        let createPayload = try await client.callTool(
-            name: "create_voice_profile_from_description",
+        let speechPayload = try await client.callTool(
+            name: "generate_speech",
             arguments: [
-                "profile_name": profileName,
-                "vibe": "femme",
-                "text": Self.testingProfileText,
-                "voice_description": Self.testingProfileVoiceDescription,
+                "text": ServerE2E.testingPlaybackText,
+                "profile_name": "default",
             ],
         )
-        let createJobID = try requireString("request_id", in: createPayload)
-        #expect(createPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(createJobID)")
+        let speechJobID = try requireString("request_id", in: speechPayload)
+        #expect(speechPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(speechJobID)")
 
-        let profileNotification = try await eventStream.waitForNotification(timeout: .seconds(60)) {
+        let overviewNotification = try await eventStream.waitForNotification(timeout: .seconds(60)) {
             guard $0["method"] as? String == "notifications/resources/updated" else {
                 return false
             }
@@ -136,35 +133,10 @@ extension ServerTransportE2ETests {
                 return false
             }
 
-            return params["uri"] as? String == "speak-swiftly://voices"
+            return params["uri"] as? String == "speak-swiftly://overview"
         }
-        let notificationParams = try requireDictionary("params", in: profileNotification)
-        #expect(notificationParams["uri"] as? String == "speak-swiftly://voices")
-
-        _ = try await waitForTerminalJob(
-            id: createJobID,
-            using: client,
-            timeout: Self.e2eTimeout,
-            server: server,
-        )
-
-        let profiles = try await requireProfiles(from: client.readResourceJSON(uri: "speak-swiftly://voices"))
-        #expect(profiles.contains { $0.profileName == profileName })
-
-        let profileDetail = try await Self.requireObjectPayload(
-            from: client.readResourceJSON(uri: "speak-swiftly://voices/\(profileName)"),
-        )
-        #expect(profileDetail["profile_name"] as? String == profileName)
-
-        let speechPayload = try await client.callTool(
-            name: "generate_speech",
-            arguments: [
-                "text": ServerE2E.testingPlaybackText,
-                "profile_name": profileName,
-            ],
-        )
-        let speechJobID = try requireString("request_id", in: speechPayload)
-        #expect(speechPayload["request_resource_uri"] as? String == "speak-swiftly://requests/\(speechJobID)")
+        let notificationParams = try requireDictionary("params", in: overviewNotification)
+        #expect(notificationParams["uri"] as? String == "speak-swiftly://overview")
 
         let speechTerminal = try await waitForTerminalJob(
             id: speechJobID,
@@ -180,6 +152,6 @@ extension ServerTransportE2ETests {
         #expect(retainedRequest["request_id"] as? String == speechJobID)
         #expect(retainedRequest["status"] as? String == "completed")
 
-        try await client.unsubscribe(from: "speak-swiftly://voices")
+        try await client.unsubscribe(from: "speak-swiftly://overview")
     }
 }

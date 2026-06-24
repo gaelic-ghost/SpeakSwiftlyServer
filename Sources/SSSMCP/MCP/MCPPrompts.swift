@@ -219,19 +219,15 @@ package extension MCPSurface {
                     User goal: \(userGoal)
                     Current context: \(textIfPresent("current_context", in: arguments) ?? "unknown")
                     \(textIfPresent("constraints", in: arguments).map { "Constraints: \($0)" } ?? "")
-                    Selection rule: for read-only inspection, use a speak-swiftly:// resource. Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes.
+                    Selection rule: use the MCP tool only for live speech playback. Use MCP resources for high-level read-only inspection and guidance. Use HTTP endpoints for retained generation, voice-profile changes, text-profile changes, cancellation, clearing, playback controls, runtime controls, network-audio selection, and artifact workflows.
                     Available action families:
-                    - voice profile reads: speak-swiftly://voices, speak-swiftly://voices/{profile_name}, speak-swiftly://voices/guide
-                    - voice profile actions: create_voice_profile_from_description, create_voice_profile_from_audio, update_voice_profile_name, reroll_voice_profile, delete_voice_profile
-                    - speech and retained generation: generate_speech, generate_audio_file, generate_batch, speak-swiftly://requests/{request_id}, speak-swiftly://generation/jobs, speak-swiftly://generation/artifacts
-                    - text profile reads: speak-swiftly://text-profiles, speak-swiftly://text-profiles/style, speak-swiftly://text-profiles/base, speak-swiftly://text-profiles/active, speak-swiftly://text-profiles/effective, speak-swiftly://text-profiles/guide
-                    - text profile actions: load_text_profiles, save_text_profiles, create_text_profile, rename_text_profile, set_active_text_profile, delete_text_profile, factory_reset_text_profiles, reset_text_profile, add_text_replacement, replace_text_replacement, remove_text_replacement, set_text_profile_style
-                    - playback and queue reads: speak-swiftly://overview, speak-swiftly://playback, speak-swiftly://playback/queue, speak-swiftly://requests, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
-                    - playback and queue actions: pause_playback, resume_playback, list_recent_generated_audio, get_recent_generated_audio_chunks, replay_recent_audio, replay_recent_audio_all, clear_recent_generated_audio, clear_generation_queue, clear_playback_queue, cancel_request
-                    - runtime reads: speak-swiftly://overview, speak-swiftly://status, speak-swiftly://configuration
-                    - runtime actions: set_runtime_configuration, switch_speech_backend, reload_models, unload_models
+                    - live speech: generate_speech, then speak-swiftly://requests/{request_id}
+                    - voice profile reads and guidance: speak-swiftly://voices, speak-swiftly://voices/guide
+                    - text profile reads and guidance: speak-swiftly://text-profiles, speak-swiftly://text-profiles/guide
+                    - playback and runtime reads: speak-swiftly://overview, speak-swiftly://playback, speak-swiftly://requests/{request_id}, speak-swiftly://playback/guide
+                    - HTTP-only actions: voice profiles, text profiles, retained generation, queue clearing, cancellation, playback controls, runtime controls, network audio, generation jobs, and generated artifacts
                     - drafting help: draft_profile_voice_description, draft_profile_source_text, draft_text_profile, draft_text_replacement, draft_voice_design_instruction, draft_queue_playback_notice
-                    Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, or prompt.
+                    Return concise JSON with keys action_type, target_name, why, and suggested_follow_up. action_type must be one of tool, resource, prompt, or http.
                     """
                     return .init(
                         description: "Reusable routing prompt for choosing the right SpeakSwiftly MCP action.",

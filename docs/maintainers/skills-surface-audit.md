@@ -1,6 +1,6 @@
 # Skills Surface Audit
 
-Last audited: 2026-05-12
+Last audited: 2026-06-24
 
 This note records the repo-local Codex skill surface audit against the current `SpeakSwiftlyServer` package, HTTP API, MCP catalog, plugin metadata, and operator documentation.
 
@@ -31,23 +31,18 @@ The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `
 
 The skill set is conceptually aligned with the current project shape. The six-skill split still maps cleanly onto the real product surfaces: broad MCP orientation, LaunchAgent service setup, Codex hook setup, runtime operation, voice workflows, and text-profile authoring.
 
-The skill-referenced MCP tool names, prompt names, and `speak-swiftly://` resource families are present in the current source catalog. The runtime skill names the current generation/playback split controls, including `clear_generation_queue`, `clear_playback_queue`, and scoped `cancel_request`. The voice skill names the retained generation jobs and artifact resources now exposed by the MCP catalog.
+The MCP source catalog is intentionally slim. It keeps `generate_speech` as the core agent-facing tool, keeps prompt authoring surfaces, and keeps a compact read-only resource set for overview, voice-profile list/guidance, text-profile list/guidance, playback state/guidance, and focused request detail.
 
-The skills now match the resources-only MCP read guidance: use `speak-swiftly://overview`, `speak-swiftly://voices`, `speak-swiftly://text-profiles`, and focused detail resources for read-only inspection, and reserve tools for queueing speech, runtime changes, profile/text-profile mutations, cancellation, clearing, and playback control.
+Voice-profile mutation, text-profile mutation, retained generation, playback controls, runtime controls, cancellation, queue clearing, network-audio selection, generation jobs, and generated artifacts are HTTP-first workflows. Skills should teach agents the HTTP routes for those actions instead of asking the MCP catalog to mirror the REST API.
 
 The public HTTP and MCP guidance now treats request-context metadata as transport-owned by default. Callers can omit `request_context` for ordinary speech calls; they only need to provide it when they know richer source, topic, path, or caller attributes than the server can infer.
 
 ## Drift Fixed In This Pass
 
-- The skills now use the `speak-swiftly://...` MCP resource scheme, scoped `cancel_request`, `set_runtime_configuration`, and retained generation-job/artifact wording after the next-major API cleanup.
-- `API.md` did not list the current generation-side HTTP clear route even though `HTTPGenerationRoutes.swift` exposes `DELETE /generation/queue`.
-- `API.md` did not list `DELETE /generation/jobs/{job_id}` even though the route backs retained job expiry.
-- `API.md` did not list the current MCP `clear_generation_queue`, `clear_playback_queue`, and scoped `cancel_request` tools even though the MCP catalog and runtime skill already use them.
-- `speak-swiftly-voice-workflows` mentioned explicit text-format fields but did not call out the current `qwen_pre_model_text_chunking` live-speech option from the MCP catalog and API notes.
-- The MCP, runtime, voice, and text-profile skills still treated read-only MCP tools as normal first reads. The current clean-break MCP surface removes those read tools where resources exist and points agents at `speak-swiftly://...` resources instead.
-- The voice workflow skill still described `swift-signal` and `swift-anchor` as planned/reserved names. It now treats them as package-owned built-in defaults.
-- Added `speak-swiftly-codex-hooks` so plugin-managed hooks, duplicate user-level Stop hook repair, centralized hook logs, and doctor interpretation have a dedicated skill instead of living only in maintainer prose.
-- Added default HTTP/MCP request-context provenance to the docs and skill surfaces so future TTS and TextForSpeech behavior can rely on the same origin metadata.
+- Slimmed the MCP tool catalog to `generate_speech` and moved duplicate mutation/control workflows back to HTTP guidance.
+- Slimmed MCP resources to high-value agent reads and removed detailed duplicate resources for runtime status/configuration, playback queue, network-audio selection, generation jobs, artifacts, voice detail, and text-profile detail.
+- Preserved MCP prompts because they add agent-native authoring value instead of duplicating HTTP.
+- Updated `API.md` so it describes MCP as an agent affordance layer, not a full HTTP mirror.
 
 ## Healthy Constraints To Preserve
 

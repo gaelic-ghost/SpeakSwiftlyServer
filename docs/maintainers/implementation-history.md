@@ -23,10 +23,10 @@ The public API simplification work reduced duplicate route, tool, resource, and 
 
 Completed decisions:
 
-- Prefer MCP resources for read-only inspection and tools for commands or mutations.
-- Keep top-level MCP runtime resources under `speak-swiftly://overview`, `speak-swiftly://status`, and `speak-swiftly://configuration`.
-- Remove read-only MCP compatibility tools in the v6 alignment pass so resources are the only MCP read contract where a resource exists.
-- Collapse cancellation around `DELETE /requests/{request_id}` and `cancel_request`, with optional queue scope only when the caller needs protection.
+- Prefer MCP resources for high-value agent inspection and prompts for authoring help; do not mirror the full HTTP API through MCP.
+- Keep top-level MCP runtime inspection under `speak-swiftly://overview`; use HTTP for detailed runtime status and configuration.
+- Keep `generate_speech` as the core MCP tool because immediate spoken playback is the primary agent action.
+- Collapse cancellation around `DELETE /requests/{request_id}`, with optional queue scope only when the caller needs protection.
 - Prefer `runtime configuration` wording, with `active_*`, `next_*`, `persisted_*`, and `environment_*_override` fields carrying the precise state.
 - Move retained generated output reads toward one generation artifact family instead of separate file and batch read families.
 - Use shared playback and queue snapshot primitives across embedded state and transport envelopes where possible.

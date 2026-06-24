@@ -31,15 +31,6 @@ extension ServerTests {
             let seedRequestPayload = try mcpToolPayload(from: seedRequestEnvelope)
             let requestID = try #require(seedRequestPayload["request_id"] as? String)
 
-            _ = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: #"{"jsonrpc":"2.0","id":"tool-text-profile-1","method":"tools/call","params":{"name":"create_text_profile","arguments":{"name":"MCP Text","replacements":[]}}}"#,
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-
             let getPromptEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -133,35 +124,6 @@ extension ServerTests {
             #expect((runtimeRefresh["sequence_id"] as? Int ?? 0) > 0)
             #expect(runtimeRefresh["source"] as? String == "runtime_snapshots")
 
-            let runtimeStatusResourceEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://status"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let runtimeStatusResourceResult = try #require(mcpResultPayload(from: runtimeStatusResourceEnvelope))
-            let runtimeStatusContents = try #require(runtimeStatusResourceResult["contents"] as? [[String: Any]])
-            let runtimeStatusText = try #require(runtimeStatusContents.first?["text"] as? String)
-            let runtimeStatusPayload = try jsonObject(from: Data(runtimeStatusText.utf8))
-            #expect(runtimeStatusPayload["speech_backend"] as? String == "qwen3_smol")
-            #expect(runtimeStatusPayload["runtime_backend_transition"] is [String: Any])
-
-            let runtimeConfigResourceEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://configuration"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let runtimeConfigResourceResult = try #require(mcpResultPayload(from: runtimeConfigResourceEnvelope))
-            let runtimeConfigContents = try #require(runtimeConfigResourceResult["contents"] as? [[String: Any]])
-            let runtimeConfigText = try #require(runtimeConfigContents.first?["text"] as? String)
-            let runtimeConfigPayload = try jsonObject(from: Data(runtimeConfigText.utf8))
-            #expect(runtimeConfigPayload["active_runtime_speech_backend"] as? String == "qwen3_smol")
-
             let playbackResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -177,66 +139,6 @@ extension ServerTests {
             let playbackState = try #require(playbackPayload["playback"] as? [String: Any])
             #expect(playbackState["state"] as? String != nil)
 
-            let playbackQueueResourceEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://playback/queue"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let playbackQueueResourceResult = try #require(mcpResultPayload(from: playbackQueueResourceEnvelope))
-            let playbackQueueContents = try #require(playbackQueueResourceResult["contents"] as? [[String: Any]])
-            let playbackQueueText = try #require(playbackQueueContents.first?["text"] as? String)
-            let playbackQueuePayload = try jsonObject(from: Data(playbackQueueText.utf8))
-            #expect(playbackQueuePayload["queue_type"] as? String == "playback")
-
-            let jobsResourceEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://requests"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let jobsResourceResult = try #require(mcpResultPayload(from: jobsResourceEnvelope))
-            let jobsContents = try #require(jobsResourceResult["contents"] as? [[String: Any]])
-            let jobsText = try #require(jobsContents.first?["text"] as? String)
-            let jobsPayload = try #require(try JSONSerialization.jsonObject(with: Data(jobsText.utf8)) as? [[String: Any]])
-            #expect(jobsPayload.contains { $0["request_id"] as? String == requestID })
-
-            let profileDetailEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/default"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let profileDetailResult = try #require(mcpResultPayload(from: profileDetailEnvelope))
-            let profileDetailContents = try #require(profileDetailResult["contents"] as? [[String: Any]])
-            let profileDetailText = try #require(profileDetailContents.first?["text"] as? String)
-            let profileDetailPayload = try jsonObject(from: Data(profileDetailText.utf8))
-            #expect(profileDetailPayload["profile_name"] as? String == "default")
-
-            let builtInProfileEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://voices/swift-signal"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let builtInProfileResult = try #require(mcpResultPayload(from: builtInProfileEnvelope))
-            let builtInProfileContents = try #require(builtInProfileResult["contents"] as? [[String: Any]])
-            let builtInProfileText = try #require(builtInProfileContents.first?["text"] as? String)
-            let builtInProfilePayload = try jsonObject(from: Data(builtInProfileText.utf8))
-            #expect(builtInProfilePayload["profile_name"] as? String == "swift-signal")
-            #expect(builtInProfilePayload["author"] as? String == "system")
-            #expect(builtInProfilePayload["seed_id"] as? String == "swift.signal")
-            #expect((builtInProfilePayload["source_text"] as? String)?.contains("maintainer/tool surfaces") == true)
-            #expect((builtInProfilePayload["voice_description"] as? String)?.contains("maintainer/tool surfaces") == true)
-
             let textProfilesResourceEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
                     mcpPOSTRequest(
@@ -250,23 +152,6 @@ extension ServerTests {
             let textProfilesText = try #require(textProfilesContents.first?["text"] as? String)
             let textProfilesPayload = try jsonObject(from: Data(textProfilesText.utf8))
             #expect(textProfilesPayload["built_in_style"] as? String == "balanced")
-            let storedProfilesPayload = try #require(textProfilesPayload["stored_profiles"] as? [[String: Any]])
-            #expect(storedProfilesPayload.contains { $0["profile_id"] as? String == "mcp-text" })
-
-            let textProfileStyleEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/style"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let textProfileStyleResult = try #require(mcpResultPayload(from: textProfileStyleEnvelope))
-            let textProfileStyleContents = try #require(textProfileStyleResult["contents"] as? [[String: Any]])
-            let textProfileStyleText = try #require(textProfileStyleContents.first?["text"] as? String)
-            let textProfileStylePayload = try jsonObject(from: Data(textProfileStyleText.utf8))
-            let textProfileStyle = try #require(textProfileStylePayload["built_in_style"] as? String)
-            #expect(textProfileStyle == "balanced")
 
             let textProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -280,8 +165,8 @@ extension ServerTests {
             let textProfilesGuideContents = try #require(textProfilesGuideResult["contents"] as? [[String: Any]])
             let textProfilesGuideText = try #require(textProfilesGuideContents.first?["text"] as? String)
             #expect(textProfilesGuideText.contains("text_profile_id"))
-            #expect(textProfilesGuideText.contains("set_text_profile_style"))
-            #expect(textProfilesGuideText.contains("Read `speak-swiftly://text-profiles/style`"))
+            #expect(textProfilesGuideText.contains("HTTP text-profile endpoints"))
+            #expect(textProfilesGuideText.contains("GET /text-profiles/effective/{profile_id}"))
 
             let voiceProfilesGuideEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -294,9 +179,9 @@ extension ServerTests {
             let voiceProfilesGuideResult = try #require(mcpResultPayload(from: voiceProfilesGuideEnvelope))
             let voiceProfilesGuideContents = try #require(voiceProfilesGuideResult["contents"] as? [[String: Any]])
             let voiceProfilesGuideText = try #require(voiceProfilesGuideContents.first?["text"] as? String)
-            #expect(voiceProfilesGuideText.contains("create_voice_profile_from_audio"))
-            #expect(voiceProfilesGuideText.contains("update_voice_profile_name"))
-            #expect(voiceProfilesGuideText.contains("reroll_voice_profile"))
+            #expect(voiceProfilesGuideText.contains("POST /voices/from-audio"))
+            #expect(voiceProfilesGuideText.contains("PUT /voices/{profile_name}/name"))
+            #expect(voiceProfilesGuideText.contains("POST /voices/{profile_name}/reroll"))
             #expect(voiceProfilesGuideText.contains("generate_speech"))
             #expect(voiceProfilesGuideText.contains("Read `speak-swiftly://voices` to inspect the currently cached voice profiles."))
             #expect(voiceProfilesGuideText.contains("SpeakSwiftly's bundled system-profile install"))
@@ -312,13 +197,12 @@ extension ServerTests {
             let playbackGuideResult = try #require(mcpResultPayload(from: playbackGuideEnvelope))
             let playbackGuideContents = try #require(playbackGuideResult["contents"] as? [[String: Any]])
             let playbackGuideText = try #require(playbackGuideContents.first?["text"] as? String)
-            #expect(playbackGuideText.contains("cancel_request"))
+            #expect(playbackGuideText.contains("DELETE /requests/{request_id}"))
             #expect(playbackGuideText.contains("cancel_generation") == false)
             #expect(playbackGuideText.contains("cancel_playback") == false)
-            #expect(playbackGuideText.contains("Use `cancel_request` when the user wants one known request stopped by id"))
-            #expect(playbackGuideText.contains("Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation"))
-            #expect(playbackGuideText.contains("clear_generation_queue"))
-            #expect(playbackGuideText.contains("clear_playback_queue"))
+            #expect(playbackGuideText.contains("HTTP `scope` query parameter"))
+            #expect(playbackGuideText.contains("DELETE /generation/queue"))
+            #expect(playbackGuideText.contains("DELETE /playback/queue"))
             #expect(playbackGuideText.contains("Read `speak-swiftly://overview` first"))
             #expect(playbackGuideText.contains("Playback freshness is currently host-event-driven"))
 
@@ -341,25 +225,9 @@ extension ServerTests {
             let chooseActionPromptContent = try #require(chooseActionPromptMessages.first?["content"] as? [String: Any])
             let chooseActionPromptText = try #require(chooseActionPromptContent["text"] as? String)
             #expect(chooseActionPromptText.contains("action_type"))
-            #expect(chooseActionPromptText.contains("create_voice_profile_from_description"))
+            #expect(chooseActionPromptText.contains("HTTP-only actions"))
             #expect(chooseActionPromptText.contains("speak-swiftly://playback"))
-            #expect(chooseActionPromptText.contains("speak-swiftly://playback/queue"))
-            #expect(chooseActionPromptText.contains("for read-only inspection, use a speak-swiftly:// resource"))
-            #expect(chooseActionPromptText.contains("Use tools for queueing, mutation, cancellation, clearing, playback control, and runtime changes."))
-
-            let storedTextProfileEnvelope = try await mcpEnvelope(
-                from: mcpSurface.handle(
-                    mcpPOSTRequest(
-                        body: mcpReadResourceRequestJSON(uri: "speak-swiftly://text-profiles/stored/mcp-text"),
-                        sessionID: sessionID,
-                    ),
-                ),
-            )
-            let storedTextProfileResult = try #require(mcpResultPayload(from: storedTextProfileEnvelope))
-            let storedTextProfileContents = try #require(storedTextProfileResult["contents"] as? [[String: Any]])
-            let storedTextProfileText = try #require(storedTextProfileContents.first?["text"] as? String)
-            let storedTextProfilePayload = try jsonObject(from: Data(storedTextProfileText.utf8))
-            #expect(storedTextProfilePayload["profile_id"] as? String == "mcp-text")
+            #expect(chooseActionPromptText.contains("action_type must be one of tool, resource, prompt, or http"))
 
             let jobDetailEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(

@@ -20,33 +20,16 @@ private func mapTextProfileResourceError(_ error: any Error) -> MCPError {
 package enum MCPResourceCatalog {
     package static let resources: [Resource] = [
         .init(name: "Runtime Overview", uri: "speak-swiftly://overview", description: "Shared-host runtime overview with readiness, queues, transports, and recent errors.", mimeType: "application/json"),
-        .init(name: "Runtime Status", uri: "speak-swiftly://status", description: "Underlying SpeakSwiftly runtime snapshot, including state, resident-model state, speech backend, storage paths, and default voice profile.", mimeType: "application/json"),
-        .init(name: "Runtime Configuration", uri: "speak-swiftly://configuration", description: "Active, next-start, and persisted runtime configuration snapshot for speech backend, media ducking, and default voice profile.", mimeType: "application/json"),
         .init(name: "Voice Profiles", uri: "speak-swiftly://voices", description: "Current cached SpeakSwiftly voice profiles.", mimeType: "application/json"),
         .init(name: "Voice Profile Guide", uri: "speak-swiftly://voices/guide", description: "Operator guidance for creating, cloning, renaming, rerolling, deleting, and using SpeakSwiftly voice profiles.", mimeType: "text/markdown"),
         .init(name: "Text Profiles", uri: "speak-swiftly://text-profiles", description: "Current SpeakSwiftly text-profile snapshot, including built-in style plus base, active, stored, and effective profiles.", mimeType: "application/json"),
-        .init(name: "Text Profile Style", uri: "speak-swiftly://text-profiles/style", description: "Current built-in SpeakSwiftly text-profile style.", mimeType: "application/json"),
         .init(name: "Text Profile Guide", uri: "speak-swiftly://text-profiles/guide", description: "Operator guidance for working with SpeakSwiftly text profiles and replacements.", mimeType: "text/markdown"),
-        .init(name: "Base Text Profile", uri: "speak-swiftly://text-profiles/base", description: "Built-in-style-derived base SpeakSwiftly text profile.", mimeType: "application/json"),
-        .init(name: "Active Text Profile", uri: "speak-swiftly://text-profiles/active", description: "Current active custom SpeakSwiftly text profile.", mimeType: "application/json"),
-        .init(name: "Effective Text Profile", uri: "speak-swiftly://text-profiles/effective", description: "Default effective SpeakSwiftly text profile after merging base and active custom state.", mimeType: "application/json"),
         .init(name: "Playback State", uri: "speak-swiftly://playback", description: "Current playback state, active request, buffer stability, and latest playback milestone.", mimeType: "application/json"),
-        .init(name: "Playback Queue", uri: "speak-swiftly://playback/queue", description: "Current active and queued playback work.", mimeType: "application/json"),
         .init(name: "Playback Guide", uri: "speak-swiftly://playback/guide", description: "Operator guidance for reading queues, controlling playback, and choosing the least destructive action.", mimeType: "text/markdown"),
-        .init(name: "LAN Audio Destinations", uri: "speak-swiftly://network-audio/destinations", description: "Bonjour-discovered SpeakSwiftly LAN audio receivers available for remote playback selection.", mimeType: "application/json"),
-        .init(name: "LAN Audio Receiver Selection", uri: "speak-swiftly://network-audio/selection", description: "Current selected SpeakSwiftly LAN audio receiver destination, if one has been selected.", mimeType: "application/json"),
-        .init(name: "Tracked Requests", uri: "speak-swiftly://requests", description: "Retained shared-host request snapshots for live server operations.", mimeType: "application/json"),
-        .init(name: "Generation Jobs", uri: "speak-swiftly://generation/jobs", description: "Retained v2 generation jobs known to the SpeakSwiftly runtime.", mimeType: "application/json"),
-        .init(name: "Generation Artifacts", uri: "speak-swiftly://generation/artifacts", description: "Retained generated audio artifacts known to the SpeakSwiftly runtime.", mimeType: "application/json"),
     ]
 
     package static let templates: [Resource.Template] = [
-        .init(uriTemplate: "speak-swiftly://voices/{profile_name}", name: "Voice Profile Detail", description: "Cached SpeakSwiftly voice profile detail for one profile.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://text-profiles/stored/{profile_id}", name: "Stored Text Profile", description: "One persisted SpeakSwiftly text profile by profile id.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://text-profiles/effective/{profile_id}", name: "Effective Stored Text Profile", description: "The effective text profile produced by merging the base profile with one stored profile.", mimeType: "application/json"),
         .init(uriTemplate: "speak-swiftly://requests/{request_id}", name: "Request Detail", description: "Detailed shared-host state for one tracked request.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://generation/jobs/{job_id}", name: "Generation Job Detail", description: "One retained v2 generation job.", mimeType: "application/json"),
-        .init(uriTemplate: "speak-swiftly://generation/artifacts/{artifact_id}", name: "Generation Artifact Detail", description: "One retained generated audio artifact.", mimeType: "application/json"),
     ]
 
     static let resourceURIs = Set(resources.map(\.uri))
@@ -85,12 +68,6 @@ package extension MCPSurface {
                 case "speak-swiftly://overview":
                     return try await resourceResult(uri: params.uri, payload: host.statusSnapshot())
 
-                case "speak-swiftly://status":
-                    return try await resourceResult(uri: params.uri, payload: host.runtimeStatus())
-
-                case "speak-swiftly://configuration":
-                    return try await resourceResult(uri: params.uri, payload: host.runtimeConfigurationSnapshot())
-
                 case "speak-swiftly://voices":
                     return try await resourceResult(uri: params.uri, payload: host.cachedProfiles())
 
@@ -113,9 +90,6 @@ package extension MCPSurface {
                         throw mapTextProfileResourceError(error)
                     }
 
-                case "speak-swiftly://text-profiles/style":
-                    return try await resourceResult(uri: params.uri, payload: host.textProfileStyleSnapshot())
-
                 case "speak-swiftly://text-profiles/guide":
                     return .init(
                         contents: [
@@ -130,9 +104,6 @@ package extension MCPSurface {
                 case "speak-swiftly://playback":
                     return try await resourceResult(uri: params.uri, payload: host.playbackStateSnapshot())
 
-                case "speak-swiftly://playback/queue":
-                    return try await resourceResult(uri: params.uri, payload: host.playbackQueueSnapshot())
-
                 case "speak-swiftly://playback/guide":
                     return .init(
                         contents: [
@@ -144,99 +115,19 @@ package extension MCPSurface {
                         ],
                     )
 
-                case "speak-swiftly://network-audio/destinations":
-                    return try await resourceResult(uri: params.uri, payload: host.networkAudioDestinationSnapshots())
-
-                case "speak-swiftly://network-audio/selection":
-                    return try await resourceResult(uri: params.uri, payload: host.networkAudioReceiverSelectionSnapshot())
-
-                case "speak-swiftly://text-profiles/base":
-                    do {
-                        let snapshot = try await host.textProfilesSnapshot()
-                        return try resourceResult(uri: params.uri, payload: snapshot.baseProfile)
-                    } catch {
-                        throw mapTextProfileResourceError(error)
-                    }
-
-                case "speak-swiftly://text-profiles/active":
-                    do {
-                        let snapshot = try await host.textProfilesSnapshot()
-                        return try resourceResult(uri: params.uri, payload: snapshot.activeProfile)
-                    } catch {
-                        throw mapTextProfileResourceError(error)
-                    }
-
-                case "speak-swiftly://text-profiles/effective":
-                    do {
-                        let profile = try await host.effectiveTextProfile(nil)
-                        return try resourceResult(uri: params.uri, payload: profile)
-                    } catch {
-                        throw mapTextProfileResourceError(error)
-                    }
-
-                case "speak-swiftly://requests":
-                    return try await resourceResult(uri: params.uri, payload: host.jobSnapshots())
-
-                case "speak-swiftly://generation/jobs":
-                    return try await resourceResult(uri: params.uri, payload: host.listGenerationJobs())
-
-                case "speak-swiftly://generation/artifacts":
-                    return try await resourceResult(uri: params.uri, payload: host.listGenerationArtifacts())
-
                 default:
-                    if let profileName = profileDetailName(from: params.uri) {
-                        guard let profile = await host.cachedProfile(profileName) else {
-                            throw MCPError.invalidRequest(
-                                "No cached SpeakSwiftly profile matched that profile name. Refresh or recreate the profile before requesting detail.",
-                            )
-                        }
-
-                        return try resourceResult(uri: params.uri, payload: profile)
-                    }
-
-                    if let profileID = storedTextProfileID(from: params.uri) {
-                        do {
-                            guard let profile = try await host.storedTextProfile(profileID) else {
-                                throw MCPError.invalidRequest(
-                                    "No stored SpeakSwiftly text profile matched that profile id. Read speak-swiftly://text-profiles first to inspect the current stored profile set.",
-                                )
-                            }
-
-                            return try resourceResult(uri: params.uri, payload: profile)
-                        } catch {
-                            throw mapTextProfileResourceError(error)
-                        }
-                    }
-
-                    if let profileID = effectiveTextProfileID(from: params.uri) {
-                        do {
-                            let profile = try await host.effectiveTextProfile(profileID)
-                            return try resourceResult(uri: params.uri, payload: profile)
-                        } catch {
-                            throw mapTextProfileResourceError(error)
-                        }
-                    }
-
                     if let requestID = requestID(from: params.uri) {
                         do {
                             return try await resourceResult(uri: params.uri, payload: host.jobSnapshot(id: requestID))
                         } catch {
                             throw MCPError.invalidRequest(
-                                "No tracked SpeakSwiftly request matched that request id. Submit work first, or read speak-swiftly://requests to inspect retained request state.",
+                                "No tracked SpeakSwiftly request matched that request id. Submit work first, or read speak-swiftly://overview to inspect current request and queue state.",
                             )
                         }
                     }
 
-                    if let jobID = generationJobID(from: params.uri) {
-                        return try await resourceResult(uri: params.uri, payload: host.generationJob(id: jobID))
-                    }
-
-                    if let artifactID = generationArtifactID(from: params.uri) {
-                        return try await resourceResult(uri: params.uri, payload: host.generationArtifact(id: artifactID))
-                    }
-
                     throw MCPError.invalidRequest(
-                        "Resource '\(params.uri)' is not available on this embedded SpeakSwiftly MCP surface.",
+                        "Resource '\(params.uri)' is not available on this slim SpeakSwiftly MCP surface. Use HTTP endpoints for detailed runtime, voice, text-profile, playback queue, network-audio, retained generation, and artifact inspection.",
                     )
             }
         }
@@ -258,15 +149,10 @@ private func resourceResult(
 
 package func ensureKnownResourceURI(_ uri: String) throws {
     guard MCPResourceCatalog.resourceURIs.contains(uri)
-        || profileDetailName(from: uri) != nil
-        || storedTextProfileID(from: uri) != nil
-        || effectiveTextProfileID(from: uri) != nil
         || requestID(from: uri) != nil
-        || generationJobID(from: uri) != nil
-        || generationArtifactID(from: uri) != nil
     else {
         throw MCPError.invalidRequest(
-            "Resource '\(uri)' is not available on this embedded SpeakSwiftly MCP surface.",
+            "Resource '\(uri)' is not available on this slim SpeakSwiftly MCP surface. Use HTTP endpoints for detailed runtime, voice, text-profile, playback queue, network-audio, retained generation, and artifact inspection.",
         )
     }
 }
@@ -289,11 +175,9 @@ private func textProfilesGuideMarkdown() -> String {
 
     1. Read `speak-swiftly://text-profiles` to inspect the current built-in style plus base, active, stored, and effective state.
     2. Draft or edit rules with the `draft_text_profile` and `draft_text_replacement` prompts when a user needs help authoring replacements.
-    3. Read `speak-swiftly://text-profiles/style` to inspect the built-in normalization mode, and use `set_text_profile_style` only when the operator wants to change it.
-    4. Store reusable policies with `create_text_profile`, then use `rename_text_profile` if the operator wants to refine a saved profile name later.
-    5. Use `set_active_text_profile` when the downstream app wants to switch the default custom profile, or pass `text_profile_id` on one speech request when the caller wants stored-profile selection without mutating the active profile.
-    6. Use `save_text_profiles` when the operator wants an explicit persistence checkpoint, and `load_text_profiles` when another process changed the persistence file and the in-memory state should be refreshed from disk.
-    7. Read `speak-swiftly://text-profiles/effective/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
+    3. Use the HTTP text-profile endpoints when the operator wants to change built-in style, create profiles, rename profiles, choose the active profile, or edit replacement rules.
+    4. Pass `text_profile_id` on `generate_speech` when the caller wants stored-profile selection for one spoken request without mutating the active profile.
+    5. Use `GET /text-profiles/effective/{profile_id}` before queuing speech if the user wants to verify what normalization will really happen.
 
     Replacement guidance:
 
@@ -309,21 +193,21 @@ private func voiceProfilesGuideMarkdown() -> String {
     """
     # SpeakSwiftly Voice Profile Guide
 
-    Use voice-profile tools when the user wants to create, import, inspect, rename, reroll, choose, or remove reusable user-owned speaking voices. Package-owned built-ins are ordinary list-and-select choices for users; their bundled resource workflow is owned by SpeakSwiftly.
+    Use the MCP voice-profile resources and prompts to inspect and draft voice choices. Use HTTP voice-profile endpoints when the user wants to create, import, rename, reroll, or remove reusable user-owned speaking voices. Package-owned built-ins are ordinary list-and-select choices for users; their bundled resource workflow is owned by SpeakSwiftly.
 
     Recommended workflow:
 
     1. Read `speak-swiftly://voices` to inspect the currently cached voice profiles.
-    2. Read `speak-swiftly://status` when the user asks which voice an omitted `profile_name` will use. Speech requests use the configured app default voice when present, then the runtime's built-in default voice.
+    2. Read `speak-swiftly://overview` when the user asks which voice an omitted `profile_name` will use. Speech requests use the configured app default voice when present, then the runtime's built-in default voice.
     3. Pass `profile_name` to `generate_speech` when the user wants a specific voice for one request. Omit `generation_location` or use `local` for generation on this server. Use a remote generation location only when the caller intentionally wants another SpeakSwiftlyServer to generate `/speech/stream` while this server owns playback or selected LAN receiver output.
     4. Treat system-authored built-ins such as `swift-signal` and `swift-anchor` as list-and-select profiles for ordinary users. They are package-owned defaults, not user-editable profile designs.
-    5. Use `create_voice_profile_from_description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
-    6. Use `create_voice_profile_from_audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.
-    7. Use `update_voice_profile_name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
-    8. Use `reroll_voice_profile` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
-    9. Provide `transcript` to `create_voice_profile_from_audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
+    5. Use `POST /voices/from-description` when the user wants a new user-owned synthetic profile from source text plus a voice description.
+    6. Use `POST /voices/from-audio` when the user already has reference audio and wants SpeakSwiftly to capture that voice as a user-owned profile.
+    7. Use `PUT /voices/{profile_name}/name` when the user wants to keep a user-owned stored voice but correct or improve its visible profile name.
+    8. Use `POST /voices/{profile_name}/reroll` when the user wants SpeakSwiftly to rebuild one user-owned stored profile from its original source inputs while keeping the same profile name. System profile rerolls create or target a user-owned copy in SpeakSwiftly rather than mutating the built-in in place.
+    9. Provide `transcript` to `POST /voices/from-audio` when the user knows the spoken words already; omit it only when transcription is actually needed.
     10. The MCP surface applies request purpose from the selected tool and fills client and tool provenance by default; pass `cwd`, `repo_root`, or `request_context` only when path or caller metadata needs to be more specific. Caller-provided `request_context` may include `source`, `topic`, `cwd`, `repo_root`, `attributes`, and optional `prefacePolicy`; omit `prefacePolicy` to use the default behavior.
-    11. Use `delete_voice_profile` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by SpeakSwiftly's bundled system-profile install and refresh behavior.
+    11. Use `DELETE /voices/{profile_name}` only after confirming the exact `profile_name`, especially when multiple similar profiles exist. Ordinary deletion is for user-owned profiles; system-authored built-ins are maintained by SpeakSwiftly's bundled system-profile install and refresh behavior.
 
     Drafting guidance:
 
@@ -355,20 +239,20 @@ private func playbackGuideMarkdown() -> String {
     """
     # SpeakSwiftly Playback And Queue Guide
 
-    Use queue and playback tools when the user wants to know what is running, what is waiting, or how to control audible output.
+    Use playback resources and HTTP controls when the user wants to know what is running, what is waiting, or how to control audible output.
 
     Recommended workflow:
 
     1. Read `speak-swiftly://overview` first for a broad overview of worker readiness, queues, playback state, and recent errors.
-    2. Read `speak-swiftly://requests` or `speak-swiftly://requests/{request_id}` when the user is asking about one specific server-tracked request.
+    2. Read `speak-swiftly://requests/{request_id}` when the user is asking about one specific server-tracked request returned by `generate_speech`.
     3. Use the generation queue in `speak-swiftly://overview` when the question is about what is still generating.
     4. Use the playback queue in `speak-swiftly://overview` when the question is about what is waiting to be heard.
-    5. Read `speak-swiftly://overview` before `pause_playback` or `resume_playback` if the user first needs confirmation about whether anything is currently playing.
-    6. Use `cancel_request` when the user wants one known request stopped by id.
-    7. Add `scope` to `cancel_request` only when the user explicitly wants to constrain cancellation to `generation` or `playback`.
-    8. Use `clear_generation_queue` or `clear_playback_queue` when the user wants to drop one waiting backlog without interrupting the active request.
-    9. Use `list_recent_generated_audio` before replaying audio the user missed, then use `replay_recent_audio` for one item or `replay_recent_audio_all` for all complete recent items.
-    10. Use `clear_recent_generated_audio` only when the user wants to discard the bounded in-memory replay cache; this does not remove retained generated-file artifacts.
+    5. Read `speak-swiftly://overview` before `POST /playback/pause` or `POST /playback/resume` if the user first needs confirmation about whether anything is currently playing.
+    6. Use `DELETE /requests/{request_id}` when the user wants one known request stopped by id.
+    7. Add the HTTP `scope` query parameter only when the user explicitly wants to constrain cancellation to `generation` or `playback`.
+    8. Use `DELETE /generation/queue` or `DELETE /playback/queue` when the user wants to drop one waiting backlog without interrupting the active request.
+    9. Use `GET /playback/recent-generated-audio` before replaying audio the user missed, then use the HTTP recent-audio replay endpoints for one item or all complete recent items.
+    10. Use `DELETE /playback/recent-generated-audio` only when the user wants to discard the bounded in-memory replay cache; this does not remove retained generated-file artifacts.
 
     Safety guidance:
 
@@ -383,56 +267,8 @@ private func playbackGuideMarkdown() -> String {
 
 // MARK: - Resource URI Helpers
 
-private func profileDetailName(from uri: String) -> String? {
-    let prefix = "speak-swiftly://voices/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    let profileName = String(uri.dropFirst(prefix.count))
-    return profileName.isEmpty ? nil : profileName
-}
-
-package func isVoiceProfileURI(_ uri: String) -> Bool {
-    profileDetailName(from: uri) != nil
-}
-
-private func storedTextProfileID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://text-profiles/stored/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    return String(uri.dropFirst(prefix.count))
-}
-
-package func isStoredTextProfileURI(_ uri: String) -> Bool {
-    storedTextProfileID(from: uri) != nil
-}
-
-private func effectiveTextProfileID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://text-profiles/effective/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    return String(uri.dropFirst(prefix.count))
-}
-
-package func isEffectiveTextProfileURI(_ uri: String) -> Bool {
-    effectiveTextProfileID(from: uri) != nil
-}
-
 private func requestID(from uri: String) -> String? {
     let prefix = "speak-swiftly://requests/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    return String(uri.dropFirst(prefix.count))
-}
-
-private func generationJobID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://generation/jobs/"
-    guard uri.hasPrefix(prefix) else { return nil }
-
-    return String(uri.dropFirst(prefix.count))
-}
-
-private func generationArtifactID(from uri: String) -> String? {
-    let prefix = "speak-swiftly://generation/artifacts/"
     guard uri.hasPrefix(prefix) else { return nil }
 
     return String(uri.dropFirst(prefix.count))

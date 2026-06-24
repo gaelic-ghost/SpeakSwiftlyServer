@@ -25,11 +25,12 @@ extension ServerTests {
             let tools = try #require(listToolsResult["tools"] as? [[String: Any]])
             let toolNames = Set(tools.compactMap { $0["name"] as? String })
             #expect(toolNames == Set(MCPToolCatalog.definitions.map(\.name)))
+            #expect(toolNames == ["generate_speech"])
             #expect(tools.contains { $0["name"] as? String == "generate_speech" })
-            #expect(tools.contains { $0["name"] as? String == "create_voice_profile_from_audio" })
-            #expect(tools.contains { $0["name"] as? String == "update_voice_profile_name" })
-            #expect(tools.contains { $0["name"] as? String == "reroll_voice_profile" })
-            #expect(tools.contains { $0["name"] as? String == "set_runtime_configuration" })
+            #expect(tools.contains { $0["name"] as? String == "create_voice_profile_from_audio" } == false)
+            #expect(tools.contains { $0["name"] as? String == "update_voice_profile_name" } == false)
+            #expect(tools.contains { $0["name"] as? String == "reroll_voice_profile" } == false)
+            #expect(tools.contains { $0["name"] as? String == "set_runtime_configuration" } == false)
             #expect(tools.contains { $0["name"] as? String == "get_staged_runtime_config" } == false)
             #expect(tools.contains { $0["name"] as? String == "set_staged_config" } == false)
             #expect(tools.contains { $0["name"] as? String == "get_runtime_overview" } == false)
@@ -44,59 +45,18 @@ extension ServerTests {
             #expect(tools.contains { $0["name"] as? String == "list_active_requests" } == false)
             #expect(tools.contains { $0["name"] as? String == "list_generation_jobs" } == false)
             #expect(tools.contains { $0["name"] as? String == "get_generation_job" } == false)
-            #expect(tools.contains { $0["name"] as? String == "clear_generation_queue" })
-            #expect(tools.contains { $0["name"] as? String == "clear_playback_queue" })
-            #expect(tools.contains { $0["name"] as? String == "list_recent_generated_audio" })
-            #expect(tools.contains { $0["name"] as? String == "get_recent_generated_audio_chunks" })
-            #expect(tools.contains { $0["name"] as? String == "replay_recent_audio" })
-            #expect(tools.contains { $0["name"] as? String == "replay_recent_audio_all" })
-            #expect(tools.contains { $0["name"] as? String == "clear_recent_generated_audio" })
-            #expect(tools.contains { $0["name"] as? String == "select_network_audio_receiver" })
-            #expect(tools.contains { $0["name"] as? String == "clear_network_audio_receiver" })
+            #expect(tools.contains { $0["name"] as? String == "clear_generation_queue" } == false)
+            #expect(tools.contains { $0["name"] as? String == "clear_playback_queue" } == false)
+            #expect(tools.contains { $0["name"] as? String == "list_recent_generated_audio" } == false)
+            #expect(tools.contains { $0["name"] as? String == "get_recent_generated_audio_chunks" } == false)
+            #expect(tools.contains { $0["name"] as? String == "replay_recent_audio" } == false)
+            #expect(tools.contains { $0["name"] as? String == "replay_recent_audio_all" } == false)
+            #expect(tools.contains { $0["name"] as? String == "clear_recent_generated_audio" } == false)
+            #expect(tools.contains { $0["name"] as? String == "select_network_audio_receiver" } == false)
+            #expect(tools.contains { $0["name"] as? String == "clear_network_audio_receiver" } == false)
             #expect(tools.contains { $0["name"] as? String == "cancel_generation" } == false)
             #expect(tools.contains { $0["name"] as? String == "cancel_playback" } == false)
-            let cancelRequestTool = try #require(tools.first { $0["name"] as? String == "cancel_request" })
-            #expect((cancelRequestTool["description"] as? String)?.contains("Optionally set scope") == true)
-            let cancelRequestSchema = try #require(cancelRequestTool["inputSchema"] as? [String: Any])
-            let cancelRequestProperties = try #require(cancelRequestSchema["properties"] as? [String: Any])
-            let cancelRequestScope = try #require(cancelRequestProperties["scope"] as? [String: Any])
-            let cancelRequestScopeEnum = try #require(cancelRequestScope["enum"] as? [String])
-            #expect(cancelRequestScopeEnum == ["generation", "playback"])
-            let replayRecentAudioTool = try #require(tools.first { $0["name"] as? String == "replay_recent_audio" })
-            let replayRecentAudioSchema = try #require(replayRecentAudioTool["inputSchema"] as? [String: Any])
-            let replayRecentAudioRequired = try #require(replayRecentAudioSchema["required"] as? [String])
-            #expect(replayRecentAudioRequired == ["recent_audio_id"])
-            let replayRecentAudioProperties = try #require(replayRecentAudioSchema["properties"] as? [String: Any])
-            let replayMode = try #require(replayRecentAudioProperties["replay_mode"] as? [String: Any])
-            #expect(replayMode["enum"] as? [String] == ["enqueue_next", "enqueue_after_current", "interrupt_current"])
-            let setRuntimeConfigurationTool = try #require(tools.first { $0["name"] as? String == "set_runtime_configuration" })
-            #expect((setRuntimeConfigurationTool["description"] as? String)?.contains("Persist next-start runtime settings") == true)
-            let setRuntimeConfigurationSchema = try #require(setRuntimeConfigurationTool["inputSchema"] as? [String: Any])
-            let setRuntimeConfigurationProperties = try #require(setRuntimeConfigurationSchema["properties"] as? [String: Any])
-            let setRuntimeConfigurationBackend = try #require(setRuntimeConfigurationProperties["speech_backend"] as? [String: Any])
-            let setRuntimeConfigurationBackendEnum = try #require(setRuntimeConfigurationBackend["enum"] as? [String])
-            #expect(setRuntimeConfigurationBackendEnum == [
-                "qwen3_smol",
-                "qwen3_smol_4bit",
-                "qwen3_smol_5bit",
-                "qwen3_smol_6bit",
-                "qwen3_smol_8bit",
-                "qwen3_smol_bf16",
-                "qwen3_big",
-                "qwen3_big_4bit",
-                "qwen3_big_5bit",
-                "qwen3_big_6bit",
-                "qwen3_big_8bit",
-                "qwen3_big_bf16",
-            ])
-            let setRuntimeConfigurationDuckMediaVolume = try #require(setRuntimeConfigurationProperties["duck_media_volume"] as? [String: Any])
-            #expect(setRuntimeConfigurationDuckMediaVolume["enum"] as? [String] == [
-                "off",
-                "a_little",
-                "default",
-                "a_lot",
-            ])
-            #expect(setRuntimeConfigurationProperties["qwen_resident_model"] == nil)
+            #expect(tools.contains { $0["name"] as? String == "cancel_request" } == false)
 
             let generateSpeechTool = try #require(tools.first { $0["name"] as? String == "generate_speech" })
             let generateSpeechSchema = try #require(generateSpeechTool["inputSchema"] as? [String: Any])
@@ -124,17 +84,14 @@ extension ServerTests {
             #expect(resourceURIs == Set(MCPResourceCatalog.resources.map(\.uri)))
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://overview" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://text-profiles" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://text-profiles/style" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://voices/guide" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://text-profiles/guide" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback/queue" })
             #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://playback/guide" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://network-audio/destinations" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://network-audio/selection" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://requests" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://configuration" })
-            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://status" })
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://voices" })
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://requests" } == false)
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://configuration" } == false)
+            #expect(resources.contains { $0["uri"] as? String == "speak-swiftly://status" } == false)
 
             let listResourceTemplatesEnvelope = try await mcpEnvelope(
                 from: mcpSurface.handle(
@@ -148,8 +105,9 @@ extension ServerTests {
             let templates = try #require(listResourceTemplatesResult["resourceTemplates"] as? [[String: Any]])
             let templateURIs = Set(templates.compactMap { $0["uriTemplate"] as? String })
             #expect(templateURIs == Set(MCPResourceCatalog.templates.map(\.uriTemplate)))
-            #expect(templates.contains { $0["uriTemplate"] as? String == "speak-swiftly://voices/{profile_name}" })
-            #expect(templates.contains { $0["uriTemplate"] as? String == "speak-swiftly://text-profiles/stored/{profile_id}" })
+            #expect(templateURIs == ["speak-swiftly://requests/{request_id}"])
+            #expect(templates.contains { $0["uriTemplate"] as? String == "speak-swiftly://voices/{profile_name}" } == false)
+            #expect(templates.contains { $0["uriTemplate"] as? String == "speak-swiftly://text-profiles/stored/{profile_id}" } == false)
             #expect(templates.contains { $0["uriTemplate"] as? String == "speak-swiftly://requests/{request_id}" })
 
             let listPromptsEnvelope = try await mcpEnvelope(

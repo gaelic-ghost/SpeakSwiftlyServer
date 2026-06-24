@@ -114,19 +114,18 @@ HTTP playback routes:
 - `POST /playback/resume`
 - `DELETE /playback/queue`
 
+MCP is intentionally a slim agent-facing layer rather than a full mirror of the HTTP API. Use HTTP for voice profile, text profile, retained generation, playback control, runtime control, network-audio, cancellation, queue, generation-job, and artifact workflows.
+
 MCP tools:
 
-- speech and artifacts: `generate_speech`, `generate_audio_file`, `generate_batch`, `expire_generation_job`
-- voices: `create_voice_profile_from_description`, `create_voice_profile_from_audio`, `update_voice_profile_name`, `reroll_voice_profile`, `delete_voice_profile`
-- text profiles: `set_text_profile_style`, `load_text_profiles`, `save_text_profiles`, `create_text_profile`, `rename_text_profile`, `set_active_text_profile`, `delete_text_profile`, `factory_reset_text_profiles`, `reset_text_profile`, `add_text_replacement`, `replace_text_replacement`, `remove_text_replacement`
-- playback and runtime: `set_runtime_configuration`, `switch_speech_backend`, `reload_models`, `unload_models`, `pause_playback`, `resume_playback`, `clear_generation_queue`, `clear_playback_queue`, `cancel_request`
+- speech: `generate_speech`
 
 MCP resources:
 
-- runtime: `speak-swiftly://overview`, `speak-swiftly://status`, `speak-swiftly://configuration`
-- voices: `speak-swiftly://voices`, `speak-swiftly://voices/guide`, `speak-swiftly://voices/{profile_name}`
-- text profiles: `speak-swiftly://text-profiles`, `speak-swiftly://text-profiles/style`, `speak-swiftly://text-profiles/base`, `speak-swiftly://text-profiles/active`, `speak-swiftly://text-profiles/effective`, `speak-swiftly://text-profiles/effective/{profile_id}`, `speak-swiftly://text-profiles/stored/{profile_id}`, `speak-swiftly://text-profiles/guide`
-- requests, jobs, artifacts, and playback: `speak-swiftly://requests`, `speak-swiftly://requests/{request_id}`, `speak-swiftly://generation/jobs`, `speak-swiftly://generation/jobs/{job_id}`, `speak-swiftly://generation/artifacts`, `speak-swiftly://generation/artifacts/{artifact_id}`, `speak-swiftly://playback`, `speak-swiftly://playback/queue`, `speak-swiftly://playback/guide`
+- runtime: `speak-swiftly://overview`
+- voices: `speak-swiftly://voices`, `speak-swiftly://voices/guide`
+- text profiles: `speak-swiftly://text-profiles`, `speak-swiftly://text-profiles/guide`
+- playback and requests: `speak-swiftly://playback`, `speak-swiftly://playback/guide`, `speak-swiftly://requests/{request_id}`
 
 MCP prompts:
 
