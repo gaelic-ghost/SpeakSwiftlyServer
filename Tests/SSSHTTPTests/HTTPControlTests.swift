@@ -25,7 +25,34 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `assembled app support marks mounted transport routes as listening`() async {
+    @Test func `build HTTP application maps typed config into Hummingbird application configuration`() async {
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+        let httpConfig = HTTPConfig(
+            enabled: true,
+            host: "::1",
+            port: 8088,
+            sseHeartbeatSeconds: 0.05,
+        )
+
+        let app = buildHTTPApplication(
+            configuration: httpConfig,
+            host: host,
+            serverName: "speak-swiftly-test",
+        )
+
+        #expect(app.configuration.address == .hostname("::1", port: 8088))
+        #expect(app.configuration.serverName == "speak-swiftly-test")
+    }
+
+    @available(macOS 14, *)
+    @Test func `build HTTP application support marks mounted transport routes as listening`() async {
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
@@ -71,7 +98,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let activeResponse = try await client.execute(
                 uri: "/speech/live",
@@ -264,7 +291,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let listResponse = try await client.execute(uri: "/playback/recent-generated-audio", method: .get)
             let listJSON = try jsonObject(from: listResponse.body)
@@ -373,7 +400,7 @@ extension ServerTests {
         )
         await host.replaceNetworkAudioDestinations([destination])
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let destinationsResponse = try await client.execute(uri: "/network-audio/destinations", method: .get)
             let destinationsJSON = try jsonArray(from: destinationsResponse.body)
@@ -447,7 +474,7 @@ extension ServerTests {
                 state: MainActor.run { EmbeddedServer() },
             )
 
-            let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+            let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
             try await app.test(.router) { client in
                 let selectResponse = try await client.execute(
                     uri: "/network-audio/selection",
@@ -522,7 +549,7 @@ extension ServerTests {
 
         await host.start()
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let readyResponse = try await client.execute(uri: "/readyz", method: .get)
             let readyJSON = try jsonObject(from: readyResponse.body)
@@ -577,7 +604,7 @@ extension ServerTests {
         await host.start()
         await runtime.publishStatus(.residentModelFailed)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let readyResponse = try await client.execute(uri: "/readyz", method: .get)
             let readyJSON = try jsonObject(from: readyResponse.body)

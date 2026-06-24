@@ -46,8 +46,12 @@ Aligned:
 - Hummingbird is resolved at `2.25.0`.
 - HTTP tests already use `HummingbirdTesting`.
 - The package uses `swift-configuration` as the configuration foundation.
-- HTTP assembly is centralized in `assembleHBApp`.
+- HTTP assembly is centralized in `buildHTTPApplication`.
 - Request handling uses `BasicRequestContext`, matching the default template's context model.
+- HTTP application construction maps the typed `HTTPConfig` into Hummingbird's
+  `ApplicationConfiguration(reader:)` initializer.
+- HTTP applications use `LogRequestsMiddleware(.info)`, which logs request method and
+  path without request bodies or headers.
 
 Intentionally different:
 
@@ -55,16 +59,42 @@ Intentionally different:
 - `SSSCore`, `SSSHTTP`, and `SSSMCP` preserve transport boundaries; Hummingbird remains isolated to the HTTP/MCP edge modules.
 - The executable has a repo-owned command parser because it also manages LaunchAgent install, healthcheck, and foreground serve workflows.
 - HTTP configuration is read into `AppConfig` and `HTTPConfig` before app assembly so embedded sessions, LaunchAgent mode, config reloads, and runtime listener toggles share one typed server state model.
-- `assembleHBApp` accepts lifecycle services and `beforeServerStarts` hooks because the server coordinates runtime readiness, HTTP listener state, LAN audio, MCP readiness, and embedded app observation.
+- `buildHTTPApplication` accepts lifecycle services and `beforeServerStarts` hooks because the server coordinates runtime readiness, HTTP listener state, LAN audio, MCP readiness, and embedded app observation.
 
-## Alignment Candidates
+## Evaluated Alignment Decisions
+
+- Keep the package split into `SSSCore`, `SSSHTTP`, `SSSMCP`, `SpeakSwiftlyServer`,
+  and `SpeakSwiftlyServerTool`. This is a durable building-block boundary, not a
+  template mismatch: it keeps Hummingbird out of core runtime state and preserves
+  the public library plus executable shape.
+- Use Hummingbird's `ApplicationConfiguration(reader:)` at the HTTP edge, but feed it
+  from already-validated `HTTPConfig`. This avoids a duplicate source of truth while
+  matching the framework's configuration construction path.
+- Use Hummingbird's `LogRequestsMiddleware(.info)` with default body/header-free
+  logging. Route-specific logs still own operation metadata such as accepted speech
+  request IDs and replay events.
+- Prefer `buildHTTPApplication` over the generated template's plain
+  `buildApplication(reader:)` name because this repository has non-HTTP lifecycle
+  entrypoints too. The name keeps the transport boundary visible.
+- Keep `swift-configuration` traits aligned with repo guidance: `.defaults`,
+  `CommandLineArguments`, `YAML`, and `Reloading`.
+
+## Streamlining Candidates
 
 Good next candidates:
 
-- Consider a public/internal `buildApplication`-style wrapper around `assembleHBApp` if it makes tests, docs, or operator entrypoints clearer without hiding the `ServerHost` dependency.
-- Evaluate whether `ApplicationConfiguration(reader:)` can replace direct `ApplicationConfiguration(address:)` inside `assembleHBApp` without weakening the existing typed `HTTPConfig` validation and live reload model.
-- Keep `LogRequestsMiddleware` under review. Add it only if it produces useful operator logs without duplicating existing request/error logging or making speech payloads noisy.
-- Keep `swift-configuration` traits aligned with repo guidance: `.defaults`, `CommandLineArguments`, `YAML`, and `Reloading`.
+- Move shared transport snapshot and queue response DTOs toward upstream
+  `SpeakSwiftly` library APIs when those types describe runtime state rather than
+  server transport state.
+- Keep looking for server-local inference that can disappear once `SpeakSwiftly` or
+  `TextForSpeech` can express the concept directly. This is especially relevant for
+  playback, request observation, and text-profile normalization state.
+- Consider a small `HTTPApplicationOptions` value only if more builder inputs become
+  coupled. Do not add it while the current parameter list remains the clearer shape.
+- Review config key naming after the Hummingbird alignment settles. The current
+  `app.*` root is intentional because it includes runtime, MCP, LAN audio, and
+  LaunchAgent state, but `app.http` and `app.listeners.localhost` should stay clearly
+  documented as legacy-compatible versus current listener configuration.
 
 Avoid:
 

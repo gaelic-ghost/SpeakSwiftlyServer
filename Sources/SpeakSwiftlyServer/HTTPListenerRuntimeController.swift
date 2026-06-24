@@ -35,6 +35,7 @@ package actor HTTPListenerRuntimeController {
         let name: HTTPListenerRuntimeName
         let startupEnabled: Bool
         let configuration: HTTPConfig
+        let serverName: String?
         let transportName: String
         let additionalListeningTransports: [String]
         let advertisedAddress: String?
@@ -69,6 +70,7 @@ package actor HTTPListenerRuntimeController {
         localhostConfiguration: HTTPConfig,
         lanConfiguration: LANHTTPListenerConfig,
         mcpConfig: MCPConfig,
+        serverName: String? = nil,
         mountLocalhostAdditionalRoutes: (@Sendable (Router<BasicRequestContext>) -> Void)? = nil,
         localhostBeforeServerStarts: [@Sendable () async throws -> Void] = [],
         lanBeforeServerStarts: [@Sendable () async throws -> Void] = [],
@@ -88,6 +90,7 @@ package actor HTTPListenerRuntimeController {
             name: .localhost,
             startupEnabled: localhostConfiguration.enabled,
             configuration: runtimeLocalhostConfiguration,
+            serverName: serverName,
             transportName: HTTPListenersConfig.localhostTransportName,
             additionalListeningTransports: localhostAliases,
             advertisedAddress: "http://\(localhostConfiguration.host):\(localhostConfiguration.port)",
@@ -112,6 +115,7 @@ package actor HTTPListenerRuntimeController {
             name: .lan,
             startupEnabled: lanConfiguration.enabled,
             configuration: runtimeLANConfiguration,
+            serverName: serverName,
             transportName: HTTPListenersConfig.lanTransportName,
             additionalListeningTransports: [],
             advertisedAddress: lanAdvertisedAddress,
@@ -218,9 +222,10 @@ package actor HTTPListenerRuntimeController {
     private func assembleApp(
         for descriptor: ListenerDescriptor,
     ) -> Application<Router<BasicRequestContext>.Responder> {
-        assembleHBApp(
+        buildHTTPApplication(
             configuration: descriptor.configuration,
             host: host,
+            serverName: descriptor.serverName,
             transportName: descriptor.transportName,
             additionalListeningTransports: descriptor.additionalListeningTransports,
             mountAdditionalRoutes: descriptor.mountAdditionalRoutes,

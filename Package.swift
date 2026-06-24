@@ -66,6 +66,7 @@ let package = Package(
             name: "SSSHTTP",
             dependencies: [
                 "SSSCore",
+                .product(name: "Configuration", package: "swift-configuration"),
                 .product(name: "Hummingbird", package: "hummingbird"),
             ],
             path: "Sources/SSSHTTP",

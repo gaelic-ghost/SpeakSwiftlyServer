@@ -229,7 +229,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(testConfiguration()), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(testConfiguration()), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(uri: "/text-profiles", method: .get)
             let responseJSON = try jsonObject(from: response.body)
