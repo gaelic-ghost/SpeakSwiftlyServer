@@ -22,6 +22,7 @@ package func buildHTTPApplication(
     }
     if configuration.enabled {
         registerHTTPRoutes(on: router, configuration: configuration, host: host)
+        registerHTTPWebUIRoutes(on: router)
     }
     mountAdditionalRoutes?(router)
 

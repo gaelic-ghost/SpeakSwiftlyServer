@@ -1,0 +1,459 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: dark;
+  font-family: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --background: oklch(0.105 0.025 285);
+  --foreground: oklch(0.955 0.025 286);
+  --card: oklch(0.145 0.03 286);
+  --card-foreground: oklch(0.955 0.025 286);
+  --popover: oklch(0.16 0.03 286);
+  --popover-foreground: oklch(0.955 0.025 286);
+  --primary: oklch(0.82 0.18 210);
+  --primary-foreground: oklch(0.11 0.035 285);
+  --secondary: oklch(0.2 0.045 286);
+  --secondary-foreground: oklch(0.93 0.02 286);
+  --muted: oklch(0.19 0.035 286);
+  --muted-foreground: oklch(0.72 0.035 286);
+  --accent: oklch(0.72 0.22 318);
+  --accent-foreground: oklch(0.98 0.02 318);
+  --destructive: oklch(0.68 0.24 25);
+  --border: oklch(0.34 0.08 286 / 72%);
+  --input: oklch(0.28 0.055 286);
+  --ring: oklch(0.78 0.18 210);
+  --chart-1: oklch(0.78 0.18 210);
+  --chart-2: oklch(0.76 0.22 318);
+  --chart-3: oklch(0.82 0.16 145);
+  --chart-4: oklch(0.8 0.19 75);
+  --chart-5: oklch(0.7 0.22 25);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.12 0.03 286);
+  --sidebar-foreground: oklch(0.94 0.02 286);
+  --sidebar-primary: oklch(0.82 0.18 210);
+  --sidebar-primary-foreground: oklch(0.11 0.035 285);
+  --sidebar-accent: oklch(0.19 0.045 286);
+  --sidebar-accent-foreground: oklch(0.94 0.02 286);
+  --sidebar-border: oklch(0.34 0.08 286 / 72%);
+  --sidebar-ring: oklch(0.78 0.18 210);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.55);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .control-shell {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+    min-height: 100svh;
+    background:
+      linear-gradient(90deg, oklch(0.18 0.06 286 / 28%) 1px, transparent 1px),
+      linear-gradient(0deg, oklch(0.18 0.06 286 / 22%) 1px, transparent 1px),
+      radial-gradient(circle at 78% 0%, oklch(0.52 0.2 318 / 18%), transparent 28rem),
+      radial-gradient(circle at 18% 12%, oklch(0.54 0.17 210 / 16%), transparent 24rem),
+      var(--background);
+    background-size: 42px 42px, 42px 42px, auto, auto, auto;
+  }
+
+  .control-shell::before {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    background: repeating-linear-gradient(
+      0deg,
+      oklch(1 0 0 / 2.5%) 0,
+      oklch(1 0 0 / 2.5%) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    mix-blend-mode: screen;
+  }
+
+  .control-rail {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: 100svh;
+    padding: 1rem;
+    border-right: 1px solid var(--border);
+    background: oklch(0.105 0.025 286 / 86%);
+    backdrop-filter: blur(14px);
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, oklch(0.2 0.06 286 / 92%), oklch(0.14 0.035 286 / 92%));
+  }
+
+  .brand-mark > svg {
+    color: var(--primary);
+  }
+
+  .brand-mark p,
+  .brand-mark span,
+  .micro-label,
+  .metric-card p,
+  .segmented-readout span,
+  .key-values dt {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .brand-mark p {
+    color: var(--foreground);
+  }
+
+  .brand-mark span,
+  .micro-label,
+  .metric-card p,
+  .segmented-readout span,
+  .key-values dt {
+    color: var(--muted-foreground);
+  }
+
+  .rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .rail-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 2.45rem;
+    padding: 0 0.7rem;
+    color: var(--muted-foreground);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+  }
+
+  .rail-nav a:hover {
+    color: var(--foreground);
+    border-color: var(--border);
+    background: var(--muted);
+  }
+
+  .rail-nav svg,
+  .brand-mark svg,
+  .metric-card svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+  }
+
+  .control-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1rem;
+  }
+
+  .top-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.25rem;
+    padding: 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: oklch(0.14 0.035 286 / 78%);
+  }
+
+  .top-strip h1 {
+    margin: 0.15rem 0 0;
+    font-size: clamp(1.6rem, 3vw, 2.35rem);
+    line-height: 1;
+  }
+
+  .top-actions,
+  .action-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .wide-card {
+    grid-column: 1 / -1;
+  }
+
+  .metric-card > div {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .metric-card svg {
+    width: 2.3rem;
+    height: 2.3rem;
+    padding: 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--primary);
+    background: var(--muted);
+  }
+
+  .metric-card strong,
+  .segmented-readout strong {
+    display: block;
+    color: var(--foreground);
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
+  .metric-card span {
+    display: block;
+    max-width: 13rem;
+    margin-top: 0.2rem;
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .metric-card[data-tone="good"] svg,
+  [data-tone="good"] {
+    color: oklch(0.82 0.16 145);
+  }
+
+  .metric-card[data-tone="warn"] svg,
+  [data-tone="warn"] {
+    color: oklch(0.86 0.18 75);
+  }
+
+  .metric-card[data-tone="danger"] svg,
+  [data-tone="danger"] {
+    color: var(--destructive);
+  }
+
+  .metric-card[data-tone="muted"] svg,
+  [data-tone="muted"] {
+    color: var(--muted-foreground);
+  }
+
+  .panel-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .segmented-readout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .segmented-readout > div {
+    min-width: 0;
+    padding: 0.75rem;
+    border-right: 1px solid var(--border);
+    background: oklch(0.13 0.035 286 / 72%);
+  }
+
+  .segmented-readout > div:last-child {
+    border-right: 0;
+  }
+
+  .segmented-readout strong {
+    margin-top: 0.3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .key-values {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .key-values div {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .key-values dd {
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--foreground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .empty-copy {
+    margin: 0;
+    color: var(--muted-foreground);
+  }
+
+  .raw-state {
+    height: 28rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: oklch(0.09 0.025 286 / 88%);
+  }
+
+  .raw-state pre {
+    margin: 0;
+    padding: 1rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 1100px) {
+  .control-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .control-rail {
+    position: static;
+    height: auto;
+  }
+
+  .rail-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .status-grid,
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .control-main,
+  .control-rail {
+    padding: 0.75rem;
+  }
+
+  .top-strip {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .rail-nav,
+  .status-grid,
+  .dashboard-grid,
+  .segmented-readout {
+    grid-template-columns: 1fr;
+  }
+
+  .segmented-readout > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .segmented-readout > div:last-child {
+    border-bottom: 0;
+  }
+
+  .key-values div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}

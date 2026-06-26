@@ -70,6 +70,9 @@ let package = Package(
                 .product(name: "Hummingbird", package: "hummingbird"),
             ],
             path: "Sources/SSSHTTP",
+            resources: [
+                .copy("Resources/WebUI"),
+            ],
         ),
         .target(
             name: "SSSMCP",

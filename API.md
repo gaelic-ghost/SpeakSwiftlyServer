@@ -47,6 +47,8 @@ xcrun swift run SpeakSwiftlyServerTool help
 
 HTTP runtime and health routes:
 
+- `GET /control-panel/`
+- `GET /control-panel/assets/{asset_name}`
 - `GET /healthz`
 - `GET /readyz`
 - `GET /overview`
@@ -56,6 +58,8 @@ HTTP runtime and health routes:
 - `POST /backend`
 - `POST /models/reload`
 - `POST /models/unload`
+
+The `/control-panel/` route serves the bundled local WebUI. The WebUI is a static React app backed by the existing HTTP routes in this document; it does not introduce a separate control API.
 
 HTTP speech, request, generation, and artifact routes:
 
