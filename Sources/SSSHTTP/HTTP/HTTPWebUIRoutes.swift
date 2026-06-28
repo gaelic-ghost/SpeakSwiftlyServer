@@ -7,11 +7,12 @@ package enum HTTPWebUIRoutes {
 }
 
 package func registerHTTPWebUIRoutes(on router: Router<BasicRequestContext>) {
-    guard let webUIRoot = Bundle.module.url(
-        forResource: "index",
-        withExtension: "html",
-        subdirectory: HTTPWebUIRoutes.resourceSubdirectory,
-    )?.deletingLastPathComponent()
+    guard let webUIRoot = Bundle.module
+        .url(
+            forResource: "index",
+            withExtension: "html",
+            subdirectory: HTTPWebUIRoutes.resourceSubdirectory,
+        )?.deletingLastPathComponent()
     else {
         return
     }

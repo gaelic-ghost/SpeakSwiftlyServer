@@ -81,7 +81,6 @@ extension ServerTests {
             #expect(statusRuntimeConfiguration["next_qwen_resident_model"] == nil)
             let transports = try #require(statusResourcePayload["transports"] as? [[String: Any]])
             #expect(transports.contains { $0["name"] as? String == "mcp" && $0["state"] as? String == "listening" })
-
         }
     }
 }
