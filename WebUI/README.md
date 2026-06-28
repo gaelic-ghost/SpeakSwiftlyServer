@@ -1,4 +1,4 @@
-# Speak Swiftly Control WebUI
+# Speak Swiftly Local Control Panel
 
 This package-local Vite app builds the static control panel served by SpeakSwiftlyServer at `/control-panel/`.
 
@@ -7,6 +7,7 @@ This package-local Vite app builds the static control panel served by SpeakSwift
 ```bash
 pnpm install
 pnpm lint
+pnpm test
 pnpm build
 pnpm dev
 ```
