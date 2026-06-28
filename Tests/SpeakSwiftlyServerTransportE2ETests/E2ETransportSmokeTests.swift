@@ -119,7 +119,6 @@ extension ServerTransportE2ETests {
             name: "generate_speech",
             arguments: [
                 "text": ServerE2E.testingPlaybackText,
-                "profile_name": "default",
             ],
         )
         let speechJobID = try requireString("request_id", in: speechPayload)

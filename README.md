@@ -68,6 +68,8 @@ Once the service is healthy, agents can use `Speak Swiftly` to:
 - inspect the runtime, voice profiles, text profiles, and recent requests
 - set default voice and model preferences
 
+Operators can also open the local control panel at `http://127.0.0.1:7338/control-panel/` when running the foreground tool, or at the configured local HTTP listener port for an installed service.
+
 The normal end-user path is plugin-managed. Do not copy repo-local hook files into a Codex home directory for ordinary setup.
 
 For the detailed HTTP and MCP contract, see [API.md](./API.md).

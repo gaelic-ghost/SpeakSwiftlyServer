@@ -277,13 +277,13 @@ import Testing
         state: state,
     )
     let bonjourPublisher = HTTPListenerBonjourPublisher(serviceName: lanListenerConfig.serviceName)
-    let localhostApp = assembleHBApp(
+    let localhostApp = buildHTTPApplication(
         configuration: localhostHTTPConfig,
         host: host,
         transportName: HTTPListenersConfig.localhostTransportName,
         additionalListeningTransports: ["http"],
     )
-    let lanApp = assembleHBApp(
+    let lanApp = buildHTTPApplication(
         configuration: lanListenerConfig.http,
         host: host,
         transportName: HTTPListenersConfig.lanTransportName,

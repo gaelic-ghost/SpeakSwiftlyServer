@@ -14,6 +14,8 @@ Keep active docs here only when they still guide present-day editing, validation
   Planned adoption path for the next upstream `SpeakSwiftly` release, with public-product integration rules.
 - [`release-workflow.md`](release-workflow.md)
   Current release contract and validation handoff.
+- [`webui-control-panel.md`](webui-control-panel.md)
+  Current build, routing, and API-boundary guidance for the bundled local control panel.
 
 ## Active Operational Notes
 

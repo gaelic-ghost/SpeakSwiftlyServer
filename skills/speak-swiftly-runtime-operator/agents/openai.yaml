@@ -1,7 +1,7 @@
 interface:
   display_name: "Speak Swiftly Runtime"
-  short_description: "Operate runtime, queue, playback, and requests."
-  default_prompt: "Use $speak-swiftly-runtime-operator to inspect the local Speak Swiftly runtime and control playback or queued work."
+  short_description: "Operate runtime, queues, playback, requests, and the local control panel."
+  default_prompt: "Use $speak-swiftly-runtime-operator to inspect the local Speak Swiftly runtime, open the control panel, and control playback or queued work."
 
 dependencies:
   tools:

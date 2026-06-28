@@ -1,11 +1,19 @@
 ---
 name: speak-swiftly-runtime-operator
-description: Use when a user wants to inspect or control the running SpeakSwiftlyServer runtime, including readiness, queues, playback state, active requests, generation backlog, playback backlog, backend switching, model reloads, queue clearing, or request cancellation. Use slim MCP resources for broad reads and HTTP endpoints for controls.
+description: Use when a user wants to inspect or control the running SpeakSwiftlyServer runtime, including readiness, queues, playback state, active requests, generation backlog, playback backlog, backend switching, model reloads, queue clearing, request cancellation, or the local control panel. Use slim MCP resources for broad reads, HTTP endpoints for controls, and the browser-served control panel for visual operator help.
 ---
 
 # SpeakSwiftly Runtime Operator
 
 Use this skill for operator-style runtime work. The local `speak_swiftly` MCP surface is the orientation and live-speech layer; HTTP owns runtime and queue controls.
+
+## Local Control Panel
+
+- Call the browser surface the local control panel. Use `WebUI` only when talking about the checked-in frontend package or bundled static resource, and avoid `dashboard` for the whole surface because it includes live controls.
+- Open `http://127.0.0.1:7338/control-panel/` for the foreground tool's default local HTTP listener. For an installed service, use the configured local HTTP listener port and the same `/control-panel/` path.
+- Use the control panel when the user wants a visual runtime overview, wants to inspect queue and request state interactively, or asks how to operate the service in a browser.
+- The control panel is backed by the same HTTP routes documented in `API.md`; it does not add a separate control API. If a control panel action fails, inspect the matching HTTP endpoint or `speak-swiftly://overview` before blaming the frontend.
+- Agents should still use MCP resources or direct HTTP calls for precise state capture, automation, and mutations. The control panel is for user-facing inspection and guided operation, not for replacing machine-readable checks.
 
 ## Primary Reads
 

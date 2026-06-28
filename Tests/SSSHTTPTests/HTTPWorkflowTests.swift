@@ -36,7 +36,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let healthResponse = try await client.execute(uri: "/healthz", method: .get)
             let healthJSON = try jsonObject(from: healthResponse.body)
@@ -394,7 +394,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let speakResponse = try await client.execute(
                 uri: "/speech/live",
@@ -469,7 +469,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(
                 uri: "/speech/live",
@@ -504,7 +504,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(disabledHost)
 
-        let disabledApp = assembleHBApp(configuration: testHTTPConfig(configuration), host: disabledHost)
+        let disabledApp = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: disabledHost)
         try await disabledApp.test(.router) { client in
             let response = try await client.execute(
                 uri: "/speech/stream",
@@ -536,7 +536,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(enabledHost)
 
-        let enabledApp = assembleHBApp(configuration: testHTTPConfig(configuration), host: enabledHost)
+        let enabledApp = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: enabledHost)
         try await enabledApp.test(.router) { client in
             var wrongTokenHeaders = HTTPFields()
             wrongTokenHeaders[.contentType] = "application/json"
@@ -594,7 +594,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             var headers = HTTPFields()
             headers[.contentType] = "application/json"
@@ -682,7 +682,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(
                 uri: "/speech/live",
@@ -753,7 +753,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(
                 uri: "/speech/live",
@@ -853,7 +853,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let response = try await client.execute(
                 uri: "/speech/live",
@@ -896,7 +896,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
                 uri: "/configuration",
@@ -954,7 +954,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let persistResponse = try await client.execute(
                 uri: "/configuration",

@@ -12,6 +12,22 @@ import Testing
 
 // MARK: - HTTP Control Tests
 
+private func firstBundledWebUIAssetPath(from html: String) -> String? {
+    guard let range = html.range(of: "/control-panel/assets/") else {
+        return nil
+    }
+
+    let suffix = html[range.lowerBound...]
+    let terminator = suffix.firstIndex { character in
+        character == "\"" || character == "'"
+    }
+    guard let terminator else {
+        return nil
+    }
+
+    return String(suffix[..<terminator])
+}
+
 extension ServerTests {
     @Test func `configured HTTP authorities bracket IPv6 literal fallbacks`() {
         let ipv4Config = HTTPConfig(enabled: true, host: "127.0.0.1", port: 7337, sseHeartbeatSeconds: 0.05)
@@ -25,7 +41,60 @@ extension ServerTests {
     }
 
     @available(macOS 14, *)
-    @Test func `assembled app support marks mounted transport routes as listening`() async {
+    @Test func `build HTTP application maps typed config into Hummingbird application configuration`() async {
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+        let httpConfig = HTTPConfig(
+            enabled: true,
+            host: "::1",
+            port: 8088,
+            sseHeartbeatSeconds: 0.05,
+        )
+
+        let app = buildHTTPApplication(
+            configuration: httpConfig,
+            host: host,
+            serverName: "speak-swiftly-test",
+        )
+
+        #expect(app.configuration.address == .hostname("::1", port: 8088))
+        #expect(app.configuration.serverName == "speak-swiftly-test")
+    }
+
+    @available(macOS 14, *)
+    @Test func `build HTTP application serves bundled WebUI under control panel route`() async throws {
+        let configuration = testConfiguration()
+        let state = await MainActor.run { EmbeddedServer() }
+        let host = ServerHost(
+            configuration: configuration,
+            runtime: MockRuntime(),
+            runtimeStartupConfigurationStore: testRuntimeStartupConfigurationStore(),
+            state: state,
+        )
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
+
+        try await app.test(.router) { client in
+            let indexResponse = try await client.execute(uri: "/control-panel/", method: .get)
+            #expect(indexResponse.status == .ok)
+            let indexHTML = String(buffer: indexResponse.body)
+            #expect(indexHTML.contains(#"id="root""#))
+            #expect(indexHTML.contains("/control-panel/assets/"))
+
+            let assetPath = try #require(firstBundledWebUIAssetPath(from: indexHTML))
+            let assetResponse = try await client.execute(uri: assetPath, method: .get)
+            #expect(assetResponse.status == .ok)
+            #expect(assetResponse.body.readableBytes > 0)
+        }
+    }
+
+    @available(macOS 14, *)
+    @Test func `build HTTP application support marks mounted transport routes as listening`() async {
         let configuration = testConfiguration()
         let state = await MainActor.run { EmbeddedServer() }
         let host = ServerHost(
@@ -71,7 +140,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let activeResponse = try await client.execute(
                 uri: "/speech/live",
@@ -264,7 +333,7 @@ extension ServerTests {
         await runtime.publishStatus(.residentModelReady)
         try await waitUntilReady(host)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let listResponse = try await client.execute(uri: "/playback/recent-generated-audio", method: .get)
             let listJSON = try jsonObject(from: listResponse.body)
@@ -373,7 +442,7 @@ extension ServerTests {
         )
         await host.replaceNetworkAudioDestinations([destination])
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let destinationsResponse = try await client.execute(uri: "/network-audio/destinations", method: .get)
             let destinationsJSON = try jsonArray(from: destinationsResponse.body)
@@ -447,7 +516,7 @@ extension ServerTests {
                 state: MainActor.run { EmbeddedServer() },
             )
 
-            let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+            let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
             try await app.test(.router) { client in
                 let selectResponse = try await client.execute(
                     uri: "/network-audio/selection",
@@ -522,7 +591,7 @@ extension ServerTests {
 
         await host.start()
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let readyResponse = try await client.execute(uri: "/readyz", method: .get)
             let readyJSON = try jsonObject(from: readyResponse.body)
@@ -577,7 +646,7 @@ extension ServerTests {
         await host.start()
         await runtime.publishStatus(.residentModelFailed)
 
-        let app = assembleHBApp(configuration: testHTTPConfig(configuration), host: host)
+        let app = buildHTTPApplication(configuration: testHTTPConfig(configuration), host: host)
         try await app.test(.router) { client in
             let readyResponse = try await client.execute(uri: "/readyz", method: .get)
             let readyJSON = try jsonObject(from: readyResponse.body)

@@ -1,6 +1,6 @@
 # Skills Surface Audit
 
-Last audited: 2026-06-24
+Last audited: 2026-06-28
 
 This note records the repo-local Codex skill surface audit against the current `SpeakSwiftlyServer` package, HTTP API, MCP catalog, plugin metadata, and operator documentation.
 
@@ -9,7 +9,7 @@ This note records the repo-local Codex skill surface audit against the current `
 The checked-in plugin exposes six focused skills under `skills/`:
 
 - `speak-swiftly-mcp`: orientation and routing for the local `speak_swiftly` MCP server.
-- `speak-swiftly-runtime-operator`: runtime, queue, playback, request, backend, and model-residency operations.
+- `speak-swiftly-runtime-operator`: runtime, queue, playback, request, backend, model-residency, and local control panel operations.
 - `speak-swiftly-voice-workflows`: voice-profile creation and editing, live speech, retained artifact generation, and artifact inspection.
 - `speak-swiftly-text-profiles`: text-normalization style, stored profile, replacement, and persistence workflows.
 - `speak-swiftly-launchagent-setup`: supported LaunchAgent setup, promotion, inspection, uninstall, and healthcheck flow.
@@ -29,7 +29,9 @@ The root plugin manifest at `.codex-plugin/plugin.json` points at `./skills/`, `
 
 ## Alignment Result
 
-The skill set is conceptually aligned with the current project shape. The six-skill split still maps cleanly onto the real product surfaces: broad MCP orientation, LaunchAgent service setup, Codex hook setup, runtime operation, voice workflows, and text-profile authoring.
+The skill set is conceptually aligned with the current project shape. The six-skill split still maps cleanly onto the real product surfaces: broad MCP orientation, LaunchAgent service setup, Codex hook setup, runtime operation including the browser-served local control panel, voice workflows, and text-profile authoring.
+
+No separate control-panel skill is currently needed. The control panel is an operator view over the same HTTP runtime surface, so keeping it inside `speak-swiftly-runtime-operator` avoids splitting one operator workflow across two skills.
 
 The MCP source catalog is intentionally slim. It keeps `generate_speech` as the core agent-facing tool, keeps prompt authoring surfaces, and keeps a compact read-only resource set for overview, voice-profile list/guidance, text-profile list/guidance, playback state/guidance, and focused request detail.
 

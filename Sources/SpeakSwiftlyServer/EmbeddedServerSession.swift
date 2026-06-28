@@ -146,6 +146,7 @@ func embeddedServerLiveBootstrap(
         localhostConfiguration: localhostHTTPConfig,
         lanConfiguration: config.listeners.lan,
         mcpConfig: config.mcp,
+        serverName: config.server.name,
         mountLocalhostAdditionalRoutes: { router in
             mcpSurface?.mount(on: router)
         },

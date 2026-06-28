@@ -1,12 +1,14 @@
+import Configuration
 import Foundation
 import Hummingbird
 import NIOCore
 import ServiceLifecycle
 import SSSCore
 
-package func assembleHBApp(
+package func buildHTTPApplication(
     configuration: HTTPConfig,
     host: ServerHost,
+    serverName: String? = nil,
     transportName: String = "http",
     additionalListeningTransports: [String] = [],
     mountAdditionalRoutes: ((Router<BasicRequestContext>) -> Void)? = nil,
@@ -15,14 +17,21 @@ package func assembleHBApp(
     onServerRunning: (@Sendable (any Channel) async -> Void)? = nil,
 ) -> Application<Router<BasicRequestContext>.Responder> {
     let router = Router()
+    router.addMiddleware {
+        LogRequestsMiddleware(.info)
+    }
     if configuration.enabled {
         registerHTTPRoutes(on: router, configuration: configuration, host: host)
+        registerHTTPWebUIRoutes(on: router)
     }
     mountAdditionalRoutes?(router)
 
     var app = Application(
         router: router,
-        configuration: .init(address: .hostname(configuration.host, port: configuration.port)),
+        configuration: applicationConfiguration(
+            for: configuration,
+            serverName: serverName,
+        ),
         services: services,
         onServerRunning: { channel in
             await markConfiguredTransportsListening(
@@ -41,6 +50,25 @@ package func assembleHBApp(
     }
 
     return app
+}
+
+private func applicationConfiguration(
+    for configuration: HTTPConfig,
+    serverName: String?,
+) -> ApplicationConfiguration {
+    var values: [AbsoluteConfigKey: ConfigValue] = [
+        .init(["host"]): .init(stringLiteral: configuration.host),
+        .init(["port"]): .init(integerLiteral: configuration.port),
+    ]
+    if let serverName = serverName?.trimmingCharacters(in: .whitespacesAndNewlines), !serverName.isEmpty {
+        values[.init(["serverName"])] = .init(stringLiteral: serverName)
+    }
+
+    return ApplicationConfiguration(
+        reader: ConfigReader(
+            provider: InMemoryProvider(values: values),
+        ),
+    )
 }
 
 package func markConfiguredTransportsListening(
