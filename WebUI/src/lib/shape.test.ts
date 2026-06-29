@@ -2,12 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   describeValue,
-  firstArray,
-  firstRecord,
   formatDateTime,
-  getArray,
-  getBool,
-  getNumber,
   getRecord,
   getString,
   isRecord,
@@ -19,28 +14,16 @@ describe('shape helpers', () => {
     const source = {
       name: 'default',
       empty: '',
-      count: 3,
-      ready: true,
       nested: { state: 'ready' },
-      rows: [{ id: 'one' }],
     }
 
     expect(isRecord(source)).toBe(true)
     expect(getString(source, 'name')).toBe('default')
     expect(getString(source, 'empty')).toBeNull()
-    expect(getNumber(source, 'count')).toBe(3)
-    expect(getBool(source, 'ready')).toBe(true)
     expect(getRecord(source, 'nested')).toEqual({ state: 'ready' })
-    expect(getArray(source, 'rows')).toEqual([{ id: 'one' }])
   })
 
-  it('finds the first useful array or record in flexible response payloads', () => {
-    expect(firstArray({ metadata: { count: 1 }, requests: [{ id: 'queued' }] })).toEqual([{ id: 'queued' }])
-    expect(firstArray(['direct'])).toEqual(['direct'])
-    expect(firstRecord([null, 'skip', { id: 'first-record' }])).toEqual({ id: 'first-record' })
-  })
-
-  it('formats values for compact dashboard readouts', () => {
+  it('formats values for compact control panel readouts', () => {
     expect(sectionValue({ value: { ready: true }, error: null, updatedAt: 'now' })).toEqual({ ready: true })
     expect(sectionValue(null)).toBeNull()
     expect(describeValue(null)).toBe('—')
