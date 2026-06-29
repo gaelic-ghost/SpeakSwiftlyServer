@@ -29,7 +29,7 @@ Socket marketplace command set:
 
 ```json
 {
-  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/11.1.1/hooks/stop-tts.mjs"
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/11.1.2/hooks/stop-tts.mjs"
 }
 ```
 
