@@ -84,8 +84,21 @@ function App() {
   const networkDestinations = sectionValue(data?.networkDestinations)
   const networkSelection = sectionValue(data?.networkSelection)
 
-  const ready = overview?.server_mode === 'ready' || status?.state === 'ready'
-  const health = overview?.server_mode ?? status?.state ?? (ready ? 'ready' : 'starting')
+  const playbackActiveRequests = endpointArray(playbackQueue?.active_requests)
+  const generationActiveRequests = endpointArray(generationQueue?.active_requests)
+  const playbackQueueRows = endpointArray(playbackQueue?.queue)
+  const generationQueueRows = endpointArray(generationQueue?.queue)
+  const requestRows = endpointArray(requests?.requests).slice(0, 8)
+  const voiceRows = endpointArray(voices?.profiles).slice(0, 6)
+  const profileRows = endpointArray(textProfiles?.text_profiles.stored_profiles).slice(0, 5)
+  const destinationRows = endpointArray(networkDestinations).slice(0, 5)
+
+  const ready =
+    overview?.ready === true ||
+    overview?.server_mode === 'ready' ||
+    status?.state === 'ready' ||
+    status?.resident_state === 'ready'
+  const health = overview?.server_mode ?? status?.state ?? status?.resident_state ?? (ready ? 'ready' : 'starting')
   const backend =
     status?.speech_backend ??
     configuration?.active_runtime_speech_backend ??
@@ -93,15 +106,11 @@ function App() {
     'unknown'
   const activeRequest =
     getString(playbackState, 'active_request_id') ??
-    playbackQueue?.active_requests.at(0)?.request_id ??
-    playbackQueue?.active_requests.at(0)?.id ??
+    playbackActiveRequests.at(0)?.request_id ??
+    playbackActiveRequests.at(0)?.id ??
     'none'
-  const playbackQueued = queueCount(playbackQueue, overview?.playback_queue)
-  const generationQueued = queueCount(generationQueue, overview?.generation_queue)
-  const requestRows = requests?.requests.slice(0, 8) ?? []
-  const voiceRows = voices?.profiles.slice(0, 6) ?? []
-  const profileRows = textProfiles?.text_profiles.stored_profiles?.slice(0, 5) ?? []
-  const destinationRows = networkDestinations?.slice(0, 5) ?? []
+  const playbackQueued = queueCount(playbackQueue, overview?.playback_queue, playbackQueueRows)
+  const generationQueued = queueCount(generationQueue, overview?.generation_queue, generationQueueRows)
 
   const statusCards = useMemo<MetricCardProps[]>(
     () => [
@@ -257,7 +266,7 @@ function App() {
                   <CardContent className="panel-stack">
                     <div className="segmented-readout">
                       <Readout label="Queued" value={String(generationQueued)} />
-                      <Readout label="Active" value={String(generationQueue?.active_requests.length ?? 0)} />
+                      <Readout label="Active" value={String(generationActiveRequests.length)} />
                     </div>
                     <div className="action-row">
                       <ControlButton action={clearGenerationQueue} label="Clear generation" icon={Trash2Icon} after={refresh} destructive />
@@ -544,8 +553,16 @@ function KeyValueList({ source, keys }: { source: unknown; keys: string[] }) {
   )
 }
 
-function queueCount(primary: QueueSnapshotResponse | null, overview: QueueSnapshotResponse | undefined) {
-  return primary?.queued_count ?? primary?.queue.length ?? overview?.queued_count ?? overview?.queue.length ?? 0
+function endpointArray<T>(value: T[] | undefined | null) {
+  return Array.isArray(value) ? value : []
+}
+
+function queueCount(
+  primary: QueueSnapshotResponse | null,
+  overview: QueueSnapshotResponse | undefined,
+  primaryRows: JsonRecord[],
+) {
+  return primary?.queued_count ?? primaryRows.length ?? overview?.queued_count ?? endpointArray(overview?.queue).length
 }
 
 function formatCell(row: JsonRecord, column: Column) {

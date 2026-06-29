@@ -140,6 +140,33 @@ describe('loadControlPanelData', () => {
     expect(data.status.error).toBe('connection refused')
     expect(data.networkSelection.updatedAt).toBe('2026-06-28T12:05:00.000Z')
   })
+
+  it('records non JSON endpoint responses as section errors instead of typed values', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-28T12:15:00Z'))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = String(input)
+        if (path === '/overview') {
+          return jsonResponse({ server_mode: 'ready' })
+        }
+        if (path === '/playback/queue') {
+          return new Response('plain text is not a queue', {
+            status: 200,
+            headers: { 'content-type': 'text/plain' },
+          })
+        }
+        return jsonResponse({ path })
+      }),
+    )
+
+    const data = await loadControlPanelData()
+
+    expect(data.playbackQueue.value).toBeNull()
+    expect(data.playbackQueue.error).toContain('Expected JSON from /playback/queue')
+    expect(data.playbackQueue.error).toContain('plain text is not a queue')
+  })
 })
 
 describe('control route helpers', () => {

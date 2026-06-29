@@ -32,6 +32,7 @@ export type QueueSnapshotResponse = JsonRecord & {
 }
 
 export type StatusSnapshot = JsonRecord & {
+  ready?: boolean
   server_mode?: string
   worker_stage?: string
   service?: string
@@ -296,7 +297,8 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
   const contentType = response.headers.get('content-type') ?? ''
   if (!contentType.includes('application/json')) {
-    return (await response.text()) as T
+    const bodyPreview = await response.text().catch(() => '')
+    throw new Error(`Expected JSON from ${path}, received ${contentType || 'no content type'}${bodyPreview ? `: ${bodyPreview}` : ''}`)
   }
 
   return response.json() as Promise<T>
