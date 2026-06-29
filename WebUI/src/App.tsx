@@ -45,8 +45,18 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { cancelRequest, clearGenerationQueue, clearPlaybackQueue, pausePlayback, reloadModels, resumePlayback, unloadModels } from '@/lib/api'
-import { describeValue, firstArray, firstRecord, formatDateTime, getArray, getBool, getNumber, getRecord, getString, isRecord, recordEntries, sectionValue } from '@/lib/shape'
+import {
+  cancelRequest,
+  clearGenerationQueue,
+  clearPlaybackQueue,
+  pausePlayback,
+  reloadModels,
+  resumePlayback,
+  unloadModels,
+  type JsonRecord,
+  type QueueSnapshotResponse,
+} from '@/lib/api'
+import { describeValue, formatDateTime, getRecord, getString, isRecord, sectionValue } from '@/lib/shape'
 import { useControlPanelSnapshot } from '@/hooks/use-control-panel-snapshot'
 
 const navigationItems = [
@@ -60,46 +70,52 @@ const navigationItems = [
 ]
 
 function App() {
-  const { snapshot, loading, refreshing, error, refresh } = useControlPanelSnapshot()
+  const { data, loading, refreshing, error, refresh } = useControlPanelSnapshot()
 
-  const overview = sectionValue(snapshot?.overview)
-  const status = sectionValue(snapshot?.status)
-  const configuration = sectionValue(snapshot?.configuration)
-  const playbackState = sectionValue(snapshot?.playbackState)
-  const playbackQueue = sectionValue(snapshot?.playbackQueue)
-  const generationQueue = sectionValue(snapshot?.generationQueue)
-  const requests = sectionValue(snapshot?.requests)
-  const voices = sectionValue(snapshot?.voices)
-  const textProfiles = sectionValue(snapshot?.textProfiles)
-  const networkDestinations = sectionValue(snapshot?.networkDestinations)
+  const overview = sectionValue(data?.overview)
+  const status = sectionValue(data?.status)
+  const configuration = sectionValue(data?.configuration)
+  const playbackState = sectionValue(data?.playbackState)
+  const playbackQueue = sectionValue(data?.playbackQueue)
+  const generationQueue = sectionValue(data?.generationQueue)
+  const requests = sectionValue(data?.requests)
+  const voices = sectionValue(data?.voices)
+  const textProfiles = sectionValue(data?.textProfiles)
+  const networkDestinations = sectionValue(data?.networkDestinations)
+  const networkSelection = sectionValue(data?.networkSelection)
 
-  const ready = getBool(overview, 'ready') ?? getBool(status, 'ready') ?? false
-  const health = getString(overview, 'health') ?? getString(status, 'health') ?? (ready ? 'ready' : 'starting')
-  const backend = getString(status, 'speech_backend') ?? getString(configuration, 'speech_backend') ?? 'unknown'
+  const ready = overview?.server_mode === 'ready' || status?.state === 'ready'
+  const health = overview?.server_mode ?? status?.state ?? (ready ? 'ready' : 'starting')
+  const backend =
+    status?.speech_backend ??
+    configuration?.active_runtime_speech_backend ??
+    configuration?.next_runtime_speech_backend ??
+    'unknown'
   const activeRequest =
     getString(playbackState, 'active_request_id') ??
-    getString(firstRecord(getArray(playbackQueue, 'active_requests')), 'request_id') ??
+    playbackQueue?.active_requests.at(0)?.request_id ??
+    playbackQueue?.active_requests.at(0)?.id ??
     'none'
-  const playbackQueued = getNumber(playbackQueue, 'queued_count') ?? firstArray(playbackQueue)?.length ?? 0
-  const generationQueued = getNumber(generationQueue, 'queued_count') ?? firstArray(generationQueue)?.length ?? 0
-  const requestRows = extractRows(requests, ['requests', 'items', 'jobs']).slice(0, 8)
-  const voiceRows = extractRows(voices, ['voices', 'profiles', 'items']).slice(0, 6)
-  const profileRows = extractRows(textProfiles, ['stored_profiles', 'profiles', 'items']).slice(0, 5)
-  const destinationRows = extractRows(networkDestinations, ['destinations', 'items']).slice(0, 5)
+  const playbackQueued = queueCount(playbackQueue, overview?.playback_queue)
+  const generationQueued = queueCount(generationQueue, overview?.generation_queue)
+  const requestRows = requests?.requests.slice(0, 8) ?? []
+  const voiceRows = voices?.profiles.slice(0, 6) ?? []
+  const profileRows = textProfiles?.text_profiles.stored_profiles?.slice(0, 5) ?? []
+  const destinationRows = networkDestinations?.slice(0, 5) ?? []
 
   const statusCards = useMemo<MetricCardProps[]>(
     () => [
       {
         label: 'Service',
         value: ready ? 'Ready' : humanize(health),
-        detail: getString(overview, 'server_mode') ?? 'local runtime',
+        detail: overview?.worker_stage ?? 'local runtime',
         tone: ready ? 'good' : 'warn',
         icon: ServerIcon,
       },
       {
         label: 'Backend',
         value: humanize(backend),
-        detail: getString(status, 'runtime_state') ?? getString(status, 'state') ?? 'runtime state',
+        detail: status?.resident_state ?? configuration?.persisted_configuration_state ?? 'runtime state',
         tone: backend === 'unknown' ? 'muted' : 'good',
         icon: DatabaseIcon,
       },
@@ -118,7 +134,7 @@ function App() {
         icon: ActivityIcon,
       },
     ],
-    [activeRequest, backend, generationQueued, health, overview, playbackQueued, ready, status],
+    [activeRequest, backend, configuration, generationQueued, health, overview, playbackQueued, ready, status],
   )
 
   return (
@@ -241,7 +257,7 @@ function App() {
                   <CardContent className="panel-stack">
                     <div className="segmented-readout">
                       <Readout label="Queued" value={String(generationQueued)} />
-                      <Readout label="Updated" value={formatDateTime(getString(generationQueue, 'refreshed_at'))} />
+                      <Readout label="Active" value={String(generationQueue?.active_requests.length ?? 0)} />
                     </div>
                     <div className="action-row">
                       <ControlButton action={clearGenerationQueue} label="Clear generation" icon={Trash2Icon} after={refresh} destructive />
@@ -259,7 +275,15 @@ function App() {
                       <ControlButton action={reloadModels} label="Reload models" icon={RotateCcwIcon} after={refresh} />
                       <ControlButton action={unloadModels} label="Unload models" icon={BanIcon} after={refresh} destructive />
                     </div>
-                    <KeyValueList source={configuration} keys={['speech_backend', 'duck_media_volume', 'default_voice_profile_name']} />
+                    <KeyValueList
+                      source={configuration}
+                      keys={[
+                        'active_runtime_speech_backend',
+                        'next_runtime_speech_backend',
+                        'active_duck_media_volume',
+                        'next_duck_media_volume',
+                      ]}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -290,7 +314,10 @@ function App() {
                     <CardDescription>Stored and active text-normalization state.</CardDescription>
                   </CardHeader>
                   <CardContent className="panel-stack">
-                    <KeyValueList source={textProfiles} keys={['active_profile_id', 'active_style', 'base_profile_id']} />
+                    <KeyValueList
+                      source={textProfiles?.text_profiles}
+                      keys={['built_in_style', 'active_profile', 'effective_profile', 'base_profile']}
+                    />
                     <Separator />
                     <DataTable
                       emptyLabel="No stored text profiles returned."
@@ -298,7 +325,7 @@ function App() {
                       columns={[
                         { label: 'Profile', keys: ['profile_id', 'id', 'name'] },
                         { label: 'Name', keys: ['name', 'display_name'] },
-                        { label: 'Kind', keys: ['kind', 'style'] },
+                        { label: 'Replacements', keys: ['replacement_count'] },
                       ]}
                     />
                   </CardContent>
@@ -317,9 +344,19 @@ function App() {
                       rows={destinationRows}
                       columns={[
                         { label: 'Destination', keys: ['name', 'destination_id', 'id'] },
-                        { label: 'State', keys: ['state', 'readiness', 'status'] },
-                        { label: 'Endpoint', keys: ['endpoint', 'host_port', 'base_url'] },
-                        { label: 'Updated', keys: ['updated_at', 'last_seen_at'], formatter: formatDateTime },
+                        { label: 'Endpoint', keys: ['endpoint'] },
+                        { label: 'Capabilities', keys: ['capabilities'] },
+                        { label: 'Last seen', keys: ['last_seen'], formatter: formatDateTime },
+                      ]}
+                    />
+                    <Separator />
+                    <KeyValueList
+                      source={networkSelection}
+                      keys={[
+                        'available_destination_count',
+                        'lan_output_ready',
+                        'selected_destination_endpoint_ready',
+                        'shared_token_configured',
                       ]}
                     />
                   </CardContent>
@@ -334,7 +371,7 @@ function App() {
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="raw-state">
-                      <pre>{JSON.stringify(snapshot, null, 2)}</pre>
+                      <pre>{JSON.stringify(data, null, 2)}</pre>
                     </ScrollArea>
                   </CardContent>
                 </Card>
@@ -455,10 +492,10 @@ function DataTable({
   emptyLabel,
   rowAction,
 }: {
-  rows: Record<string, unknown>[]
+  rows: JsonRecord[]
   columns: Column[]
   emptyLabel: string
-  rowAction?: (row: Record<string, unknown>) => React.ReactNode
+  rowAction?: (row: JsonRecord) => React.ReactNode
 }) {
   if (rows.length === 0) {
     return <p className="empty-copy">{emptyLabel}</p>
@@ -507,26 +544,11 @@ function KeyValueList({ source, keys }: { source: unknown; keys: string[] }) {
   )
 }
 
-function extractRows(source: unknown, keys: string[]): Record<string, unknown>[] {
-  if (Array.isArray(source)) {
-    return source.filter(isRecord)
-  }
-  if (!isRecord(source)) {
-    return []
-  }
-  for (const key of keys) {
-    const value = source[key]
-    if (Array.isArray(value)) {
-      return value.filter(isRecord)
-    }
-  }
-  const nested = recordEntries(source)
-    .map(([, value]) => value)
-    .find((value) => Array.isArray(value))
-  return Array.isArray(nested) ? nested.filter(isRecord) : []
+function queueCount(primary: QueueSnapshotResponse | null, overview: QueueSnapshotResponse | undefined) {
+  return primary?.queued_count ?? primary?.queue.length ?? overview?.queued_count ?? overview?.queue.length ?? 0
 }
 
-function formatCell(row: Record<string, unknown>, column: Column) {
+function formatCell(row: JsonRecord, column: Column) {
   for (const key of column.keys) {
     const direct = row[key]
     if (direct !== undefined && direct !== null && direct !== '') {

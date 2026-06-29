@@ -4,7 +4,7 @@ import {
   cancelRequest,
   clearGenerationQueue,
   clearPlaybackQueue,
-  loadControlPanelSnapshot,
+  loadControlPanelData,
   pausePlayback,
   reloadModels,
   resumePlayback,
@@ -22,7 +22,7 @@ function jsonResponse(value: unknown, init: ResponseInit = {}) {
   })
 }
 
-describe('loadControlPanelSnapshot', () => {
+describe('loadControlPanelData', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.useRealTimers()
@@ -43,17 +43,84 @@ describe('loadControlPanelSnapshot', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const snapshot = await loadControlPanelSnapshot()
+    const data = await loadControlPanelData()
 
-    expect(snapshot.overview).toEqual({
+    expect(data.overview).toEqual({
       value: { ready: true },
       error: null,
       updatedAt: '2026-06-28T12:00:00.000Z',
     })
-    expect(snapshot.status.value).toEqual({ path: '/status' })
-    expect(snapshot.playbackQueue.value).toBeNull()
-    expect(snapshot.playbackQueue.error).toContain('HTTP 503 from /playback/queue')
-    expect(snapshot.generationQueue.error).toBeNull()
+    expect(data.status.value).toEqual({ path: '/status' })
+    expect(data.playbackQueue.value).toBeNull()
+    expect(data.playbackQueue.error).toContain('HTTP 503 from /playback/queue')
+    expect(data.generationQueue.error).toBeNull()
+  })
+
+  it('preserves existing endpoint response shapes without normalizing them', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-28T12:10:00Z'))
+    const payloads: Record<string, unknown> = {
+      '/overview': {
+        server_mode: 'ready',
+        worker_stage: 'resident_model_ready',
+      },
+      '/status': {
+        speech_backend: 'qwen3_big_8bit',
+        resident_state: 'ready',
+      },
+      '/configuration': {
+        active_runtime_speech_backend: 'qwen3_big_8bit',
+      },
+      '/playback/state': {
+        state: 'idle',
+      },
+      '/playback/queue': {
+        queue: [{ request_id: 'queued-playback' }],
+        active_requests: [],
+        queue_type: 'playback',
+      },
+      '/generation/queue': {
+        queue: [],
+        active_requests: [{ request_id: 'active-generation' }],
+        queue_type: 'generation',
+      },
+      '/requests': {
+        requests: [{ request_id: 'retained-request' }],
+      },
+      '/generation/jobs': {
+        jobs: [{ id: 'job-1' }],
+      },
+      '/voices': {
+        profiles: [{ profile_name: 'swift-signal' }],
+      },
+      '/text-profiles': {
+        text_profiles: {
+          stored_profiles: [{ profile_id: 'default' }],
+        },
+      },
+      '/network-audio/destinations': [
+        {
+          id: 'receiver-1',
+          name: 'Receiver',
+        },
+      ],
+      '/network-audio/selection': {
+        available_destination_count: 1,
+      },
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => jsonResponse(payloads[String(input)])),
+    )
+
+    const data = await loadControlPanelData()
+
+    expect(data.playbackQueue.value?.queue).toEqual([{ request_id: 'queued-playback' }])
+    expect(data.generationQueue.value?.active_requests).toEqual([{ request_id: 'active-generation' }])
+    expect(data.requests.value?.requests).toEqual([{ request_id: 'retained-request' }])
+    expect(data.voices.value?.profiles).toEqual([{ profile_name: 'swift-signal' }])
+    expect(data.textProfiles.value?.text_profiles.stored_profiles).toEqual([{ profile_id: 'default' }])
+    expect(data.networkDestinations.value).toEqual([{ id: 'receiver-1', name: 'Receiver' }])
   })
 
   it('returns an offline snapshot when overview cannot be loaded', async () => {
@@ -66,12 +133,12 @@ describe('loadControlPanelSnapshot', () => {
       }),
     )
 
-    const snapshot = await loadControlPanelSnapshot()
+    const data = await loadControlPanelData()
 
-    expect(snapshot.overview.value).toBeNull()
-    expect(snapshot.overview.error).toBe('connection refused')
-    expect(snapshot.status.error).toBe('connection refused')
-    expect(snapshot.networkSelection.updatedAt).toBe('2026-06-28T12:05:00.000Z')
+    expect(data.overview.value).toBeNull()
+    expect(data.overview.error).toBe('connection refused')
+    expect(data.status.error).toBe('connection refused')
+    expect(data.networkSelection.updatedAt).toBe('2026-06-28T12:05:00.000Z')
   })
 })
 

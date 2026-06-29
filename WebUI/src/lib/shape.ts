@@ -1,6 +1,6 @@
 import type { EndpointSection } from '@/lib/api'
 
-export function sectionValue(section: EndpointSection | null | undefined) {
+export function sectionValue<T>(section: EndpointSection<T> | null | undefined) {
   return section?.value ?? null
 }
 
@@ -16,59 +16,12 @@ export function getRecord(source: unknown, key: string) {
   return isRecord(value) ? value : null
 }
 
-export function getArray(source: unknown, key: string) {
-  if (!isRecord(source)) {
-    return []
-  }
-  const value = source[key]
-  return Array.isArray(value) ? value : []
-}
-
-export function firstArray(source: unknown) {
-  if (Array.isArray(source)) {
-    return source
-  }
-  if (!isRecord(source)) {
-    return null
-  }
-  return recordEntries(source)
-    .map(([, value]) => value)
-    .find((value): value is unknown[] => Array.isArray(value)) ?? null
-}
-
-export function firstRecord(source: unknown) {
-  if (!Array.isArray(source)) {
-    return null
-  }
-  return source.find(isRecord) ?? null
-}
-
 export function getString(source: unknown, key: string) {
   if (!isRecord(source)) {
     return null
   }
   const value = source[key]
   return typeof value === 'string' && value.trim() ? value : null
-}
-
-export function getNumber(source: unknown, key: string) {
-  if (!isRecord(source)) {
-    return null
-  }
-  const value = source[key]
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
-}
-
-export function getBool(source: unknown, key: string) {
-  if (!isRecord(source)) {
-    return null
-  }
-  const value = source[key]
-  return typeof value === 'boolean' ? value : null
-}
-
-export function recordEntries(source: Record<string, unknown>) {
-  return Object.entries(source)
 }
 
 export function describeValue(value: unknown): string {

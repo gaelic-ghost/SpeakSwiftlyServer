@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { loadControlPanelSnapshot, type ControlPanelSnapshot } from '@/lib/api'
+import { loadControlPanelData, type ControlPanelData } from '@/lib/api'
 
 type SnapshotState = {
-  snapshot: ControlPanelSnapshot | null
+  data: ControlPanelData | null
   loading: boolean
   refreshing: boolean
   error: string | null
@@ -11,7 +11,7 @@ type SnapshotState = {
 
 export function useControlPanelSnapshot() {
   const [state, setState] = useState<SnapshotState>({
-    snapshot: null,
+    data: null,
     loading: true,
     refreshing: false,
     error: null,
@@ -20,12 +20,12 @@ export function useControlPanelSnapshot() {
   const refresh = useCallback(async () => {
     setState((current) => ({ ...current, refreshing: true, error: null }))
     try {
-      const snapshot = await loadControlPanelSnapshot()
+      const data = await loadControlPanelData()
       setState({
-        snapshot,
+        data,
         loading: false,
         refreshing: false,
-        error: snapshot.overview.error ?? null,
+        error: data.overview.error ?? null,
       })
     } catch (caught) {
       setState((current) => ({
