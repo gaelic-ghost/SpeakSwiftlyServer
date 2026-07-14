@@ -30,7 +30,7 @@ let package = Package(
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.25.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.83.0"),
-        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "11.1.1"),
+        .package(url: "https://github.com/gaelic-ghost/SpeakSwiftly.git", from: "11.2.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.3"),
         .package(url: "https://github.com/gaelic-ghost/TextForSpeech.git", from: "0.23.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
