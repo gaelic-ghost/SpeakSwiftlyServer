@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
@@ -33,5 +33,9 @@ export default defineConfig({
       '/text-profiles': 'http://127.0.0.1:7338',
       '/voices': 'http://127.0.0.1:7338',
     },
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 })
