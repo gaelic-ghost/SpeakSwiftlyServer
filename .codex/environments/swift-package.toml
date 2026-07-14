@@ -3,7 +3,7 @@ version = 1
 name = "swift-package"
 
 [setup]
-script = "xcrun swift package resolve"
+script = "xcrun swift package resolve && pnpm --dir WebUI install --frozen-lockfile"
 
 [[actions]]
 name = "resolve"

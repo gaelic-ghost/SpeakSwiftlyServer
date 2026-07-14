@@ -49,10 +49,18 @@ pnpm --dir WebUI test
 
 This lane covers the control panel's HTTP snapshot fan-out, offline-state shaping, control route helpers, and loose JSON readout helpers. The Swift HTTP test suite separately verifies that Hummingbird serves the bundled `/control-panel/` page and built assets.
 
+Run the rendered browser regression lane with:
+
+```bash
+pnpm --dir WebUI test:browser
+```
+
+The browser lane starts Vite, mocks each existing HTTP endpoint, confirms that tabs are the only primary navigation pattern, and checks every visible control sends the expected HTTP method and route. Swift tests remain responsible for proving that the production bundle is served by Hummingbird and the real HTTP routes behave correctly.
+
 ## Maintenance Rules
 
 - Keep `WebUI/src/lib/api.ts` pointed at existing HTTP routes first.
 - Keep Hummingbird static serving in `SSSHTTP`; do not move WebUI routing into `SSSCore`.
 - Rebuild `Sources/SSSHTTP/Resources/WebUI` whenever frontend source, dependencies, or Vite config changes.
-- Run `pnpm --dir WebUI lint`, `pnpm --dir WebUI test`, `pnpm --dir WebUI build`, `xcrun swift build`, and the relevant Swift test lane before handoff.
+- Run `pnpm --dir WebUI lint`, `pnpm --dir WebUI test`, `pnpm --dir WebUI test:browser`, `pnpm --dir WebUI build`, `xcrun swift build`, and the relevant Swift test lane before handoff.
 - Avoid adding frontend-only server state. If the UI reveals missing shared state or observability, prefer moving that state into `SpeakSwiftly` or `SSSCore` as a reusable API surface instead of creating a WebUI-only side channel.

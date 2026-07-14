@@ -172,6 +172,7 @@ In Progress
 - [ ] Before the final v11 release, clean up listener shutdown behavior so deliberate LAN toggles do not produce confusing Hummingbird cancellation or "Already closed" noise in normal operator logs.
 - [ ] Update server release automation so SemVer prerelease tags create GitHub prerelease objects and existing prerelease release objects are verified before the flow proceeds; keep the broader reusable repo-tooling followup tied to Socket issue [#61](https://github.com/gaelic-ghost/socket/issues/61).
 - [ ] Add a release-flow followup that prompts a Codex thread or `codex exec` in the Socket checkout after each `SpeakSwiftlyServer` release, so Socket marketplace patch releases stay synchronized with server plugin payload releases.
+- [x] Add automated browser coverage for the bundled local control panel, preferably with Playwright unless Selenium proves simpler for this repo, that loads `/control-panel/` from a real server instance, verifies the core tabs render against the existing HTTP endpoint shapes, catches broken asset routes, and can run as a focused maintainer check before WebUI releases.
 
 ### Exit Criteria
 

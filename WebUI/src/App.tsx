@@ -2,22 +2,16 @@ import {
   ActivityIcon,
   AudioLinesIcon,
   BanIcon,
-  CircleDotIcon,
   DatabaseIcon,
-  FileAudioIcon,
-  GaugeIcon,
   LoaderCircleIcon,
-  Mic2Icon,
   PauseIcon,
   PlayIcon,
   RefreshCcwIcon,
   RotateCcwIcon,
   ServerIcon,
-  Settings2Icon,
   Trash2Icon,
-  WavesIcon,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -58,16 +52,6 @@ import {
 } from '@/lib/api'
 import { describeValue, formatDateTime, getRecord, getString, isRecord, sectionValue } from '@/lib/shape'
 import { useControlPanelSnapshot } from '@/hooks/use-control-panel-snapshot'
-
-const navigationItems = [
-  { label: 'Overview', icon: GaugeIcon },
-  { label: 'Playback', icon: AudioLinesIcon },
-  { label: 'Requests', icon: ActivityIcon },
-  { label: 'Voices', icon: Mic2Icon },
-  { label: 'Profiles', icon: FileAudioIcon },
-  { label: 'Network', icon: WavesIcon },
-  { label: 'Config', icon: Settings2Icon },
-]
 
 function App() {
   const { data, loading, refreshing, error, refresh } = useControlPanelSnapshot()
@@ -150,24 +134,6 @@ function App() {
     <TooltipProvider>
       <div className="min-h-svh bg-background text-foreground">
         <div className="control-shell">
-          <aside className="control-rail">
-            <div className="brand-mark">
-              <CircleDotIcon aria-hidden="true" />
-              <div>
-                <p>Speak Swiftly</p>
-                <span>Control</span>
-              </div>
-            </div>
-            <nav aria-label="Control panel sections" className="rail-nav">
-              {navigationItems.map((item) => (
-                <a href={`#${item.label.toLowerCase()}`} key={item.label}>
-                  <item.icon aria-hidden="true" />
-                  <span>{item.label}</span>
-                </a>
-              ))}
-            </nav>
-          </aside>
-
           <main className="control-main">
             <header className="top-strip">
               <div>
@@ -468,20 +434,27 @@ function ControlButton({
   destructive?: boolean
   compact?: boolean
 }) {
+  const [pending, setPending] = useState(false)
+
+  const performAction = async () => {
+    setPending(true)
+    try {
+      await action()
+      toast.success(`${label} accepted by the local server.`)
+      await after()
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : `${label} failed.`)
+    } finally {
+      setPending(false)
+    }
+  }
+
   return (
     <Button
       variant={destructive ? 'destructive' : 'outline'}
       size={compact ? 'sm' : 'default'}
-      onClick={() => {
-        void action()
-          .then(() => {
-            toast.success(`${label} accepted by the local server.`)
-            return after()
-          })
-          .catch((caught: unknown) => {
-            toast.error(caught instanceof Error ? caught.message : `${label} failed.`)
-          })
-      }}
+      onClick={() => void performAction()}
+      disabled={pending}
     >
       <Icon data-icon="inline-start" />
       {label}

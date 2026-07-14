@@ -111,8 +111,6 @@
 
 @layer components {
   .control-shell {
-    display: grid;
-    grid-template-columns: 16rem minmax(0, 1fr);
     min-height: 100svh;
     background:
       linear-gradient(90deg, oklch(0.18 0.06 286 / 28%) 1px, transparent 1px),
@@ -138,36 +136,6 @@
     mix-blend-mode: screen;
   }
 
-  .control-rail {
-    position: sticky;
-    top: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    height: 100svh;
-    padding: 1rem;
-    border-right: 1px solid var(--border);
-    background: oklch(0.105 0.025 286 / 86%);
-    backdrop-filter: blur(14px);
-  }
-
-  .brand-mark {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-height: 3.5rem;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: linear-gradient(135deg, oklch(0.2 0.06 286 / 92%), oklch(0.14 0.035 286 / 92%));
-  }
-
-  .brand-mark > svg {
-    color: var(--primary);
-  }
-
-  .brand-mark p,
-  .brand-mark span,
   .micro-label,
   .metric-card p,
   .segmented-readout span,
@@ -179,11 +147,6 @@
     text-transform: uppercase;
   }
 
-  .brand-mark p {
-    color: var(--foreground);
-  }
-
-  .brand-mark span,
   .micro-label,
   .metric-card p,
   .segmented-readout span,
@@ -191,32 +154,6 @@
     color: var(--muted-foreground);
   }
 
-  .rail-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .rail-nav a {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    min-height: 2.45rem;
-    padding: 0 0.7rem;
-    color: var(--muted-foreground);
-    text-decoration: none;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-  }
-
-  .rail-nav a:hover {
-    color: var(--foreground);
-    border-color: var(--border);
-    background: var(--muted);
-  }
-
-  .rail-nav svg,
-  .brand-mark svg,
   .metric-card svg {
     width: 1.1rem;
     height: 1.1rem;
@@ -404,20 +341,6 @@
 }
 
 @media (max-width: 1100px) {
-  .control-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .control-rail {
-    position: static;
-    height: auto;
-  }
-
-  .rail-nav {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .status-grid,
   .dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -425,8 +348,7 @@
 }
 
 @media (max-width: 720px) {
-  .control-main,
-  .control-rail {
+  .control-main {
     padding: 0.75rem;
   }
 
@@ -436,7 +358,6 @@
     padding: 1rem;
   }
 
-  .rail-nav,
   .status-grid,
   .dashboard-grid,
   .segmented-readout {
