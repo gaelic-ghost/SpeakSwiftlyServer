@@ -298,6 +298,12 @@ defer_remote_ci_if_requested() {
 
 wait_for_initial_pr_checks() {
   pr_number="$1"
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would wait for GitHub to report initial checks on PR #$pr_number."
+    return 0
+  fi
+
   timeout_seconds="$(github_wait_timeout "${REPO_MAINTENANCE_INITIAL_CHECK_TIMEOUT_SECONDS:-}")"
   poll_seconds="$(github_wait_poll_seconds "${REPO_MAINTENANCE_INITIAL_CHECK_POLL_SECONDS:-}")"
   elapsed_seconds="0"
