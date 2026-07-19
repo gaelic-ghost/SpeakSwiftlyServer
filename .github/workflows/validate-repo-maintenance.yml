@@ -21,6 +21,6 @@ jobs:
       - name: Report Swift toolchain
         run: xcrun swift --version
       - name: Install Swift repo-maintenance tools
-        run: brew install swiftformat swiftlint uv
+        run: brew install swiftformat swiftlint
       - name: Run repo-maintenance validation
-        run: bash scripts/repo-maintenance/validate-all.sh
+        run: sh scripts/repo-maintenance/validate-ci.sh
