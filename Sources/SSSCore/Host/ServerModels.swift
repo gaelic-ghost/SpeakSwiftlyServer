@@ -1,6 +1,5 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 
 package func exposedSpeechBackendIdentifiers() -> [String] {
     SpeakSwiftly.SpeechBackend.allCases.map(\.rawValue)
@@ -375,21 +374,21 @@ package enum TimestampFormatter {
 }
 
 package enum NormalizationFormat {
-    case text(TextForSpeech.TextFormat)
-    case source(TextForSpeech.SourceFormat)
+    case text(SpeakSwiftly.TextFormat)
+    case source(SpeakSwiftly.SourceFormat)
 }
 
 package func resolveNormalizationFormat(_ rawValue: String) throws -> NormalizationFormat {
-    if let format = TextForSpeech.TextFormat(rawValue: rawValue) {
+    if let format = SpeakSwiftly.TextFormat(rawValue: rawValue) {
         return .text(format)
     }
-    if let format = TextForSpeech.SourceFormat(rawValue: rawValue) {
+    if let format = SpeakSwiftly.SourceFormat(rawValue: rawValue) {
         return .source(format)
     }
 
     let supportedFormats = (
-        TextForSpeech.TextFormat.allCases.map(\.rawValue)
-            + TextForSpeech.SourceFormat.allCases.map(\.rawValue),
+        SpeakSwiftly.TextFormat.allCases.map(\.rawValue)
+            + SpeakSwiftly.SourceFormat.allCases.map(\.rawValue),
     ).joined(separator: ", ")
     throw ServerRequestError(
         .badRequest,

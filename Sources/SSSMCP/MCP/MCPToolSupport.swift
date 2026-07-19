@@ -2,7 +2,6 @@ import Foundation
 import MCP
 import SpeakSwiftly
 import SSSCore
-import TextForSpeech
 
 // MARK: - Tool Encoding
 
@@ -165,9 +164,9 @@ package func requiredSpeechBackend(
 package func requiredBuiltInTextProfileStyle(
     _ key: String,
     in arguments: [String: Value],
-) throws -> TextForSpeech.BuiltInProfileStyle {
+) throws -> SpeakSwiftly.TextProfileStyle {
     let rawValue = try requiredString(key, in: arguments)
-    return try decodeStringEnum(rawValue, fieldName: key, valueType: TextForSpeech.BuiltInProfileStyle.self)
+    return try decodeStringEnum(rawValue, fieldName: key, valueType: SpeakSwiftly.TextProfileStyle.self)
 }
 
 package func decodeValue<T: Decodable>(_ value: Value, fieldName: String) throws -> T {

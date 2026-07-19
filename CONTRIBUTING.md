@@ -25,7 +25,7 @@ This guide is for contributors and maintainers making source, docs, test, releas
 - Treat `Package.swift` as the source of truth for package structure, dependencies, resources, and deployment targets.
 - Start with [AGENTS.md](./AGENTS.md) for the repo's package, architecture, and workflow rules.
 - Keep package graph changes together in one pass, including `Package.swift`, `Package.resolved`, tests, and matching docs.
-- Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference instead of adding another translation layer.
+- Keep transport-local shaping at the HTTP and MCP edges. If the public `SpeakSwiftly` runtime or normalization API can express a concept directly, prefer deleting server-local inference instead of adding another translation layer.
 - Keep `SpeakSwiftlyServer` and `SpeakSwiftlyServerTool` as the supported public entrypoints. The `SSSCore`, `SSSHTTP`, and `SSSMCP` targets are package-internal implementation modules.
 - Preserve the current standalone package baseline on macOS 15 while keeping the host and state model friendly to the near-future iOS reuse path.
 - Use Xcode's selected Swift toolchain through `xcrun`; this package declares Swift tools version 6.3 and macOS 15.0 in `Package.swift`.

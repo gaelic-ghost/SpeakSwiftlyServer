@@ -57,7 +57,7 @@ This root file governs the standalone Swift Package Manager repository for `Spea
   surface that as a package/plugin exposure issue before generating resources. Use
   `SpeakSwiftlyTool --system-profile-resource-root` only for upstream debugging or plugin
   implementation work.
-- Keep transport-local shaping at the HTTP and MCP edges. If `SpeakSwiftly` or `TextForSpeech` can express a concept directly, prefer deleting server-local inference over adding another translation path.
+- Keep transport-local shaping at the HTTP and MCP edges. If the public `SpeakSwiftly` runtime or normalization API can express a concept directly, prefer deleting server-local inference over adding another translation path.
 
 ### Documentation Ownership
 

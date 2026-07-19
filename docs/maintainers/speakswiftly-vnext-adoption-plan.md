@@ -1,14 +1,26 @@
-# SpeakSwiftly vNext Adoption Plan
+# SpeakSwiftly v12 Adoption Record
 
 ## Purpose
 
-This note captures the intended `SpeakSwiftlyServer` adoption path for the next major upstream
-`SpeakSwiftly` release once that release is available from GitHub.
+This note preserves the completed `SpeakSwiftlyServer` adoption path for `SpeakSwiftly`
+`v12.0.0`. It is a historical decision record, not an active migration plan.
 
-Status on `2026-05-31`: `SpeakSwiftlyServer` has adopted the GitHub prerelease
+## Current Outcome
+
+Completed on `2026-07-19`: the server now depends on `SpeakSwiftly` from `v12.0.0`,
+consumes normalization and summarization exclusively through the public `SpeakSwiftly`
+product, and has no standalone `TextForSpeech` package or product dependency.
+
+## Historical v11 Planning Snapshot
+
+The remaining sections preserve the original v11 planning details as historical decision
+context. Their dependency versions, pending steps, and future-tense instructions are not
+current maintainer guidance.
+
+Status recorded on `2026-05-31`: `SpeakSwiftlyServer` had adopted the GitHub prerelease
 `SpeakSwiftly` `v11.0.0-alpha.1` and `TextForSpeech` `v0.23.0` through the public
-`SpeakSwiftly` product. HTTP and MCP continue to expose local live playback for speech requests;
-HTTP response streaming and LAN output remain future contract decisions.
+`SpeakSwiftly` product. HTTP and MCP continued to expose local live playback for speech requests;
+HTTP response streaming and LAN output remained future contract decisions.
 
 The goal is to prepare the server for the new runtime capabilities without reaching into upstream
 implementation targets. `SpeakSwiftlyServer` should integrate through the public `SpeakSwiftly`
@@ -28,7 +40,7 @@ in `gaelic-ghost/SpeakSwiftly` instead of importing upstream internal targets he
 
 ## Expected Upstream Changes
 
-The local upstream worktree currently points toward these adoption-impacting changes:
+The local upstream worktree pointed toward these adoption-impacting changes:
 
 - Qwen-only backend identifiers, with Marvis and Chatterbox backend values removed.
 - `TextForSpeech.RequestPurpose.audioStream` removed upstream; speech output remains request purpose
@@ -41,17 +53,17 @@ The local upstream worktree currently points toward these adoption-impacting cha
 - Split upstream implementation targets for generated audio, playback, HTTP audio output, and network
   audio output, exposed through the public `SpeakSwiftly` product for consumers.
 
-This package should wait for a GitHub-visible upstream version, tag, or branch that represents the
-intended integration point before changing committed dependency declarations. The current adopted
-integration point is the GitHub prerelease tag `v11.0.0-alpha.1`.
+At that time, the package was required to wait for a GitHub-visible upstream version, tag, or branch
+before changing committed dependency declarations. The adopted historical integration point was the
+GitHub prerelease tag `v11.0.0-alpha.1`.
 
-## Adoption Slices
+## Historical Adoption Slices
 
 ### Slice 1: Dependency Baseline
 
-Update `Package.swift` and `Package.resolved` to the published upstream `SpeakSwiftly` version and
-matching `TextForSpeech` floor. Keep dependency declarations fetchable from GitHub or package-manager
-sources; do not commit local path dependencies.
+The original slice updated `Package.swift` and `Package.resolved` to the published upstream
+`SpeakSwiftly` version and matching `TextForSpeech` floor. The completed v12 migration subsequently
+removed the standalone dependency entirely.
 
 Run:
 

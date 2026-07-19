@@ -1,6 +1,5 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 
 package func resolvedAbsoluteFilesystemPath(
     _ path: String?,
@@ -308,13 +307,13 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
 
     // MARK: - Text Profiles
 
-    package func builtInTextProfileStyle() async -> TextForSpeech.BuiltInProfileStyle {
+    package func builtInTextProfileStyle() async -> SpeakSwiftly.TextProfileStyle {
         await runtime.normalizer.style.getActive()
     }
 
     package func setBuiltInTextProfileStyle(
-        _ style: TextForSpeech.BuiltInProfileStyle,
-    ) async throws -> TextForSpeech.BuiltInProfileStyle {
+        _ style: SpeakSwiftly.TextProfileStyle,
+    ) async throws -> SpeakSwiftly.TextProfileStyle {
         try await runtime.normalizer.style.setActive(to: style)
         return await runtime.normalizer.style.getActive()
     }
@@ -323,7 +322,7 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         await runtime.normalizer.profiles.getActive()
     }
 
-    package func baseTextProfile() async -> TextForSpeech.Profile {
+    package func baseTextProfile() async -> SpeakSwiftly.TextProfile {
         let style = await runtime.normalizer.style.getActive()
         return .builtInBase(style: style)
     }
@@ -385,23 +384,23 @@ package actor SpeakSwiftlyRuntimeAdapter: SpeakSwiftlyRuntimeServing {
         return try await runtime.normalizer.profiles.get(id: profileID)
     }
 
-    package func addTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> SpeakSwiftly.TextProfileDetails {
+    package func addTextReplacement(_ replacement: SpeakSwiftly.TextReplacement) async throws -> SpeakSwiftly.TextProfileDetails {
         try await runtime.normalizer.profiles.addReplacement(replacement)
     }
 
     package func addTextReplacement(
-        _ replacement: TextForSpeech.Replacement,
+        _ replacement: SpeakSwiftly.TextReplacement,
         toStoredTextProfileID profileID: String,
     ) async throws -> SpeakSwiftly.TextProfileDetails {
         try await runtime.normalizer.profiles.addReplacement(replacement, toProfile: profileID)
     }
 
-    package func replaceTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> SpeakSwiftly.TextProfileDetails {
+    package func replaceTextReplacement(_ replacement: SpeakSwiftly.TextReplacement) async throws -> SpeakSwiftly.TextProfileDetails {
         try await runtime.normalizer.profiles.patchReplacement(replacement)
     }
 
     package func replaceTextReplacement(
-        _ replacement: TextForSpeech.Replacement,
+        _ replacement: SpeakSwiftly.TextReplacement,
         inStoredTextProfileID profileID: String,
     ) async throws -> SpeakSwiftly.TextProfileDetails {
         try await runtime.normalizer.profiles.patchReplacement(replacement, inProfile: profileID)
