@@ -291,7 +291,8 @@ defer_remote_ci_if_requested() {
   log "Remote CI mode is defer, so release.sh is pausing after local validation, branch push, PR creation, and initial check discovery."
   log "Release is not complete yet. Let GitHub finish CI for PR #$pr_number, then continue from branch $branch_name with:"
   log "  bash scripts/repo-maintenance/release.sh --mode standard --version $RELEASE_TAG"
-  log "Codex should use a native thread Timer/Wakeup or heartbeat automation for this wait when available, then resume by checking $pr_url and rerunning the command above instead of leaving a shell script open to poll GitHub."
+  log "Codex should create a same-thread heartbeat automation for this wait when available, then resume by checking $pr_url and rerunning the command above instead of leaving a shell script open to poll GitHub."
+  log "The heartbeat should also wait for review-bot status contexts such as CodeRabbit to finish before merging; pending review contexts are not a clean merge signal."
   return 0
 }
 
@@ -396,7 +397,7 @@ merge_pr() {
     return 0
   fi
 
-  gh pr merge "$pr_number" --merge
+  gh pr merge "$pr_number" --merge --delete-branch
   log "Merged PR #$pr_number into $base_branch."
 }
 
@@ -490,13 +491,10 @@ cleanup_merged_branches() {
   fi
 
   if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would delete merged remote branch $release_branch_name, prune origin, and delete local branches already merged into $base_branch when safe."
+    log "Would prune origin and delete local branches already merged into $base_branch, including $release_branch_name when safe."
     return 0
   fi
 
-  if git -C "$REPO_ROOT" ls-remote --exit-code --heads origin "$release_branch_name" >/dev/null 2>&1; then
-    git -C "$REPO_ROOT" push origin --delete "$release_branch_name" || warn "Could not delete merged remote branch $release_branch_name; remove it after checking the release handoff."
-  fi
   git -C "$REPO_ROOT" remote prune origin
   for merged_branch in $(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' --merged "$base_branch" refs/heads); do
     case "$merged_branch" in
