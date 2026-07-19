@@ -10,7 +10,10 @@ It answers three concrete questions:
 2. Which public capabilities are intentionally adapted instead of mirrored exactly?
 3. Which transport is the right client contract for each capability: HTTP, MCP, both, or neither?
 
-Current baseline checked against the `SpeakSwiftly` package state resolved by this repository on `2026-05-31`: prerelease `v11.0.0-alpha.1`.
+Current baseline checked against the `SpeakSwiftly` package state resolved by this repository on
+`2026-07-19`: release `v12.0.0`. Normalization, summarization, text-profile models, and persistence
+are consumed through the public `SpeakSwiftly` product; the server no longer depends on the
+standalone `TextForSpeech` package.
 
 ## Summary
 
