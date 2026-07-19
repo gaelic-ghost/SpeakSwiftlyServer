@@ -1,6 +1,5 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 
 /// Summary of one cached voice profile known to the shared runtime.
 public struct ProfileSnapshot: Codable, Sendable, Equatable {
@@ -122,7 +121,7 @@ package struct TextReplacementSnapshot: Codable, Equatable {
     package let formats: [String]
     package let priority: Int
 
-    init(replacement: TextForSpeech.Replacement) {
+    init(replacement: SpeakSwiftly.TextReplacement) {
         id = replacement.id
         text = replacement.text
         self.replacement = replacement.replacement ?? Self.describe(transform: replacement.transform)
@@ -136,7 +135,7 @@ package struct TextReplacementSnapshot: Codable, Equatable {
         priority = replacement.priority
     }
 
-    private static func describe(match: TextForSpeech.Replacement.Match) -> String {
+    private static func describe(match: SpeakSwiftly.TextReplacement.Match) -> String {
         switch match {
             case .exactPhrase:
                 "exact_phrase"
@@ -149,7 +148,7 @@ package struct TextReplacementSnapshot: Codable, Equatable {
         }
     }
 
-    private static func describe(transform: TextForSpeech.Replacement.Transform) -> String {
+    private static func describe(transform: SpeakSwiftly.TextReplacement.Transform) -> String {
         switch transform {
             case let .literal(replacement):
                 replacement
@@ -181,7 +180,7 @@ package struct TextReplacementSnapshot: Codable, Equatable {
     private static func resolve(
         match rawMatch: String,
         replacementID: String,
-    ) throws -> TextForSpeech.Replacement.Match {
+    ) throws -> SpeakSwiftly.TextReplacement.Match {
         switch rawMatch {
             case "exact_phrase":
                 return .exactPhrase
@@ -190,13 +189,13 @@ package struct TextReplacementSnapshot: Codable, Equatable {
             default:
                 if rawMatch.hasPrefix("token:") {
                     let tokenKind = String(rawMatch.dropFirst("token:".count))
-                    if let kind = TextForSpeech.Replacement.TokenKind(rawValue: tokenKind) {
+                    if let kind = SpeakSwiftly.TextReplacement.TokenKind(rawValue: tokenKind) {
                         return .token(kind)
                     }
                 }
                 if rawMatch.hasPrefix("line:") {
                     let lineKind = String(rawMatch.dropFirst("line:".count))
-                    if let kind = TextForSpeech.Replacement.LineKind(rawValue: lineKind) {
+                    if let kind = SpeakSwiftly.TextReplacement.LineKind(rawValue: lineKind) {
                         return .line(kind)
                     }
                 }
@@ -207,9 +206,9 @@ package struct TextReplacementSnapshot: Codable, Equatable {
         }
     }
 
-    package func model() throws -> TextForSpeech.Replacement {
+    package func model() throws -> SpeakSwiftly.TextReplacement {
         let match = try Self.resolve(match: match, replacementID: id)
-        guard let phase = TextForSpeech.Replacement.Phase(rawValue: phase) else {
+        guard let phase = SpeakSwiftly.TextReplacement.Phase(rawValue: phase) else {
             throw ServerRequestError(
                 .badRequest,
                 message: "Text replacement '\(id)' used unsupported phase '\(phase)'. Expected one of: before_built_ins, after_built_ins.",
@@ -217,21 +216,21 @@ package struct TextReplacementSnapshot: Codable, Equatable {
         }
 
         let resolvedFormats = try formats.map(resolveNormalizationFormat(_:))
-        let textFormats: Set<TextForSpeech.TextFormat> = Set(resolvedFormats.compactMap { format in
+        let textFormats: Set<SpeakSwiftly.TextFormat> = Set(resolvedFormats.compactMap { format in
             guard case let .text(textFormat) = format else {
                 return nil
             }
 
             return textFormat
         })
-        let sourceFormats: Set<TextForSpeech.SourceFormat> = Set(resolvedFormats.compactMap { format in
+        let sourceFormats: Set<SpeakSwiftly.SourceFormat> = Set(resolvedFormats.compactMap { format in
             guard case let .source(sourceFormat) = format else {
                 return nil
             }
 
             return sourceFormat
         })
-        return TextForSpeech.Replacement(
+        return SpeakSwiftly.TextReplacement(
             text,
             with: replacement,
             id: id,
@@ -259,7 +258,7 @@ package struct TextProfileSnapshot: Codable, Equatable {
         case replacements
     }
 
-    init(profile: TextForSpeech.Profile) {
+    init(profile: SpeakSwiftly.TextProfile) {
         profileID = profile.id
         name = profile.name
         replacementCount = profile.replacements.count
@@ -280,7 +279,7 @@ package struct TextProfileSnapshot: Codable, Equatable {
         replacements = details.replacements.map(TextReplacementSnapshot.init(replacement:))
     }
 
-    package func replacementModels() throws -> [TextForSpeech.Replacement] {
+    package func replacementModels() throws -> [SpeakSwiftly.TextReplacement] {
         try (replacements ?? []).map { try $0.model() }
     }
 }
@@ -292,7 +291,7 @@ package struct TextProfileStyleSnapshot: Codable, Equatable {
         case builtInStyle = "built_in_style"
     }
 
-    init(style: TextForSpeech.BuiltInProfileStyle) {
+    init(style: SpeakSwiftly.TextProfileStyle) {
         builtInStyle = style.rawValue
     }
 }
@@ -410,9 +409,9 @@ package struct SetTextProfileStyleRequestPayload: Decodable {
         case builtInStyle = "built_in_style"
     }
 
-    package func styleModel() throws -> TextForSpeech.BuiltInProfileStyle {
-        guard let style = TextForSpeech.BuiltInProfileStyle(rawValue: builtInStyle) else {
-            let acceptedValues = TextForSpeech.BuiltInProfileStyle.allCases.map(\.rawValue).joined(separator: ", ")
+    package func styleModel() throws -> SpeakSwiftly.TextProfileStyle {
+        guard let style = SpeakSwiftly.TextProfileStyle(rawValue: builtInStyle) else {
+            let acceptedValues = SpeakSwiftly.TextProfileStyle.allCases.map(\.rawValue).joined(separator: ", ")
             throw ServerRequestError(
                 .badRequest,
                 message: "Text-profile built_in_style '\(builtInStyle)' is not supported. Expected one of: \(acceptedValues).",

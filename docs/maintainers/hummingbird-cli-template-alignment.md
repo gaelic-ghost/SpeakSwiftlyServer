@@ -86,8 +86,8 @@ Good next candidates:
 - Move shared transport snapshot and queue response DTOs toward upstream
   `SpeakSwiftly` library APIs when those types describe runtime state rather than
   server transport state.
-- Keep looking for server-local inference that can disappear once `SpeakSwiftly` or
-  `TextForSpeech` can express the concept directly. This is especially relevant for
+- Keep looking for server-local inference that can disappear once the public `SpeakSwiftly`
+  runtime or normalization API can express the concept directly. This is especially relevant for
   playback, request observation, and text-profile normalization state.
 - Consider a small `HTTPApplicationOptions` value only if more builder inputs become
   coupled. Do not add it while the current parameter list remains the clearer shape.

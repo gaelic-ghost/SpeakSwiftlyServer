@@ -4,7 +4,6 @@ import SpeakSwiftlyServer
 import SSSCore
 import SSSHTTP
 import SSSMCP
-import TextForSpeech
 
 // MARK: - EmbeddedSessionLifecycleProbe
 
@@ -137,8 +136,8 @@ package struct GenerationArtifactFixture: Codable {
     let contentType: String
     let voiceProfile: String
     let textProfile: String?
-    let sourceFormat: TextForSpeech.SourceFormat?
-    let requestContext: TextForSpeech.RequestContext?
+    let sourceFormat: SpeakSwiftly.SourceFormat?
+    let requestContext: SpeakSwiftly.RequestContext?
 
     init(
         artifactID: String,
@@ -150,8 +149,8 @@ package struct GenerationArtifactFixture: Codable {
         contentType: String = "audio/wav",
         voiceProfile: String,
         textProfile: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
-        requestContext: TextForSpeech.RequestContext?,
+        sourceFormat: SpeakSwiftly.SourceFormat?,
+        requestContext: SpeakSwiftly.RequestContext?,
     ) {
         self.artifactID = artifactID
         self.kind = kind
@@ -173,8 +172,8 @@ package struct GenerationJobItemFixture: Codable {
     let artifactID: String
     let text: String
     let textProfile: String?
-    let sourceFormat: TextForSpeech.SourceFormat?
-    let requestContext: TextForSpeech.RequestContext?
+    let sourceFormat: SpeakSwiftly.SourceFormat?
+    let requestContext: SpeakSwiftly.RequestContext?
     let audioFormat: String
 
     enum CodingKeys: String, CodingKey {
@@ -190,8 +189,8 @@ package struct GenerationJobItemFixture: Codable {
         artifactID: String,
         text: String,
         textProfile: String?,
-        sourceFormat: TextForSpeech.SourceFormat?,
-        requestContext: TextForSpeech.RequestContext?,
+        sourceFormat: SpeakSwiftly.SourceFormat?,
+        requestContext: SpeakSwiftly.RequestContext?,
         audioFormat: String = "wav",
     ) {
         self.artifactID = artifactID
@@ -272,8 +271,8 @@ package func makeGenerationArtifact(
     createdAt: Date,
     voiceProfile: String,
     textProfile: String?,
-    sourceFormat: TextForSpeech.SourceFormat? = nil,
-    requestContext: TextForSpeech.RequestContext? = nil,
+    sourceFormat: SpeakSwiftly.SourceFormat? = nil,
+    requestContext: SpeakSwiftly.RequestContext? = nil,
     sampleRate: Int,
     filePath: String,
 ) throws -> SpeakSwiftly.GenerationArtifact {

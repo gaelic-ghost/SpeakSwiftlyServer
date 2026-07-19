@@ -1,6 +1,5 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 
 package struct RuntimeRequestHandle {
     package let id: String
@@ -137,10 +136,10 @@ package protocol SpeakSwiftlyRuntimeServing: Actor {
     func clearQueue(_ queueType: SpeakSwiftly.QueueType) async -> RuntimeRequestHandle
     func cancelRequest(_ requestID: String) async -> RuntimeRequestHandle
     func cancel(_ queueType: SpeakSwiftly.QueueType, requestID: String) async -> RuntimeRequestHandle
-    func builtInTextProfileStyle() async -> TextForSpeech.BuiltInProfileStyle
-    func setBuiltInTextProfileStyle(_ style: TextForSpeech.BuiltInProfileStyle) async throws -> TextForSpeech.BuiltInProfileStyle
+    func builtInTextProfileStyle() async -> SpeakSwiftly.TextProfileStyle
+    func setBuiltInTextProfileStyle(_ style: SpeakSwiftly.TextProfileStyle) async throws -> SpeakSwiftly.TextProfileStyle
     func activeTextProfile() async throws -> SpeakSwiftly.TextProfileDetails
-    func baseTextProfile() async -> TextForSpeech.Profile
+    func baseTextProfile() async -> SpeakSwiftly.TextProfile
     func textProfile(id profileID: String) async throws -> SpeakSwiftly.TextProfileDetails?
     func textProfiles() async throws -> [SpeakSwiftly.TextProfileSummary]
     func effectiveTextProfile(id profileID: String?) async throws -> SpeakSwiftly.TextProfileDetails
@@ -152,10 +151,10 @@ package protocol SpeakSwiftlyRuntimeServing: Actor {
     func removeTextProfile(id profileID: String) async throws
     func factoryResetTextProfiles() async throws
     func resetTextProfile(id profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
-    func addTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> SpeakSwiftly.TextProfileDetails
-    func addTextReplacement(_ replacement: TextForSpeech.Replacement, toStoredTextProfileID profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
-    func replaceTextReplacement(_ replacement: TextForSpeech.Replacement) async throws -> SpeakSwiftly.TextProfileDetails
-    func replaceTextReplacement(_ replacement: TextForSpeech.Replacement, inStoredTextProfileID profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
+    func addTextReplacement(_ replacement: SpeakSwiftly.TextReplacement) async throws -> SpeakSwiftly.TextProfileDetails
+    func addTextReplacement(_ replacement: SpeakSwiftly.TextReplacement, toStoredTextProfileID profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
+    func replaceTextReplacement(_ replacement: SpeakSwiftly.TextReplacement) async throws -> SpeakSwiftly.TextProfileDetails
+    func replaceTextReplacement(_ replacement: SpeakSwiftly.TextReplacement, inStoredTextProfileID profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
     func removeTextReplacement(id replacementID: String) async throws -> SpeakSwiftly.TextProfileDetails
     func removeTextReplacement(id replacementID: String, fromStoredTextProfileID profileID: String) async throws -> SpeakSwiftly.TextProfileDetails
 }

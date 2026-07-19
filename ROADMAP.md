@@ -30,7 +30,7 @@ Make `SpeakSwiftlyServer` the small, dependable Apple-platform speech-service pa
 ## Product Principles
 
 - Keep the package boundary narrow: expose HTTP, MCP, LaunchAgent, and embedded APIs as clear adapters over the same host-owned state.
-- Prefer runtime-owned concepts over server-local inference when `SpeakSwiftly` or `TextForSpeech` can express the behavior directly.
+- Prefer runtime-owned concepts over server-local inference when the public `SpeakSwiftly` runtime or normalization API can express the behavior directly.
 - Keep live-service operations explicit, health-checked, and safe for Gale's day-to-day speech workflow.
 - Keep docs, skills, media, release notes, and maintainer maps updated with the code instead of treating them as cleanup after the fact.
 
@@ -353,7 +353,7 @@ Planned
 - [ ] Revisit the near-future Apple-platform reuse path after the macOS package and embedded server surface have more downstream app mileage.
 - [ ] Turn upstream `SpeakSwiftly` into a clearer product-level package surface so `SpeakSwiftlyServer` can depend on stable, ergonomic runtime concepts instead of carrying extra server-side explanation, translation, or compatibility planning for package-owned behavior.
 - [ ] Revisit whether `EmbeddedServer` should stay a narrow app-facing live-control model or grow retained artifact, text-profile editing, generation-job, and request-detail APIs.
-- [ ] Add a focused Codex Hooks setup skill for `SpeakSwiftlyServer` after stop-hook text filtering is improved, likely in `TextForSpeech`, so hook-triggered TTS can be set up safely without teaching agents to speak tables, metadata, or stale stop-hook payloads.
+- [ ] Add a focused Codex Hooks setup skill for `SpeakSwiftlyServer` after stop-hook text filtering is improved in SpeakSwiftly's normalization target, so hook-triggered TTS can be set up safely without teaching agents to speak tables, metadata, or stale stop-hook payloads.
 - [ ] Explore whether SayBar should become the native Mac install/update center for Speak Swiftly, including App Store distribution, ServiceManagement-managed helpers, Codex hook/plugin repair flows, and a guided ChatGPT connector/self-host setup.
 
 ## History

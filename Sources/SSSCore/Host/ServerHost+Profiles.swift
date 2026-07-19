@@ -1,6 +1,5 @@
 import Foundation
 import SpeakSwiftly
-import TextForSpeech
 
 package extension ServerHost {
     // MARK: - Voice Profile Queries
@@ -109,7 +108,7 @@ package extension ServerHost {
 
     func createTextProfile(
         name: String,
-        replacements: [TextForSpeech.Replacement],
+        replacements: [SpeakSwiftly.TextReplacement],
     ) async throws -> TextProfileSnapshot {
         let profile = try await runtime.createTextProfile(named: name)
         if replacements.isEmpty == false {
@@ -139,7 +138,7 @@ package extension ServerHost {
     }
 
     func setTextProfileStyle(
-        _ style: TextForSpeech.BuiltInProfileStyle,
+        _ style: SpeakSwiftly.TextProfileStyle,
     ) async throws -> TextProfilesSnapshot {
         _ = try await runtime.setBuiltInTextProfileStyle(style)
         try await emitTextProfilesChanged()
@@ -183,7 +182,7 @@ package extension ServerHost {
     }
 
     func addTextReplacement(
-        _ replacement: TextForSpeech.Replacement,
+        _ replacement: SpeakSwiftly.TextReplacement,
         toStoredTextProfileID profileID: String? = nil,
     ) async throws -> TextProfileSnapshot {
         let profile: SpeakSwiftly.TextProfileDetails = if let profileID {
@@ -197,7 +196,7 @@ package extension ServerHost {
     }
 
     func replaceTextReplacement(
-        _ replacement: TextForSpeech.Replacement,
+        _ replacement: SpeakSwiftly.TextReplacement,
         inStoredTextProfileID profileID: String? = nil,
     ) async throws -> TextProfileSnapshot {
         let profile: SpeakSwiftly.TextProfileDetails = if let profileID {

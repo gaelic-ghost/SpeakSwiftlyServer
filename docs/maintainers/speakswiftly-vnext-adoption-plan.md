@@ -2,8 +2,13 @@
 
 ## Purpose
 
-This note captures the intended `SpeakSwiftlyServer` adoption path for the next major upstream
-`SpeakSwiftly` release once that release is available from GitHub.
+This note records the `SpeakSwiftlyServer` adoption path for the next major upstream
+`SpeakSwiftly` release.
+
+Status on `2026-07-19`: completed and superseded by the `SpeakSwiftly` `v12.0.0` adoption.
+The server now consumes normalization and summarization exclusively through the public
+`SpeakSwiftly` product, and its standalone `TextForSpeech` dependency has been removed.
+The original v11 planning details below remain as historical decision context.
 
 Status on `2026-05-31`: `SpeakSwiftlyServer` has adopted the GitHub prerelease
 `SpeakSwiftly` `v11.0.0-alpha.1` and `TextForSpeech` `v0.23.0` through the public

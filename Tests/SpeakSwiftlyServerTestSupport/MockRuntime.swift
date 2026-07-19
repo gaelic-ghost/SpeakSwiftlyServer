@@ -4,7 +4,6 @@ import SpeakSwiftlyServer
 import SSSCore
 import SSSHTTP
 import SSSMCP
-import TextForSpeech
 
 // MARK: - Mock Runtime
 
@@ -121,7 +120,7 @@ package actor MockRuntime: SpeakSwiftlyRuntimeServing {
     package var playbackState: SpeakSwiftly.PlaybackState = .idle
     package var runtimeState: SpeakSwiftly.RuntimeState = .residentModelReady
     package var activeSpeechBackend: SpeakSwiftly.SpeechBackend = .qwen3_smol
-    package var textRuntime: TextForSpeech.Runtime
+    package var textRuntime: SpeakSwiftly.Normalizer
     package let textRuntimePersistenceURL: URL
     package var loadTextProfilesCallCount = 0
     package var saveTextProfilesCallCount = 0
@@ -165,8 +164,8 @@ package actor MockRuntime: SpeakSwiftlyRuntimeServing {
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("json")
         textRuntimePersistenceURL = persistenceURL
-        textRuntime = requireFixture("MockRuntime text runtime bootstrap") {
-            try TextForSpeech.Runtime(persistence: .file(persistenceURL))
+        textRuntime = requireFixture("MockRuntime text normalizer bootstrap") {
+            try SpeakSwiftly.Normalizer(persistenceURL: persistenceURL)
         }
     }
 
