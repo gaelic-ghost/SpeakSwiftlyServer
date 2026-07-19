@@ -29,7 +29,7 @@ Socket marketplace command set:
 
 ```json
 {
-  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/11.1.2/hooks/stop-tts.mjs"
+  "Stop": "node ~/.codex/plugins/cache/socket/speak-swiftly/11.2.0/hooks/stop-tts.mjs"
 }
 ```
 
@@ -219,6 +219,10 @@ hooks settings panel and approve the expected Speak Swiftly hook commands.
 - Section projection happens before the speech request is submitted. Hook logs
   include the known sections found in the written reply, which sections were
   spoken, and which configured sections were skipped.
+- Markdown tables in spoken sections are projected into a short column
+  introduction followed by one labeled sentence per row. The hook omits table
+  divider syntax, so pipes and alignment dashes are not sent to speech
+  generation. Ordinary prose containing an inline pipe remains unchanged.
 - The speech route distinguishes a reachable-but-not-ready runtime from an
   unreachable runtime:
   - HTTP `503` with `SpeakSwiftly is not ready yet...` means the server is up

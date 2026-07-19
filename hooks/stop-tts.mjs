@@ -222,6 +222,88 @@ function sectionNotice(skippedSections, mode) {
   return `Note: The following sections were present, but skipped. ${sectionList}.`;
 }
 
+function isMarkdownTableDivider(line) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+}
+
+function markdownTableCells(line) {
+  const cells = [];
+  let cell = "";
+  let escaped = false;
+
+  for (const character of line.trim()) {
+    if (escaped) {
+      cell += character;
+      escaped = false;
+      continue;
+    }
+
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (character === "|") {
+      cells.push(cell.trim());
+      cell = "";
+      continue;
+    }
+
+    cell += character;
+  }
+
+  if (escaped) cell += "\\";
+  cells.push(cell.trim());
+
+  if (line.trimStart().startsWith("|")) cells.shift();
+  if (line.trimEnd().endsWith("|")) cells.pop();
+  return cells;
+}
+
+function spokenMarkdownTable(headerCells, rows) {
+  const columns = headerCells.filter((cell) => cell.length > 0);
+  const columnDescription = columns.join(", ");
+  const spokenRows = rows
+    .map((row) => columns
+      .map((column, index) => {
+        const value = row[index]?.trim();
+        return value ? `${column}: ${value}` : null;
+      })
+      .filter((entry) => entry !== null)
+      .join("; "))
+    .filter((row) => row.length > 0);
+
+  const intro = columnDescription.length > 0 ? `Table columns: ${columnDescription}.` : "Table.";
+  return [intro, ...spokenRows].join("\n");
+}
+
+export function normalizeMarkdownTablesForSpeech(message) {
+  const lines = message.split(/\r?\n/);
+  const normalizedLines = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const header = lines[index];
+    const divider = lines[index + 1];
+    if (!header.includes("|") || !divider || !isMarkdownTableDivider(divider)) {
+      normalizedLines.push(header);
+      continue;
+    }
+
+    const headerCells = markdownTableCells(header);
+    const rows = [];
+    let rowIndex = index + 2;
+    while (rowIndex < lines.length && lines[rowIndex].includes("|")) {
+      rows.push(markdownTableCells(lines[rowIndex]));
+      rowIndex += 1;
+    }
+
+    normalizedLines.push(spokenMarkdownTable(headerCells, rows));
+    index = rowIndex - 1;
+  }
+
+  return normalizedLines.join("\n");
+}
+
 export function speakableMessageProjection(message, options = {}) {
   const skippedNames = options.skippedSectionNames ?? skippedSectionNames;
   const noticeMode = options.sectionNoticeMode ?? sectionNoticeMode;
@@ -229,7 +311,7 @@ export function speakableMessageProjection(message, options = {}) {
 
   if (!sections) {
     return {
-      text: message,
+      text: normalizeMarkdownTablesForSpeech(message),
       presentSections: [],
       spokenSections: [],
       skippedSections: [],
@@ -264,7 +346,7 @@ export function speakableMessageProjection(message, options = {}) {
   if (notice) chunks.push(notice);
 
   return {
-    text: chunks.join("\n\n").trim(),
+    text: normalizeMarkdownTablesForSpeech(chunks.join("\n\n").trim()),
     presentSections: sections
       .filter((section) => section.kind === "section")
       .map((section) => section.name),
