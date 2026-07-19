@@ -38,13 +38,11 @@ Use the standard flow from a named feature branch or worktree:
 scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-The flow refuses to run standard mode from the protected base branch. If release-candidate commits were accidentally made directly on local `main`, branch from that tip before continuing so the release still goes through a pull request.
+The flow refuses to run standard mode from the protected base branch. It also requires a separate local checkout that owns the base branch, normally `main`: the release worktree owns the PR branch, while the base checkout fast-forwards the reviewed merge, creates the tag, and performs any live-service promotion. If release-candidate commits were accidentally made directly on local `main`, branch from that tip before continuing so the release still goes through a pull request.
 
 ### Local `main`
 
-Local `main` is the protected release branch and should normally be a sync surface, not the release automation workspace. After the standard release flow merges its PR, it attempts to fast-forward local `main` from `origin/main`.
-
-If another worktree owns `main`, fast-forward that checkout manually after the release flow completes.
+Local `main` is the protected release branch and should normally be a sync surface, not the release automation workspace. After the standard release flow merges its PR, it finds the checkout that owns `main`, fast-forwards it from `origin/main`, creates the tag there, and uses that synced checkout for the live-service update and HTTP/MCP healthcheck.
 
 ### Submodule Mode
 
