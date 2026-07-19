@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { speakableMessageProjection, speechRequestBody } from "./stop-tts.mjs";
+import { normalizeMarkdownTablesForSpeech, speakableMessageProjection, speechRequestBody } from "./stop-tts.mjs";
 
 test("speakableMessageProjection skips Evidence and Details by default", () => {
   const projection = speakableMessageProjection(
@@ -91,6 +91,43 @@ test("speakableMessageProjection preserves unsectioned messages", () => {
   assert.deepEqual(projection.presentSections, []);
   assert.deepEqual(projection.spokenSections, []);
   assert.deepEqual(projection.skippedSections, []);
+});
+
+test("speakableMessageProjection converts Markdown tables into speech-safe rows", () => {
+  const projection = speakableMessageProjection(
+    [
+      "## Answer",
+      "",
+      "| Scenario | Expected speech |",
+      "|---|---|",
+      "| Simple table | Headers then values |",
+      '| Inline code | `status = "ready"` |',
+    ].join("\n"),
+  );
+
+  assert.match(projection.text, /Table columns: Scenario, Expected speech\./);
+  assert.match(projection.text, /Scenario: Simple table; Expected speech: Headers then values/);
+  assert.match(projection.text, /Scenario: Inline code; Expected speech: `status = "ready"`/);
+  assert.doesNotMatch(projection.text, /\|---\|/);
+  assert.doesNotMatch(projection.text, /\| Scenario \|/);
+});
+
+test("normalizeMarkdownTablesForSpeech preserves ordinary inline pipes", () => {
+  const message = "The transport choice is HTTP | MCP | CLI, based on the caller.";
+
+  assert.equal(normalizeMarkdownTablesForSpeech(message), message);
+});
+
+test("normalizeMarkdownTablesForSpeech keeps escaped table pipes as cell content", () => {
+  const normalized = normalizeMarkdownTablesForSpeech(
+    [
+      "| Surface | Value |",
+      "|---|---|",
+      "| Transport | HTTP \\| MCP |",
+    ].join("\n"),
+  );
+
+  assert.equal(normalized, "Table columns: Surface, Value.\nSurface: Transport; Value: HTTP | MCP");
 });
 
 test("speakableMessageProjection can skip all sections without a spoken notice", () => {
