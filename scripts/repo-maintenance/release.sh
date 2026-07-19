@@ -12,6 +12,8 @@ mode="${REPO_MAINTENANCE_DEFAULT_RELEASE_MODE:-standard}"
 release_tag=""
 skip_validate="false"
 skip_gh_release="false"
+skip_live_service_update="false"
+skip_local_e2e="false"
 skip_version_bump="false"
 base_branch="${REPO_MAINTENANCE_RELEASE_BRANCH:-main}"
 review_comments_addressed="false"
@@ -35,6 +37,14 @@ while [ "$#" -gt 0 ]; do
       ;;
     --skip-gh-release)
       skip_gh_release="true"
+      shift
+      ;;
+    --skip-live-service-update)
+      skip_live_service_update="true"
+      shift
+      ;;
+    --skip-local-e2e)
+      skip_local_e2e="true"
       shift
       ;;
     --skip-version-bump)
@@ -64,7 +74,7 @@ while [ "$#" -gt 0 ]; do
     -h|--help)
       cat <<'USAGE'
 Usage:
-  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-version-bump] [--skip-gh-release] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
+  release.sh --mode standard --version <vX.Y.Z> [--base-branch main] [--skip-validate] [--skip-local-e2e] [--skip-version-bump] [--skip-gh-release] [--skip-live-service-update] [--review-comments-addressed] [--remote-ci-mode full|defer] [--skip-branch-cleanup] [--dry-run]
   release.sh --mode submodule --version <vX.Y.Z> [--skip-validate] [--skip-gh-release] [--dry-run]
 USAGE
       exit 0
@@ -80,6 +90,8 @@ done
 export REPO_MAINTENANCE_RELEASE_MODE="$mode"
 export RELEASE_TAG="$release_tag"
 export REPO_MAINTENANCE_SKIP_GH_RELEASE="$skip_gh_release"
+export REPO_MAINTENANCE_SKIP_LIVE_SERVICE_UPDATE="$skip_live_service_update"
+export REPO_MAINTENANCE_SKIP_LOCAL_E2E="$skip_local_e2e"
 export REPO_MAINTENANCE_DRY_RUN="$dry_run"
 export REPO_MAINTENANCE_REMOTE_CI_MODE="$remote_ci_mode"
 
@@ -123,6 +135,32 @@ ensure_branch_release_context() {
   printf '%s\n' "$branch_name"
 }
 
+base_branch_worktree() {
+  base_worktree="$(
+    git -C "$REPO_ROOT" worktree list --porcelain | awk -v "branch=refs/heads/$base_branch" '
+      /^worktree / { worktree = substr($0, 10) }
+      /^branch / && substr($0, 8) == branch { print worktree; exit }
+    '
+  )"
+
+  [ -n "$base_worktree" ] || die "Standard release mode needs a local worktree that owns $base_branch so it can fast-forward, tag, and update the live service from the reviewed base branch. Create or restore that $base_branch checkout, then rerun release.sh."
+  printf '%s\n' "$base_worktree"
+}
+
+run_local_e2e_gate() {
+  if [ "$skip_local_e2e" = "true" ]; then
+    log "Skipping local live E2E because --skip-local-e2e was requested."
+    return 0
+  fi
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would run the local live E2E gate with $SELF_DIR/validate-local-e2e.sh."
+    return 0
+  fi
+
+  sh "$SELF_DIR/validate-local-e2e.sh"
+}
+
 run_version_bump() {
   release_version="${RELEASE_TAG#v}"
   version_bump_script="$SELF_DIR/version-bump.sh"
@@ -154,26 +192,6 @@ run_version_bump() {
   git -C "$REPO_ROOT" add -A
   git -C "$REPO_ROOT" commit -m "release: bump versions for $RELEASE_TAG"
   log "Committed version bump for $RELEASE_TAG."
-}
-
-create_release_tag() {
-  head_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-  tag_sha="$(git -C "$REPO_ROOT" rev-parse -q --verify "refs/tags/$RELEASE_TAG" 2>/dev/null || true)"
-
-  if [ -n "$tag_sha" ]; then
-    tag_commit_sha="$(git -C "$REPO_ROOT" rev-list -n 1 "$RELEASE_TAG")"
-    [ "$tag_commit_sha" = "$head_sha" ] || die "Tag $RELEASE_TAG already exists and does not point at HEAD."
-    log "Tag $RELEASE_TAG already points at HEAD."
-    return 0
-  fi
-
-  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would create annotated tag $RELEASE_TAG at HEAD."
-    return 0
-  fi
-
-  git -C "$REPO_ROOT" tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
-  log "Created annotated tag $RELEASE_TAG."
 }
 
 push_release_branch() {
@@ -279,6 +297,12 @@ defer_remote_ci_if_requested() {
 
 wait_for_initial_pr_checks() {
   pr_number="$1"
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would wait for GitHub to report initial checks on PR #$pr_number."
+    return 0
+  fi
+
   timeout_seconds="$(github_wait_timeout "${REPO_MAINTENANCE_INITIAL_CHECK_TIMEOUT_SECONDS:-}")"
   poll_seconds="$(github_wait_poll_seconds "${REPO_MAINTENANCE_INITIAL_CHECK_POLL_SECONDS:-}")"
   elapsed_seconds="0"
@@ -372,23 +396,63 @@ merge_pr() {
     return 0
   fi
 
-  gh pr merge "$pr_number" --merge --delete-branch
+  gh pr merge "$pr_number" --merge
   log "Merged PR #$pr_number into $base_branch."
 }
 
 fast_forward_base_branch() {
+  base_worktree="$1"
+
   if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would fast-forward local $base_branch from origin/$base_branch."
+    log "Would fast-forward $base_branch worktree at $base_worktree from origin/$base_branch."
     return 0
   fi
 
-  git -C "$REPO_ROOT" fetch origin "$base_branch"
-  if git -C "$REPO_ROOT" switch "$base_branch" 2>/dev/null || git -C "$REPO_ROOT" checkout "$base_branch" 2>/dev/null; then
-    git -C "$REPO_ROOT" pull --ff-only origin "$base_branch"
-    log "Fast-forwarded local $base_branch."
-  else
-    die "Could not check out local $base_branch, likely because another worktree owns it. Fast-forward $base_branch from origin/$base_branch in that checkout, then rerun release.sh so the release tag is created from the reviewed base branch."
+  git -C "$base_worktree" fetch origin "$base_branch"
+  git -C "$base_worktree" merge --ff-only "origin/$base_branch"
+  log "Fast-forwarded $base_branch worktree at $base_worktree."
+}
+
+create_release_tag() {
+  release_worktree="$1"
+  head_sha="$(git -C "$release_worktree" rev-parse HEAD)"
+  tag_sha="$(git -C "$release_worktree" rev-parse -q --verify "refs/tags/$RELEASE_TAG" 2>/dev/null || true)"
+
+  if [ -n "$tag_sha" ]; then
+    tag_commit_sha="$(git -C "$release_worktree" rev-list -n 1 "$RELEASE_TAG")"
+    [ "$tag_commit_sha" = "$head_sha" ] || die "Tag $RELEASE_TAG already exists and does not point at reviewed $base_branch."
+    log "Tag $RELEASE_TAG already points at reviewed $base_branch."
+    return 0
   fi
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would create annotated tag $RELEASE_TAG at reviewed $base_branch in $release_worktree."
+    return 0
+  fi
+
+  git -C "$release_worktree" tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
+  log "Created annotated tag $RELEASE_TAG from reviewed $base_branch."
+}
+
+update_live_service() {
+  base_worktree="$1"
+
+  if [ "$skip_live_service_update" = "true" ]; then
+    log "Skipping live service update because --skip-live-service-update was requested."
+    return 0
+  fi
+
+  if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
+    log "Would promote the LaunchAgent-backed live service and healthcheck HTTP plus MCP from $base_worktree."
+    return 0
+  fi
+
+  (
+    cd "$base_worktree"
+    xcrun swift run SpeakSwiftlyServerTool launch-agent promote-live
+    xcrun swift run SpeakSwiftlyServerTool healthcheck
+  )
+  log "Updated and healthchecked the LaunchAgent-backed live service from reviewed $base_branch."
 }
 
 create_github_release() {
@@ -426,10 +490,13 @@ cleanup_merged_branches() {
   fi
 
   if [ "$REPO_MAINTENANCE_DRY_RUN" = "true" ]; then
-    log "Would prune origin and delete local branches already merged into $base_branch, including $release_branch_name when safe."
+    log "Would delete merged remote branch $release_branch_name, prune origin, and delete local branches already merged into $base_branch when safe."
     return 0
   fi
 
+  if git -C "$REPO_ROOT" ls-remote --exit-code --heads origin "$release_branch_name" >/dev/null 2>&1; then
+    git -C "$REPO_ROOT" push origin --delete "$release_branch_name" || warn "Could not delete merged remote branch $release_branch_name; remove it after checking the release handoff."
+  fi
   git -C "$REPO_ROOT" remote prune origin
   for merged_branch in $(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' --merged "$base_branch" refs/heads); do
     case "$merged_branch" in
@@ -449,11 +516,13 @@ run_standard_release() {
   ensure_semver_tag
   ensure_remote_ci_mode
   branch_name="$(ensure_branch_release_context)"
+  base_worktree="$(base_branch_worktree)"
   ensure_clean_worktree
 
   if [ "$skip_validate" != "true" ]; then
     sh "$SELF_DIR/validate-all.sh"
   fi
+  run_local_e2e_gate
 
   run_version_bump
   ensure_clean_worktree
@@ -468,10 +537,11 @@ run_standard_release() {
   watch_ci "$pr_number"
   check_pr_comments "$pr_number"
   merge_pr "$pr_number"
-  fast_forward_base_branch
-  create_release_tag
+  fast_forward_base_branch "$base_worktree"
+  create_release_tag "$base_worktree"
   push_release_tag
   create_github_release
+  update_live_service "$base_worktree"
   cleanup_merged_branches "$branch_name"
   log "Standard release flow completed successfully for $RELEASE_TAG."
 }

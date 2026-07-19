@@ -277,7 +277,7 @@ Use the repo-maintenance release entrypoint intentionally:
 scripts/repo-maintenance/release.sh --mode standard --version vX.Y.Z
 ```
 
-Run standard mode from a feature branch or worktree. It validates the checkout, creates the annotated tag, pushes the branch and tag, opens or updates the release PR, watches CI, checks review state, merges the PR, fast-forwards local `main`, creates the GitHub release, and cleans up merged branches when safe.
+Run standard mode from a feature branch or worktree while keeping a separate local checkout on `main`. The release worktree owns the candidate and PR; after merge, the script fast-forwards the `main` checkout, creates the tag from that reviewed commit, publishes the GitHub release, promotes the local service, and cleans up merged branches when safe.
 
 The release flow runs `scripts/repo-maintenance/version-bump.sh` before tagging so version-bearing repo surfaces move with the release. After the release PR is merged, local `main` is fast-forwarded, the annotated tag is pushed, and the GitHub release exists, the standard flow refreshes the LaunchAgent-backed live service from the synced `main` checkout and runs the HTTP plus MCP healthcheck. Use `--skip-live-service-update` only when this machine should not be touched by that release.
 
