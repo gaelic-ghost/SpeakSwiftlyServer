@@ -26,6 +26,8 @@ Listen to the short Speak Swiftly Codex plugin promo:
 
 `SpeakSwiftlyServer` is actively maintained and supported by Gale.
 
+Redesigning this for improved performance in the future. Frankly, the neural TTS niche continues moving so fast that it doesn't make sense for me to do the full rework this needs until the dust settles. Eventually, though. Probably once OS 27 and Core AI hit stable and I can be maximally efficient with my time investments.
+
 ### What This Project Is
 
 SpeakSwiftlyServer (*Speak Swiftly*) is a high-quality, local-first speech runtime built for macOS. Custom voices, batch jobs, easy integrations, and more.
